@@ -23,10 +23,17 @@ export const authController = {
 
       if (user.role === 'agent') {
         const officeAccess = ensureOfficeAccess(req);
+        console.log('🔍 Agent login attempt:', {
+          email: user.email,
+          clientIp: officeAccess.clientIp,
+          allowed: officeAccess.allowed,
+          allowedIps: officeAccess.allowedIps
+        });
         if (!officeAccess.allowed) {
           return res.status(403).json({
-            message: 'Agent login is restricted to office systems only',
-            clientIp: officeAccess.clientIp
+            message: `Agent login is restricted to office systems only. Your IP: ${officeAccess.clientIp}. Allowed IPs: ${officeAccess.allowedIps.join(', ')}`,
+            clientIp: officeAccess.clientIp,
+            allowedIps: officeAccess.allowedIps
           });
         }
       }
