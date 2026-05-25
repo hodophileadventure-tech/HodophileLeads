@@ -24,32 +24,56 @@ COPY frontend/src ./src
 COPY frontend/public ./public
 ENV VITE_API_BASE_URL=/api
 RUN npm run build
+RUN ls -la /build/frontend/dist/
 
-# Stage 3: Runtime - Nginx + Backend
-FROM nginx:1.27-alpine
+# Stage 3: Combine both (Node serves frontend, proxies backend via separate port)
+FROM node:20-alpine
+RUN apk add --no-cache nginx
 
-# Install Node.js on top of nginx image
-RUN apk add --no-cache nodejs npm
+WORKDIR /app
 
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
+# Copy backend
+COPY backend/package*.json ./backend/
+RUN cd backend && npm install --omit=dev
+COPY --from=backend-build /build/backend/dist ./backend/dist
+COPY backend/scripts ./backend/scripts
 
-# Copy nginx config
-COPY nginx-prod.conf /etc/nginx/conf.d/default.conf
+# Copy frontend
+COPY --from=frontend-build /build/frontend/dist ./backend/public
 
-# Verify config is valid
-RUN nginx -t
+# Setup nginx to serve frontend and proxy API
+RUN mkdir -p /etc/nginx/conf.d && rm -f /etc/nginx/conf.d/default.conf
 
-# Copy frontend build
-COPY --from=frontend-build /build/frontend/dist /usr/share/nginx/html
+RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
+server {
+  listen 80;
+  server_name _;
 
-# Setup backend
-RUN mkdir -p /app/backend
-WORKDIR /app/backend
-COPY backend/package*.json ./
-RUN npm install --omit=dev
-COPY --from=backend-build /build/backend/dist ./dist
-COPY backend/scripts ./scripts
+  root /app/backend/public;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api/ {
+    proxy_pass http://127.0.0.1:5000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  location /health {
+    proxy_pass http://127.0.0.1:5000;
+  }
+
+  location /uploads/ {
+    proxy_pass http://127.0.0.1:5000;
+  }
+}
+EOF
 
 ENV NODE_ENV=production
 ENV PORT=5000
@@ -58,7 +82,6 @@ ENV PORT=5000
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-WORKDIR /app
 EXPOSE 80
 
 CMD ["/app/start.sh"]
