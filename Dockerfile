@@ -34,48 +34,11 @@ RUN apk add --no-cache nodejs npm
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Create proper nginx config file
-RUN cat > /etc/nginx/conf.d/default.conf << 'NGINX_EOF'
-server {
-    listen 80;
-    server_name _;
-    client_max_body_size 10M;
+# Copy nginx config
+COPY nginx-prod.conf /etc/nginx/conf.d/default.conf
 
-    # Frontend static files
-    location ~ ^/(assets|public)/ {
-        root /usr/share/nginx/html;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # Serve index.html for SPA
-    location / {
-        root /usr/share/nginx/html;
-        index index.html index.htm;
-        try_files $uri /index.html;
-    }
-
-    # Backend API
-    location /api/ {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Health check
-    location /health {
-        proxy_pass http://localhost:5000;
-    }
-
-    # Uploads
-    location /uploads/ {
-        proxy_pass http://localhost:5000;
-    }
-}
-NGINX_EOF
+# Verify config is valid
+RUN nginx -t
 
 # Copy frontend build
 COPY --from=frontend-build /build/frontend/dist /usr/share/nginx/html
