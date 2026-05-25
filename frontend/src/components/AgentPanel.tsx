@@ -1,0 +1,445 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { leadsAPI, followUpsAPI, attachmentsAPI } from '../utils/api-service';
+import { LeadForm } from './LeadForm';
+import ConfirmedLeadForm from './ConfirmedLeadForm';
+import { Badge, Button } from './common';
+import type { Lead, FollowUp } from '../types';
+import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
+
+const normalizeFollowUp = (item: any): FollowUp => ({
+  id: String(item.id),
+  leadId: String(item.leadId || item.lead_id || ''),
+  type: item.type || item.reminder_type || 'manual',
+  reminderType: item.reminderType || item.reminder_type,
+  title: item.title || item.task_type || 'Follow up',
+  description: item.description || item.notes || '',
+  dueDate: item.dueDate || item.due_date || new Date().toISOString(),
+  status: item.status || item.task_status || 'upcoming',
+  priority: item.priority || 'medium',
+  assignedTo: String(item.assignedTo || item.assigned_to || ''),
+  whatsappNumber: item.whatsappNumber || item.whatsapp_number,
+  whatsappLink: item.whatsappLink || item.whatsapp_link,
+  completedAt: item.completedAt || item.completed_at,
+  createdAt: item.createdAt || item.created_at || new Date().toISOString()
+});
+
+const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
+
+const readDismissedFollowUps = (): Record<string, number> => {
+  try {
+    const raw = localStorage.getItem(DISMISSED_FOLLOW_UPS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeDismissedFollowUps = (items: Record<string, number>) => {
+  try {
+    localStorage.setItem(DISMISSED_FOLLOW_UPS_KEY, JSON.stringify(items));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+export const AgentPanel: React.FC = () => {
+  const { user } = useAuth();
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
+  const [showConfirmForm, setShowConfirmForm] = useState(false);
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
+  const [followUpLead, setFollowUpLead] = useState<Lead | null>(null);
+  const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
+  const [followUpDateTime, setFollowUpDateTime] = useState('');
+  const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
+  const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
+  const [searchPhone, setSearchPhone] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed'>('all');
+  const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopAlarmAudio = () => {
+    try {
+      alarmAudioRef.current?.pause();
+      if (alarmAudioRef.current) alarmAudioRef.current.currentTime = 0;
+    } catch {
+      // ignore audio cleanup errors
+    }
+  };
+
+  const dismissFollowUp = (item: FollowUp | null) => {
+    if (!item) return;
+    const dueAt = new Date(item.dueDate).getTime();
+    const next = { ...readDismissedFollowUps(), [item.id]: Number.isFinite(dueAt) ? dueAt : Date.now() + 60 * 60 * 1000 };
+    setDismissedFollowUps(next);
+    writeDismissedFollowUps(next);
+    stopAlarmAudio();
+    setActiveAlarm(null);
+  };
+
+  const completeActiveFollowUp = async (item: FollowUp | null) => {
+    if (!item) return;
+    try {
+      stopAlarmAudio();
+      await followUpsAPI.complete(item.id);
+      const next = { ...readDismissedFollowUps(), [item.id]: Date.now() + 24 * 60 * 60 * 1000 };
+      setDismissedFollowUps(next);
+      writeDismissedFollowUps(next);
+      setActiveAlarm(null);
+      window.dispatchEvent(new Event('followups-updated'));
+    } catch (error) {
+      console.error('Failed to complete follow-up:', error);
+      alert('Failed to mark follow-up complete.');
+    }
+  };
+
+  const loadLeads = async () => {
+    try {
+      const res = await leadsAPI.list();
+      setLeads(res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    loadLeads();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const checkFollowUps = async () => {
+      try {
+        const response = await followUpsAPI.list();
+        if (!mounted) return;
+        const now = Date.now();
+        const oneHourMs = 60 * 60 * 1000;
+        const soonest = (response.data || [])
+          .map(normalizeFollowUp)
+          .filter((item) => item.status !== 'completed')
+          .filter((item) => (dismissedFollowUps[item.id] || 0) < Date.now())
+          .filter((item) => {
+            const dueAt = new Date(item.dueDate).getTime();
+            return dueAt > now && dueAt - now <= oneHourMs;
+          })
+          .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
+
+        if (soonest && (!activeAlarm || activeAlarm.id !== soonest.id)) {
+          setActiveAlarm(soonest);
+        }
+        if (!soonest && activeAlarm) {
+          setActiveAlarm(null);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    void checkFollowUps();
+    const id = window.setInterval(() => { void checkFollowUps(); }, 30000);
+    return () => {
+      mounted = false;
+      window.clearInterval(id);
+    };
+  }, [activeAlarm, dismissedFollowUps]);
+
+  useEffect(() => {
+    if (!activeAlarm) {
+      stopAlarmAudio();
+      return;
+    }
+
+    if (!alarmAudioRef.current) {
+      alarmAudioRef.current = new Audio('/followup-alarm.wav');
+      alarmAudioRef.current.loop = true;
+      alarmAudioRef.current.volume = 1;
+    }
+
+    void alarmAudioRef.current.play().catch(() => {});
+
+    return () => {
+      stopAlarmAudio();
+    };
+  }, [activeAlarm]);
+
+  const handleNewLead = (lead: Lead) => {
+    setLeads((prev) => [lead, ...prev]);
+  };
+
+  const handleSearchPhone = async () => {
+    if (!searchPhone) return;
+    try {
+      const res: any = await (leadsAPI as any).searchByPhone(searchPhone);
+      const results: Lead[] = res.data || [];
+      if (results.length > 0) {
+        // open LeadForm prefilled with first profile info
+        setSelectedLead(results[0]);
+        // open modal via LeadForm by rendering it with initialData
+      } else {
+        // open empty LeadForm with phone prefilled
+        setSelectedLead({ phone: searchPhone } as any);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const openConfirm = (lead: Lead) => {
+    setSelectedLead(lead);
+    setShowConfirmForm(true);
+  };
+
+  const openFollowUp = (lead: Lead) => {
+    setFollowUpLead(lead);
+    setFollowUpTitle(`Follow up with ${lead.clientName || 'client'}`);
+    const defaultDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    setFollowUpDateTime(getKarachiLocalDateTimeString(defaultDate));
+    setShowFollowUpModal(true);
+  };
+
+  const handleConfirmedSaved = (updated: Lead) => {
+    setLeads((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+    setShowConfirmForm(false);
+  };
+
+  const filteredLeads = leads.filter((lead) => {
+    if (activeFilter === 'all') return true;
+    return getLeadLifecycleState(lead) === activeFilter;
+  });
+
+  const counts = {
+    all: leads.length,
+    potential: leads.filter((lead) => getLeadLifecycleState(lead) === 'potential').length,
+    in_progress: leads.filter((lead) => getLeadLifecycleState(lead) === 'in_progress').length,
+    dead: leads.filter((lead) => getLeadLifecycleState(lead) === 'dead').length,
+    confirmed: leads.filter((lead) => getLeadLifecycleState(lead) === 'confirmed').length
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <input className="input-field flex-1" placeholder="Search phone or enter to create" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} />
+        <Button onClick={handleSearchPhone}>Search</Button>
+        <LeadForm onSuccess={handleNewLead} initialData={selectedLead || undefined} />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {[
+          { key: 'all', label: `All (${counts.all})`, color: 'bg-slate-200 dark:bg-slate-700' },
+          { key: 'potential', label: `Potential (${counts.potential})`, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+          { key: 'in_progress', label: `In Progress (${counts.in_progress})`, color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
+          { key: 'dead', label: `Dead (${counts.dead})`, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200' },
+          { key: 'confirmed', label: `Confirmed (${counts.confirmed})`, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' }
+        ].map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setActiveFilter(item.key as typeof activeFilter)}
+            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${activeFilter === item.key ? item.color : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {filteredLeads.map((lead) => {
+          const lifecycle = getLeadLifecycleStyle(lead);
+          return (
+            <div
+              key={lead.id}
+              className={`p-3 border rounded flex items-center justify-between ${lifecycle.row}`}
+            >
+              <div>
+                <div className="font-semibold flex items-center gap-2">
+                  <span>{lead.clientName || 'Unnamed'}</span>
+                  <Badge color={lifecycle.badge}>{lifecycle.label}</Badge>
+                </div>
+                <div className="text-sm text-slate-500">{lead.phone} • {lead.destination}</div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => setSelectedLead(lead)}>Edit</Button>
+                <Button variant="secondary" onClick={async () => {
+                    try {
+                      const res = await attachmentsAPI.listByLead(String(lead.id));
+                      setAttachments(res.data.attachments || []);
+                      setShowAttachmentsModal(true);
+                    } catch (err) {
+                      console.error('Failed to load attachments', err);
+                      alert('Failed to load attachments');
+                    }
+                  }}>Attachments</Button>
+                <Button variant="secondary" onClick={() => openFollowUp(lead)}>Schedule Follow Up</Button>
+                {lifecycle.state !== 'confirmed' && (
+                  <Button variant="primary" onClick={() => openConfirm(lead)}>Confirm</Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {selectedLead && !showConfirmForm && (
+        <LeadForm initialData={selectedLead as Partial<Lead>} onSuccess={() => {
+          // refresh
+          loadLeads();
+          setSelectedLead(null);
+        }} />
+      )}
+
+      {selectedLead && showConfirmForm && (
+        <ConfirmedLeadForm lead={selectedLead as Lead} isOpen={showConfirmForm} onClose={() => setShowConfirmForm(false)} onSaved={handleConfirmedSaved} />
+      )}
+
+      {showFollowUpModal && followUpLead && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-1">Schedule Follow Up</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Set the reminder date and time for {followUpLead.clientName}.</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Title</label>
+                <input
+                  className="input-field"
+                  value={followUpTitle}
+                  onChange={(e) => setFollowUpTitle(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Date and Time</label>
+                <input
+                  type="datetime-local"
+                  className="input-field"
+                  value={followUpDateTime}
+                  onChange={(e) => setFollowUpDateTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setShowFollowUpModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={async () => {
+                  if (!followUpTitle.trim()) {
+                    alert('Please enter a follow-up title.');
+                    return;
+                  }
+                  if (!followUpDateTime) {
+                    alert('Please choose a follow-up date and time.');
+                    return;
+                  }
+
+                  try {
+                    const response = await followUpsAPI.create({
+                      leadId: String(followUpLead.id),
+                      title: followUpTitle.trim(),
+                      dueDate: parseKarachiDateTimeToISOString(followUpDateTime),
+                      assignedTo: user?.id ?? '',
+                      type: 'manual',
+                      priority: 'high'
+                    });
+                    setShowFollowUpModal(false);
+                    setFollowUpLead(null);
+                    const created = normalizeFollowUp(response.data);
+                    if (new Date(created.dueDate).getTime() - Date.now() <= 60 * 60 * 1000) {
+                      setActiveAlarm(created);
+                    }
+                    window.dispatchEvent(new CustomEvent('followup-due', { detail: created }));
+                    window.dispatchEvent(new Event('followups-updated'));
+                  } catch (err) {
+                    console.error(err);
+                    alert('Failed to schedule follow up.');
+                  }
+                }}
+              >
+                Save Follow Up
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAttachmentsModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold">Attachments</h3>
+              <div>
+                <Button variant="secondary" onClick={() => setShowAttachmentsModal(false)}>Close</Button>
+              </div>
+            </div>
+            <div className="mt-4 space-y-3">
+              {attachments.length === 0 && <div className="text-sm text-slate-500">No attachments found.</div>}
+              {attachments.map((a) => {
+                const url = `${window.location.origin}${a.url}`;
+                const isImage = a.mime_type?.startsWith('image/');
+                const isPdf = a.mime_type === 'application/pdf';
+                return (
+                  <div key={a.id} className="flex items-center justify-between border rounded p-3">
+                    <div className="flex items-center gap-3">
+                      {isImage && <img src={url} alt={a.file_name} className="h-12 w-16 object-cover rounded" />}
+                      <div>
+                        <div className="font-medium">{a.file_name}</div>
+                        <div className="text-sm text-slate-500">{(a.size || 0)} bytes • {a.mime_type}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={url} target="_blank" rel="noreferrer" className="btn">Preview</a>
+                      <a href={url} download={a.file_name} className="btn">Download</a>
+                      <button
+                        className="btn text-red-600"
+                        onClick={async () => {
+                          if (!confirm('Delete this attachment?')) return;
+                          try {
+                            await (attachmentsAPI as any).delete(String(lead.id), a.id);
+                            setAttachments((prev) => prev.filter((x) => x.id !== a.id));
+                          } catch (err) {
+                            console.error('Failed to delete attachment', err);
+                            alert('Failed to delete attachment');
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeAlarm && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border-2 border-red-500 p-5 shadow-2xl animate-pulse">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-wide text-red-500 font-semibold">Follow Up Alert</p>
+                <h3 className="text-2xl font-bold mt-1">This lead has follow up, do follow up</h3>
+                <p className="mt-2 text-slate-600 dark:text-slate-300">{activeAlarm.title}</p>
+                <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Due at {formatKarachiDateTime(activeAlarm.dueDate)}</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button variant="primary" onClick={() => { void completeActiveFollowUp(activeAlarm); }}>
+                  Mark Complete
+                </Button>
+                <Button variant="secondary" onClick={() => dismissFollowUp(activeAlarm)}>Dismiss</Button>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-200">
+              Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AgentPanel;

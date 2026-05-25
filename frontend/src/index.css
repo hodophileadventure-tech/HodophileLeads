@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand: #FCC000;
+    --bg: #ffffff;
+    --surface: #f8fafc;
+    --muted: #6b7280;
+    --text: #0f1724;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 text-black rounded-lg transition-all font-semibold shadow-md;
+    background: #FCC000;
+    background-image: linear-gradient(180deg, #FFD34D 0%, #FCC000 100%);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 24px rgba(252,192,0,0.14);
+    animation: fadeInUp 360ms ease both;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-transparent border border-[rgba(15,23,36,0.06)] text-[var(--text)] rounded-lg hover:bg-[rgba(15,23,36,0.03)] transition-all;
+  }
+  
+  .card {
+    @apply bg-[var(--surface)] rounded-lg shadow-sm p-6 border border-[rgba(15,23,36,0.04)];
+    transform: translateY(0);
+    transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms, opacity 220ms;
+    animation: fadeInUp 420ms cubic-bezier(.2,.9,.3,1) both;
+  }
+
+  /* Improve contrast for stat tiles that use bg-*-100 classes */
+  .card[class*="bg-"] {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .card[class*="bg-"] p.text-sm {
+    color: rgba(15,23,36,0.75) !important;
+    font-weight: 600;
+  }
+
+  .card[class*="bg-"] p.text-3xl {
+    color: rgba(15,23,36,0.95) !important;
+    font-weight: 800;
+    font-size: 1.9rem;
+  }
+
+  /* Ensure headings and important text are fully readable */
+  h1, h2, h3, h4, h5 {
+    color: var(--text) !important;
+    line-height: 1.05;
+  }
+
+  p, span, li, a, label {
+    color: rgba(15,23,36,0.9);
+  }
+
+  .card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 10px 30px rgba(15,23,36,0.12), 0 6px 18px rgba(252,192,0,0.06);
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-2 border border-[rgba(15,23,36,0.08)] rounded-lg bg-white text-[var(--text)] focus:outline-none;
+    transition: box-shadow 180ms, transform 120ms;
+  }
+
+  .input-field:focus {
+    box-shadow: 0 0 0 6px rgba(252,192,0,0.12);
+    transform: translateY(-1px);
+  }
+
+  /* Animations */
+  @keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-glow {
+    box-shadow: 0 0 28px rgba(252,192,0,0.08);
+    animation: float 6s ease-in-out infinite, fadeInUp 600ms ease both;
+  }
+
+  /* Force light appearance even if a 'dark' class exists elsewhere */
+  /* These overrides are intentionally high-specificity to undo accidental dark-mode styles */
+  html, body, #root, .app {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+  }
+
+  body .text-white, .dark .text-white {
+    color: var(--text) !important;
+  }
+
+  /* Replace very dark background utility classes with light surface */
+  .bg-black, .bg-slate-900, .bg-neutral-900,
+  .dark .bg-black, .dark .bg-slate-900, .dark .bg-neutral-900 {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+  }
+
+  /* Make primary UI containers readable */
+  .card, .panel, .sidebar, .navbar, header, .quick-actions {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: rgba(15,23,36,0.06) !important;
+  }
+
+  /* Ensure buttons and accents remain visible */
+  .btn-primary {
+    color: #0b0b0b !important;
+    background: linear-gradient(180deg,#FFD34D 0%, #FCC000 100%) !important;
+  }
+
+  /* Reduce overpowering shadows from previous dark theme */
+  .card, .panel { box-shadow: 0 8px 24px rgba(15,23,36,0.06) !important; }
+
+  /* Brand header and sidebar styles */
+  .brand-header {
+    background: var(--brand) !important;
+    color: #000000 !important;
+    border-color: rgba(0,0,0,0.06) !important;
+  }
+
+  .brand-header .text-primary-500 { color: #000000 !important; }
+  .brand-header button, .brand-header a { color: #000000 !important; }
+
+  .brand-sidebar {
+    background: var(--brand) !important;
+    color: #000000 !important;
+    border-right-color: rgba(0,0,0,0.06) !important;
+  }
+
+  .brand-sidebar .nav-item-active {
+    background: rgba(0,0,0,0.06) !important;
+    color: #000000 !important;
+    font-weight: 700;
+  }
+
+  /* Sidebar button styles: buttons use brand, container remains light */
+  .nav-btn {
+    background: transparent !important;
+    color: #0b0b0b !important;
+    padding: 0.6rem 1rem !important;
+    border-radius: 8px !important;
+    display: block !important;
+    text-align: left !important;
+    transition: background 180ms, color 180ms;
+  }
+
+  .nav-btn:hover {
+    background: rgba(15,23,36,0.03) !important;
+  }
+
+  .nav-item-active {
+    background: var(--brand) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 20px rgba(252,192,0,0.12) !important;
+  }
+
+  /* ensure primary accent used for small accents */
+  .accent {
+    color: #FCC000;
+  }
+
+  /* pulsing brand highlight for key CTA */
+  .pulse-brand {
+    position: relative;
+  }
+  .pulse-brand::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(252,192,0,0.12);
+    opacity: 0;
+    transition: opacity 300ms;
+  }
+  .pulse-brand:hover::after { opacity: 1; }
+}

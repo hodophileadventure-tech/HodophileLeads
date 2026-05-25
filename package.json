@@ -1,0 +1,28 @@
+{
+  "name": "tripnexus",
+  "version": "1.0.0",
+  "description": "Travel Agency Lead Management System",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend & npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend & npm run build --workspace=backend",
+    "test": "npm run test --workspace=frontend & npm run test --workspace=backend",
+    "db:setup": "cd database && node scripts/seed.js",
+    "db:migrate": "cd database && node scripts/migrate.js"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "keywords": [
+    "travel",
+    "lead-management",
+    "booking",
+    "crm"
+  ],
+  "author": "TRIPNEXUS Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

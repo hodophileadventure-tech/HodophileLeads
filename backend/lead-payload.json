@@ -1,0 +1,1 @@
+{ "clientName": "Upload Test", "phone": "9999999999", "email": "test@example.com", "destination": "Test City", "travelDates": { "from": "2026-06-01", "to": "2026-06-05" }, "persons": 2 }

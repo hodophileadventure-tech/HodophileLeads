@@ -1,0 +1,887 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useUIStore, useDataStore } from '../context/store';
+import { leadsAPI, followUpsAPI } from '../utils/api-service';
+import { Navbar } from '../components/Navbar';
+import { Sidebar } from '../components/Sidebar';
+import { Dashboard } from '../components/Dashboard';
+import AgentPanel from '../components/AgentPanel';
+import { TaskDashboard } from '../components/TaskDashboard';
+import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
+import { LeadList } from '../components/LeadCard';
+import { KanbanPipeline } from '../components/KanbanPipeline';
+import { LeadForm } from '../components/LeadForm';
+import PaymentsPanel from '../components/PaymentsPanel';
+import { Badge, Button, Spinner } from '../components/common';
+import type { Lead, FollowUp } from '../types';
+import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
+
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent';
+
+const normalizeFollowUp = (item: any): FollowUp => ({
+  id: String(item.id),
+  leadId: String(item.leadId || item.lead_id || ''),
+  type: item.type || item.reminder_type || 'manual',
+  reminderType: item.reminderType || item.reminder_type,
+  title: item.title || item.task_type || 'Follow up',
+  description: item.description || item.notes || '',
+  dueDate: item.dueDate || item.due_date || new Date().toISOString(),
+  status: item.status || item.task_status || 'upcoming',
+  priority: item.priority || 'medium',
+  assignedTo: String(item.assignedTo || item.assigned_to || ''),
+  whatsappNumber: item.whatsappNumber || item.whatsapp_number,
+  whatsappLink: item.whatsappLink || item.whatsapp_link,
+  completedAt: item.completedAt || item.completed_at,
+  createdAt: item.createdAt || item.created_at || new Date().toISOString()
+});
+
+const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
+
+const readDismissedFollowUps = (): Record<string, number> => {
+  try {
+    const raw = localStorage.getItem(DISMISSED_FOLLOW_UPS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeDismissedFollowUps = (items: Record<string, number>) => {
+  try {
+    localStorage.setItem(DISMISSED_FOLLOW_UPS_KEY, JSON.stringify(items));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+export const App: React.FC = () => {
+  const { user } = useAuth();
+  const { darkMode } = useUIStore();
+  const { leads, followUps, setLeads, setFollowUps } = useDataStore();
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [loading, setLoading] = useState(true);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [leadView, setLeadView] = useState<'list' | 'kanban'>('kanban');
+  const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
+  const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
+  const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
+  const [followUpDateTime, setFollowUpDateTime] = useState('');
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionRemarks, setCompletionRemarks] = useState('');
+  const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
+  const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
+  const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
+  const alarmAudioContextRef = useRef<AudioContext | null>(null);
+  const audioUnlockedRef = useRef(false);
+
+  const selectedLeadFollowUps = useMemo(() => {
+    if (!selectedLead) return [];
+    return followUps
+      .filter((item) => item.leadId === String(selectedLead.id) && item.status !== 'completed')
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }, [followUps, selectedLead]);
+
+  const nextPendingFollowUp = useMemo(() => selectedLeadFollowUps[0] || null, [selectedLeadFollowUps]);
+
+  const stopAlarmAudio = () => {
+    try {
+      alarmAudioRef.current?.pause();
+      if (alarmAudioRef.current) alarmAudioRef.current.currentTime = 0;
+    } catch {
+      // ignore audio cleanup errors
+    }
+  };
+
+  const playBuzzerFallback = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      if (!alarmAudioContextRef.current) {
+        alarmAudioContextRef.current = new AudioContextClass();
+      }
+
+      const context = alarmAudioContextRef.current;
+      if (context.state === 'suspended') {
+        void context.resume();
+      }
+
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      oscillator.type = 'square';
+      oscillator.frequency.value = 880;
+      gainNode.gain.value = 0.0001;
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+
+      const now = context.currentTime;
+      gainNode.gain.setValueAtTime(0.0001, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+      oscillator.start(now);
+      oscillator.stop(now + 0.36);
+    } catch (error) {
+      console.warn('Alarm fallback buzzer failed', error);
+    }
+  };
+
+  const primeAlarmAudio = () => {
+    if (audioUnlockedRef.current) return;
+    audioUnlockedRef.current = true;
+
+    try {
+      if (!alarmAudioRef.current) {
+        alarmAudioRef.current = new Audio('/followup-alarm.wav');
+        alarmAudioRef.current.loop = true;
+        alarmAudioRef.current.volume = 1;
+        alarmAudioRef.current.preload = 'auto';
+        alarmAudioRef.current.load();
+      }
+
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass && !alarmAudioContextRef.current) {
+        alarmAudioContextRef.current = new AudioContextClass();
+      }
+      void alarmAudioContextRef.current?.resume();
+    } catch (error) {
+      console.warn('Alarm audio prime failed', error);
+    }
+  };
+
+  const dismissFollowUp = (item: FollowUp | null) => {
+    if (!item) return;
+    const dueAt = new Date(item.dueDate).getTime();
+    const next = { ...readDismissedFollowUps(), [item.id]: Number.isFinite(dueAt) ? dueAt : Date.now() + 60 * 60 * 1000 };
+    setDismissedFollowUps(next);
+    writeDismissedFollowUps(next);
+    stopAlarmAudio();
+    setActiveAlarm(null);
+  };
+
+  const completeActiveFollowUp = async (item: FollowUp | null) => {
+    if (!item) return;
+    try {
+      stopAlarmAudio();
+      await followUpsAPI.complete(item.id);
+      const next = { ...readDismissedFollowUps(), [item.id]: Date.now() + 24 * 60 * 60 * 1000 };
+      setDismissedFollowUps(next);
+      writeDismissedFollowUps(next);
+      setActiveAlarm(null);
+      window.dispatchEvent(new Event('followups-updated'));
+    } catch (error) {
+      console.error('Failed to complete follow-up:', error);
+      alert('Failed to mark follow-up complete.');
+    }
+  };
+
+  const completeFollowUpWithRemarks = async (item: FollowUp | null, remarks: string) => {
+    if (!item) return;
+    try {
+      await followUpsAPI.update(item.id, {
+        description: remarks,
+        status: 'completed'
+      });
+      setShowCompletionModal(false);
+      setCompletionRemarks('');
+      await loadFollowUps();
+      window.dispatchEvent(new Event('followups-updated'));
+    } catch (error) {
+      console.error('Failed to complete follow-up with remarks:', error);
+      alert('Failed to mark follow-up complete.');
+    }
+  };
+
+  const openFollowUpModal = (followUp?: FollowUp) => {
+    setEditingFollowUp(followUp || null);
+    setFollowUpTitle(followUp?.title || `Follow up with ${selectedLead?.clientName || 'client'}`);
+    setFollowUpDateTime(
+      followUp?.dueDate
+        ? getKarachiLocalDateTimeString(new Date(followUp.dueDate))
+        : getKarachiLocalDateTimeString(new Date(Date.now() + 24 * 60 * 60 * 1000))
+    );
+    setShowFollowUpModal(true);
+  };
+
+  const deleteFollowUp = async (item: FollowUp) => {
+    if (!confirm('Delete this follow-up?')) return;
+    try {
+      await followUpsAPI.delete(item.id);
+      if (activeAlarm?.id === item.id) {
+        setActiveAlarm(null);
+      }
+      await loadFollowUps();
+      window.dispatchEvent(new Event('followups-updated'));
+    } catch (error) {
+      console.error('Failed to delete follow-up:', error);
+      alert('Failed to delete follow-up.');
+    }
+  };
+
+  const saveFollowUp = async () => {
+    if (!selectedLead) return;
+    if (!followUpTitle.trim()) {
+      alert('Please enter a follow-up title.');
+      return;
+    }
+    if (!followUpDateTime) {
+      alert('Please choose a follow-up date and time.');
+      return;
+    }
+
+    try {
+      if (!user) {
+        alert('Unable to save follow-up without a signed-in user.');
+        return;
+      }
+
+      const payload = {
+        title: followUpTitle.trim(),
+        dueDate: parseKarachiDateTimeToISOString(followUpDateTime)
+      } as Partial<FollowUp>;
+
+      if (editingFollowUp) {
+        await followUpsAPI.update(editingFollowUp.id, payload);
+      } else {
+        await followUpsAPI.create({
+          ...payload,
+          leadId: String(selectedLead.id),
+          assignedTo: String(user.id),
+          type: 'manual',
+          priority: 'high'
+        });
+      }
+
+      setShowFollowUpModal(false);
+      setEditingFollowUp(null);
+      await loadFollowUps();
+      window.dispatchEvent(new Event('followups-updated'));
+    } catch (error) {
+      console.error('Failed to save follow-up:', error);
+      alert('Failed to save follow-up.');
+    }
+  };
+
+  const loadFollowUps = async () => {
+    try {
+      const response = await followUpsAPI.list();
+      setFollowUps((response.data || []).map(normalizeFollowUp));
+    } catch (error) {
+      console.error('Failed to fetch follow-ups:', error);
+    }
+  };
+
+  const refreshLeads = async () => {
+    const response = await leadsAPI.list();
+    setLeads(response.data);
+    await loadFollowUps();
+  };
+
+  const moveLeadStage = async (leadId: string, stage: string) => {
+    await leadsAPI.updateStage(leadId, stage);
+    await refreshLeads();
+  };
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  useEffect(() => {
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const fetchLeads = async () => {
+      try {
+        const response = await leadsAPI.list();
+        setLeads(response.data);
+        await loadFollowUps();
+      } catch (error) {
+        console.error('Failed to fetch leads:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeads();
+  }, [user, setLeads]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let mounted = true;
+    const checkFollowUps = async () => {
+      try {
+        const response = await followUpsAPI.list();
+        if (!mounted) return;
+        const now = Date.now();
+        const oneHourMs = 60 * 60 * 1000;
+        const soonest = (response.data || [])
+          .map(normalizeFollowUp)
+          .filter((item) => item.status !== 'completed')
+          .filter((item) => (dismissedFollowUps[item.id] || 0) < Date.now())
+          .filter((item) => {
+            const dueAt = new Date(item.dueDate).getTime();
+            return dueAt > now && dueAt - now <= oneHourMs;
+          })
+          .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
+
+        if (soonest && (!activeAlarm || activeAlarm.id !== soonest.id)) {
+          setActiveAlarm(soonest);
+        }
+        if (!soonest && activeAlarm) {
+          setActiveAlarm(null);
+        }
+      } catch (error) {
+        console.error('Failed to check follow-ups for alerts:', error);
+      }
+    };
+
+    void checkFollowUps();
+    const timer = window.setInterval(() => {
+      void checkFollowUps();
+    }, 30000);
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
+  }, [activeAlarm, dismissedFollowUps, followUps, user]);
+
+  useEffect(() => {
+    const handleFollowUpsUpdated = () => {
+      void loadFollowUps();
+    };
+
+    window.addEventListener('followups-updated', handleFollowUpsUpdated);
+    return () => window.removeEventListener('followups-updated', handleFollowUpsUpdated);
+  }, []);
+
+  useEffect(() => {
+    const handleFollowupDue = (event: Event) => {
+      const customEvent = event as CustomEvent<FollowUp>;
+      const item = normalizeFollowUp(customEvent.detail);
+      if (!item) return;
+      const dueAt = new Date(item.dueDate).getTime();
+      if (Number.isNaN(dueAt)) return;
+      if ((dismissedFollowUps[item.id] || 0) >= Date.now()) return;
+      if (dueAt - Date.now() <= 60 * 60 * 1000 && item.status !== 'completed') {
+        setActiveAlarm(item);
+      }
+    };
+
+    window.addEventListener('followup-due', handleFollowupDue as EventListener);
+    return () => window.removeEventListener('followup-due', handleFollowupDue as EventListener);
+  }, [dismissedFollowUps]);
+
+  useEffect(() => {
+    const handleUnlock = () => primeAlarmAudio();
+    window.addEventListener('pointerdown', handleUnlock, { once: true });
+    window.addEventListener('keydown', handleUnlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', handleUnlock);
+      window.removeEventListener('keydown', handleUnlock);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!activeAlarm) {
+      stopAlarmAudio();
+      return;
+    }
+
+    primeAlarmAudio();
+
+    if (!alarmAudioRef.current) {
+      alarmAudioRef.current = new Audio('/followup-alarm.wav');
+      alarmAudioRef.current.loop = true;
+      alarmAudioRef.current.volume = 1;
+      alarmAudioRef.current.preload = 'auto';
+      alarmAudioRef.current.load();
+    }
+
+    void alarmAudioRef.current.play().catch((error) => {
+      console.warn('Alarm playback failed until next user interaction', error);
+      playBuzzerFallback();
+    });
+
+    return () => {
+      stopAlarmAudio();
+    };
+  }, [activeAlarm]);
+
+  const activeFollowUpLead = useMemo(() => {
+    if (!activeAlarm) return null;
+    return leads.find((lead) => String(lead.id) === String(activeAlarm.leadId)) || null;
+  }, [activeAlarm, leads]);
+
+  const navItems = [
+    { label: 'Dashboard', href: 'dashboard', icon: '📊' },
+    { label: 'Leads', href: 'leads', icon: '🧾' },
+    { label: 'Follow-ups', href: 'followups', icon: '🕒' },
+    { label: 'Agent Panel', href: 'agent', icon: '🧭' },
+    { label: 'Analytics', href: 'analytics', icon: '📈' }
+  ];
+
+  if (!user) return null;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={darkMode ? 'dark' : ''}>
+      <div className="min-h-screen bg-white dark:bg-slate-900">
+        <Navbar />
+        <div className="flex">
+          <Sidebar
+            navItems={navItems}
+            currentPath={currentPage}
+            onNavigate={(path) => {
+              // debug navigation
+              // eslint-disable-next-line no-console
+              console.log('Navigate to', path);
+              setCurrentPage(path as Page);
+            }}
+          />
+
+          {/* Main Content */}
+          <main className="flex-1 p-6 mt-16 md:mt-0 ml-0 md:ml-0 overflow-auto">
+            {currentPage === 'dashboard' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <h1 className="text-3xl font-bold">Dashboard</h1>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Your sales performance, pipeline health, and task summary all in one place.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+                  <div className="card xl:col-span-2">
+                    <Dashboard />
+                  </div>
+                  <div className="card space-y-4">
+                    <h2 className="text-xl font-semibold">Quick Actions</h2>
+                    <div className="space-y-3">
+                      <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Need to follow up soon?</p>
+                        <p className="mt-2 font-medium">Review your upcoming tasks and lead alerts.</p>
+                      </div>
+                      <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Lead board</p>
+                        <p className="mt-2 font-medium">Switch to the Leads page for pipeline management.</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {currentPage === 'leads' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+                    <div>
+                      <h1 className="text-3xl font-bold">Leads</h1>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Manage your pipeline, schedule follow-ups, and review lead details in dedicated sections.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={leadView === 'kanban' ? 'primary' : 'secondary'}
+                        size="sm"
+                        onClick={() => setLeadView('kanban')}
+                      >
+                        Kanban
+                      </Button>
+                      <Button
+                        variant={leadView === 'list' ? 'primary' : 'secondary'}
+                        size="sm"
+                        onClick={() => setLeadView('list')}
+                      >
+                        List
+                      </Button>
+                      <LeadForm onSuccess={refreshLeads} onOpenChange={(isOpen) => setPipelineCollapsed(isOpen)} />
+                    </div>
+                  </div>
+                </section>
+
+                {selectedLead && (
+                  <section className="card">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                        <div className="space-y-3">
+                          <h2 className="text-2xl font-bold">{selectedLead.clientName}</h2>
+                          {nextPendingFollowUp && (
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                              Scheduled follow-up at {formatKarachiDateTime(nextPendingFollowUp.dueDate)}
+                              {nextPendingFollowUp.title ? ` — ${nextPendingFollowUp.title}` : ''}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {selectedLead.potential && (
+                            <Badge color="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Potential
+                            </Badge>
+                          )}
+                          <div>
+                            <label className="text-xs text-slate-400 block">Lead Status</label>
+                            <select
+                              className="input-field text-sm"
+                              value={selectedLead.potential ? 'potential' : selectedLead.pipelineStage === 'confirmed' || selectedLead.status === 'booked' ? 'confirmed' : selectedLead.status === 'completed' ? 'dead' : 'new'}
+                              onChange={async (e) => {
+                                const value = e.target.value;
+                                const payload: any = {};
+                                if (value === 'potential') payload.potential = true; else payload.potential = false;
+                                if (value === 'dead') payload.status = 'completed';
+                                else if (value === 'confirmed') payload.pipelineStage = 'confirmed';
+                                else if (value === 'in_progress') payload.pipelineStage = 'contacted';
+                                else if (value === 'new') payload.pipelineStage = 'new_lead';
+                                try {
+                                  const resp = await leadsAPI.update(String(selectedLead.id), payload);
+                                  setSelectedLead(resp.data);
+                                  await refreshLeads();
+                                } catch (err) {
+                                  console.error('Failed to update lead status', err);
+                                  alert('Failed to update lead status');
+                                }
+                              }}
+                            >
+                              <option value="new">New</option>
+                              <option value="potential">Potential</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="dead">Dead</option>
+                              <option value="confirmed">Confirmed</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 lg:grid-cols-2">
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Email</p>
+                            <p className="break-all">{selectedLead.email}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Phone</p>
+                            <p className="break-all">{selectedLead.phone}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Status</p>
+                            <p className="capitalize">{selectedLead.status}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Temperature</p>
+                            <p className="capitalize">{selectedLead.temperature}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Destinations</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(selectedLead.destinations && selectedLead.destinations.length > 0 ? selectedLead.destinations : [selectedLead.destination]).map((destination, index) => (
+                              <span key={`${destination}-${index}`} className="px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-sm">
+                                {destination}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {selectedLead.hotelInfo && (
+                          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Hotel Details</p>
+                            <p className="font-medium">{selectedLead.hotelInfo.hotelName}</p>
+                            <p className="text-sm">{selectedLead.hotelInfo.roomType} · PKR {selectedLead.hotelInfo.roomPrice}</p>
+                          </div>
+                        )}
+
+                        {selectedLead.hotelOptions && selectedLead.hotelOptions.length > 1 && (
+                          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Additional Hotels</p>
+                            <div className="space-y-2">
+                              {selectedLead.hotelOptions.slice(1).map((hotel, index) => (
+                                <div key={`${hotel.hotelName}-${index}`} className="flex flex-wrap justify-between gap-2 text-sm">
+                                  <span className="font-medium">{hotel.hotelName}</span>
+                                  <span>{hotel.roomType} · PKR {hotel.roomPrice}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        <Button
+                          variant="secondary"
+                          onClick={() => openFollowUpModal()}
+                        >
+                          Schedule Follow Up
+                        </Button>
+                        {nextPendingFollowUp && (
+                          <Button
+                            variant="primary"
+                            onClick={() => {
+                              setCompletionRemarks('');
+                              setShowCompletionModal(true);
+                            }}
+                          >
+                            Follow-up Completed
+                          </Button>
+                        )}
+                        <LeadForm
+                          initialData={selectedLead}
+                          onSuccess={async (lead) => {
+                            setSelectedLead(lead);
+                            await refreshLeads();
+                          }}
+                        />
+                        <Button
+                          variant="secondary"
+                          onClick={() => setSelectedLead(null)}
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+
+                    <section className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <div>
+                          <h3 className="text-xl font-semibold">Follow-ups</h3>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Edit or remove any follow-up for this lead.</p>
+                        </div>
+                      </div>
+
+                      {selectedLeadFollowUps.length === 0 ? (
+                        <p className="text-sm text-slate-500">No active follow-ups yet. Create one to track this lead.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedLeadFollowUps.map((followUp) => (
+                            <div key={followUp.id} className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 bg-white dark:bg-slate-900">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                <div className="min-w-0">
+                                  <p className="font-semibold truncate">{followUp.title}</p>
+                                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                    Due {formatKarachiDateTime(followUp.dueDate)}
+                                  </p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <Button size="sm" variant="secondary" onClick={() => openFollowUpModal(followUp)}>
+                                    Edit
+                                  </Button>
+                                  <Button size="sm" variant="danger" onClick={() => deleteFollowUp(followUp)}>
+                                    Remove
+                                  </Button>
+                                </div>
+                              </div>
+                              <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                                <span className="inline-block px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                  {followUp.priority || 'medium'} priority
+                                </span>
+                                <span className="inline-block px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 capitalize">
+                                  {followUp.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  </section>
+                )}
+
+                {selectedLead && (
+                  <PaymentsPanel leadId={String(selectedLead.id)} />
+                )}
+
+                {showFollowUpModal && selectedLead && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+                      <h3 className="text-xl font-bold mb-1">Schedule Follow Up</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Set the reminder date and time for {selectedLead.clientName}.</p>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Title</label>
+                          <input
+                            className="input-field"
+                            value={followUpTitle}
+                            onChange={(e) => setFollowUpTitle(e.target.value)}
+                            placeholder="Follow up with client"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Date and Time</label>
+                          <input
+                            type="datetime-local"
+                            className="input-field"
+                            value={followUpDateTime}
+                            onChange={(e) => setFollowUpDateTime(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-6 flex justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setShowFollowUpModal(false);
+                            setEditingFollowUp(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button variant="primary" onClick={saveFollowUp}>
+                          {editingFollowUp ? 'Update Follow Up' : 'Save Follow Up'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {showCompletionModal && nextPendingFollowUp && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+                      <h3 className="text-xl font-bold mb-1">Mark Follow-up Complete</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        Follow-up: <span className="font-medium">{nextPendingFollowUp.title}</span>
+                      </p>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Agent Remarks</label>
+                          <textarea
+                            className="input-field resize-none"
+                            rows={5}
+                            value={completionRemarks}
+                            onChange={(e) => setCompletionRemarks(e.target.value)}
+                            placeholder="Write any notes or remarks about this follow-up..."
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-6 flex justify-end gap-2">
+                        <Button variant="secondary" onClick={() => setShowCompletionModal(false)}>
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={async () => {
+                            try {
+                              await completeFollowUpWithRemarks(nextPendingFollowUp, completionRemarks);
+                            } catch (error) {
+                              console.error('Failed to complete follow-up', error);
+                              alert('Failed to complete follow-up.');
+                            }
+                          }}
+                        >
+                          Mark Complete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <section className={`card ${pipelineCollapsed ? 'max-h-20 overflow-hidden' : ''}`}>
+                  <h2 className="text-2xl font-semibold mb-4">Pipeline View</h2>
+                  {leadView === 'kanban' ? (
+                    <KanbanPipeline
+                      leads={leads}
+                      onSelectLead={setSelectedLead}
+                      onMoveStage={moveLeadStage}
+                    />
+                  ) : (
+                    <LeadList leads={leads} onSelectLead={setSelectedLead} />
+                  )}
+                </section>
+              </div>
+            )}
+
+            {currentPage === 'agent' && (
+              <div>
+                <h1 className="text-3xl font-bold mb-4">Agent Panel</h1>
+                <AgentPanel />
+              </div>
+            )}
+
+            {currentPage === 'followups' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <h1 className="text-3xl font-bold">Follow-ups</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    All follow-ups are listed here in a dedicated section so you can manage reminders and task status clearly.
+                  </p>
+                </section>
+                <section className="card">
+                  <TaskDashboard leads={leads} />
+                </section>
+              </div>
+            )}
+
+            {currentPage === 'analytics' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <h1 className="text-3xl font-bold">Analytics</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    See your pipeline trends and agent performance at a glance.
+                  </p>
+                </section>
+                <section className="card">
+                  <AnalyticsDashboard isAdmin={user.role === 'admin'} />
+                </section>
+              </div>
+            )}
+
+            {activeAlarm && (
+              <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border-2 border-red-500 p-5 shadow-2xl animate-pulse">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm uppercase tracking-wide text-red-500 font-semibold">Follow Up Alert</p>
+                      <h3 className="text-2xl font-bold mt-1">This lead has follow up, do follow up</h3>
+                      <p className="mt-2 text-slate-600 dark:text-slate-300">
+                        {activeFollowUpLead ? activeFollowUpLead.clientName : 'Lead'} · {activeAlarm.title}
+                      </p>
+                      <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
+                        Due at {formatKarachiDateTime(activeAlarm.dueDate)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button variant="primary" onClick={() => { void completeActiveFollowUp(activeAlarm); }}>
+                        Mark Complete
+                      </Button>
+                      <Button variant="secondary" onClick={() => dismissFollowUp(activeAlarm)}>
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-200">
+                    Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;

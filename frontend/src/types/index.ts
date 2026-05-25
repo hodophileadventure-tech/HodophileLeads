@@ -1,0 +1,188 @@
+export type UserRole = 'admin' | 'agent';
+export type LeadTemperature = 'hot' | 'warm' | 'cold' | 'dead';
+export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed';
+export type PipelineStage =
+  | 'new_lead'
+  | 'availability_check'
+  | 'quoted'
+  | 'payment_pending'
+  | 'confirmed'
+  | 'on_trip'
+  | 'completed';
+export type TaskStatus = 'overdue' | 'today' | 'upcoming' | 'completed';
+export type HealthScore = 'red' | 'yellow' | 'green';
+export type FollowUpPriority = 'low' | 'medium' | 'high';
+export type AvailabilityStatus = 'not_checked' | 'on_hold' | 'confirmed' | 'unavailable';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  avatar?: string;
+  createdAt: string;
+}
+
+export interface Lead {
+  id: string;
+  clientName: string;
+  email: string;
+  phone: string;
+  destination: string;
+  destinations?: string[];
+  travelDates: {
+    from: string;
+    to: string;
+  };
+  persons: number;
+  budget: number;
+  source: string;
+  leadSource?: 'whatsapp' | 'call' | 'insta' | 'form';
+  budgetRange?: 'economy' | 'standard' | 'premium';
+  adults?: number;
+  kids?: number;
+  seniors?: number;
+  temperature: LeadTemperature;
+  status: LeadStatus;
+  pipelineStage?: PipelineStage;
+  agentId: string;
+  notes?: string;
+  specialRequests?: string;
+  address?: string;
+  gender?: string;
+  age?: number;
+  agentRemarks?: string;
+  remarks?: string;
+  leadStatus?: string;
+  transportPreference?: string;
+  hotelPreference?: string;
+  potential?: boolean;
+  hotelInfo?: LeadHotelInfo;
+  hotelOptions?: LeadHotelInfo[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeadHotelInfo {
+  hotelName: string;
+  roomType: string;
+  roomPrice: number;
+}
+
+export interface FollowUp {
+  id: string;
+  leadId: string;
+  type: 'manual' | 'auto';
+  reminderType?: 'client_requested' | 'standard';
+  title: string;
+  description?: string;
+  dueDate: string;
+  status: TaskStatus;
+  priority: FollowUpPriority;
+  assignedTo: string;
+  whatsappNumber?: string;
+  whatsappLink?: string;
+  completedAt?: string;
+  createdAt: string;
+}
+
+export interface AvailabilityMatrix {
+  id: string;
+  leadId: string;
+  hotelStatus: AvailabilityStatus;
+  transportStatus: AvailabilityStatus;
+  guideStatus: AvailabilityStatus;
+  holdExpiry?: string;
+  providerName?: string;
+  providerContact?: string;
+  bookingReference?: string;
+  evidenceNote?: string;
+  clientApproved: boolean;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Itinerary {
+  id: string;
+  leadId: string;
+  tripPlan: DayPlan[];
+  hotelInfo: HotelInfo;
+  transportInfo: TransportInfo;
+  guideInfo: GuideInfo;
+  totalCost: number;
+  status: 'draft' | 'approved' | 'shared' | 'finalized';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DayPlan {
+  day: number;
+  activities: string[];
+  meals?: string;
+  notes?: string;
+}
+
+export interface HotelInfo {
+  name: string;
+  checkIn: string;
+  checkOut: string;
+  roomType: string;
+  price: number;
+  confirmed: boolean;
+  holdExpiry?: string;
+}
+
+export interface TransportInfo {
+  type: string;
+  details: string;
+  price: number;
+  confirmed: boolean;
+}
+
+export interface GuideInfo {
+  name: string;
+  language: string;
+  price: number;
+  confirmed: boolean;
+}
+
+export interface Payment {
+  id: string;
+  leadId: string;
+  amount: number;
+  status: 'pending' | 'approved' | 'confirmed' | 'failed';
+  method: 'cash' | 'card' | 'bank_transfer';
+  dueDate: string;
+  paidDate?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  leadId?: string;
+  type: string;
+  message: string;
+  payload?: any;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface DashboardStats {
+  totalLeads: number;
+  hotLeads: number;
+  bookingsThisMonth: number;
+  totalRevenue: number;
+  pipelineHealth: HealthScore;
+}
+
+export interface PipelineData {
+  new: Lead[];
+  contacted: Lead[];
+  interested: Lead[];
+  negotiation: Lead[];
+  booked: Lead[];
+  completed: Lead[];
+}

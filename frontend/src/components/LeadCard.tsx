@@ -1,0 +1,287 @@
+import React from 'react';
+import { formatDate, formatCurrency, getTemperatureColor, getStatusColor, getKarachiLocalDateTimeString, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import type { Lead } from '../types';
+import { Badge } from './common';
+import { availabilityAPI, leadsAPI, followUpsAPI } from '../utils/api-service';
+import { Modal, Button } from './common';
+import { useDataStore } from '../context/store';
+
+interface LeadCardProps {
+  lead: Lead;
+  onClick?: () => void;
+}
+
+export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
+  const [tab, setTab] = React.useState<'overview' | 'availability'>('overview');
+  const [availability, setAvailability] = React.useState<any>(null);
+  const [health, setHealth] = React.useState<{ score: number; health: 'red' | 'yellow' | 'green' } | null>(null);
+  const [now, setNow] = React.useState(Date.now());
+  const [showReminderModal, setShowReminderModal] = React.useState(false);
+  const [reminderTitle, setReminderTitle] = React.useState('');
+  const [reminderWhen, setReminderWhen] = React.useState('');
+  const [showHotelModal, setShowHotelModal] = React.useState(false);
+  const [hotelForm, setHotelForm] = React.useState({
+    hotelName: lead.hotelInfo?.hotelName || '',
+    roomType: lead.hotelInfo?.roomType || '',
+    roomPrice: lead.hotelInfo?.roomPrice || 0
+  });
+  const notifications = useDataStore((s) => s.notifications);
+
+  React.useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 60000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  React.useEffect(() => {
+    const loadMeta = async () => {
+      try {
+        const [availabilityResponse, healthResponse] = await Promise.all([
+          availabilityAPI.getByLeadId(lead.id),
+          leadsAPI.getHealth(lead.id)
+        ]);
+        setAvailability(availabilityResponse.data);
+        setHealth(healthResponse.data);
+      } catch {
+        setAvailability(null);
+      }
+    };
+    loadMeta();
+  }, [lead.id]);
+
+  const holdExpiryText = React.useMemo(() => {
+    if (!availability?.hold_expiry) return null;
+    const msLeft = new Date(availability.hold_expiry).getTime() - now;
+    if (msLeft <= 0) return 'Hold expired';
+    const hours = Math.floor(msLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m left`;
+  }, [availability?.hold_expiry, now]);
+
+  const healthColor = health?.health === 'green'
+    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+    : health?.health === 'yellow'
+      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+
+  const lifecycle = getLeadLifecycleStyle(lead);
+
+  return (
+    <div className={`card hover:shadow-lg transition-all ${lifecycle.ring}`}>
+      {/* show unread notification badge for this lead */}
+      {notifications.some((n: any) => !n.is_read && n.leadId === lead.id) && (
+        <div className="absolute -top-1 -right-1">
+          <span className="inline-block w-3 h-3 bg-red-600 rounded-full" />
+        </div>
+      )}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
+        <div className="min-w-0">
+          <h3 className="font-semibold text-lg break-words">{lead.clientName}</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{lead.destination}</p>
+          {lead.destinations && lead.destinations.length > 1 && (
+            <p className="text-xs text-slate-500 mt-1">+{lead.destinations.length - 1} more destinations</p>
+          )}
+          {lead.hotelInfo && (
+            <p className="text-xs text-slate-500 mt-1 truncate">
+              {lead.hotelInfo.hotelName} · {formatCurrency(lead.hotelInfo.roomPrice)}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Badge color={getTemperatureColor(lead.temperature)}>
+            {lead.temperature.toUpperCase()}
+          </Badge>
+          <Badge color={lifecycle.badge}>
+            {lifecycle.label.toUpperCase()}
+          </Badge>
+          {health && <Badge color={healthColor}>Health {health.score}%</Badge>}
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-3">
+        <button
+          type="button"
+          onClick={() => setTab('overview')}
+          className={`text-xs px-2 py-1 rounded ${tab === 'overview' ? 'bg-primary-500 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}
+        >
+          Overview
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('availability')}
+          className={`text-xs px-2 py-1 rounded ${tab === 'availability' ? 'bg-primary-500 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}
+        >
+          Availability
+        </button>
+      </div>
+
+      {tab === 'overview' && (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 text-sm">
+        <div className="min-w-0">
+          <p className="text-slate-600 dark:text-slate-400">Email</p>
+          <p className="font-medium break-all">{lead.email}</p>
+        </div>
+        <div className="min-w-0">
+          <p className="text-slate-600 dark:text-slate-400">Phone</p>
+          <p className="font-medium break-all">{lead.phone}</p>
+        </div>
+        <div className="min-w-0">
+          <p className="text-slate-600 dark:text-slate-400">Dates</p>
+          <p className="font-medium text-xs sm:text-sm break-words">
+            {formatDate(lead.travelDates.from)} - {formatDate(lead.travelDates.to)}
+          </p>
+        </div>
+        <div>
+          <p className="text-slate-600 dark:text-slate-400">Budget</p>
+          <p className="font-medium">{formatCurrency(lead.budget)}</p>
+        </div>
+        {lead.hotelInfo && (
+          <div className="sm:col-span-2 rounded-lg bg-slate-50 dark:bg-slate-800 p-3">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className="text-slate-600 dark:text-slate-400">Hotel Details</p>
+              <button type="button" onClick={() => setShowHotelModal(true)} className="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-700">Edit</button>
+            </div>
+            <p className="font-medium">{lead.hotelInfo.hotelName}</p>
+            <p className="text-xs text-slate-500">{lead.hotelInfo.roomType} · {formatCurrency(lead.hotelInfo.roomPrice)}</p>
+          </div>
+        )}
+      </div>
+      )}
+
+      {tab === 'availability' && (
+        <div className="space-y-2 mb-3 text-sm">
+          <div className="flex justify-between"><span>Hotel</span><span className="capitalize">{availability?.hotel_status || 'not_checked'}</span></div>
+          <div className="flex justify-between"><span>Transport</span><span className="capitalize">{availability?.transport_status || 'not_checked'}</span></div>
+          <div className="flex justify-between"><span>Guide</span><span className="capitalize">{availability?.guide_status || 'not_checked'}</span></div>
+          {holdExpiryText && (
+            <div className={`text-xs font-medium ${holdExpiryText === 'Hold expired' ? 'text-red-500' : 'text-amber-500'}`}>
+              Hold Timer: {holdExpiryText}
+              {holdExpiryText !== 'Hold expired' && availability?.hold_expiry && new Date(availability.hold_expiry).getTime() - Date.now() <= 2 * 60 * 60 * 1000 ? ' (Expiry alert)' : ''}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge color={getStatusColor(lead.status)}>
+          {lead.status.replace('_', ' ').toUpperCase()}
+        </Badge>
+        <button
+          type="button"
+          onClick={() => {
+            setReminderTitle('Follow up with client');
+            setReminderWhen(getKarachiLocalDateTimeString(new Date(Date.now() + 24 * 3600 * 1000)));
+            setShowReminderModal(true);
+          }}
+          className="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 ml-2"
+        >
+          Add Reminder
+        </button>
+
+        {showReminderModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 w-full max-w-md">
+              <h3 className="font-semibold mb-2">Schedule Reminder</h3>
+              <label className="block text-xs text-slate-600">Title</label>
+              <input value={reminderTitle} onChange={(e) => setReminderTitle(e.target.value)} className="w-full p-2 rounded mb-2 bg-slate-50 dark:bg-slate-700" />
+              <label className="block text-xs text-slate-600">Due (local datetime)</label>
+              <input type="datetime-local" value={reminderWhen} onChange={(e) => setReminderWhen(e.target.value)} className="w-full p-2 rounded mb-4 bg-slate-50 dark:bg-slate-700" />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setShowReminderModal(false)} className="px-3 py-1 rounded bg-slate-200">Cancel</button>
+                <button onClick={async () => {
+                  // client-side validation
+                  if (!reminderTitle || reminderTitle.trim().length < 2) {
+                    alert('Please enter a title for the reminder (at least 2 characters).');
+                    return;
+                  }
+                  if (!reminderWhen) {
+                    alert('Please choose a due date/time.');
+                    return;
+                  }
+                  try {
+                    const iso = parseKarachiDateTimeToISOString(reminderWhen);
+                    await followUpsAPI.create({ leadId: lead.id, title: reminderTitle, dueDate: iso, assignedTo: lead.agentId });
+                    setShowReminderModal(false);
+                    alert('Reminder scheduled');
+                  } catch (err: any) {
+                    const msg = err?.response?.data?.message || err?.message || 'Failed to create reminder';
+                    alert(msg);
+                  }
+                }} className="px-3 py-1 rounded bg-primary-500 text-white">Save</button>
+              </div>
+            </div>
+          </div>
+        )}
+        <span className="text-xs text-slate-500">
+          {Math.ceil((new Date().getTime() - new Date(lead.createdAt).getTime()) / (1000 * 60 * 60 * 24))}d ago
+        </span>
+        {onClick && (
+          <button
+            type="button"
+            onClick={onClick}
+            className="ml-auto text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600"
+          >
+            Open
+          </button>
+        )}
+      </div>
+
+      <Modal
+        isOpen={showHotelModal}
+        onClose={() => setShowHotelModal(false)}
+        title="Edit Hotel Details"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowHotelModal(false)}>Cancel</Button>
+            <Button variant="primary" onClick={async () => {
+              try {
+                await leadsAPI.update(lead.id, { hotelInfo: hotelForm });
+                setShowHotelModal(false);
+                window.location.reload();
+              } catch (e) {
+                alert('Failed to update hotel details');
+              }
+            }}>Save</Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm mb-1">Hotel Name</label>
+            <input className="input-field" value={hotelForm.hotelName} onChange={(e) => setHotelForm((s) => ({ ...s, hotelName: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Room Type</label>
+            <input className="input-field" value={hotelForm.roomType} onChange={(e) => setHotelForm((s) => ({ ...s, roomType: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Room Price</label>
+            <input type="number" className="input-field" value={hotelForm.roomPrice} onChange={(e) => setHotelForm((s) => ({ ...s, roomPrice: Number(e.target.value) }))} />
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+interface LeadListProps {
+  leads: Lead[];
+  onSelectLead?: (lead: Lead) => void;
+}
+
+export const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead }) => {
+  if (leads.length === 0) {
+    return (
+      <div className="card text-center py-8">
+        <p className="text-slate-600 dark:text-slate-400">No leads found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {leads.map((lead) => (
+        <LeadCard key={lead.id} lead={lead} onClick={() => onSelectLead?.(lead)} />
+      ))}
+    </div>
+  );
+};
