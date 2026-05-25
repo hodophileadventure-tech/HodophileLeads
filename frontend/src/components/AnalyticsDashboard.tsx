@@ -79,16 +79,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
 
   const refreshAgentsAndStats = async () => {
     try {
-      const resp = await adminAPI.getAgents();
+      const resp = await (adminAPI as any).getAgents();
       setAgents(Array.isArray(resp.data?.agents) ? resp.data.agents : []);
       // fetch follow-up stats
-      const statsResp = await adminAPI.getAgentsFollowUpStats();
+      const statsResp = await (adminAPI as any).getAgentsFollowUpStats();
       const statsArr = Array.isArray(statsResp.data?.stats) ? statsResp.data.stats : [];
       const map: Record<string, any> = {};
       for (const s of statsArr) map[s.agent_id || s.id || s.agentId] = s;
       setAgentStats(map);
       // fetch revenue stats
-      const revResp = await adminAPI.getAgentsRevenueStats();
+      const revResp = await (adminAPI as any).getAgentsRevenueStats();
       const revArr = Array.isArray(revResp.data?.stats) ? revResp.data.stats : [];
       const revMap: Record<string, any> = {};
       for (const r of revArr) revMap[r.agent_id || r.id || r.agentId] = r;
@@ -107,7 +107,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     setSelectedAgent(agent);
     setLoadingAgentLeads(true);
     try {
-      const resp = await adminAPI.getAgentLeads(agent.id);
+      const resp = await (adminAPI as any).getAgentLeads(agent.id);
       setAgentLeads(Array.isArray(resp.data?.leads) ? resp.data.leads : []);
     } catch (e) {
       console.error('Failed to load agent leads', e);
@@ -121,7 +121,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     const email = window.prompt('New email for agent', agent.email) || agent.email;
     const name = window.prompt('New name for agent', agent.name) || agent.name;
     try {
-      const resp = await adminAPI.updateAgent(agent.id, { email, name });
+      const resp = await (adminAPI as any).updateAgent(agent.id, { email, name });
       const updated = resp.data?.agent;
       setAgents(prev => prev.map(a => (a.id === updated.id ? updated : a)));
     } catch (e) {
@@ -133,7 +133,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   const handleResetPassword = async (agentId: string) => {
     if (!confirm('Generate a temporary password for this agent?')) return;
     try {
-      const resp = await adminAPI.resetAgentPassword(agentId);
+      const resp = await (adminAPI as any).resetAgentPassword(agentId);
       const temp = resp.data?.tempPassword;
       alert('Temporary password: ' + temp + '\nShare it securely with the agent.');
     } catch (e) {
@@ -294,7 +294,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                   <Button size="sm" onClick={async () => {
                     if (!newAgentEmail || !newAgentPassword) { alert('Email and password required'); return; }
                     try {
-                      const resp = await adminAPI.createAgent({ email: newAgentEmail, name: newAgentName, password: newAgentPassword, role: newAgentRole });
+                      await (adminAPI as any).createAgent({ email: newAgentEmail, name: newAgentName, password: newAgentPassword, role: newAgentRole });
                       alert('Agent created');
                       setNewAgentOpen(false);
                       setNewAgentEmail(''); setNewAgentName(''); setNewAgentPassword(''); setNewAgentRole('agent');
@@ -335,25 +335,25 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                     <h4 className="font-semibold">Cold Leads</h4>
                     {agentLeads.filter(l => l.temperature === 'cold').map(l => (
                       <div key={l.id} className="p-2 border rounded my-2">
-                        <p className="font-medium">{l.client_name || l.clientName || '—'}</p>
+                        <p className="font-medium">{l.clientName || '—'}</p>
                         <p className="text-sm text-slate-500">{l.email}</p>
                       </div>
                     ))}
                   </div>
                   <div>
                     <h4 className="font-semibold">Potential Leads</h4>
-                    {agentLeads.filter(l => (l.potential || l.isPotential)).map(l => (
+                    {agentLeads.filter(l => l.potential).map(l => (
                       <div key={l.id} className="p-2 border rounded my-2">
-                        <p className="font-medium">{l.client_name || l.clientName || '—'}</p>
+                        <p className="font-medium">{l.clientName || '—'}</p>
                         <p className="text-sm text-slate-500">{l.email}</p>
                       </div>
                     ))}
                   </div>
                   <div>
                     <h4 className="font-semibold">Confirmed Leads</h4>
-                    {agentLeads.filter(l => l.pipeline_stage === 'confirmed' || l.pipelineStage === 'confirmed' || l.status === 'confirmed').map(l => (
+                    {agentLeads.filter(l => l.pipelineStage === 'confirmed' || l.status === 'booked').map(l => (
                       <div key={l.id} className="p-2 border rounded my-2">
-                        <p className="font-medium">{l.client_name || l.clientName || '—'}</p>
+                        <p className="font-medium">{l.clientName || '—'}</p>
                         <p className="text-sm text-slate-500">{l.email}</p>
                       </div>
                     ))}

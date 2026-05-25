@@ -9,7 +9,7 @@ interface LeadFormProps {
   onOpenChange?: (isOpen: boolean) => void;
 }
 
-export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData }) => {
+export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOpenChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

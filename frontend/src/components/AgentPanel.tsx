@@ -378,7 +378,6 @@ export const AgentPanel: React.FC = () => {
               {attachments.map((a) => {
                 const url = `${window.location.origin}${a.url}`;
                 const isImage = a.mime_type?.startsWith('image/');
-                const isPdf = a.mime_type === 'application/pdf';
                 return (
                   <div key={a.id} className="flex items-center justify-between border rounded p-3">
                     <div className="flex items-center gap-3">
@@ -396,7 +395,7 @@ export const AgentPanel: React.FC = () => {
                         onClick={async () => {
                           if (!confirm('Delete this attachment?')) return;
                           try {
-                            await (attachmentsAPI as any).delete(String(lead.id), a.id);
+                            await (attachmentsAPI as any).delete(String(selectedLead?.id), a.id);
                             setAttachments((prev) => prev.filter((x) => x.id !== a.id));
                           } catch (err) {
                             console.error('Failed to delete attachment', err);
