@@ -43,6 +43,10 @@ try {
 }
 app.use('/uploads', express.static(uploadsDir));
 
+// Serve frontend static files (Vite build output)
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir));
+
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/leads', leadsRouter);
@@ -110,8 +114,17 @@ app.get('/api/docs', (req, res) => {
   });
 });
 
-// Error handling
+// Error handling - for non-API routes, serve index.html for SPA routing
 app.use((req, res) => {
+  // If it's not an API request, serve index.html for SPA routing
+  if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
+    return res.sendFile(indexPath, (err) => {
+      if (err) {
+        res.status(404).json({ message: 'Route not found' });
+      }
+    });
+  }
   res.status(404).json({ message: 'Route not found' });
 });
 
