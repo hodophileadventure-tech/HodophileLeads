@@ -6,7 +6,8 @@ const DEFAULT_ALLOWED_IPS = [
   '::ffff:127.0.0.1',
   '10.0.0.0/8',
   '172.16.0.0/12',
-  '192.168.0.0/16'
+  '192.168.0.0/16',
+  '110.38.247.29'  // Office IP
 ];
 
 const normalizeIp = (value: string) => {
