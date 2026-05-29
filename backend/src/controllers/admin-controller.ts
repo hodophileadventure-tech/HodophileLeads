@@ -27,7 +27,7 @@ export const adminController = {
         FROM leads
       `);
 
-      const canceledFollowUpsResult = await query(`
+      const canceledFollowUpsCount = await query(`
         SELECT COUNT(*) AS canceled_followups
         FROM follow_ups
         WHERE status = 'canceled'
@@ -151,7 +151,7 @@ export const adminController = {
           todayLeads: Number(summaryResult.rows[0]?.today_leads || 0),
           totalLeads: Number(summaryResult.rows[0]?.total_leads || 0),
           canceledLeads: Number(summaryResult.rows[0]?.canceled_leads || 0),
-          canceledFollowUps: Number(canceledFollowUpsResult.rows[0]?.canceled_followups || 0)
+          canceledFollowUps: Number(canceledFollowUpsCount.rows[0]?.canceled_followups || 0)
         },
         agents: agentResult.rows,
         leads: leadsResult.rows,
