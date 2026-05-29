@@ -38,6 +38,7 @@ leadsRouter.get('/:id', leadsController.getById);
 leadsRouter.get('/:id/health', leadsController.getHealthScore);
 leadsRouter.put('/:id', leadsController.update);
 leadsRouter.patch('/:id/status', leadsController.updateStatus);
+leadsRouter.patch('/:id/cancel', leadsController.cancel);
 leadsRouter.patch('/:id/stage', leadsController.updateStage);
 leadsRouter.delete('/:id', leadsController.delete);
 

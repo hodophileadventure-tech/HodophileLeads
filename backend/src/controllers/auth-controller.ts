@@ -38,6 +38,8 @@ export const authController = {
         }
       }
 
+      await query('UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE id = $1', [user.id]);
+
       const token = generateToken({
         id: user.id,
         email: user.email,
@@ -93,7 +95,10 @@ export const authController = {
 
   async logout(req: Request, res: Response, next: NextFunction) {
     try {
-      // Logout is typically handled client-side by removing token
+      const authReq = req as AuthenticatedRequest;
+      if (authReq.user?.id) {
+        await query('UPDATE users SET last_logout_at = NOW(), updated_at = NOW() WHERE id = $1', [authReq.user.id]);
+      }
       res.json({ message: 'Logged out successfully' });
     } catch (error) {
       next(error);

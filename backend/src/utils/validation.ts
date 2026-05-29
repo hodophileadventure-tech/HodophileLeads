@@ -26,7 +26,9 @@ export const leadSchema = Joi.object({
   agentId: Joi.string().optional(),
   agentRemarks: Joi.string().allow('').optional(),
   remarks: Joi.string().allow('').optional(),
-  potential: Joi.boolean().optional()
+  potential: Joi.boolean().optional(),
+  canceledReason: Joi.string().allow('').optional(),
+  canceledBy: Joi.string().optional()
 });
 
 export const followUpSchema = Joi.object({
@@ -35,11 +37,13 @@ export const followUpSchema = Joi.object({
   title: Joi.string().min(2).required(),
   description: Joi.string().allow('').optional(),
   dueDate: Joi.string().required(),
-  status: Joi.string().valid('overdue', 'today', 'upcoming', 'completed').optional(),
+  status: Joi.string().valid('overdue', 'today', 'upcoming', 'completed', 'canceled').optional(),
   priority: Joi.string().valid('low', 'medium', 'high').optional(),
   reminderType: Joi.string().valid('client_requested', 'standard').optional(),
   whatsappNumber: Joi.string().allow('').optional(),
-  whatsappLink: Joi.string().allow('').optional()
+  whatsappLink: Joi.string().allow('').optional(),
+  canceledReason: Joi.string().allow('').optional(),
+  canceledBy: Joi.string().optional()
 });
 
 export const paymentSchema = Joi.object({

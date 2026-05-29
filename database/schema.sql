@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   role VARCHAR(50) NOT NULL DEFAULT 'agent',
   avatar_url VARCHAR(500),
+  last_login_at TIMESTAMP,
+  last_logout_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_role CHECK (role IN ('admin', 'agent'))
@@ -39,10 +41,13 @@ CREATE TABLE IF NOT EXISTS leads (
   special_requests TEXT,
   transport_preference VARCHAR(255),
   hotel_preference VARCHAR(255),
+  canceled_reason TEXT,
+  canceled_by UUID REFERENCES users(id),
+  canceled_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_temperature CHECK (temperature IN ('hot', 'warm', 'cold', 'dead')),
-  CONSTRAINT valid_status CHECK (status IN ('new', 'contacted', 'interested', 'negotiation', 'booked', 'completed'))
+  CONSTRAINT valid_status CHECK (status IN ('new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled'))
 );
 
 -- Follow-ups Table
@@ -57,9 +62,12 @@ CREATE TABLE IF NOT EXISTS follow_ups (
   priority VARCHAR(50) NOT NULL DEFAULT 'medium',
   assigned_to UUID NOT NULL REFERENCES users(id),
   completed_at TIMESTAMP,
+  canceled_reason TEXT,
+  canceled_by UUID REFERENCES users(id),
+  canceled_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_type CHECK (type IN ('manual', 'auto')),
-  CONSTRAINT valid_status CHECK (status IN ('overdue', 'today', 'upcoming', 'completed')),
+  CONSTRAINT valid_status CHECK (status IN ('overdue', 'today', 'upcoming', 'completed', 'canceled')),
   CONSTRAINT valid_priority CHECK (priority IN ('low', 'medium', 'high'))
 );
 

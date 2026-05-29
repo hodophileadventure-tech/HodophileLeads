@@ -32,6 +32,9 @@ const normalizeFollowUp = (item: any): FollowUp => ({
   whatsappNumber: item.whatsappNumber || item.whatsapp_number,
   whatsappLink: item.whatsappLink || item.whatsapp_link,
   completedAt: item.completedAt || item.completed_at,
+  canceledReason: item.canceledReason || item.canceled_reason,
+  canceledBy: item.canceledBy || item.canceled_by,
+  canceledAt: item.canceledAt || item.canceled_at,
   createdAt: item.createdAt || item.created_at || new Date().toISOString()
 });
 
@@ -216,6 +219,36 @@ export const App: React.FC = () => {
     } catch (error) {
       console.error('Failed to delete follow-up:', error);
       alert('Failed to delete follow-up.');
+    }
+  };
+
+  const cancelFollowUp = async (item: FollowUp) => {
+    const reason = window.prompt('Reason for canceling this follow-up?')?.trim();
+    if (!reason) return;
+    try {
+      await followUpsAPI.cancel(item.id, reason);
+      if (activeAlarm?.id === item.id) {
+        setActiveAlarm(null);
+      }
+      await loadFollowUps();
+      window.dispatchEvent(new Event('followups-updated'));
+    } catch (error) {
+      console.error('Failed to cancel follow-up:', error);
+      alert('Failed to cancel follow-up.');
+    }
+  };
+
+  const cancelLead = async () => {
+    if (!selectedLead) return;
+    const reason = window.prompt('Reason for canceling this lead?')?.trim();
+    if (!reason) return;
+    try {
+      const resp = await leadsAPI.cancel(String(selectedLead.id), reason);
+      setSelectedLead(resp.data);
+      await refreshLeads();
+    } catch (error) {
+      console.error('Failed to cancel lead:', error);
+      alert('Failed to cancel lead.');
     }
   };
 
@@ -468,7 +501,12 @@ export const App: React.FC = () => {
                     </div>
                   </div>
                 </section>
-
+                          {selectedLead && selectedLead.status === 'canceled' && selectedLead.canceledReason && (
+                            <div>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Canceled Reason</p>
+                              <p className="text-sm text-rose-700 dark:text-rose-200">{selectedLead.canceledReason}</p>
+                            </div>
+                          )}
                 <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
                   <div className="card xl:col-span-2">
                     <Dashboard />
@@ -543,9 +581,21 @@ export const App: React.FC = () => {
                             <label className="text-xs text-slate-400 block">Lead Status</label>
                             <select
                               className="input-field text-sm"
-                              value={selectedLead.potential ? 'potential' : selectedLead.pipelineStage === 'confirmed' || selectedLead.status === 'booked' ? 'confirmed' : selectedLead.status === 'completed' ? 'dead' : 'new'}
+                              value={selectedLead.status === 'canceled'
+                                ? 'canceled'
+                                : selectedLead.potential
+                                  ? 'potential'
+                                  : selectedLead.pipelineStage === 'confirmed' || selectedLead.status === 'booked'
+                                    ? 'confirmed'
+                                    : selectedLead.status === 'completed'
+                                      ? 'dead'
+                                      : 'new'}
                               onChange={async (e) => {
                                 const value = e.target.value;
+                                if (value === 'canceled') {
+                                  await cancelLead();
+                                  return;
+                                }
                                 const payload: any = {};
                                 if (value === 'potential') payload.potential = true; else payload.potential = false;
                                 if (value === 'dead') payload.status = 'completed';
@@ -567,8 +617,12 @@ export const App: React.FC = () => {
                               <option value="in_progress">In Progress</option>
                               <option value="dead">Dead</option>
                               <option value="confirmed">Confirmed</option>
+                              <option value="canceled">Canceled</option>
                             </select>
                           </div>
+                          <Button variant="danger" onClick={cancelLead}>
+                            Cancel Lead
+                          </Button>
                         </div>
                       </div>
 
@@ -689,6 +743,9 @@ export const App: React.FC = () => {
                                   <Button size="sm" variant="secondary" onClick={() => openFollowUpModal(followUp)}>
                                     Edit
                                   </Button>
+                                  <Button size="sm" variant="secondary" onClick={() => cancelFollowUp(followUp)}>
+                                    Cancel
+                                  </Button>
                                   <Button size="sm" variant="danger" onClick={() => deleteFollowUp(followUp)}>
                                     Remove
                                   </Button>
@@ -701,7 +758,17 @@ export const App: React.FC = () => {
                                 <span className="inline-block px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 capitalize">
                                   {followUp.status}
                                 </span>
+                                {followUp.status === 'canceled' && (
+                                  <span className="inline-block px-2 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100">
+                                    Canceled
+                                  </span>
+                                )}
                               </div>
+                              {followUp.status === 'canceled' && followUp.canceledReason && (
+                                <p className="mt-2 text-sm text-rose-700 dark:text-rose-200">
+                                  Reason: {followUp.canceledReason}
+                                </p>
+                              )}
                             </div>
                           ))}
                         </div>

@@ -50,7 +50,10 @@ const mapLeadRow = (row: any) => {
     transportPreference: row.transportPreference || row.transport_preference,
     hotelPreference: row.hotelPreference || row.hotel_preference,
     createdAt: row.createdAt || row.created_at,
-    updatedAt: row.updatedAt || row.updated_at
+    updatedAt: row.updatedAt || row.updated_at,
+    canceledReason: row.canceledReason || row.canceled_reason || null,
+    canceledBy: row.canceledBy || row.canceled_by || null,
+    canceledAt: row.canceledAt || row.canceled_at || null
   };
 };
 
@@ -173,7 +176,10 @@ export const leadsModel = {
       'potential',
       'special_requests',
       'transport_preference',
-      'hotel_preference'
+      'hotel_preference',
+      'canceled_reason',
+      'canceled_by',
+      'canceled_at'
     ]);
 
     Object.entries(data).forEach(([key, value]) => {

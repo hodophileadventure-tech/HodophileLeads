@@ -246,14 +246,9 @@
 ## 🔑 Demo Credentials
 
 ### Admin Account
-- Email: `admin@tripnexus.com`
-- Password: `Admin@123`
+- Email: `admin@hodophile.com`
+- Password: `admin@123`
 - Access: Full system
-
-### Agent Account
-- Email: `agent@tripnexus.com`
-- Password: `Agent@123`
-- Access: Lead management
 
 ## 📦 Package Versions
 

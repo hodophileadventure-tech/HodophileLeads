@@ -12,43 +12,25 @@ async function seed() {
     console.log('🌱 Starting database seeding...');
     await client.query('BEGIN');
 
-    // Hash passwords
-    const adminPassword = await bcryptjs.hash('Admin@123', 10);
-    const agentPassword = await bcryptjs.hash('Agent@123', 10);
+    // Hash admin password
+    const adminPassword = await bcryptjs.hash('admin@123', 10);
 
-    // 1. Insert demo users
+    // 1. Insert admin user only
     const usersResult = await client.query(`
       INSERT INTO users (email, name, password, role) 
       VALUES 
-        ($1, $2, $3, $4),
-        ($5, $6, $7, $8)
+        ($1, $2, $3, $4)
       ON CONFLICT (email) DO NOTHING
       RETURNING id, email, role;
     `, [
-      'admin@tripnexus.com',
+      'admin@hodophile.com',
       'Admin User',
       adminPassword,
-      'admin',
-      'agent@tripnexus.com',
-      'Agent User',
-      agentPassword,
-      'agent',
+      'admin'
     ]);
 
-    console.log('✅ Demo users inserted');
-    
+    console.log('✅ Admin user inserted');
     const adminId = usersResult.rows.find(r => r.role === 'admin')?.id;
-    const agentId = usersResult.rows.find(r => r.role === 'agent')?.id;
-
-    if (!agentId) {
-      console.log('⚠️  Agent user already exists, skipping sample leads');
-      await client.query('COMMIT');
-      console.log('\n✅ ✅ ✅ Database seeding completed!\n');
-      console.log('📋 Demo Credentials:');
-      console.log('  Admin: admin@tripnexus.com / Admin@123');
-      console.log('  Agent: agent@tripnexus.com / Agent@123\n');
-      process.exit(0);
-    }
 
     // 2. Insert sample client profiles
     const profilesResult = await client.query(`
@@ -160,9 +142,8 @@ async function seed() {
 
     await client.query('COMMIT');
     console.log('\n✅ ✅ ✅ Database seeding completed!\n');
-    console.log('📋 Demo Credentials:');
-    console.log('  Admin: admin@tripnexus.com / Admin@123');
-    console.log('  Agent: agent@tripnexus.com / Agent@123\n');
+    console.log('📋 Admin Credential:');
+    console.log('  Admin: admin@hodophile.com / admin@123\n');
     console.log('📊 Sample Data Created:');
     console.log('  - 2 demo users');
     console.log('  - 2 client profiles');

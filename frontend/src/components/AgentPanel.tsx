@@ -57,7 +57,7 @@ export const AgentPanel: React.FC = () => {
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [searchPhone, setSearchPhone] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled'>('all');
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const stopAlarmAudio = () => {
@@ -207,6 +207,7 @@ export const AgentPanel: React.FC = () => {
 
   const filteredLeads = leads.filter((lead) => {
     if (activeFilter === 'all') return true;
+    if (activeFilter === 'canceled') return String((lead as any).status || '').toLowerCase() === 'canceled';
     return getLeadLifecycleState(lead) === activeFilter;
   });
 
@@ -215,7 +216,8 @@ export const AgentPanel: React.FC = () => {
     potential: leads.filter((lead) => getLeadLifecycleState(lead) === 'potential').length,
     in_progress: leads.filter((lead) => getLeadLifecycleState(lead) === 'in_progress').length,
     dead: leads.filter((lead) => getLeadLifecycleState(lead) === 'dead').length,
-    confirmed: leads.filter((lead) => getLeadLifecycleState(lead) === 'confirmed').length
+    confirmed: leads.filter((lead) => getLeadLifecycleState(lead) === 'confirmed').length,
+    canceled: leads.filter((lead) => String((lead as any).status || '').toLowerCase() === 'canceled').length
   };
 
   return (
@@ -232,7 +234,8 @@ export const AgentPanel: React.FC = () => {
           { key: 'potential', label: `Potential (${counts.potential})`, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
           { key: 'in_progress', label: `In Progress (${counts.in_progress})`, color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
           { key: 'dead', label: `Dead (${counts.dead})`, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200' },
-          { key: 'confirmed', label: `Confirmed (${counts.confirmed})`, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' }
+          { key: 'confirmed', label: `Confirmed (${counts.confirmed})`, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+          { key: 'canceled', label: `Canceled (${counts.canceled})`, color: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200' }
         ].map((item) => (
           <button
             key={item.key}

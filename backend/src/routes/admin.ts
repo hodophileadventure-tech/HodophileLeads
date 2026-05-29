@@ -6,6 +6,7 @@ export const adminRouter = Router();
 
 adminRouter.use(authMiddleware);
 adminRouter.get('/red-flags', roleMiddleware(['admin']), adminController.redFlags);
+adminRouter.get('/overview', roleMiddleware(['admin']), adminController.overview);
  
 // Agents management
 adminRouter.get('/agents', roleMiddleware(['admin']), adminController.listAgents);

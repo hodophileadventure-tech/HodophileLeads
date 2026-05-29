@@ -1,13 +1,11 @@
 -- Seed Users
 INSERT INTO users (email, name, password, role) VALUES
-  ('admin@tripnexus.com', 'Admin User', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/PFm', 'admin'),
-  ('agent@tripnexus.com', 'John Agent', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/PFm', 'agent'),
-  ('sarah@tripnexus.com', 'Sarah Agent', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86E36P4/PFm', 'agent')
+  ('admin@hodophile.com', 'Admin User', '$2a$10$hbMKu.dCXAwpVBWqxFXAL.7SKl49B/IDXphos3pxT1FV/v8ASD4rW', 'admin')
 ON CONFLICT DO NOTHING;
 
 -- Get agent ID for leads
 WITH agent_data AS (
-  SELECT id FROM users WHERE email = 'agent@tripnexus.com' LIMIT 1
+  SELECT id FROM users WHERE email = 'admin@hodophile.com' LIMIT 1
 )
 
 -- Seed Sample Leads
@@ -103,7 +101,7 @@ SELECT id, 1200.00, 'confirmed', 'card', NOW() - INTERVAL '5 days' FROM lead_dat
 
 -- Seed Follow-ups
 WITH agent_data AS (
-  SELECT id FROM users WHERE email = 'agent@tripnexus.com' LIMIT 1
+  SELECT id FROM users WHERE email = 'admin@hodophile.com' LIMIT 1
 ),
 lead_data AS (
   SELECT id FROM leads LIMIT 5

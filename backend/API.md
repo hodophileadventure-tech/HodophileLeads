@@ -21,8 +21,8 @@ Authorization: Bearer <token>
 Request:
 ```json
 {
-  "email": "admin@tripnexus.com",
-  "password": "Admin@123"
+  "email": "admin@hodophile.com",
+  "password": "admin@123"
 }
 ```
 
@@ -32,7 +32,7 @@ Response:
   "token": "eyJhbGc...",
   "user": {
     "id": "uuid",
-    "email": "admin@tripnexus.com",
+    "email": "admin@hodophile.com",
     "name": "Admin User",
     "role": "admin"
   }
@@ -216,12 +216,8 @@ Response:
 ## Demo Credentials
 
 **Admin Account:**
-- Email: `admin@tripnexus.com`
-- Password: `Admin@123`
-
-**Agent Account:**
-- Email: `agent@tripnexus.com`
-- Password: `Agent@123`
+- Email: `admin@hodophile.com`
+- Password: `admin@123`
 
 ---
 

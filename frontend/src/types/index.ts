@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'agent';
 export type LeadTemperature = 'hot' | 'warm' | 'cold' | 'dead';
-export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed';
+export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed' | 'canceled';
 export type PipelineStage =
   | 'new_lead'
   | 'availability_check'
@@ -9,7 +9,7 @@ export type PipelineStage =
   | 'confirmed'
   | 'on_trip'
   | 'completed';
-export type TaskStatus = 'overdue' | 'today' | 'upcoming' | 'completed';
+export type TaskStatus = 'overdue' | 'today' | 'upcoming' | 'completed' | 'canceled';
 export type HealthScore = 'red' | 'yellow' | 'green';
 export type FollowUpPriority = 'low' | 'medium' | 'high';
 export type AvailabilityStatus = 'not_checked' | 'on_hold' | 'confirmed' | 'unavailable';
@@ -21,6 +21,8 @@ export interface User {
   role: UserRole;
   avatar?: string;
   createdAt: string;
+  lastLoginAt?: string | null;
+  lastLogoutAt?: string | null;
 }
 
 export interface Lead {
@@ -61,6 +63,9 @@ export interface Lead {
   hotelOptions?: LeadHotelInfo[];
   createdAt: string;
   updatedAt: string;
+  canceledReason?: string | null;
+  canceledBy?: string | null;
+  canceledAt?: string | null;
 }
 
 export interface LeadHotelInfo {
@@ -84,6 +89,9 @@ export interface FollowUp {
   whatsappLink?: string;
   completedAt?: string;
   createdAt: string;
+  canceledReason?: string | null;
+  canceledBy?: string | null;
+  canceledAt?: string | null;
 }
 
 export interface AvailabilityMatrix {

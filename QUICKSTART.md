@@ -47,8 +47,8 @@ npm run dev
 ### Step 6: Login
 
 Use demo credentials:
-- **Email**: `admin@tripnexus.com`
-- **Password**: `Admin@123`
+- **Email**: `admin@hodophile.com`
+- **Password**: `admin@123`
 
 ---
 

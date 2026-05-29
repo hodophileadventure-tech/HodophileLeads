@@ -189,8 +189,8 @@ npm run dev
 → API at http://localhost:5000
 
 ### Login
-- **Email**: admin@tripnexus.com
-- **Password**: Admin@123
+- **Email**: admin@hodophile.com
+- **Password**: admin@123
 
 ---
 
@@ -214,16 +214,9 @@ npm run dev
 
 ### Admin User
 ```
-Email: admin@tripnexus.com
-Password: Admin@123
+Email: admin@hodophile.com
+Password: admin@123
 Role: Full system access
-```
-
-### Agent User
-```
-Email: agent@tripnexus.com
-Password: Agent@123
-Role: Lead management access
 ```
 
 ---

@@ -24,8 +24,8 @@ export const followUpsModel = {
   async create(data: Partial<FollowUp>) {
     const sql = `
       INSERT INTO follow_ups (
-        lead_id, assigned_to, task_type, due_date, status, notes, priority, reminder_type, whatsapp_number, whatsapp_link
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        lead_id, assigned_to, task_type, due_date, status, notes, priority, reminder_type, whatsapp_number, whatsapp_link, canceled_reason, canceled_by, canceled_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `;
 
@@ -42,7 +42,10 @@ export const followUpsModel = {
       data.priority || 'medium',
       data.reminderType || 'client_requested',
       data.whatsappNumber || '',
-      data.whatsappLink || waLink
+      data.whatsappLink || waLink,
+      (data as any).canceledReason || null,
+      (data as any).canceledBy || null,
+      (data as any).canceledAt || null
     ];
 
     const result = await query(sql, params);
@@ -60,6 +63,9 @@ export const followUpsModel = {
           reminder_type = COALESCE($7, reminder_type),
           whatsapp_number = COALESCE($8, whatsapp_number),
           whatsapp_link = COALESCE($9, whatsapp_link),
+          canceled_reason = COALESCE($10, canceled_reason),
+          canceled_by = COALESCE($11, canceled_by),
+          canceled_at = COALESCE($12, canceled_at),
           updated_at = NOW()
       WHERE id = $1
       RETURNING *
@@ -76,7 +82,10 @@ export const followUpsModel = {
       data.priority,
       data.reminderType,
       data.whatsappNumber,
-      waLink
+      waLink,
+      (data as any).canceledReason,
+      (data as any).canceledBy,
+      (data as any).canceledAt
     ];
 
     const result = await query(sql, params);
@@ -92,6 +101,14 @@ export const followUpsModel = {
     const result = await query(
       "UPDATE follow_ups SET status = 'completed', completed_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *",
       [id]
+    );
+    return result.rows[0];
+  },
+
+  async cancel(id: string, data: { canceledReason?: string; canceledBy?: string }) {
+    const result = await query(
+      "UPDATE follow_ups SET status = 'canceled', canceled_reason = $2, canceled_by = $3, canceled_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *",
+      [id, data.canceledReason || '', data.canceledBy || null]
     );
     return result.rows[0];
   },

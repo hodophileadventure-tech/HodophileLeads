@@ -72,7 +72,8 @@ export const getStatusColor = (status: string): string => {
     interested: 'bg-purple-100 text-purple-800 dark:bg-purple-900',
     negotiation: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900',
     booked: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900',
-    completed: 'bg-gray-100 text-gray-800 dark:bg-gray-700'
+    completed: 'bg-gray-100 text-gray-800 dark:bg-gray-700',
+    canceled: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100'
   };
   return colors[status] || colors.new;
 };
@@ -93,7 +94,7 @@ export const getLeadLifecycleState = (lead: {
   pipelineStage?: string;
 }): LeadLifecycleState => {
   if (lead.potential) return 'potential';
-  if (lead.temperature === 'dead' || lead.status === 'completed') return 'dead';
+  if (lead.temperature === 'dead' || lead.status === 'completed' || lead.status === 'canceled') return 'dead';
   if (lead.pipelineStage === 'confirmed' || lead.status === 'booked') return 'confirmed';
 
   const inProgressStages = new Set([

@@ -9,6 +9,7 @@ export const leadsAPI = {
   update: (id: string, data: Partial<Lead>) => apiClient.put<Lead>(`/leads/${id}`, data),
   updateStatus: (id: string, status: string) => apiClient.patch(`/leads/${id}/status`, { status }),
   updateStage: (id: string, stage: string) => apiClient.patch(`/leads/${id}/stage`, { stage }),
+  cancel: (id: string, reason: string) => apiClient.patch(`/leads/${id}/cancel`, { reason }),
   delete: (id: string) => apiClient.delete(`/leads/${id}`)
 };
 
@@ -30,6 +31,7 @@ export const followUpsAPI = {
   create: (data: Partial<FollowUp>) => apiClient.post<FollowUp>('/follow-ups', data),
   update: (id: string, data: Partial<FollowUp>) => apiClient.put<FollowUp>(`/follow-ups/${encodeURIComponent(id)}`, data),
   complete: (id: string) => apiClient.patch(`/follow-ups/${encodeURIComponent(id)}/complete`, {}),
+  cancel: (id: string, reason: string) => apiClient.patch(`/follow-ups/${encodeURIComponent(id)}/cancel`, { reason }),
   delete: (id: string) => {
     if (!id) {
       return Promise.reject(new Error('Missing follow-up id'));
@@ -67,7 +69,8 @@ export const dashboardAPI = {
 };
 
 export const adminAPI = {
-  getRedFlags: () => apiClient.get('/admin/red-flags')
+  getRedFlags: () => apiClient.get('/admin/red-flags'),
+  getOverview: () => apiClient.get('/admin/overview')
 };
 
 (adminAPI as any).getAgents = () => apiClient.get('/admin/agents');

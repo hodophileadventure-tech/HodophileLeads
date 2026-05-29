@@ -150,14 +150,9 @@ TRIPNEXUS is a full-stack Travel Agency Lead Management System built with:
 ## Demo Credentials
 
 **Admin Account:**
-- Email: `admin@tripnexus.com`
-- Password: `Admin@123`
+- Email: `admin@hodophile.com`
+- Password: `admin@123`
 - Role: Full system access
-
-**Agent Account:**
-- Email: `agent@tripnexus.com`
-- Password: `Agent@123`
-- Role: Lead management & booking
 
 ## Sample Data
 

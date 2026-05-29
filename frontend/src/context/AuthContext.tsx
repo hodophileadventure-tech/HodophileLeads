@@ -45,15 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      if (!response.ok) throw new Error('Login failed');
-      
-      const { user: userData, token } = await response.json();
+      const response = await apiClient.post('/auth/login', { email, password });
+      const { user: userData, token } = response.data || {};
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', token);
@@ -71,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = useCallback(() => {
+    void apiClient.post('/auth/logout').catch(() => undefined);
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');

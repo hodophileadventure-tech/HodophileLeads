@@ -47,7 +47,7 @@ export const LoginPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@tripnexus.com"
+                placeholder="admin@hodophile.com"
                 className="input-field"
                 required
               />
@@ -77,8 +77,7 @@ export const LoginPage: React.FC = () => {
 
           <div className="mt-6 p-4 bg-slate-100 dark:bg-slate-700 rounded text-sm">
             <p className="font-medium mb-2">Demo Credentials:</p>
-            <p>Admin: admin@tripnexus.com / Admin@123</p>
-            <p>Agent: agent@tripnexus.com / Agent@123</p>
+            <p>Admin: admin@hodophile.com / admin@123</p>
           </div>
         </div>
       </div>

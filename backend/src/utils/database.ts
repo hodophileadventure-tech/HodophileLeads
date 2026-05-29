@@ -20,22 +20,16 @@ const mockDb: {
   users: [
     {
       id: '123e4567-e89b-12d3-a456-426614174000',
-      email: 'admin@tripnexus.com',
+      email: 'admin@hodophile.com',
       name: 'Admin User',
-      password: '', // Will be hashed below
+      // bcrypt hash for password 'admin@123'
+      password: '$2a$10$hbMKu.dCXAwpVBWqxFXAL.7SKl49B/IDXphos3pxT1FV/v8ASD4rW',
       role: 'admin',
+      last_login_at: null,
+      last_logout_at: null,
       created_at: new Date(),
       updated_at: new Date()
-    },
-    {
-      id: '223e4567-e89b-12d3-a456-426614174000',
-      email: 'agent@tripnexus.com',
-      name: 'Agent User',
-      password: '', // Will be hashed below
-      role: 'agent',
-      created_at: new Date(),
-      updated_at: new Date()
-    },
+    }
   ],
   leads: [],
   followUps: [],
@@ -46,13 +40,7 @@ const mockDb: {
   auditLogs: []
 };
 
-// Initialize mock database with hashed passwords
-async function initializeMockDb() {
-  mockDb.users[0].password = await bcryptjs.hash('Admin@123', 10);
-  mockDb.users[1].password = await bcryptjs.hash('Agent@123', 10);
-}
-
-initializeMockDb().catch(err => console.error('Failed to initialize mock DB:', err));
+// Passwords are stored as bcrypt hashes in the mock DB seed above.
 
 let pool: Pool | null = null;
 let useMockDb = true;
@@ -111,8 +99,19 @@ export const query = async (text: string, params?: any[]) => {
       }
 
       // SELECT id, email, name, role FROM users
-      if (normalized === 'select id, email, name, role from users' || normalized === 'select id, email, name, role from users order by created_at desc') {
-        const rows = mockDb.users.map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role, created_at: u.created_at }));
+      if (normalized === "select id, email, name, role, last_login_at, last_logout_at from users where role = 'agent' order by created_at desc" || normalized === 'select id, email, name, role, last_login_at, last_logout_at from users order by created_at desc' || normalized === 'select id, email, name, role from users' || normalized === 'select id, email, name, role from users order by created_at desc') {
+        const sourceUsers = normalized.includes("where role = 'agent'")
+          ? mockDb.users.filter(u => u.role === 'agent')
+          : mockDb.users;
+        const rows = sourceUsers.map(u => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          role: u.role,
+          last_login_at: u.last_login_at || null,
+          last_logout_at: u.last_logout_at || null,
+          created_at: u.created_at
+        }));
         return { rows, rowCount: rows.length };
       }
 
@@ -128,13 +127,129 @@ export const query = async (text: string, params?: any[]) => {
         const id = params?.[params.length - 1];
         const userIndex = mockDb.users.findIndex(u => u.id === id);
         if (userIndex >= 0) {
-          const email = params?.[0] ?? mockDb.users[userIndex].email;
-          const name = params?.[1] ?? mockDb.users[userIndex].name;
-          mockDb.users[userIndex] = { ...mockDb.users[userIndex], email, name, updated_at: new Date() };
+          const email = normalized.includes('email = $1') ? params?.[0] ?? mockDb.users[userIndex].email : mockDb.users[userIndex].email;
+          const name = normalized.includes('name = $2') ? params?.[1] ?? mockDb.users[userIndex].name : mockDb.users[userIndex].name;
+          const nextUser: any = { ...mockDb.users[userIndex], email, name, updated_at: new Date() };
+          if (normalized.includes('last_login_at = now()')) nextUser.last_login_at = new Date().toISOString();
+          if (normalized.includes('last_logout_at = now()')) nextUser.last_logout_at = new Date().toISOString();
+          if (normalized.includes('password = $1')) nextUser.password = params?.[0] ?? nextUser.password;
+          mockDb.users[userIndex] = nextUser;
           const updated = mockDb.users[userIndex];
           return { rows: [{ id: updated.id, email: updated.email, name: updated.name, role: updated.role }], rowCount: 1 };
         }
         return { rows: [], rowCount: 0 };
+      }
+
+      if (normalized.includes('select count(*) filter (where date(created_at) = current_date) as today_leads') && normalized.includes('from leads') && !normalized.includes('join users u on u.id = l.agent_id')) {
+        const leads = mockDb.leads;
+        const today = new Date();
+        const todayLeads = leads.filter((lead: any) => new Date(lead.created_at || lead.createdAt || Date.now()).toDateString() === today.toDateString()).length;
+        const canceledLeads = leads.filter((lead: any) => lead.status === 'canceled').length;
+        return {
+          rows: [{ today_leads: String(todayLeads), total_leads: String(leads.length), canceled_leads: String(canceledLeads) }],
+          rowCount: 1
+        };
+      }
+
+      if (normalized.includes('select count(*) as canceled_followups') && normalized.includes('from follow_ups') && normalized.includes("where status = 'canceled'")) {
+        const canceledFollowUps = mockDb.followUps.filter((item: any) => item.status === 'canceled').length;
+        return { rows: [{ canceled_followups: String(canceledFollowUps) }], rowCount: 1 };
+      }
+
+      if (normalized.includes('with lead_stats as (') && normalized.includes('followup_stats as (') && normalized.includes('from users u')) {
+        const rows = mockDb.users.filter((u) => u.role === 'agent').map((u) => {
+          const assignedLeads = mockDb.leads.filter((lead: any) => lead.agent_id === u.id);
+          const leadToday = assignedLeads.filter((lead: any) => new Date(lead.created_at || lead.createdAt || Date.now()).toDateString() === new Date().toDateString()).length;
+          const canceledLeads = assignedLeads.filter((lead: any) => lead.status === 'canceled').length;
+          const assignedFollowUps = mockDb.followUps.filter((item: any) => {
+            const lead = mockDb.leads.find((lead: any) => lead.id === item.lead_id);
+            return lead?.agent_id === u.id;
+          });
+          const canceledFollowUps = assignedFollowUps.filter((item: any) => item.status === 'canceled').length;
+          return {
+            id: u.id,
+            email: u.email,
+            name: u.name,
+            role: u.role,
+            last_login_at: u.last_login_at || null,
+            last_logout_at: u.last_logout_at || null,
+            total_leads: String(assignedLeads.length),
+            today_leads: String(leadToday),
+            canceled_leads: String(canceledLeads),
+            canceled_followups: String(canceledFollowUps)
+          };
+        });
+        return { rows, rowCount: rows.length };
+      }
+
+      if (normalized.includes('select l.id, l.client_name, l.email, l.phone, l.destination, l.status, l.temperature, l.created_at, l.updated_at, l.agent_id, u.name as agent_name, u.email as agent_email') && normalized.includes('from leads l')) {
+        const rows = mockDb.leads.map((lead: any) => {
+          const agent = mockDb.users.find((user) => user.id === lead.agent_id);
+          const followUps = mockDb.followUps.filter((item: any) => item.lead_id === lead.id);
+          const canceledBy = mockDb.users.find((user) => user.id === lead.canceled_by);
+          return {
+            ...lead,
+            agent_name: agent?.name || '',
+            agent_email: agent?.email || '',
+            canceled_by_name: canceledBy?.name || '',
+            follow_up_count: String(followUps.length),
+            canceled_followups: String(followUps.filter((item: any) => item.status === 'canceled').length)
+          };
+        }).sort((a: any, b: any) => {
+          const agentCompare = String(a.agent_name || '').localeCompare(String(b.agent_name || ''));
+          if (agentCompare !== 0) return agentCompare;
+          return new Date(b.created_at || b.createdAt || 0).getTime() - new Date(a.created_at || a.createdAt || 0).getTime();
+        });
+        return { rows, rowCount: rows.length };
+      }
+
+      if (normalized.includes("where l.status = 'canceled'") && normalized.includes('from leads l') && normalized.includes('canceled_reason')) {
+        const rows = mockDb.leads
+          .filter((lead: any) => lead.status === 'canceled')
+          .map((lead: any) => {
+            const agent = mockDb.users.find((user) => user.id === lead.agent_id);
+            const canceledBy = mockDb.users.find((user) => user.id === lead.canceled_by);
+            return {
+              id: lead.id,
+              client_name: lead.client_name || lead.clientName,
+              email: lead.email,
+              phone: lead.phone,
+              destination: lead.destination,
+              canceled_reason: lead.canceled_reason || lead.canceledReason || null,
+              canceled_at: lead.canceled_at || lead.canceledAt || null,
+              agent_id: lead.agent_id,
+              agent_name: agent?.name || '',
+              agent_email: agent?.email || '',
+              canceled_by_name: canceledBy?.name || '',
+              canceled_by_email: canceledBy?.email || ''
+            };
+          });
+        return { rows, rowCount: rows.length };
+      }
+
+      if (normalized.includes("where f.status = 'canceled'") && normalized.includes('from follow_ups f') && normalized.includes('canceled_reason')) {
+        const rows = mockDb.followUps
+          .filter((item: any) => item.status === 'canceled')
+          .map((item: any) => {
+            const lead = mockDb.leads.find((l: any) => l.id === item.lead_id);
+            const agent = mockDb.users.find((user) => user.id === lead?.agent_id);
+            const canceledBy = mockDb.users.find((user) => user.id === item.canceled_by);
+            return {
+              id: item.id,
+              title: item.task_type || item.title,
+              description: item.notes || item.description,
+              canceled_reason: item.canceled_reason || null,
+              canceled_at: item.canceled_at || null,
+              lead_id: item.lead_id,
+              client_name: lead?.client_name || lead?.clientName || '',
+              agent_id: lead?.agent_id || '',
+              agent_name: agent?.name || '',
+              agent_email: agent?.email || '',
+              canceled_by_name: canceledBy?.name || '',
+              canceled_by_email: canceledBy?.email || ''
+            };
+          });
+        return { rows, rowCount: rows.length };
       }
 
       // UPDATE users SET password = $1 WHERE id = $2
@@ -241,6 +356,9 @@ export const query = async (text: string, params?: any[]) => {
           pipelineStage: 'new_lead',
           agentId: agentId || '',
           specialRequests: specialRequests || '',
+          canceledReason: null,
+          canceledBy: null,
+          canceledAt: null,
           hotelInfo,
           createdAt,
           updatedAt: createdAt,
@@ -253,6 +371,9 @@ export const query = async (text: string, params?: any[]) => {
           agent_id: agentId || '',
           pipeline_stage: 'new_lead',
           special_requests: specialRequests || '',
+          canceled_reason: null,
+          canceled_by: null,
+          canceled_at: null,
           created_at: createdAt,
           updated_at: createdAt
         };
@@ -440,6 +561,9 @@ export const query = async (text: string, params?: any[]) => {
           reminder_type: reminderType || 'client_requested',
           whatsapp_number: whatsappNumber || '',
           whatsapp_link: whatsappLink || '',
+          canceled_reason: null,
+          canceled_by: null,
+          canceled_at: null,
           created_at: now,
           updated_at: now
         };
@@ -479,6 +603,24 @@ export const query = async (text: string, params?: any[]) => {
           ...mockDb.followUps[index],
           status: 'completed',
           completed_at: now,
+          updated_at: now
+        };
+
+        return { rows: [mockDb.followUps[index]], rowCount: 1 };
+      }
+
+      if (normalized.includes("update follow_ups set status = 'canceled'")) {
+        const id = params?.[0];
+        const index = mockDb.followUps.findIndex((item: any) => item.id === id);
+        if (index < 0) return { rows: [], rowCount: 0 };
+
+        const now = new Date().toISOString();
+        mockDb.followUps[index] = {
+          ...mockDb.followUps[index],
+          status: 'canceled',
+          canceled_reason: params?.[1] || '',
+          canceled_by: params?.[2] || null,
+          canceled_at: now,
           updated_at: now
         };
 

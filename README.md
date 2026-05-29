@@ -131,8 +131,7 @@ npm run dev
 - **Health Check**: http://localhost:5001/health
 
 **Demo Login Credentials:**
-- Admin: `admin@tripnexus.com` / `Admin@123`
-- Agent: `agent@tripnexus.com` / `Agent@123`
+- Admin: `admin@hodophile.com` / `admin@123`
 
 ### Build for Production
 
@@ -176,8 +175,7 @@ JWT-based authentication with role-based access:
 - **Agent**: Lead management, booking workflow
 
 Default credentials (for testing):
-- Admin: `admin@tripnexus.com` / `Admin@123`
-- Agent: `agent@tripnexus.com` / `Agent@123`
+- Admin: `admin@hodophile.com` / `admin@123`
 
 ## 📊 Database Schema
 

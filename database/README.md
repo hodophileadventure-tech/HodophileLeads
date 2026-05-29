@@ -33,9 +33,8 @@ psql tripnexus < seed-data.sql
 
 ## Sample Data
 
-Demo users:
-- Admin: admin@tripnexus.com / Admin@123 (password hash)
-- Agent: agent@tripnexus.com / Agent@123 (password hash)
+Demo user:
+- Admin: admin@hodophile.com / admin@123 (password hash)
 
 Sample leads with various statuses and temperatures for testing.
 

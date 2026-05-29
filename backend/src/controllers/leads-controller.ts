@@ -219,6 +219,26 @@ export const leadsController = {
     }
   },
 
+  async cancel(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { reason } = req.body as { reason?: string };
+      const lead = await leadsModel.update(req.params.id, {
+        status: 'canceled' as any,
+        canceledReason: reason || '',
+        canceledBy: req.user.id,
+        canceledAt: new Date().toISOString()
+      } as any);
+
+      if (!lead) {
+        return res.status(404).json({ message: 'Lead not found' });
+      }
+
+      res.json(lead);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async updateStage(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { stage } = req.body as { stage?: string };

@@ -5,19 +5,10 @@ const db = {
   users: [
     {
       id: '123e4567-e89b-12d3-a456-426614174000',
-      email: 'admin@tripnexus.com',
+      email: 'admin@hodophile.com',
       name: 'Admin User',
-      password: '', // Will be hashed
+      password: '$2a$10$hbMKu.dCXAwpVBWqxFXAL.7SKl49B/IDXphos3pxT1FV/v8ASD4rW',
       role: 'admin',
-      created_at: new Date(),
-      updated_at: new Date()
-    },
-    {
-      id: '223e4567-e89b-12d3-a456-426614174000',
-      email: 'agent@tripnexus.com',
-      name: 'Agent User',
-      password: '', // Will be hashed
-      role: 'agent',
       created_at: new Date(),
       updated_at: new Date()
     }
@@ -31,13 +22,7 @@ const db = {
   auditLogs: []
 };
 
-// Initialize with hashed passwords
-async function initializeDb() {
-  db.users[0].password = await bcryptjs.hash('Admin@123', 10);
-  db.users[1].password = await bcryptjs.hash('Agent@123', 10);
-}
-
-initializeDb();
+// Passwords are stored as bcrypt hashes in the mock DB seed above.
 
 export const query = async (text: string, params?: any[]) => {
   console.log('[MOCK DB Query]', { text, params });

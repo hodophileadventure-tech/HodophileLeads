@@ -79,5 +79,21 @@ export const followUpsController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async cancel(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { reason } = req.body as { reason?: string };
+      const item = await followUpsModel.cancel(req.params.id, {
+        canceledReason: reason || '',
+        canceledBy: req.user.id
+      });
+      if (!item) {
+        return res.status(404).json({ message: 'Follow-up not found' });
+      }
+      res.json(item);
+    } catch (error) {
+      next(error);
+    }
   }
 };

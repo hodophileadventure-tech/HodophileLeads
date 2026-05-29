@@ -34,6 +34,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'canceled'>('all');
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -97,6 +98,15 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
       }));
   }, [fallbackTasks, followUps]);
 
+  const activeFollowUps = useMemo(() => followUps.filter((item) => item.status !== 'completed' && item.status !== 'canceled'), [followUps]);
+  const canceledFollowUps = useMemo(() => followUps.filter((item) => item.status === 'canceled'), [followUps]);
+
+  const visibleFollowUps = useMemo(() => {
+    if (activeFilter === 'active') return activeFollowUps;
+    if (activeFilter === 'canceled') return canceledFollowUps;
+    return followUps;
+  }, [activeFilter, activeFollowUps, canceledFollowUps, followUps]);
+
   const summary = useMemo(() => {
     return {
       overdue: tasks.filter((task) => task.status === 'overdue').length,
@@ -150,20 +160,53 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
         </Card>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {[
+          { key: 'all', label: `All (${followUps.length})`, color: 'bg-slate-200 dark:bg-slate-700' },
+          { key: 'active', label: `Active (${activeFollowUps.length})`, color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' },
+          { key: 'canceled', label: `Canceled (${canceledFollowUps.length})`, color: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200' }
+        ].map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setActiveFilter(item.key as typeof activeFilter)}
+            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${activeFilter === item.key ? item.color : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       <Card>
         <h2 className="text-xl font-bold mb-4">Task Queue</h2>
 
-        {tasks.length === 0 ? (
+        {visibleFollowUps.length === 0 ? (
           <p className="text-slate-600 dark:text-slate-400">No tasks yet. Add some leads to generate follow-up tasks.</p>
         ) : (
           <div className="space-y-3">
-            {tasks.map((task) => (
+            {visibleFollowUps.map((item) => {
+              const task: TaskItem = {
+                id: item.id,
+                title: item.title,
+                description: item.description || 'Client follow-up task',
+                priority: item.priority,
+                status: item.status === 'overdue' || item.status === 'today' ? item.status : 'upcoming',
+                dueLabel: `Due ${formatDate(item.dueDate || '')}`,
+                whatsappLink: item.whatsappLink
+              };
+
+              return (
               <div key={task.id} className="p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                 <div className="flex flex-wrap gap-2 justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{task.title}</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{task.description}</p>
                     <p className="text-xs text-slate-500 mt-2">{task.dueLabel}</p>
+                    {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (
+                      <p className="text-xs text-rose-700 dark:text-rose-200 mt-2">
+                        Canceled{item.canceledBy ? ` by ${String(item.canceledBy)}` : ''}{item.canceledReason ? `: ${item.canceledReason}` : ''}
+                      </p>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Badge color={getStatusColor(task.status)}>{task.status}</Badge>
@@ -171,7 +214,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {task.whatsappLink && (
+                  {task.whatsappLink && item.status !== 'canceled' && (
                     <Button
                       variant="secondary"
                       size="sm"
@@ -180,12 +223,15 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                       Open WhatsApp
                     </Button>
                   )}
-                  <Button variant="primary" size="sm" onClick={() => completeTask(task.id)}>
-                    Mark Done
-                  </Button>
+                  {item.status !== 'canceled' && (
+                    <Button variant="primary" size="sm" onClick={() => completeTask(task.id)}>
+                      Mark Done
+                    </Button>
+                  )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>

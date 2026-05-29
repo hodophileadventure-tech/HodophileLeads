@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Spinner, Button } from './common';
 import { dashboardAPI, adminAPI } from '../utils/api-service';
 import type { Lead } from '../types';
-import { formatCurrency } from '../utils/helpers';
+import { formatCurrency, formatKarachiDateTime } from '../utils/helpers';
 
 interface AnalyticsDashboardProps {
   isAdmin: boolean;
@@ -23,6 +23,74 @@ interface AnalyticsData {
   total_agents: string | number;
 }
 
+interface AdminOverviewSummary {
+  todayLeads: number;
+  totalLeads: number;
+  canceledLeads: number;
+  canceledFollowUps: number;
+}
+
+interface AdminOverviewAgent {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  last_login_at?: string | null;
+  last_logout_at?: string | null;
+  total_leads?: string | number;
+  today_leads?: string | number;
+  canceled_leads?: string | number;
+  canceled_followups?: string | number;
+}
+
+interface AdminOverviewLead {
+  id: string;
+  client_name: string;
+  email: string;
+  phone: string;
+  destination: string;
+  status: string;
+  temperature: string;
+  created_at: string;
+  updated_at: string;
+  agent_id: string;
+  agent_name: string;
+  agent_email: string;
+  follow_up_count?: string | number;
+  canceled_followups?: string | number;
+}
+
+interface AdminOverview {
+  summary: AdminOverviewSummary;
+  agents: AdminOverviewAgent[];
+  leads: AdminOverviewLead[];
+  canceledLeads: Array<{
+    id: string;
+    client_name: string;
+    email: string;
+    phone: string;
+    destination: string;
+    canceled_reason?: string | null;
+    canceled_at?: string | null;
+    agent_name: string;
+    agent_email: string;
+    canceled_by_name?: string;
+    canceled_by_email?: string;
+  }>;
+  canceledFollowUps: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    canceled_reason?: string | null;
+    canceled_at?: string | null;
+    client_name: string;
+    agent_name: string;
+    agent_email: string;
+    canceled_by_name?: string;
+    canceled_by_email?: string;
+  }>;
+}
+
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin }) => {
   const [pipeline, setPipeline] = useState<PipelineRow[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -31,6 +99,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   const [agents, setAgents] = useState<any[]>([]);
   const [agentStats, setAgentStats] = useState<Record<string, any>>({});
   const [agentRevenue, setAgentRevenue] = useState<Record<string, any>>({});
+  const [adminOverview, setAdminOverview] = useState<AdminOverview | null>(null);
   const [newAgentOpen, setNewAgentOpen] = useState(false);
   const [newAgentEmail, setNewAgentEmail] = useState('');
   const [newAgentName, setNewAgentName] = useState('');
@@ -93,6 +162,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
       const revMap: Record<string, any> = {};
       for (const r of revArr) revMap[r.agent_id || r.id || r.agentId] = r;
       setAgentRevenue(revMap);
+
+      const overviewResp = await (adminAPI as any).getOverview();
+      const overview = overviewResp.data;
+      setAdminOverview(overview?.summary ? overview : null);
     } catch (e) {
       console.error('Failed to load agents', e);
     }
@@ -141,6 +214,23 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
       alert('Failed to reset password');
     }
   };
+
+  const formatAgentTime = (value?: string | null) => {
+    if (!value) return '—';
+    try {
+      return formatKarachiDateTime(value);
+    } catch {
+      return value;
+    }
+  };
+
+  const overviewAgentsById = useMemo(() => {
+    const map: Record<string, AdminOverviewAgent> = {};
+    for (const agent of adminOverview?.agents || []) {
+      map[agent.id] = agent;
+    }
+    return map;
+  }, [adminOverview]);
 
   if (loading) {
     return (
@@ -231,6 +321,118 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
         </Card>
       )}
 
+      {isAdmin && adminOverview && (
+        <Card>
+          <h2 className="text-xl font-bold mb-4">Admin Snapshot</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Today Leads</p>
+              <p className="text-2xl font-bold">{adminOverview.summary.todayLeads}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Total Leads</p>
+              <p className="text-2xl font-bold">{adminOverview.summary.totalLeads}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Canceled Leads</p>
+              <p className="text-2xl font-bold">{adminOverview.summary.canceledLeads}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Canceled Follow-ups</p>
+              <p className="text-2xl font-bold">{adminOverview.summary.canceledFollowUps}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {isAdmin && adminOverview && (
+        <Card>
+          <h2 className="text-xl font-bold mb-4">Canceled Leads</h2>
+          {adminOverview.canceledLeads.length === 0 ? (
+            <p className="text-sm text-slate-600 dark:text-slate-400">No canceled leads yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b border-slate-200 dark:border-slate-700">
+                    <th className="py-2 pr-4">Lead</th>
+                    <th className="py-2 pr-4">Agent</th>
+                    <th className="py-2 pr-4">Canceled By</th>
+                    <th className="py-2 pr-4">Reason</th>
+                    <th className="py-2 pr-4">Canceled At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminOverview.canceledLeads.map((lead) => (
+                    <tr key={lead.id} className="border-b border-slate-100 dark:border-slate-800 align-top">
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{lead.client_name}</p>
+                        <p className="text-xs text-slate-500">{lead.email}</p>
+                        <p className="text-xs text-slate-400">{lead.destination}</p>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{lead.agent_name}</p>
+                        <p className="text-xs text-slate-500">{lead.agent_email}</p>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{lead.canceled_by_name || '—'}</p>
+                        <p className="text-xs text-slate-500">{lead.canceled_by_email || '—'}</p>
+                      </td>
+                      <td className="py-3 pr-4 max-w-xs">{lead.canceled_reason || '—'}</td>
+                      <td className="py-3 pr-4">{lead.canceled_at ? formatKarachiDateTime(lead.canceled_at) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {isAdmin && adminOverview && (
+        <Card>
+          <h2 className="text-xl font-bold mb-4">Canceled Follow-ups</h2>
+          {adminOverview.canceledFollowUps.length === 0 ? (
+            <p className="text-sm text-slate-600 dark:text-slate-400">No canceled follow-ups yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b border-slate-200 dark:border-slate-700">
+                    <th className="py-2 pr-4">Follow-up</th>
+                    <th className="py-2 pr-4">Lead / Agent</th>
+                    <th className="py-2 pr-4">Canceled By</th>
+                    <th className="py-2 pr-4">Reason</th>
+                    <th className="py-2 pr-4">Canceled At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminOverview.canceledFollowUps.map((item) => (
+                    <tr key={item.id} className="border-b border-slate-100 dark:border-slate-800 align-top">
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{item.title}</p>
+                        <p className="text-xs text-slate-500">{item.description || '—'}</p>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{item.client_name}</p>
+                        <p className="text-xs text-slate-500">{item.agent_name}</p>
+                        <p className="text-xs text-slate-400">{item.agent_email}</p>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{item.canceled_by_name || '—'}</p>
+                        <p className="text-xs text-slate-500">{item.canceled_by_email || '—'}</p>
+                      </td>
+                      <td className="py-3 pr-4 max-w-xs">{item.canceled_reason || '—'}</td>
+                      <td className="py-3 pr-4">{item.canceled_at ? formatKarachiDateTime(item.canceled_at) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
+
       {isAdmin && (
         <Card>
           <h2 className="text-xl font-bold mb-4">Agents</h2>
@@ -244,6 +446,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                 <div>
                   <p className="font-medium">{a.name || '—'}</p>
                   <p className="text-sm text-slate-500">{a.email}</p>
+                  {overviewAgentsById[a.id] && (
+                    <p className="text-xs text-slate-400">
+                      Today: {Number(overviewAgentsById[a.id].today_leads || 0)} ·
+                      Total: {Number(overviewAgentsById[a.id].total_leads || 0)} ·
+                      Canceled Leads: {Number(overviewAgentsById[a.id].canceled_leads || 0)} ·
+                      Canceled Follow-ups: {Number(overviewAgentsById[a.id].canceled_followups || 0)}
+                    </p>
+                  )}
+                  {overviewAgentsById[a.id] && (
+                    <p className="text-xs text-slate-400">
+                      Last login: {formatAgentTime(overviewAgentsById[a.id].last_login_at)} ·
+                      Last logout: {formatAgentTime(overviewAgentsById[a.id].last_logout_at)}
+                    </p>
+                  )}
                   {agentStats[a.id] && (
                     <p className="text-xs text-slate-400">Follow-ups: {agentStats[a.id].total} — Overdue: {agentStats[a.id].overdue}</p>
                   )}
@@ -258,6 +474,51 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
               </div>
             ))}
           </div>
+        </Card>
+      )}
+
+      {isAdmin && adminOverview && (
+        <Card>
+          <h2 className="text-xl font-bold mb-4">Leads by Agent</h2>
+          {adminOverview.leads.length === 0 ? (
+            <p className="text-sm text-slate-600 dark:text-slate-400">No leads available yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b border-slate-200 dark:border-slate-700">
+                    <th className="py-2 pr-4">Lead</th>
+                    <th className="py-2 pr-4">Agent</th>
+                    <th className="py-2 pr-4">Destination</th>
+                    <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4">Temperature</th>
+                    <th className="py-2 pr-4">Created</th>
+                    <th className="py-2 pr-4">Canceled Follow-ups</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminOverview.leads.map((lead) => (
+                    <tr key={lead.id} className="border-b border-slate-100 dark:border-slate-800 align-top">
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{lead.client_name || '—'}</p>
+                        <p className="text-xs text-slate-500">{lead.email}</p>
+                        <p className="text-xs text-slate-400">{lead.phone}</p>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <p className="font-medium">{lead.agent_name || '—'}</p>
+                        <p className="text-xs text-slate-500">{lead.agent_email}</p>
+                      </td>
+                      <td className="py-3 pr-4">{lead.destination || '—'}</td>
+                      <td className="py-3 pr-4 capitalize">{lead.status}</td>
+                      <td className="py-3 pr-4 capitalize">{lead.temperature}</td>
+                      <td className="py-3 pr-4">{formatAgentTime(lead.created_at)}</td>
+                      <td className="py-3 pr-4">{Number(lead.canceled_followups || 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
       )}
 
