@@ -33,11 +33,12 @@ export interface Lead {
   phone: string;
   destination: string;
   destinations?: string[];
-  travelDates: {
+  travelDates?: {
     from: string;
     to: string;
   };
-  persons: number;
+  travel_date?: string;
+  persons?: number;
   budget: number;
   source: string;
   leadSource?: 'whatsapp' | 'call' | 'insta' | 'form';
