@@ -13,7 +13,7 @@ export const authController = {
 
       console.log('[AUTH] Login attempt', { email: normalizedEmail, ip: req.ip });
 
-      const result = await query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [normalizedEmail]);
+      const result = await query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
       const user = result.rows[0];
 
       if (!user) {
