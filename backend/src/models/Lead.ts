@@ -139,7 +139,14 @@ export const leadsModel = {
         params[14] = params[14] || existingProfile.gender || params[14];
         params[15] = params[15] || existingProfile.age || params[15];
       } else {
-        const created = await profileModel.create({ phone: (data as any).phone, name: params[0], email: params[1], address: params[13], gender: params[14], age: params[15] });
+        const created = await profileModel.create({
+          phone: (data as any).phone,
+          name: params[0],
+          email: params[1],
+          address: params[14],
+          gender: params[15],
+          age: params[16]
+        });
         profileId = created.id;
       }
     }
