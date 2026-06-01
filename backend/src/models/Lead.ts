@@ -85,7 +85,7 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          name, email, phone, destination, destinations, source, temperature, status, budget, travel_date, hotel_info, hotel_options, agent_id, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
+          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_date, hotel_info, hotel_options, agent_id, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
       RETURNING *
     `;
