@@ -7,7 +7,8 @@ const DEFAULT_ALLOWED_IPS = [
   '10.0.0.0/8',
   '172.16.0.0/12',
   '192.168.0.0/16',
-  '110.38.247.29'  // Office IP
+  '110.38.247.29',  // Office IP
+  '110.38.254.0/24'  // Office subnet observed in recent logins
 ];
 
 const normalizeIp = (value: string) => {
@@ -73,7 +74,7 @@ export const getClientIp = (req: Request) => {
 
 export const getAllowedOfficeIps = () => {
   const configured = process.env.OFFICE_ALLOWED_IPS?.split(',').map((item) => item.trim()).filter(Boolean) || [];
-  return configured.length > 0 ? configured : DEFAULT_ALLOWED_IPS;
+  return Array.from(new Set([...DEFAULT_ALLOWED_IPS, ...configured]));
 };
 
 export const isOfficeIpAllowed = (clientIp: string) => {
