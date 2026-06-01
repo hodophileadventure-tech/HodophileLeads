@@ -19,4 +19,4 @@ COPY scripts ./scripts
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 EXPOSE 5001
-CMD ["node", "dist/index.js"]
+CMD ["npm", "start"]
