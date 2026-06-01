@@ -1,6 +1,7 @@
 export type UserRole = 'admin' | 'agent';
 export type LeadTemperature = 'hot' | 'warm' | 'cold' | 'dead';
 export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed' | 'canceled';
+export type LeadOutcome = 'confirmed' | 'budget_issue' | 'no_reply';
 export type PipelineStage =
   | 'new_lead'
   | 'availability_check'
@@ -46,6 +47,7 @@ export interface Lead {
   seniors?: number;
   temperature: LeadTemperature;
   status: LeadStatus;
+  leadOutcome?: LeadOutcome | null;
   pipelineStage?: PipelineStage;
   agentId: string;
   notes?: string;

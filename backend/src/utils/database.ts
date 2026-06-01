@@ -357,6 +357,8 @@ export const query = async (text: string, params?: any[]) => {
           seniors: 0,
           temperature: temperature || 'cold',
           status: status || 'new',
+          lead_outcome: params?.[20] || null,
+          leadOutcome: params?.[20] || null,
           pipelineStage: 'new_lead',
           agentId: agentId || '',
           specialRequests: specialRequests || '',
@@ -452,6 +454,33 @@ export const query = async (text: string, params?: any[]) => {
 
         mockDb.leads[index] = updatedLead;
         return { rows: [updatedLead], rowCount: 1 };
+      }
+
+      if (normalized.includes('from leads l') && normalized.includes('join users u on u.id = l.agent_id') && normalized.includes('follow_up_count') && normalized.includes('lead_outcome')) {
+        const rows = mockDb.leads.map((lead: any) => {
+          const agent = mockDb.users.find((user) => user.id === lead.agent_id || user.id === lead.agentId);
+          const followUps = mockDb.followUps.filter((item: any) => item.lead_id === lead.id);
+          return {
+            id: lead.id,
+            client_name: lead.client_name || lead.clientName,
+            email: lead.email,
+            phone: lead.phone,
+            destination: lead.destination,
+            status: lead.status,
+            temperature: lead.temperature,
+            created_at: lead.created_at || lead.createdAt,
+            updated_at: lead.updated_at || lead.updatedAt,
+            agent_id: lead.agent_id || lead.agentId,
+            agent_name: agent?.name || '',
+            agent_email: agent?.email || '',
+            lead_outcome: lead.lead_outcome || lead.leadOutcome || null,
+            canceled_reason: lead.canceled_reason || lead.canceledReason || null,
+            canceled_at: lead.canceled_at || lead.canceledAt || null,
+            follow_up_count: String(followUps.length),
+            canceled_followups: String(followUps.filter((item: any) => item.status === 'canceled').length)
+          };
+        });
+        return { rows, rowCount: rows.length };
       }
 
       // Lead delete

@@ -288,6 +288,26 @@ export const AgentPanel: React.FC = () => {
     setLeads((prev) => [lead, ...prev]);
   };
 
+  const updateLeadOutcome = async (lead: Lead, leadOutcome: 'confirmed' | 'budget_issue' | 'no_reply') => {
+    try {
+      const payload: any = { leadOutcome };
+      if (leadOutcome === 'confirmed') {
+        payload.pipelineStage = 'confirmed';
+        payload.status = 'booked';
+      }
+
+      const response = await leadsAPI.update(String(lead.id), payload);
+      const updated = response.data as Lead;
+      setLeads((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      if (selectedLead?.id === lead.id) {
+        setSelectedLead(updated);
+      }
+    } catch (error) {
+      console.error('Failed to update lead outcome', error);
+      alert('Failed to update lead outcome');
+    }
+  };
+
   const handleSearchPhone = async () => {
     if (!searchPhone) return;
     try {
@@ -409,6 +429,22 @@ export const AgentPanel: React.FC = () => {
                   <Badge color={lifecycle.badge}>{lifecycle.label}</Badge>
                 </div>
                 <div className="text-sm text-slate-500">{lead.phone} • {lead.destination}</div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500">Lead outcome:</span>
+                  <select
+                    className="input-field text-sm py-1 px-2 w-auto"
+                    value={(lead as any).leadOutcome || ''}
+                    onChange={(e) => {
+                      if (!e.target.value) return;
+                      void updateLeadOutcome(lead, e.target.value as 'confirmed' | 'budget_issue' | 'no_reply');
+                    }}
+                  >
+                    <option value="">Set outcome</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="budget_issue">Budget issue</option>
+                    <option value="no_reply">No reply</option>
+                  </select>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => setSelectedLead(lead)}>Edit</Button>

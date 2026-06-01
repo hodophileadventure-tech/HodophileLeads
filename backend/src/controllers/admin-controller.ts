@@ -10,6 +10,17 @@ import { query } from '../utils/database';
 import { hashPassword } from '../utils/auth';
 import { consumeScreenCaptureRequest, createScreenCaptureRequest, getScreenCaptureRequest, sendToUser } from '../utils/wsServer';
 
+type LeadOutcomeBucket = 'confirmed' | 'budget_issue' | 'no_reply';
+
+const getLeadOutcomeBucket = (lead: any): LeadOutcomeBucket => {
+  const explicitOutcome = String(lead.lead_outcome || lead.leadOutcome || '').trim();
+  if (explicitOutcome === 'confirmed') return 'confirmed';
+  if (explicitOutcome === 'budget_issue') return 'budget_issue';
+  if (explicitOutcome === 'no_reply') return 'no_reply';
+  if (lead.pipelineStage === 'confirmed' || lead.status === 'booked') return 'confirmed';
+  return 'no_reply';
+};
+
 // simple random password generator
 const generateTempPassword = () => Math.random().toString(36).slice(-10);
 
@@ -30,6 +41,7 @@ export const adminController = {
           l.agent_id,
           u.name AS agent_name,
           u.email AS agent_email,
+          l.lead_outcome,
           l.canceled_reason,
           l.canceled_at,
           COALESCE(f.follow_up_count, 0) AS follow_up_count,
@@ -71,35 +83,47 @@ export const adminController = {
       workbook.created = new Date();
       workbook.modified = new Date();
 
-      const sheet = workbook.addWorksheet('Leads');
-      sheet.columns = headers.map((header) => ({ header, key: header, width: Math.max(16, header.length + 4) }));
-      sheet.getRow(1).font = { bold: true };
-      sheet.views = [{ state: 'frozen', ySplit: 1 }];
-
-      for (const row of rows) {
-        sheet.addRow({
-          'Lead ID': row.id,
-          'Client Name': row.client_name,
-          Email: row.email,
-          Phone: row.phone,
-          Destination: row.destination,
-          Status: row.status,
-          Temperature: row.temperature,
-          'Agent Name': row.agent_name,
-          'Agent Email': row.agent_email,
-          'Created At': row.created_at,
-          'Updated At': row.updated_at,
-          'Canceled Reason': row.canceled_reason,
-          'Canceled At': row.canceled_at,
-          'Follow Up Count': Number(row.follow_up_count || 0),
-          'Canceled Follow Ups': Number(row.canceled_followups || 0)
-        });
-      }
-
-      sheet.autoFilter = {
-        from: 'A1',
-        to: `${String.fromCharCode(64 + headers.length)}1`
+      const categorizedRows = {
+        confirmed: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'confirmed'),
+        budget_issue: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'budget_issue'),
+        no_reply: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'no_reply')
       };
+
+      const createSheet = (sheetName: string, dataRows: any[]) => {
+        const sheet = workbook.addWorksheet(sheetName);
+        sheet.columns = headers.map((header) => ({ header, key: header, width: Math.max(16, header.length + 4) }));
+        sheet.getRow(1).font = { bold: true };
+        sheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+        for (const row of dataRows) {
+          sheet.addRow({
+            'Lead ID': row.id,
+            'Client Name': row.client_name,
+            Email: row.email,
+            Phone: row.phone,
+            Destination: row.destination,
+            Status: row.status,
+            Temperature: row.temperature,
+            'Agent Name': row.agent_name,
+            'Agent Email': row.agent_email,
+            'Created At': row.created_at,
+            'Updated At': row.updated_at,
+            'Canceled Reason': row.canceled_reason,
+            'Canceled At': row.canceled_at,
+            'Follow Up Count': Number(row.follow_up_count || 0),
+            'Canceled Follow Ups': Number(row.canceled_followups || 0)
+          });
+        }
+
+        sheet.autoFilter = {
+          from: 'A1',
+          to: `${String.fromCharCode(64 + headers.length)}1`
+        };
+      };
+
+      createSheet('Confirmed Leads', categorizedRows.confirmed);
+      createSheet('Budget Issue', categorizedRows.budget_issue);
+      createSheet('No Reply', categorizedRows.no_reply);
 
       const buffer = await workbook.xlsx.writeBuffer();
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

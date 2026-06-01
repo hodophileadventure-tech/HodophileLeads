@@ -53,7 +53,8 @@ const mapLeadRow = (row: any) => {
     updatedAt: row.updatedAt || row.updated_at,
     canceledReason: row.canceledReason || row.canceled_reason || null,
     canceledBy: row.canceledBy || row.canceled_by || null,
-    canceledAt: row.canceledAt || row.canceled_at || null
+    canceledAt: row.canceledAt || row.canceled_at || null,
+    leadOutcome: row.leadOutcome || row.lead_outcome || null
   };
 };
 
@@ -84,8 +85,8 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          name, email, phone, destination, destinations, source, temperature, status, budget, travel_date, hotel_info, hotel_options, agent_id, profile_id, address, gender, age, agent_remarks, remarks, potential
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+          name, email, phone, destination, destinations, source, temperature, status, budget, travel_date, hotel_info, hotel_options, agent_id, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
       RETURNING *
     `;
 
@@ -121,7 +122,8 @@ export const leadsModel = {
       (data as any).age || null,
       (data as any).agentRemarks || (data as any).agent_remarks || null,
       (data as any).remarks || null,
-      (data as any).potential ? true : false
+      (data as any).potential ? true : false,
+      (data as any).leadOutcome || (data as any).lead_outcome || null
     ];
 
     // handle profile by phone
@@ -174,6 +176,7 @@ export const leadsModel = {
       'agent_remarks',
       'remarks',
       'potential',
+      'lead_outcome',
       'special_requests',
       'transport_preference',
       'hotel_preference',
@@ -204,6 +207,7 @@ export const leadsModel = {
         let dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
         if (key === 'clientName' || key === 'name') dbKey = 'name';
         if (key === 'destination') dbKey = 'destination';
+        if (key === 'leadOutcome') dbKey = 'lead_outcome';
         if (!allowedColumns.has(dbKey)) return;
         fields.push(`${dbKey} = $${paramCount}`);
         params.push(value);

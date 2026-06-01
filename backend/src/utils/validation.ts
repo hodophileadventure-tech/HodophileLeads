@@ -20,6 +20,7 @@ export const leadSchema = Joi.object({
   }).required(),
   persons: Joi.number().integer().min(1).required(),
   budget: Joi.number().min(0).optional(),
+  leadOutcome: Joi.string().valid('confirmed', 'budget_issue', 'no_reply').optional(),
   hotelInfo: hotelInfoSchema.optional(),
   hotelOptions: Joi.array().items(hotelInfoSchema).optional(),
   destinations: Joi.array().items(Joi.string()).optional(),

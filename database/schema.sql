@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS leads (
   source VARCHAR(100) NOT NULL,
   temperature VARCHAR(50) NOT NULL DEFAULT 'cold',
   status VARCHAR(50) NOT NULL DEFAULT 'new',
+  lead_outcome VARCHAR(50),
   agent_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   notes TEXT,
   agent_remarks TEXT,
@@ -47,7 +48,8 @@ CREATE TABLE IF NOT EXISTS leads (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_temperature CHECK (temperature IN ('hot', 'warm', 'cold', 'dead')),
-  CONSTRAINT valid_status CHECK (status IN ('new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled'))
+  CONSTRAINT valid_status CHECK (status IN ('new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled')),
+  CONSTRAINT valid_lead_outcome CHECK (lead_outcome IS NULL OR lead_outcome IN ('confirmed', 'budget_issue', 'no_reply'))
 );
 
 -- Follow-ups Table
@@ -147,6 +149,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX idx_leads_agent_id ON leads(agent_id);
 CREATE INDEX idx_leads_temperature ON leads(temperature);
 CREATE INDEX idx_leads_status ON leads(status);
+CREATE INDEX idx_leads_outcome ON leads(lead_outcome);
 CREATE INDEX idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX idx_follow_ups_lead_id ON follow_ups(lead_id);
 CREATE INDEX idx_follow_ups_assigned_to ON follow_ups(assigned_to);

@@ -92,8 +92,10 @@ export const getLeadLifecycleState = (lead: {
   temperature?: string;
   status?: string;
   pipelineStage?: string;
+  leadOutcome?: string | null;
 }): LeadLifecycleState => {
   if (lead.potential) return 'potential';
+  if (lead.leadOutcome === 'confirmed') return 'confirmed';
   if (lead.temperature === 'dead' || lead.status === 'completed' || lead.status === 'canceled') return 'dead';
   if (lead.pipelineStage === 'confirmed' || lead.status === 'booked') return 'confirmed';
 
