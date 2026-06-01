@@ -108,11 +108,12 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         // mark as completed/dead
         (payload as any).status = 'completed';
       } else if (status === 'confirmed') {
-        (payload as any).pipelineStage = 'confirmed';
+        (payload as any).leadOutcome = 'confirmed';
+        (payload as any).status = 'booked';
       } else if (status === 'in_progress') {
-        (payload as any).pipelineStage = (formData as any).pipelineStage || 'contacted';
+        (payload as any).status = 'contacted';
       } else if (status === 'new') {
-        (payload as any).pipelineStage = (formData as any).pipelineStage || 'new_lead';
+        (payload as any).status = 'new';
       }
 
       if (initialData?.id) {

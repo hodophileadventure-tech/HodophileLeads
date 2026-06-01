@@ -53,7 +53,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
           console.error('File upload failed', e);
         }
       }
-      await leadsAPI.updateStage(lead.id as string, 'confirmed');
+      await leadsAPI.update(lead.id as string, { leadOutcome: 'confirmed', status: 'booked' } as any);
 
       if (total > 0) {
         const dueDate = checkIn || new Date().toISOString();

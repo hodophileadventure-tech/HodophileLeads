@@ -599,9 +599,11 @@ export const App: React.FC = () => {
                                 const payload: any = {};
                                 if (value === 'potential') payload.potential = true; else payload.potential = false;
                                 if (value === 'dead') payload.status = 'completed';
-                                else if (value === 'confirmed') payload.pipelineStage = 'confirmed';
-                                else if (value === 'in_progress') payload.pipelineStage = 'contacted';
-                                else if (value === 'new') payload.pipelineStage = 'new_lead';
+                                else if (value === 'confirmed') {
+                                  payload.leadOutcome = 'confirmed';
+                                  payload.status = 'booked';
+                                } else if (value === 'in_progress') payload.status = 'contacted';
+                                else if (value === 'new') payload.status = 'new';
                                 try {
                                   const resp = await leadsAPI.update(String(selectedLead.id), payload);
                                   setSelectedLead(resp.data);

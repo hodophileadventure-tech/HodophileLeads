@@ -54,7 +54,15 @@ const mapLeadRow = (row: any) => {
     canceledReason: row.canceledReason || row.canceled_reason || null,
     canceledBy: row.canceledBy || row.canceled_by || null,
     canceledAt: row.canceledAt || row.canceled_at || null,
-    leadOutcome: row.leadOutcome || row.lead_outcome || null
+    leadOutcome: row.leadOutcome || row.lead_outcome || null,
+    pipelineStage:
+      row.pipelineStage ||
+      row.pipeline_stage ||
+      (row.leadOutcome === 'confirmed' || row.lead_outcome === 'confirmed' || row.status === 'booked'
+        ? 'confirmed'
+        : row.status === 'completed'
+          ? 'completed'
+          : undefined)
   };
 };
 
@@ -189,7 +197,8 @@ export const leadsModel = {
       'hotel_preference',
       'canceled_reason',
       'canceled_by',
-      'canceled_at'
+      'canceled_at',
+      'pipeline_stage'
     ]);
 
     Object.entries(data).forEach(([key, value]) => {
@@ -210,6 +219,35 @@ export const leadsModel = {
       } else if (key === 'destinations') {
         fields.push(`destinations = $${paramCount}`);
         params.push(typeof value === 'string' ? value : JSON.stringify(value));
+      } else if (key === 'pipelineStage') {
+        if (value === 'confirmed') {
+          fields.push(`lead_outcome = $${paramCount}`);
+          params.push('confirmed');
+          paramCount++;
+
+          fields.push(`status = $${paramCount}`);
+          params.push('booked');
+        } else if (value === 'completed') {
+          fields.push(`status = $${paramCount}`);
+          params.push('completed');
+        } else if (value === 'new_lead') {
+          fields.push(`status = $${paramCount}`);
+          params.push('new');
+        } else if (value === 'availability_check') {
+          fields.push(`status = $${paramCount}`);
+          params.push('contacted');
+        } else if (value === 'quoted') {
+          fields.push(`status = $${paramCount}`);
+          params.push('interested');
+        } else if (value === 'payment_pending') {
+          fields.push(`status = $${paramCount}`);
+          params.push('negotiation');
+        } else if (value === 'on_trip') {
+          fields.push(`status = $${paramCount}`);
+          params.push('booked');
+        } else {
+          return;
+        }
       } else if (key !== 'id' && key !== 'createdAt') {
         let dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
         if (key === 'clientName' || key === 'name') dbKey = 'client_name';
