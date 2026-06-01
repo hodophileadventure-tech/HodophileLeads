@@ -615,7 +615,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Email</label>
-                  <input type="email" value={newAgentEmail} onChange={e => setNewAgentEmail(e.target.value)} className="input-field w-full" />
+                  <input type="text" value={newAgentEmail} onChange={e => setNewAgentEmail(e.target.value)} className="input-field w-full" placeholder="sameer@hodophile,pk" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Name</label>
