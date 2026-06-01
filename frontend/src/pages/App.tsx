@@ -11,6 +11,7 @@ import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 import { LeadList } from '../components/LeadCard';
 import { KanbanPipeline } from '../components/KanbanPipeline';
 import { LeadForm } from '../components/LeadForm';
+import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp } from '../types';
@@ -72,6 +73,7 @@ export const App: React.FC = () => {
   const [followUpDateTime, setFollowUpDateTime] = useState('');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionRemarks, setCompletionRemarks] = useState('');
+  const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -596,13 +598,14 @@ export const App: React.FC = () => {
                                   await cancelLead();
                                   return;
                                 }
+                                if (value === 'confirmed') {
+                                  setShowConfirmForm(true);
+                                  return;
+                                }
                                 const payload: any = {};
                                 if (value === 'potential') payload.potential = true; else payload.potential = false;
                                 if (value === 'dead') payload.status = 'completed';
-                                else if (value === 'confirmed') {
-                                  payload.leadOutcome = 'confirmed';
-                                  payload.status = 'booked';
-                                } else if (value === 'in_progress') payload.status = 'contacted';
+                                else if (value === 'in_progress') payload.status = 'contacted';
                                 else if (value === 'new') payload.status = 'new';
                                 try {
                                   const resp = await leadsAPI.update(String(selectedLead.id), payload);
@@ -865,6 +868,19 @@ export const App: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                )}
+
+                {selectedLead && showConfirmForm && (
+                  <ConfirmedLeadForm
+                    lead={selectedLead}
+                    isOpen={showConfirmForm}
+                    onClose={() => setShowConfirmForm(false)}
+                    onSaved={(updated) => {
+                      setSelectedLead(updated);
+                      setShowConfirmForm(false);
+                      refreshLeads();
+                    }}
+                  />
                 )}
 
                 <section className={`card ${pipelineCollapsed ? 'max-h-20 overflow-hidden' : ''}`}>
