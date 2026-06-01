@@ -5,6 +5,10 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+const DEFAULT_ADMIN_EMAIL = 'admin@hodophile.com';
+const DEFAULT_ADMIN_NAME = 'Admin User';
+const DEFAULT_ADMIN_PASSWORD_HASH = '$2a$10$hbMKu.dCXAwpVBWqxFXAL.7SKl49B/IDXphos3pxT1FV/v8ASD4rW';
+
 async function migrate() {
   const client = await pool.connect();
   try {
@@ -26,6 +30,13 @@ async function migrate() {
       )
     `);
     console.log('✅ Users table created');
+
+    await client.query(`
+      INSERT INTO users (email, name, password, role)
+      VALUES ($1, $2, $3, 'admin')
+      ON CONFLICT (email) DO NOTHING
+    `, [DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD_HASH]);
+    console.log('✅ Default admin ensured');
 
     // 2. Client Profiles Table (no dependencies)
     await client.query(`
