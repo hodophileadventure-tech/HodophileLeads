@@ -2,6 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import { screenCaptureModel } from '../models/ScreenCapture';
 
+const isMissingScreenCaptureTable = (error: any) => {
+  return error?.code === '42P01' || String(error?.message || '').includes('screen_captures does not exist');
+};
+
 const cleanupOnce = async () => {
   try {
     const expired = await screenCaptureModel.listExpired();
@@ -20,6 +24,11 @@ const cleanupOnce = async () => {
       await screenCaptureModel.delete(String(item.id));
     }
   } catch (error) {
+    if (isMissingScreenCaptureTable(error)) {
+      console.log('[Screen Capture Cleanup] screen_captures table not found yet; skipping cleanup.');
+      return;
+    }
+
     console.warn('Screen capture cleanup failed', (error as any)?.message || error);
   }
 };
