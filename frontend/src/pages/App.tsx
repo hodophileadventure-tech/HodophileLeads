@@ -257,7 +257,7 @@ export const App: React.FC = () => {
   const deleteLead = async () => {
     if (!selectedLead) return;
     const confirmed = window.confirm(
-      `Are you sure you want to permanently delete this lead (${selectedLead.client_name || selectedLead.name})? This action cannot be undone.`
+      `Are you sure you want to permanently delete this lead (${selectedLead.clientName})? This action cannot be undone.`
     );
     if (!confirmed) return;
     try {

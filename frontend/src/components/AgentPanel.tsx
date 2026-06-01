@@ -347,7 +347,7 @@ export const AgentPanel: React.FC = () => {
 
   const deleteLead = async (lead: Lead) => {
     const confirmed = window.confirm(
-      `Are you sure you want to permanently delete this lead (${lead.client_name || lead.name})? This action cannot be undone.`
+      `Are you sure you want to permanently delete this lead (${lead.clientName})? This action cannot be undone.`
     );
     if (!confirmed) return;
     try {
