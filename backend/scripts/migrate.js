@@ -242,6 +242,35 @@ async function migrate() {
     console.log('✅ All indexes created');
 
     await client.query('COMMIT');
+    const tables = await client.query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_type = 'BASE TABLE'
+      ORDER BY table_name
+    `);
+    const columns = await client.query(`
+      SELECT table_name, column_name, data_type, is_nullable
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+      ORDER BY table_name, ordinal_position
+    `);
+
+    const columnsByTable = new Map();
+    for (const row of columns.rows) {
+      const current = columnsByTable.get(row.table_name) || [];
+      current.push(row);
+      columnsByTable.set(row.table_name, current);
+    }
+
+    console.log('\n📋 Database schema summary');
+    console.log(`Tables created: ${tables.rows.length}`);
+    for (const table of tables.rows) {
+      const tableColumns = columnsByTable.get(table.table_name) || [];
+      const columnList = tableColumns.map((col) => `${col.column_name}:${col.data_type}${col.is_nullable === 'NO' ? '!' : ''}`).join(', ');
+      console.log(`- ${table.table_name} (${tableColumns.length} columns): ${columnList}`);
+    }
+
     console.log('\n✅ ✅ ✅ Database migration completed successfully! All tables and indexes created.');
     process.exit(0);
   } catch (error) {

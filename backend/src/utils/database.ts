@@ -1,6 +1,7 @@
 import { Pool, PoolClient } from 'pg';
 import bcryptjs from 'bcryptjs';
 import dotenv from 'dotenv';
+import { logDatabaseSchema } from './logDatabaseSchema';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ export const initDatabase = async () => {
     await p.query('SELECT 1');
     useMockDb = false;
     console.log('[DB INIT] Connected to Postgres — real DB enabled.');
+    await logDatabaseSchema(query);
   } catch (err: any) {
     console.error('[DB INIT] Failed to connect to Postgres, continuing in mock mode.', err?.message || err);
     useMockDb = true;
