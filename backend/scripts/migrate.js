@@ -27,12 +27,18 @@ async function migrate() {
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL DEFAULT 'agent',
         avatar_url VARCHAR(500),
+        last_login_at TIMESTAMP,
+        last_logout_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT valid_role CHECK (role IN ('admin', 'agent'))
       )
     `);
     console.log('✅ Users table created');
+
+    await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP');
+    await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_logout_at TIMESTAMP');
+    console.log('✅ Users login audit columns ensured');
 
     await client.query(`
       INSERT INTO users (email, name, password, role)
@@ -98,6 +104,9 @@ async function migrate() {
         special_requests TEXT,
         transport_preference VARCHAR(255),
         hotel_preference VARCHAR(255),
+        canceled_reason TEXT,
+        canceled_by UUID REFERENCES users(id),
+        canceled_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT valid_temperature CHECK (temperature IN ('hot', 'warm', 'cold', 'dead')),
@@ -106,6 +115,11 @@ async function migrate() {
       )
     `);
     console.log('✅ Leads table created');
+
+    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
+    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
+    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP');
+    console.log('✅ Lead cancel tracking columns ensured');
 
     // 4. Follow-ups Table (depends on leads, users)
     await client.query(`
@@ -120,13 +134,21 @@ async function migrate() {
         priority VARCHAR(50) NOT NULL DEFAULT 'medium',
         assigned_to UUID NOT NULL REFERENCES users(id),
         completed_at TIMESTAMP,
+        canceled_reason TEXT,
+        canceled_by UUID REFERENCES users(id),
+        canceled_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT valid_type CHECK (type IN ('manual', 'auto')),
-        CONSTRAINT valid_status CHECK (status IN ('overdue', 'today', 'upcoming', 'completed')),
+        CONSTRAINT valid_status CHECK (status IN ('overdue', 'today', 'upcoming', 'completed', 'canceled')),
         CONSTRAINT valid_priority CHECK (priority IN ('low', 'medium', 'high'))
       )
     `);
     console.log('✅ Follow-ups table created');
+
+    await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
+    await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
+    await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP');
+    console.log('✅ Follow-up cancel tracking columns ensured');
 
     // 5. Itineraries Table (depends on leads)
     await client.query(`
