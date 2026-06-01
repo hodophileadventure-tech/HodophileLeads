@@ -606,37 +606,27 @@ export const query = async (text: string, params?: any[]) => {
 
       // INSERT INTO follow_ups (...)
       if (normalized.includes('insert into follow_ups') && normalized.includes('returning *')) {
-        const [
-          leadId,
-          assignedTo,
-          taskType,
-          dueDate,
-          status,
-          notes,
-          priority,
-          reminderType,
-          whatsappNumber,
-          whatsappLink
-        ] = params || [];
+        const [leadId, type, title, description, dueDate, status, priority, assignedTo, completedAt, canceledReason, canceledBy, canceledAt] = params || [];
 
         const now = new Date().toISOString();
         const item = {
           id: Math.random().toString(36).slice(2, 11),
           lead_id: leadId,
+          type: type || 'manual',
+          title: title || '',
+          description: description || '',
           assigned_to: assignedTo,
-          task_type: taskType,
           due_date: dueDate,
           status: status || 'upcoming',
-          notes: notes || '',
           priority: priority || 'medium',
-          reminder_type: reminderType || 'client_requested',
-          whatsapp_number: whatsappNumber || '',
-          whatsapp_link: whatsappLink || '',
-          canceled_reason: null,
-          canceled_by: null,
-          canceled_at: null,
+          completed_at: completedAt || null,
+          canceled_reason: canceledReason || null,
+          canceled_by: canceledBy || null,
+          canceled_at: canceledAt || null,
           created_at: now,
-          updated_at: now
+          updated_at: now,
+          task_type: type || 'manual',
+          notes: description || ''
         };
 
         mockDb.followUps.unshift(item);
@@ -696,6 +686,32 @@ export const query = async (text: string, params?: any[]) => {
         };
 
         return { rows: [mockDb.followUps[index]], rowCount: 1 };
+      }
+
+      if (normalized.includes('update follow_ups set type = coalesce($2') || normalized.includes('update follow_ups set task_type = coalesce($2')) {
+        const id = params?.[0];
+        const index = mockDb.followUps.findIndex((item: any) => item.id === id);
+        if (index < 0) return { rows: [], rowCount: 0 };
+
+        const updated: any = {
+          ...mockDb.followUps[index],
+          type: params?.[1] ?? mockDb.followUps[index].type,
+          title: params?.[2] ?? mockDb.followUps[index].title,
+          description: params?.[3] ?? mockDb.followUps[index].description,
+          due_date: params?.[4] ?? mockDb.followUps[index].due_date,
+          status: params?.[5] ?? mockDb.followUps[index].status,
+          priority: params?.[6] ?? mockDb.followUps[index].priority,
+          completed_at: params?.[7] ?? mockDb.followUps[index].completed_at,
+          canceled_reason: params?.[8] ?? mockDb.followUps[index].canceled_reason,
+          canceled_by: params?.[9] ?? mockDb.followUps[index].canceled_by,
+          canceled_at: params?.[10] ?? mockDb.followUps[index].canceled_at,
+          updated_at: new Date().toISOString()
+        };
+
+        updated.task_type = updated.type;
+        updated.notes = updated.description;
+        mockDb.followUps[index] = updated;
+        return { rows: [updated], rowCount: 1 };
       }
 
       // delete follow-up

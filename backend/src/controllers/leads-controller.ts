@@ -311,8 +311,9 @@ export const leadsController = {
       const paymentReceived = paymentsResult.rows.some((payment: any) => ['approved', 'confirmed'].includes(payment.status));
 
       const preDepartureTasks = followUps.filter((item: any) =>
-        String(item.task_type || '').toLowerCase().includes('pre-departure') ||
-        String(item.task_type || '').toLowerCase().includes('pre departure')
+        String(item.title || item.task_type || '').toLowerCase().includes('pre-departure') ||
+        String(item.title || item.task_type || '').toLowerCase().includes('pre departure') ||
+        String(item.type || '').toLowerCase().includes('pre-departure')
       );
       const preDepartureTasksDone = preDepartureTasks.length > 0 && preDepartureTasks.every((item: any) => item.status === 'completed');
 

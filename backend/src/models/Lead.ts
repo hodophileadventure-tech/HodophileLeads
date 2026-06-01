@@ -85,7 +85,7 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_date, hotel_info, hotel_options, agent_id, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
+          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, agent_id, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
       RETURNING *
     `;
@@ -112,7 +112,7 @@ export const leadsModel = {
       temperature,
       'new',
       data.budget ?? 0,
-      data.travelDates ? (data.travelDates.from || data.travelDates.to || null) : null,
+      data.travelDates ? JSON.stringify(data.travelDates) : null,
       data.hotelInfo ? JSON.stringify(data.hotelInfo) : null,
       hotelOptions.length > 0 ? JSON.stringify(hotelOptions) : null,
       data.agentId || (data as any).agent_id || null,
@@ -135,9 +135,9 @@ export const leadsModel = {
         // prefill missing personal details from profile
         params[0] = params[0] || existingProfile.name || params[0];
         params[1] = params[1] || existingProfile.email || params[1];
-        params[13] = params[13] || existingProfile.address || params[13];
-        params[14] = params[14] || existingProfile.gender || params[14];
-        params[15] = params[15] || existingProfile.age || params[15];
+        params[14] = params[14] || existingProfile.address || params[14];
+        params[15] = params[15] || existingProfile.gender || params[15];
+        params[16] = params[16] || existingProfile.age || params[16];
       } else {
         const created = await profileModel.create({
           phone: (data as any).phone,
@@ -164,7 +164,7 @@ export const leadsModel = {
     let paramCount = 1;
 
     const allowedColumns = new Set([
-      'name',
+      'client_name',
       'email',
       'phone',
       'destination',
@@ -172,7 +172,7 @@ export const leadsModel = {
       'temperature',
       'status',
       'budget',
-      'travel_date',
+      'travel_dates',
       'hotel_info',
       'destinations',
       'hotel_options',
@@ -194,11 +194,11 @@ export const leadsModel = {
 
     Object.entries(data).forEach(([key, value]) => {
       if (key === 'travelDates') {
-        fields.push(`travel_date = $${paramCount}`);
+        fields.push(`travel_dates = $${paramCount}`);
         let dateVal: any = value;
         if (value && typeof value === 'object') {
           const v: any = value;
-          dateVal = v.from || v.to || v;
+          dateVal = JSON.stringify({ from: v.from || '', to: v.to || '' });
         }
         params.push(dateVal);
       } else if (key === 'hotelInfo') {
@@ -212,7 +212,7 @@ export const leadsModel = {
         params.push(typeof value === 'string' ? value : JSON.stringify(value));
       } else if (key !== 'id' && key !== 'createdAt') {
         let dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-        if (key === 'clientName' || key === 'name') dbKey = 'name';
+        if (key === 'clientName' || key === 'name') dbKey = 'client_name';
         if (key === 'destination') dbKey = 'destination';
         if (key === 'leadOutcome') dbKey = 'lead_outcome';
         if (!allowedColumns.has(dbKey)) return;

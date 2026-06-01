@@ -15,7 +15,7 @@ export const startFollowUpWorker = () => {
         try {
           console.log('[Worker] Overdue follow-up:', item.id || item);
           // Placeholder notifications
-          const message = `Follow-up overdue for lead ${item.lead_id} - task ${item.task_type}`;
+          const message = `Follow-up overdue for lead ${item.lead_id} - task ${item.title || item.task_type || 'Follow up'}`;
           // create in-app notification for assignee
           try {
             const created = await notificationsModel.create({

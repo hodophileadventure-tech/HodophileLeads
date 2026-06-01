@@ -24,25 +24,21 @@ export const followUpsModel = {
   async create(data: Partial<FollowUp>) {
     const sql = `
       INSERT INTO follow_ups (
-        lead_id, assigned_to, task_type, due_date, status, notes, priority, reminder_type, whatsapp_number, whatsapp_link, canceled_reason, canceled_by, canceled_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        lead_id, type, title, description, due_date, status, priority, assigned_to, completed_at, canceled_reason, canceled_by, canceled_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `;
 
-    const phone = (data.whatsappNumber || '').replace(/[^0-9]/g, '');
-    const waLink = phone ? `https://wa.me/${phone}` : '';
-
     const params = [
       data.leadId,
-      data.assignedTo,
+      (data as any).type || 'manual',
       data.title,
+      data.description || '',
       data.dueDate,
       data.status || 'upcoming',
-      data.description || '',
       data.priority || 'medium',
-      data.reminderType || 'client_requested',
-      data.whatsappNumber || '',
-      data.whatsappLink || waLink,
+      data.assignedTo,
+      (data as any).completedAt || null,
       (data as any).canceledReason || null,
       (data as any).canceledBy || null,
       (data as any).canceledAt || null
@@ -55,34 +51,30 @@ export const followUpsModel = {
   async update(id: string, data: Partial<FollowUp>) {
     const sql = `
       UPDATE follow_ups
-      SET task_type = COALESCE($2, task_type),
-          due_date = COALESCE($3, due_date),
-          status = COALESCE($4, status),
-          notes = COALESCE($5, notes),
-          priority = COALESCE($6, priority),
-          reminder_type = COALESCE($7, reminder_type),
-          whatsapp_number = COALESCE($8, whatsapp_number),
-          whatsapp_link = COALESCE($9, whatsapp_link),
-          canceled_reason = COALESCE($10, canceled_reason),
-          canceled_by = COALESCE($11, canceled_by),
-          canceled_at = COALESCE($12, canceled_at),
+      SET type = COALESCE($2, type),
+          title = COALESCE($3, title),
+          description = COALESCE($4, description),
+          due_date = COALESCE($5, due_date),
+          status = COALESCE($6, status),
+          priority = COALESCE($7, priority),
+          completed_at = COALESCE($8, completed_at),
+          canceled_reason = COALESCE($9, canceled_reason),
+          canceled_by = COALESCE($10, canceled_by),
+          canceled_at = COALESCE($11, canceled_at),
           updated_at = NOW()
       WHERE id = $1
       RETURNING *
     `;
 
-    const phone = (data.whatsappNumber || '').replace(/[^0-9]/g, '');
-    const waLink = phone ? `https://wa.me/${phone}` : data.whatsappLink || '';
     const params = [
       id,
+      (data as any).type,
       data.title,
+      data.description,
       data.dueDate,
       data.status,
-      data.description,
       data.priority,
-      data.reminderType,
-      data.whatsappNumber,
-      waLink,
+      (data as any).completedAt,
       (data as any).canceledReason,
       (data as any).canceledBy,
       (data as any).canceledAt

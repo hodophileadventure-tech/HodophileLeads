@@ -13,14 +13,14 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState<Partial<Lead>>(
+  const [formData, setFormData] = useState<any>(
     initialData || {
       clientName: '',
       email: '',
       phone: '',
       address: '',
       gender: '',
-      age: 0,
+      age: '',
       destination: '',
       travelDates: { from: '', to: '' },
       persons: 1,
@@ -39,7 +39,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: initialData.phone || '',
         address: initialData.address || '',
         gender: (initialData as any).gender || '',
-        age: (initialData as any).age || 0,
+        age: (initialData as any).age ?? '',
         destination: initialData.destination || '',
         travelDates: initialData.travelDates || { from: '', to: '' },
         persons: initialData.persons || 1,
@@ -52,14 +52,14 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
   }, [initialData]);
 
   const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       [field]: value
     }));
   };
 
   const handleTravelDateChange = (field: 'from' | 'to', value: string) => {
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       travelDates: {
         ...prev.travelDates!,
@@ -83,7 +83,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: formData.phone,
         address: (formData as any).address,
         gender,
-        age: (formData as any).age,
         destination: formData.destination,
         travelDates: formData.travelDates,
         persons: formData.persons,
@@ -91,6 +90,11 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         remarks: (formData as any).remarks,
         potential: (formData as any).potential
       };
+
+      const ageValue = (formData as any).age;
+      if (ageValue !== '' && ageValue !== null && ageValue !== undefined) {
+        (payload as any).age = typeof ageValue === 'number' ? ageValue : parseInt(String(ageValue), 10);
+      }
 
       // Map selected leadStatus into payload fields
       const status = (formData as any).leadStatus || 'new';
@@ -126,7 +130,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: '',
         address: '',
         gender: '',
-        age: 0,
+        age: '',
         destination: '',
         travelDates: { from: '', to: '' },
         persons: 1,
@@ -276,7 +280,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Age</label>
-              <input type="number" className="input-field" value={(formData as any).age || 0} onChange={(e) => handleChange('age', parseInt(e.target.value || '0', 10))} min={0} />
+              <input type="number" className="input-field" value={(formData as any).age ?? ''} onChange={(e) => handleChange('age', e.target.value === '' ? '' : parseInt(e.target.value, 10))} min={0} placeholder="Optional" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Lead Status</label>
