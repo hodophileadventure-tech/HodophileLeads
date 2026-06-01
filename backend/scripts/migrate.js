@@ -8,6 +8,9 @@ const pool = new Pool({
 const DEFAULT_ADMIN_EMAIL = 'admin@hodophile.com';
 const DEFAULT_ADMIN_NAME = 'Admin User';
 const DEFAULT_ADMIN_PASSWORD_HASH = '$2a$10$hbMKu.dCXAwpVBWqxFXAL.7SKl49B/IDXphos3pxT1FV/v8ASD4rW';
+const DEFAULT_AGENT_EMAIL = 'sameer@hodophile.pk';
+const DEFAULT_AGENT_NAME = 'Sameer';
+const DEFAULT_AGENT_PASSWORD_HASH = '$2a$10$k3aJ97YjR8MXLB7AGogGGOoS9NO9Kd9xyiio0PbZNVh5gsCfaiXJ6';
 
 async function migrate() {
   const client = await pool.connect();
@@ -37,6 +40,13 @@ async function migrate() {
       ON CONFLICT (email) DO NOTHING
     `, [DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD_HASH]);
     console.log('✅ Default admin ensured');
+
+    await client.query(`
+      INSERT INTO users (email, name, password, role)
+      VALUES ($1, $2, $3, 'agent')
+      ON CONFLICT (email) DO NOTHING
+    `, [DEFAULT_AGENT_EMAIL, DEFAULT_AGENT_NAME, DEFAULT_AGENT_PASSWORD_HASH]);
+    console.log('✅ Default agent ensured');
 
     // 2. Client Profiles Table (no dependencies)
     await client.query(`
