@@ -19,7 +19,8 @@ const db = {
   payments: [],
   availability: [],
   clientProfiles: [],
-  auditLogs: []
+  auditLogs: [],
+  screenCaptures: []
 };
 
 // Passwords are stored as bcrypt hashes in the mock DB seed above.

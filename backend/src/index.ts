@@ -19,6 +19,7 @@ import { initDatabase } from './utils/database';
 import { startFollowUpWorker } from './workers/followUpWorker';
 import { createServer } from 'http';
 import { initWebsocket } from './utils/wsServer';
+import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
 
 dotenv.config();
 
@@ -135,6 +136,7 @@ const start = async () => {
   await initDatabase();
   // start background worker
   startFollowUpWorker();
+  startScreenCaptureCleanup();
 
   const server = createServer(app);
   // init websocket server

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { leadsAPI, followUpsAPI, attachmentsAPI } from '../utils/api-service';
+import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI } from '../utils/api-service';
 import { LeadForm } from './LeadForm';
 import ConfirmedLeadForm from './ConfirmedLeadForm';
 import { Badge, Button } from './common';
@@ -58,7 +58,12 @@ export const AgentPanel: React.FC = () => {
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [searchPhone, setSearchPhone] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled'>('all');
+  const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
+  const [screenShareError, setScreenShareError] = useState('');
+  const [screenShareNotice, setScreenShareNotice] = useState('');
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
+  const screenVideoRef = useRef<HTMLVideoElement | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
 
   const stopAlarmAudio = () => {
     try {
@@ -77,6 +82,51 @@ export const AgentPanel: React.FC = () => {
     writeDismissedFollowUps(next);
     stopAlarmAudio();
     setActiveAlarm(null);
+  };
+
+  const stopScreenCapture = () => {
+    const stream = screenStreamRef.current;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+
+    screenStreamRef.current = null;
+    if (screenVideoRef.current) {
+      screenVideoRef.current.srcObject = null;
+    }
+
+    setScreenShareStatus('idle');
+    setScreenShareError('');
+    setScreenShareNotice('Screen capture stopped.');
+  };
+
+  const startScreenCapture = async () => {
+    try {
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        throw new Error('Screen capture is not supported in this browser');
+      }
+
+      setScreenShareStatus('requesting');
+      setScreenShareError('');
+      setScreenShareNotice('');
+
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      screenStreamRef.current = stream;
+      setScreenShareStatus('active');
+      setScreenShareNotice('Screen capture is enabled. Admin can request screenshots now.');
+
+      if (screenVideoRef.current) {
+        screenVideoRef.current.srcObject = stream;
+        await screenVideoRef.current.play().catch(() => undefined);
+      }
+
+      stream.getVideoTracks()[0]?.addEventListener('ended', () => {
+        stopScreenCapture();
+      });
+    } catch (error: any) {
+      setScreenShareStatus('error');
+      setScreenShareError(error?.message || 'Failed to start screen capture');
+    }
   };
 
   const completeActiveFollowUp = async (item: FollowUp | null) => {
@@ -107,6 +157,75 @@ export const AgentPanel: React.FC = () => {
   useEffect(() => {
     loadLeads();
   }, []);
+
+  useEffect(() => {
+    const handleScreenshotRequest = async (event: Event) => {
+      const detail = (event as CustomEvent).detail as { requestId?: string } | undefined;
+      const requestId = detail?.requestId;
+
+      if (!requestId) {
+        return;
+      }
+
+      if (screenShareStatus !== 'active' || !screenStreamRef.current || !screenVideoRef.current) {
+        try {
+          await (adminAPI as any).submitScreenCapture(requestId, {
+            error: 'Screen capture is not active yet. Please enable it first.',
+            capturedAt: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Failed to submit screenshot error response', error);
+        }
+        return;
+      }
+
+      try {
+        const video = screenVideoRef.current;
+        if (!video.videoWidth || !video.videoHeight) {
+          await new Promise<void>((resolve) => {
+            const timeout = window.setTimeout(() => resolve(), 300);
+            const onLoaded = () => {
+              window.clearTimeout(timeout);
+              resolve();
+            };
+            video.addEventListener('loadedmetadata', onLoaded, { once: true });
+          });
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        const context = canvas.getContext('2d');
+
+        if (!context) {
+          throw new Error('Could not access capture canvas');
+        }
+
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/png');
+
+        await (adminAPI as any).submitScreenCapture(requestId, {
+          dataUrl,
+          capturedAt: new Date().toISOString()
+        });
+        setScreenShareNotice(`Screenshot sent at ${new Date().toLocaleTimeString()}`);
+      } catch (error: any) {
+        try {
+          await (adminAPI as any).submitScreenCapture(requestId, {
+            error: error?.message || 'Failed to capture screenshot',
+            capturedAt: new Date().toISOString()
+          });
+        } catch (submitError) {
+          console.error('Failed to submit screenshot error response', submitError);
+        }
+      }
+    };
+
+    window.addEventListener('screen-capture-request', handleScreenshotRequest as EventListener);
+    return () => {
+      window.removeEventListener('screen-capture-request', handleScreenshotRequest as EventListener);
+    };
+  }, [screenShareStatus]);
 
   useEffect(() => {
     let mounted = true;
@@ -222,6 +341,34 @@ export const AgentPanel: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">Screen Snapshot Access</h3>
+              <Badge color={screenShareStatus === 'active' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}>
+                {screenShareStatus === 'active' ? 'Active' : 'Off'}
+              </Badge>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              You control when screen capture starts. When active, an admin can request a single screenshot at any time.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {screenShareStatus !== 'active' ? (
+              <Button onClick={startScreenCapture} loading={screenShareStatus === 'requesting'}>
+                Enable Screen Capture
+              </Button>
+            ) : (
+              <Button variant="danger" onClick={stopScreenCapture}>Stop Sharing</Button>
+            )}
+          </div>
+        </div>
+        {screenShareError && <p className="mt-3 text-sm text-rose-600">{screenShareError}</p>}
+        {screenShareNotice && <p className="mt-3 text-sm text-slate-500">{screenShareNotice}</p>}
+        <video ref={screenVideoRef} className="hidden" muted playsInline />
+      </div>
+
       <div className="flex items-center gap-3">
         <input className="input-field flex-1" placeholder="Search phone or enter to create" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} />
         <Button onClick={handleSearchPhone}>Search</Button>

@@ -16,6 +16,7 @@ const mockDb: {
   availability: MockRow[];
   clientProfiles: MockRow[];
   auditLogs: MockRow[];
+  screenCaptures: MockRow[];
 } = {
   users: [
     {
@@ -37,7 +38,8 @@ const mockDb: {
   payments: [],
   availability: [],
   clientProfiles: [],
-  auditLogs: []
+  auditLogs: [],
+  screenCaptures: []
 };
 
 // Passwords are stored as bcrypt hashes in the mock DB seed above.
@@ -502,6 +504,44 @@ export const query = async (text: string, params?: any[]) => {
         };
         mockDb.clientProfiles.unshift(newProfile);
         return { rows: [newProfile], rowCount: 1 };
+      }
+
+      if (normalized.includes('insert into screen_captures') && normalized.includes('returning *')) {
+        const [requestId, agentId, requestedBy, fileName, mimeType, url, size, expiresAt] = params || [];
+        const now = new Date().toISOString();
+        const row = {
+          id: Math.random().toString(36).slice(2, 11),
+          request_id: requestId,
+          agent_id: agentId,
+          requested_by: requestedBy || null,
+          file_name: fileName,
+          mime_type: mimeType,
+          url,
+          size: Number(size || 0),
+          expires_at: expiresAt,
+          created_at: now
+        };
+        mockDb.screenCaptures.unshift(row);
+        return { rows: [row], rowCount: 1 };
+      }
+
+      if (normalized.includes('select * from screen_captures where id = $1')) {
+        const id = params?.[0];
+        const row = mockDb.screenCaptures.find((item: any) => item.id === id);
+        return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
+      }
+
+      if (normalized.includes('select * from screen_captures where expires_at <= now()')) {
+        const now = Date.now();
+        const rows = mockDb.screenCaptures.filter((item: any) => new Date(item.expires_at).getTime() <= now);
+        return { rows, rowCount: rows.length };
+      }
+
+      if (normalized.includes('delete from screen_captures where id = $1')) {
+        const id = params?.[0];
+        const before = mockDb.screenCaptures.length;
+        mockDb.screenCaptures = mockDb.screenCaptures.filter((item: any) => item.id !== id);
+        return { rows: [], rowCount: before - mockDb.screenCaptures.length };
       }
 
       if (normalized.includes('update payments set') && normalized.includes('returning *')) {

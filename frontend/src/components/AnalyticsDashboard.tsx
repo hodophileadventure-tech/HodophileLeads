@@ -108,6 +108,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   const [selectedAgent, setSelectedAgent] = useState<any | null>(null);
   const [agentLeads, setAgentLeads] = useState<Lead[]>([]);
   const [loadingAgentLeads, setLoadingAgentLeads] = useState(false);
+  const [screenshotRequestId, setScreenshotRequestId] = useState<string | null>(null);
+  const [screenshotLoading, setScreenshotLoading] = useState(false);
+  const [screenshotResult, setScreenshotResult] = useState<{
+    requestId: string;
+    agentId: string;
+    screenshot?: { id: string; url: string; expires_at?: string; created_at?: string };
+    error?: string;
+    capturedAt?: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -176,8 +185,36 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     refreshAgentsAndStats();
   }, [isAdmin]);
 
+  useEffect(() => {
+    const handleScreenshotResult = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { requestId?: string; agentId?: string; screenshot?: { id: string; url: string; expires_at?: string; created_at?: string }; error?: string; capturedAt?: string } | undefined;
+      if (!detail?.requestId) {
+        return;
+      }
+
+      setScreenshotResult({
+        requestId: detail.requestId,
+        agentId: detail.agentId || selectedAgent?.id || '',
+        screenshot: detail.screenshot,
+        error: detail.error,
+        capturedAt: detail.capturedAt
+      });
+
+      if (screenshotRequestId === detail.requestId) {
+        setScreenshotRequestId(null);
+      }
+    };
+
+    window.addEventListener('screen-capture-result', handleScreenshotResult as EventListener);
+    return () => {
+      window.removeEventListener('screen-capture-result', handleScreenshotResult as EventListener);
+    };
+  }, [screenshotRequestId, selectedAgent?.id]);
+
   const handleViewAgent = async (agent: any) => {
     setSelectedAgent(agent);
+    setScreenshotResult(null);
+    setScreenshotRequestId(null);
     setLoadingAgentLeads(true);
     try {
       const resp = await (adminAPI as any).getAgentLeads(agent.id);
@@ -200,6 +237,44 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     } catch (e) {
       console.error('Failed to update agent', e);
       alert('Failed to update agent');
+    }
+  };
+
+  const handleRequestScreenshot = async (agent: any) => {
+    if (!confirm(`Request a screenshot from ${agent.name || agent.email}?`)) return;
+
+    try {
+      setScreenshotLoading(true);
+      setScreenshotResult(null);
+      const resp = await (adminAPI as any).requestAgentScreenshot(agent.id);
+      const request = resp.data?.request;
+      setScreenshotRequestId(request?.requestId || null);
+      if (!request?.requestId) {
+        alert('Screenshot request could not be created');
+      }
+    } catch (e) {
+      console.error('Failed to request screenshot', e);
+      alert('Failed to request screenshot');
+    } finally {
+      setScreenshotLoading(false);
+    }
+  };
+
+  const handleExportSpreadsheet = async () => {
+    try {
+      const resp = await (adminAPI as any).exportLeadsSpreadsheet();
+      const blob = new Blob([resp.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tripnexus-leads-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export leads spreadsheet', error);
+      alert('Failed to export leads spreadsheet');
     }
   };
 
@@ -242,7 +317,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Analytics</h1>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-3xl font-bold">Analytics</h1>
+        {isAdmin && (
+          <Button size="sm" variant="secondary" onClick={handleExportSpreadsheet}>
+            Download Leads Spreadsheet
+          </Button>
+        )}
+      </div>
 
       {error && (
         <Card>
@@ -583,9 +665,46 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="danger" onClick={() => handleResetPassword(selectedAgent.id)}>Reset Password</Button>
+                <Button size="sm" variant="secondary" onClick={() => handleRequestScreenshot(selectedAgent)} loading={screenshotLoading}>
+                  Request Screenshot
+                </Button>
                 <Button size="sm" onClick={() => { setSelectedAgent(null); setAgentLeads([]); }}>Close</Button>
               </div>
             </div>
+
+            {screenshotRequestId && (
+              <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
+                Waiting for screenshot from {selectedAgent.name || selectedAgent.email}...
+              </div>
+            )}
+
+            {screenshotResult && screenshotResult.agentId === selectedAgent.id && (
+              <div className="mt-4 rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h4 className="font-semibold">Latest Screenshot</h4>
+                    <p className="text-xs text-slate-500">
+                      {screenshotResult.capturedAt ? formatKarachiDateTime(screenshotResult.capturedAt) : 'Just received'}
+                    </p>
+                    {screenshotResult.screenshot?.expires_at && (
+                      <p className="text-xs text-slate-400">
+                        Expires: {formatKarachiDateTime(screenshotResult.screenshot.expires_at)}
+                      </p>
+                    )}
+                  </div>
+                  <Button size="sm" variant="secondary" onClick={() => setScreenshotResult(null)}>Clear</Button>
+                </div>
+                {screenshotResult.error ? (
+                  <p className="mt-3 text-sm text-rose-600">{screenshotResult.error}</p>
+                ) : (
+                  <img
+                    src={screenshotResult.screenshot?.url || ''}
+                    alt={`Screenshot from ${selectedAgent.name || selectedAgent.email}`}
+                    className="mt-3 w-full rounded-lg border border-slate-200 dark:border-slate-700"
+                  />
+                )}
+              </div>
+            )}
 
             <div className="mt-4">
               {loadingAgentLeads ? (

@@ -167,3 +167,20 @@ CREATE TABLE IF NOT EXISTS attachments (
 );
 
 CREATE INDEX idx_attachments_lead_id ON attachments(lead_id);
+
+-- Screen Captures Table
+CREATE TABLE IF NOT EXISTS screen_captures (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID NOT NULL,
+  agent_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  requested_by UUID REFERENCES users(id),
+  file_name VARCHAR(500) NOT NULL,
+  mime_type VARCHAR(200) NOT NULL,
+  url VARCHAR(1000) NOT NULL,
+  size BIGINT NOT NULL DEFAULT 0,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_screen_captures_agent_id ON screen_captures(agent_id);
+CREATE INDEX idx_screen_captures_expires_at ON screen_captures(expires_at);

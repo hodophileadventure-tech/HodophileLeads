@@ -174,6 +174,8 @@ JWT-based authentication with role-based access:
 - **Admin**: Full system access, configuration
 - **Agent**: Lead management, booking workflow
 
+Live agent screenshots are available only with agent consent: the agent must enable screen capture in the Agent Panel, then an admin can request a one-time screenshot from the Admin Analytics modal.
+
 Default credentials (for testing):
 - Admin: `admin@hodophile.com` / `admin@123`
 

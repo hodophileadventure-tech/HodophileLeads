@@ -70,13 +70,17 @@ export const dashboardAPI = {
 
 export const adminAPI = {
   getRedFlags: () => apiClient.get('/admin/red-flags'),
-  getOverview: () => apiClient.get('/admin/overview')
+  getOverview: () => apiClient.get('/admin/overview'),
+  exportLeadsSpreadsheet: () => apiClient.get('/admin/leads/export', { responseType: 'blob' })
 };
 
 (adminAPI as any).getAgents = () => apiClient.get('/admin/agents');
 (adminAPI as any).getAgentLeads = (agentId: string) => apiClient.get(`/admin/agents/${agentId}/leads`);
 (adminAPI as any).updateAgent = (agentId: string, data: any) => apiClient.put(`/admin/agents/${agentId}`, data);
 (adminAPI as any).resetAgentPassword = (agentId: string) => apiClient.post(`/admin/agents/${agentId}/reset-password`);
+(adminAPI as any).requestAgentScreenshot = (agentId: string) => apiClient.post(`/admin/agents/${agentId}/screenshot-request`, {});
+(adminAPI as any).submitScreenCapture = (requestId: string, data: { dataUrl?: string; error?: string; capturedAt?: string }) =>
+  apiClient.post(`/admin/screen-captures/${requestId}`, data);
 (adminAPI as any).getAgentsFollowUpStats = () => apiClient.get('/admin/agents/follow-up-stats');
 (adminAPI as any).getAgentsRevenueStats = () => apiClient.get('/admin/agents/revenue-stats');
 (adminAPI as any).createAgent = (data: { email: string; name: string; password: string; role?: string }) =>

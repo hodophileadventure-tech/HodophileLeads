@@ -202,7 +202,24 @@ async function migrate() {
     `);
     console.log('✅ Attachments table created');
 
-    // 11. Create Indexes for performance
+    // 11. Screen Captures Table (depends on users)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS screen_captures (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        request_id UUID NOT NULL,
+        agent_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        requested_by UUID REFERENCES users(id),
+        file_name VARCHAR(500) NOT NULL,
+        mime_type VARCHAR(200) NOT NULL,
+        url VARCHAR(1000) NOT NULL,
+        size BIGINT NOT NULL DEFAULT 0,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Screen Captures table created');
+
+    // 12. Create Indexes for performance
     const indexQueries = [
       'CREATE INDEX IF NOT EXISTS idx_leads_agent_id ON leads(agent_id)',
       'CREATE INDEX IF NOT EXISTS idx_leads_temperature ON leads(temperature)',
@@ -214,7 +231,9 @@ async function migrate() {
       'CREATE INDEX IF NOT EXISTS idx_payments_lead_id ON payments(lead_id)',
       'CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity_type, entity_id)',
       'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
-      'CREATE INDEX IF NOT EXISTS idx_client_profiles_phone ON client_profiles(phone)'
+      'CREATE INDEX IF NOT EXISTS idx_client_profiles_phone ON client_profiles(phone)',
+      'CREATE INDEX IF NOT EXISTS idx_screen_captures_agent_id ON screen_captures(agent_id)',
+      'CREATE INDEX IF NOT EXISTS idx_screen_captures_expires_at ON screen_captures(expires_at)'
     ];
 
     for (const query of indexQueries) {

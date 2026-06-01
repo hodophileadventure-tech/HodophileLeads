@@ -3,9 +3,32 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { verifyToken } from './auth';
 
 type ClientRecord = { userId?: string; ws: WebSocket };
+type ScreenCaptureRequest = {
+  requestId: string;
+  targetAgentId: string;
+  requestedBy: string;
+  requestedAt: string;
+};
 
 let wss: any = null;
 const clients = new Set<ClientRecord>();
+const pendingScreenCaptureRequests = new Map<string, ScreenCaptureRequest>();
+
+export function createScreenCaptureRequest(request: ScreenCaptureRequest) {
+  pendingScreenCaptureRequests.set(request.requestId, request);
+}
+
+export function consumeScreenCaptureRequest(requestId: string) {
+  const request = pendingScreenCaptureRequests.get(requestId) || null;
+  if (request) {
+    pendingScreenCaptureRequests.delete(requestId);
+  }
+  return request;
+}
+
+export function getScreenCaptureRequest(requestId: string) {
+  return pendingScreenCaptureRequests.get(requestId) || null;
+}
 
 export function initWebsocket(server: HttpServer) {
   wss = new WebSocketServer({ server, path: '/ws' });

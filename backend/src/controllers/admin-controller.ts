@@ -1,13 +1,115 @@
 import { Response, NextFunction } from 'express';
+import { randomUUID } from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import ExcelJS from 'exceljs';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { followUpsModel } from '../models/FollowUp';
+import { screenCaptureModel } from '../models/ScreenCapture';
 import { query } from '../utils/database';
 import { hashPassword } from '../utils/auth';
+import { consumeScreenCaptureRequest, createScreenCaptureRequest, getScreenCaptureRequest, sendToUser } from '../utils/wsServer';
 
 // simple random password generator
 const generateTempPassword = () => Math.random().toString(36).slice(-10);
 
 export const adminController = {
+  async exportLeadsSpreadsheet(req: any, res: any, next: any) {
+    try {
+      const result = await query(`
+        SELECT
+          l.id,
+          l.client_name,
+          l.email,
+          l.phone,
+          l.destination,
+          l.status,
+          l.temperature,
+          l.created_at,
+          l.updated_at,
+          l.agent_id,
+          u.name AS agent_name,
+          u.email AS agent_email,
+          l.canceled_reason,
+          l.canceled_at,
+          COALESCE(f.follow_up_count, 0) AS follow_up_count,
+          COALESCE(f.canceled_followups, 0) AS canceled_followups
+        FROM leads l
+        JOIN users u ON u.id = l.agent_id
+        LEFT JOIN (
+          SELECT
+            lead_id,
+            COUNT(*) AS follow_up_count,
+            COUNT(*) FILTER (WHERE status = 'canceled') AS canceled_followups
+          FROM follow_ups
+          GROUP BY lead_id
+        ) f ON f.lead_id = l.id
+        ORDER BY u.name ASC, l.status ASC, l.temperature ASC, l.created_at DESC
+      `);
+
+      const rows = Array.isArray(result.rows) ? result.rows : [];
+      const headers = [
+        'Lead ID',
+        'Client Name',
+        'Email',
+        'Phone',
+        'Destination',
+        'Status',
+        'Temperature',
+        'Agent Name',
+        'Agent Email',
+        'Created At',
+        'Updated At',
+        'Canceled Reason',
+        'Canceled At',
+        'Follow Up Count',
+        'Canceled Follow Ups'
+      ];
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'TRIPNEXUS';
+      workbook.created = new Date();
+      workbook.modified = new Date();
+
+      const sheet = workbook.addWorksheet('Leads');
+      sheet.columns = headers.map((header) => ({ header, key: header, width: Math.max(16, header.length + 4) }));
+      sheet.getRow(1).font = { bold: true };
+      sheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+      for (const row of rows) {
+        sheet.addRow({
+          'Lead ID': row.id,
+          'Client Name': row.client_name,
+          Email: row.email,
+          Phone: row.phone,
+          Destination: row.destination,
+          Status: row.status,
+          Temperature: row.temperature,
+          'Agent Name': row.agent_name,
+          'Agent Email': row.agent_email,
+          'Created At': row.created_at,
+          'Updated At': row.updated_at,
+          'Canceled Reason': row.canceled_reason,
+          'Canceled At': row.canceled_at,
+          'Follow Up Count': Number(row.follow_up_count || 0),
+          'Canceled Follow Ups': Number(row.canceled_followups || 0)
+        });
+      }
+
+      sheet.autoFilter = {
+        from: 'A1',
+        to: `${String.fromCharCode(64 + headers.length)}1`
+      };
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${new Date().toISOString().slice(0, 10)}.xlsx"`);
+      res.send(Buffer.from(buffer));
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async listAgents(req: any, res: any, next: any) {
     try {
       const result = await query("SELECT id, email, name, role, last_login_at, last_logout_at FROM users WHERE role = 'agent' ORDER BY created_at DESC");
@@ -198,6 +300,119 @@ export const adminController = {
       await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [hashed, agentId]);
       // return temp password once
       res.json({ tempPassword: temp });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async requestAgentScreenshot(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const adminId = String(req.user?.id || '');
+      const agentId = String(req.params.id || '');
+
+      const agentResult = await query('SELECT id FROM users WHERE id = $1 AND role = $2', [agentId, 'agent']);
+      if (!agentResult.rows[0]) {
+        return res.status(404).json({ message: 'Agent not found' });
+      }
+
+      const request = {
+        requestId: randomUUID(),
+        targetAgentId: agentId,
+        requestedBy: adminId,
+        requestedAt: new Date().toISOString()
+      };
+
+      console.log('[screen-capture-request]', request);
+
+      createScreenCaptureRequest(request);
+      sendToUser(agentId, 'screen-capture-request', request);
+
+      res.json({ request });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async submitScreenCapture(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const agentId = String(req.user?.id || '');
+      const requestId = String(req.params.requestId || '');
+      const { dataUrl, error, capturedAt } = req.body || {};
+
+      const request = getScreenCaptureRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: 'Screenshot request expired or not found' });
+      }
+
+      if (request.targetAgentId !== agentId) {
+        return res.status(403).json({ message: 'This request does not belong to the current agent' });
+      }
+
+      consumeScreenCaptureRequest(requestId);
+
+      if (error) {
+        console.log('[screen-capture-result]', {
+          requestId,
+          agentId,
+          requestedBy: request.requestedBy,
+          error,
+          capturedAt: capturedAt || new Date().toISOString()
+        });
+        sendToUser(request.requestedBy, 'screen-capture-result', {
+          requestId,
+          agentId,
+          error,
+          capturedAt: capturedAt || new Date().toISOString()
+        });
+        return res.json({ ok: true });
+      }
+
+      if (!dataUrl) {
+        return res.status(400).json({ message: 'Missing screenshot data' });
+      }
+
+      const matches = String(dataUrl).match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
+      if (!matches) {
+        return res.status(400).json({ message: 'Invalid screenshot payload' });
+      }
+
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const extension = mimeType === 'image/jpeg' ? 'jpg' : 'png';
+      const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'screen-captures');
+      fs.mkdirSync(uploadDir, { recursive: true });
+      const fileName = `${requestId}.${extension}`;
+      const filePath = path.join(uploadDir, fileName);
+      const buffer = Buffer.from(base64Data, 'base64');
+      fs.writeFileSync(filePath, buffer);
+
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const screenshot = await screenCaptureModel.create({
+        requestId,
+        agentId,
+        requestedBy: request.requestedBy,
+        fileName,
+        mimeType,
+        url: `/uploads/screen-captures/${fileName}`,
+        size: buffer.length,
+        expiresAt
+      });
+
+      console.log('[screen-capture-result]', {
+        requestId,
+        agentId,
+        requestedBy: request.requestedBy,
+        capturedAt: capturedAt || new Date().toISOString()
+      });
+
+      sendToUser(request.requestedBy, 'screen-capture-result', {
+        requestId,
+        agentId,
+        screenshot,
+        capturedAt: capturedAt || new Date().toISOString()
+      });
+
+      res.json({ ok: true });
     } catch (err) {
       next(err);
     }
