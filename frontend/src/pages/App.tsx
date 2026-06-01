@@ -602,36 +602,38 @@ export const App: React.FC = () => {
                               className="input-field text-sm"
                               value={selectedLead.status === 'canceled'
                                 ? 'canceled'
-                                : selectedLead.potential
-                                  ? 'potential'
-                                  : selectedLead.pipelineStage === 'confirmed' || selectedLead.status === 'booked'
-                                    ? 'confirmed'
-                                    : selectedLead.status === 'completed'
-                                      ? 'dead'
+                                : selectedLead.pipelineStage === 'confirmed' || selectedLead.status === 'booked'
+                                  ? 'confirmed'
+                                  : selectedLead.status === 'completed'
+                                    ? 'dead'
+                                    : selectedLead.potential
+                                      ? 'potential'
                                       : 'new'}
-                              onChange={async (e) => {
+                              onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === 'canceled') {
-                                  await cancelLead();
+                                  void cancelLead();
                                   return;
                                 }
                                 if (value === 'confirmed') {
                                   setShowConfirmForm(true);
                                   return;
                                 }
-                                const payload: any = {};
-                                if (value === 'potential') payload.potential = true; else payload.potential = false;
-                                if (value === 'dead') payload.status = 'completed';
-                                else if (value === 'in_progress') payload.status = 'contacted';
-                                else if (value === 'new') payload.status = 'new';
-                                try {
-                                  const resp = await leadsAPI.update(String(selectedLead.id), payload);
-                                  setSelectedLead(resp.data);
-                                  await refreshLeads();
-                                } catch (err) {
-                                  console.error('Failed to update lead status', err);
-                                  alert('Failed to update lead status');
-                                }
+                                (async () => {
+                                  const payload: any = {};
+                                  if (value === 'potential') payload.potential = true; else payload.potential = false;
+                                  if (value === 'dead') payload.status = 'completed';
+                                  else if (value === 'in_progress') payload.status = 'contacted';
+                                  else if (value === 'new') payload.status = 'new';
+                                  try {
+                                    const resp = await leadsAPI.update(String(selectedLead.id), payload);
+                                    setSelectedLead(resp.data);
+                                    await refreshLeads();
+                                  } catch (err) {
+                                    console.error('Failed to update lead status', err);
+                                    alert('Failed to update lead status');
+                                  }
+                                })();
                               }}
                             >
                               <option value="new">New</option>
