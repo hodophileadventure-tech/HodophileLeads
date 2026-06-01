@@ -254,6 +254,23 @@ export const App: React.FC = () => {
     }
   };
 
+  const deleteLead = async () => {
+    if (!selectedLead) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete this lead (${selectedLead.client_name || selectedLead.name})? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+    try {
+      await leadsAPI.delete(String(selectedLead.id));
+      setSelectedLead(null);
+      await refreshLeads();
+      alert('Lead deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete lead:', error);
+      alert('Failed to delete lead.');
+    }
+  };
+
   const saveFollowUp = async () => {
     if (!selectedLead) return;
     if (!followUpTitle.trim()) {
@@ -627,6 +644,13 @@ export const App: React.FC = () => {
                           </div>
                           <Button variant="danger" onClick={cancelLead}>
                             Cancel Lead
+                          </Button>
+                          <Button 
+                            variant="danger" 
+                            onClick={deleteLead}
+                            className="bg-red-700 hover:bg-red-800 dark:bg-red-900 dark:hover:bg-red-950"
+                          >
+                            Delete Lead
                           </Button>
                         </div>
                       </div>

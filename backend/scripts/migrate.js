@@ -119,6 +119,7 @@ async function migrate() {
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP');
+    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS lead_outcome VARCHAR(50)');
     console.log('✅ Lead cancel tracking columns ensured');
 
     // 4. Follow-ups Table (depends on leads, users)

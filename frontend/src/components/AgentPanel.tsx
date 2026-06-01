@@ -345,6 +345,22 @@ export const AgentPanel: React.FC = () => {
     setShowConfirmForm(false);
   };
 
+  const deleteLead = async (lead: Lead) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete this lead (${lead.client_name || lead.name})? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+    try {
+      await leadsAPI.delete(String(lead.id));
+      setLeads((prev) => prev.filter((l) => l.id !== lead.id));
+      setSelectedLead(null);
+      alert('Lead deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete lead:', error);
+      alert('Failed to delete lead.');
+    }
+  };
+
   const filteredLeads = leads.filter((lead) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'canceled') return String((lead as any).status || '').toLowerCase() === 'canceled';
@@ -463,6 +479,13 @@ export const AgentPanel: React.FC = () => {
                 {lifecycle.state !== 'confirmed' && (
                   <Button variant="primary" onClick={() => openConfirm(lead)}>Confirm</Button>
                 )}
+                <Button 
+                  variant="danger" 
+                  onClick={() => deleteLead(lead)}
+                  className="bg-red-700 hover:bg-red-800 dark:bg-red-900 dark:hover:bg-red-950"
+                >
+                  Delete
+                </Button>
               </div>
             </div>
           );
