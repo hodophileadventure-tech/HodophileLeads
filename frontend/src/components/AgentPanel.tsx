@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI } from '../utils/api-service';
 import { LeadForm } from './LeadForm';
-import ConfirmedLeadForm from './ConfirmedLeadForm';
 import { Badge, Button } from './common';
 import type { Lead, FollowUp } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
@@ -49,7 +48,6 @@ export const AgentPanel: React.FC = () => {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
-  const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpLead, setFollowUpLead] = useState<Lead | null>(null);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
@@ -326,22 +324,12 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
-  const openConfirm = (lead: Lead) => {
-    setSelectedLead(lead);
-    setShowConfirmForm(true);
-  };
-
   const openFollowUp = (lead: Lead) => {
     setFollowUpLead(lead);
     setFollowUpTitle(`Follow up with ${lead.clientName || 'client'}`);
     const defaultDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
     setFollowUpDateTime(getKarachiLocalDateTimeString(defaultDate));
     setShowFollowUpModal(true);
-  };
-
-  const handleConfirmedSaved = (updated: Lead) => {
-    setLeads((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
-    setShowConfirmForm(false);
   };
 
   const filteredLeads = leads.filter((lead) => {
@@ -460,7 +448,7 @@ export const AgentPanel: React.FC = () => {
                   }}>Attachments</Button>
                 <Button variant="secondary" onClick={() => openFollowUp(lead)}>Schedule Follow Up</Button>
                 {lifecycle.state !== 'confirmed' && (
-                  <Button variant="primary" onClick={() => openConfirm(lead)}>Confirm</Button>
+                  <Button variant="primary" onClick={() => void updateLeadOutcome(lead, 'confirmed')}>Confirm</Button>
                 )}
               </div>
             </div>
@@ -468,16 +456,12 @@ export const AgentPanel: React.FC = () => {
         })}
       </div>
 
-      {selectedLead && !showConfirmForm && (
+      {selectedLead && (
         <LeadForm initialData={selectedLead as Partial<Lead>} onSuccess={() => {
           // refresh
           loadLeads();
           setSelectedLead(null);
         }} />
-      )}
-
-      {selectedLead && showConfirmForm && (
-        <ConfirmedLeadForm lead={selectedLead as Lead} isOpen={showConfirmForm} onClose={() => setShowConfirmForm(false)} onSaved={handleConfirmedSaved} />
       )}
 
       {showFollowUpModal && followUpLead && (
