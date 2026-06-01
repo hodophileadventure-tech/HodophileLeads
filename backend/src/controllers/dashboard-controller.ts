@@ -5,42 +5,55 @@ import { query } from '../utils/database';
 export const dashboardController = {
   async getStats(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const result = await query(`
-        SELECT
-          COUNT(*) FILTER (WHERE status IS NOT NULL) as total_leads,
-          COUNT(*) FILTER (WHERE temperature = 'hot') as hot_leads,
-          COUNT(*) FILTER (WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW()) AND status = 'booked') as bookings_this_month,
-          COALESCE(SUM(CASE WHEN status = 'booked' THEN budget ELSE 0 END), 0) as total_revenue
-        FROM leads
-        WHERE agent_id = $1
-      `, [req.user.id]);
+      const [statsResult, paymentsResult, overdueResult] = await Promise.allSettled([
+        query(`
+          SELECT
+            COUNT(*)::int as total_leads,
+            COUNT(*) FILTER (WHERE temperature = 'hot')::int as hot_leads,
+            COUNT(*) FILTER (WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW()) AND status = 'booked')::int as bookings_this_month,
+            COALESCE(SUM(CASE WHEN status = 'booked' THEN budget ELSE 0 END), 0)::numeric as total_revenue
+          FROM leads
+          WHERE agent_id = $1
+        `, [req.user.id]),
+        query(`
+          SELECT
+            COUNT(*) FILTER (WHERE status = 'pending')::int as pending_payments,
+            COUNT(*) FILTER (WHERE status = 'confirmed')::int as confirmed_payments
+          FROM payments p
+          JOIN leads l ON l.id = p.lead_id
+          WHERE l.agent_id = $1
+        `, [req.user.id]),
+        query(`
+          SELECT COUNT(*)::int as overdue_tasks
+          FROM follow_ups f
+          JOIN leads l ON l.id = f.lead_id
+          WHERE l.agent_id = $1 AND f.status != 'completed' AND f.due_date < NOW()
+        `, [req.user.id])
+      ]);
 
-      const payments = await query(`
-        SELECT
-          COUNT(*) FILTER (WHERE status = 'pending') as pending_payments,
-          COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed_payments
-        FROM payments p
-        JOIN leads l ON l.id = p.lead_id
-        WHERE l.agent_id = $1
-      `, [req.user.id]);
+      const stats = statsResult.status === 'fulfilled' ? statsResult.value.rows[0] : null;
+      const payments = paymentsResult.status === 'fulfilled' ? paymentsResult.value.rows[0] : null;
+      const overdueTasks = overdueResult.status === 'fulfilled' ? overdueResult.value.rows[0] : null;
 
-      const overdueTasks = await query(`
-        SELECT COUNT(*) as overdue_tasks
-        FROM follow_ups f
-        JOIN leads l ON l.id = f.lead_id
-        WHERE l.agent_id = $1 AND f.status != 'completed' AND f.due_date < NOW()
-      `, [req.user.id]);
+      if (statsResult.status === 'rejected') {
+        console.error('[Dashboard] stats query failed', statsResult.reason);
+      }
+      if (paymentsResult.status === 'rejected') {
+        console.error('[Dashboard] payments query failed', paymentsResult.reason);
+      }
+      if (overdueResult.status === 'rejected') {
+        console.error('[Dashboard] overdue query failed', overdueResult.reason);
+      }
 
-      const stats = result.rows[0];
       res.json({
-        totalLeads: parseInt(stats.total_leads) || 0,
-        hotLeads: parseInt(stats.hot_leads) || 0,
-        bookingsThisMonth: parseInt(stats.bookings_this_month) || 0,
-        totalRevenue: parseFloat(stats.total_revenue) || 0,
-        pipelineHealth: parseInt(stats.hot_leads) > 0 ? 'yellow' : 'green',
-        pendingPayments: parseInt(payments.rows[0]?.pending_payments) || 0,
-        confirmedPayments: parseInt(payments.rows[0]?.confirmed_payments) || 0,
-        overdueTasks: parseInt(overdueTasks.rows[0]?.overdue_tasks) || 0,
+        totalLeads: parseInt(stats?.total_leads) || 0,
+        hotLeads: parseInt(stats?.hot_leads) || 0,
+        bookingsThisMonth: parseInt(stats?.bookings_this_month) || 0,
+        totalRevenue: parseFloat(stats?.total_revenue) || 0,
+        pipelineHealth: parseInt(stats?.hot_leads) > 0 ? 'yellow' : 'green',
+        pendingPayments: parseInt(payments?.pending_payments) || 0,
+        confirmedPayments: parseInt(payments?.confirmed_payments) || 0,
+        overdueTasks: parseInt(overdueTasks?.overdue_tasks) || 0,
         negotiationLeads: 0
       });
     } catch (error) {

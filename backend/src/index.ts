@@ -30,7 +30,14 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', true);
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      connectSrc: ["'self'", 'ws:', 'wss:', 'http:', 'https:']
+    }
+  }
+}));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
