@@ -956,8 +956,6 @@ export const query = async (text: string, params?: any[]) => {
     return result;
   } catch (error) {
     console.error('Database query error:', { text, params, error });
-    // Stay in mock mode on error
-    useMockDb = true;
     throw error;
   }
 };
