@@ -6,6 +6,18 @@ export const hotelInfoSchema = Joi.object({
   roomPrice: Joi.number().min(0).optional()
 });
 
+export const authLoginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(1).required()
+});
+
+export const authRegisterSchema = Joi.object({
+  email: Joi.string().email().required(),
+  name: Joi.string().min(2).required(),
+  password: Joi.string().min(6).required(),
+  role: Joi.string().valid('admin', 'agent').optional()
+});
+
 export const leadSchema = Joi.object({
   clientName: Joi.string().min(2).required(),
   email: Joi.string().email().required(),

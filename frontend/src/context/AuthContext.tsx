@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
+      const response = await apiClient.post('/auth/login', { email: String(email).trim(), password });
       const { user: userData, token } = response.data || {};
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));

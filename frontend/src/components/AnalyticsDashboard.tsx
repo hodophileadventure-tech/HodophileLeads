@@ -637,7 +637,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                   <Button size="sm" onClick={async () => {
                     if (!newAgentEmail || !newAgentPassword) { alert('Email and password required'); return; }
                     try {
-                      await (adminAPI as any).createAgent({ email: newAgentEmail, name: newAgentName, password: newAgentPassword, role: newAgentRole });
+                      await (adminAPI as any).createAgent({ email: newAgentEmail.trim(), name: newAgentName.trim(), password: newAgentPassword, role: newAgentRole });
                       alert('Agent created');
                       setNewAgentOpen(false);
                       setNewAgentEmail(''); setNewAgentName(''); setNewAgentPassword(''); setNewAgentRole('agent');

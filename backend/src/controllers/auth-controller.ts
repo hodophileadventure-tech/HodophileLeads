@@ -3,21 +3,27 @@ import { generateToken, hashPassword, comparePassword } from '../utils/auth';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { query } from '../utils/database';
 import { ensureOfficeAccess } from '../utils/officeAccess';
+import { authLoginSchema, authRegisterSchema, validatePayload } from '../utils/validation';
 
 export const authController = {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
+      const { email, password } = validatePayload(authLoginSchema, req.body);
+      const normalizedEmail = String(email).trim().toLowerCase();
 
-      const result = await query('SELECT * FROM users WHERE email = $1', [email]);
+      console.log('[AUTH] Login attempt', { email: normalizedEmail, ip: req.ip });
+
+      const result = await query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [normalizedEmail]);
       const user = result.rows[0];
 
       if (!user) {
+        console.warn('[AUTH] Login failed: user not found', { email: normalizedEmail, ip: req.ip });
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
       const validPassword = await comparePassword(password, user.password);
       if (!validPassword) {
+        console.warn('[AUTH] Login failed: invalid password', { email: normalizedEmail, ip: req.ip });
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
@@ -39,6 +45,8 @@ export const authController = {
       }
 
       await query('UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE id = $1', [user.id]);
+
+      console.log('[AUTH] Login succeeded', { email: user.email, role: user.role, ip: req.ip });
 
       const token = generateToken({
         id: user.id,
@@ -62,13 +70,15 @@ export const authController = {
 
   async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, name, password, role = 'agent' } = req.body;
+      const { email, name, password, role = 'agent' } = validatePayload(authRegisterSchema, req.body);
+      const normalizedEmail = String(email).trim().toLowerCase();
+      const normalizedName = String(name).trim();
 
       const hashedPassword = await hashPassword(password);
 
       const result = await query(
         'INSERT INTO users (email, name, password, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role',
-        [email, name, hashedPassword, role]
+        [normalizedEmail, normalizedName, hashedPassword, role]
       );
 
       const user = result.rows[0];
