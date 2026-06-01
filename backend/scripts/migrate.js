@@ -145,6 +145,14 @@ async function migrate() {
     `);
     console.log('✅ Follow-ups table created');
 
+    await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS type VARCHAR(50)");
+    await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS title VARCHAR(255)");
+    await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS description TEXT");
+    await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS due_date TIMESTAMP");
+    await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'upcoming'");
+    await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS priority VARCHAR(50) DEFAULT 'medium'");
+    await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS assigned_to UUID REFERENCES users(id)");
+    await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP');

@@ -47,7 +47,12 @@ export const followUpsController = {
 
   async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const item = await followUpsModel.update(req.params.id, validatePayload(followUpSchema.fork(['leadId','title','dueDate'], (s) => s.optional()), req.body));
+      const payload = validatePayload(followUpSchema.fork(['leadId','title','dueDate'], (s) => s.optional()), req.body) as any;
+      if (payload.status === 'completed' && !payload.completedAt) {
+        payload.completedAt = new Date().toISOString();
+      }
+
+      const item = await followUpsModel.update(req.params.id, payload);
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
