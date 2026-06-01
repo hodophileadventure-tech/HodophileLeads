@@ -60,8 +60,7 @@ export const followUpsModel = {
           completed_at = COALESCE($8, completed_at),
           canceled_reason = COALESCE($9, canceled_reason),
           canceled_by = COALESCE($10, canceled_by),
-          canceled_at = COALESCE($11, canceled_at),
-          updated_at = NOW()
+          canceled_at = COALESCE($11, canceled_at)
       WHERE id = $1
       RETURNING *
     `;
@@ -91,7 +90,7 @@ export const followUpsModel = {
 
   async markDone(id: string) {
     const result = await query(
-      "UPDATE follow_ups SET status = 'completed', completed_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *",
+      "UPDATE follow_ups SET status = 'completed', completed_at = NOW() WHERE id = $1 RETURNING *",
       [id]
     );
     return result.rows[0];
@@ -99,7 +98,7 @@ export const followUpsModel = {
 
   async cancel(id: string, data: { canceledReason?: string; canceledBy?: string }) {
     const result = await query(
-      "UPDATE follow_ups SET status = 'canceled', canceled_reason = $2, canceled_by = $3, canceled_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *",
+      "UPDATE follow_ups SET status = 'canceled', canceled_reason = $2, canceled_by = $3, canceled_at = NOW() WHERE id = $1 RETURNING *",
       [id, data.canceledReason || '', data.canceledBy || null]
     );
     return result.rows[0];
