@@ -44,7 +44,7 @@ export const authController = {
         }
       }
 
-      await query('UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE id = $1', [user.id]);
+      await query('UPDATE users SET updated_at = NOW() WHERE id = $1', [user.id]);
 
       console.log('[AUTH] Login succeeded', { email: user.email, role: user.role, ip: req.ip });
 

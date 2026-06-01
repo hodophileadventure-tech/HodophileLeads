@@ -6,7 +6,7 @@ let ws: WebSocket | null = null;
 
 async function initWS(_token: string | null, _userId: string, onNotification: (n: any) => void) {
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5002/api' : `${window.location.origin}/api`);
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5001/api' : `${window.location.origin}/api`);
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || apiBaseUrl.replace(/\/api\/?$/, '');
     const protocol = wsBaseUrl.startsWith('https:') ? 'wss' : wsBaseUrl.startsWith('http:') ? 'ws' : (window.location.protocol === 'https:' ? 'wss' : 'ws');
     const token = localStorage.getItem('token');

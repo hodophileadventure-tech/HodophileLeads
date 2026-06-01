@@ -125,9 +125,9 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           <p className="font-medium break-all">{lead.phone}</p>
         </div>
         <div className="min-w-0">
-          <p className="text-slate-600 dark:text-slate-400">Dates</p>
+          <p className="text-slate-600 dark:text-slate-400">Travel Date</p>
           <p className="font-medium text-xs sm:text-sm break-words">
-            {formatDate(lead.travelDates.from)} - {formatDate(lead.travelDates.to)}
+            {lead.travel_date ? formatDate(lead.travel_date) : 'Not set'}
           </p>
         </div>
         <div>
