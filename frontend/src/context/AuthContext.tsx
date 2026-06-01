@@ -6,11 +6,12 @@ let ws: WebSocket | null = null;
 
 async function initWS(_token: string | null, _userId: string, onNotification: (n: any) => void) {
   try {
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const host = window.location.hostname || 'localhost';
-    const port = process.env.REACT_APP_API_PORT || '5001';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5002/api' : `${window.location.origin}/api`);
+    const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || apiBaseUrl.replace(/\/api\/?$/, '');
+    const protocol = wsBaseUrl.startsWith('https:') ? 'wss' : wsBaseUrl.startsWith('http:') ? 'ws' : (window.location.protocol === 'https:' ? 'wss' : 'ws');
     const token = localStorage.getItem('token');
-    const url = `${protocol}://${host}:${port}/ws`;
+    const base = wsBaseUrl.startsWith('http') ? wsBaseUrl.replace(/^http/, protocol) : `${protocol}://${window.location.host}`;
+    const url = `${base.replace(/\/$/, '')}/ws`;
     ws = new WebSocket(url, token ? ['jwt', token] : ['jwt']);
     ws.onmessage = (evt) => {
       try {
