@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/auth';
-import { ensureOfficeAccess } from '../utils/officeAccess';
 
 export interface AuthenticatedRequest extends Request {
   user?: any;
@@ -23,16 +22,7 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 
-  if (decoded.role === 'agent') {
-    const officeAccess = ensureOfficeAccess(req);
-    if (!officeAccess.allowed) {
-      return res.status(403).json({
-        message: 'Agent access is restricted to office systems only',
-        clientIp: officeAccess.clientIp
-      });
-    }
-  }
-
+  // IP restrictions removed - all users allowed to login
   req.user = decoded;
   next();
 };
