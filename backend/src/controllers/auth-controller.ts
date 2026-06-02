@@ -2,7 +2,6 @@ import { Response, NextFunction, Request } from 'express';
 import { generateToken, hashPassword, comparePassword } from '../utils/auth';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { query } from '../utils/database';
-import { ensureOfficeAccess } from '../utils/officeAccess';
 import { authLoginSchema, authRegisterSchema, validatePayload } from '../utils/validation';
 
 export const authController = {
@@ -28,20 +27,7 @@ export const authController = {
       }
 
       if (user.role === 'agent') {
-        const officeAccess = ensureOfficeAccess(req);
-        console.log('🔍 Agent login attempt:', {
-          email: user.email,
-          clientIp: officeAccess.clientIp,
-          allowed: officeAccess.allowed,
-          allowedIps: officeAccess.allowedIps
-        });
-        if (!officeAccess.allowed) {
-          return res.status(403).json({
-            message: `Agent login is restricted to office systems only. Your IP: ${officeAccess.clientIp}. Allowed IPs: ${officeAccess.allowedIps.join(', ')}`,
-            clientIp: officeAccess.clientIp,
-            allowedIps: officeAccess.allowedIps
-          });
-        }
+        // IP restrictions removed - all agents can login from anywhere
       }
 
       await query('UPDATE users SET updated_at = NOW() WHERE id = $1', [user.id]);
