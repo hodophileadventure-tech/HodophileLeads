@@ -1,10 +1,8 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
-import hodophileHeaderImage from '../assets/header-logo.jpeg';
-import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
-import pakistanGovLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
-import fbrLogo from '../assets/logos/images-removebg-preview.png';
-import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
+import quoteHeaderImage from '../assets/quote-header.png';
+import quoteTableImage from '../assets/quote-table.jpeg';
+import quoteFooterImage from '../assets/quote-footer.jpeg';
 import './QuoteInvoicePage.css';
 
 type TableRow = {
@@ -257,163 +255,56 @@ export const QuoteInvoicePage: React.FC = () => {
         <div className="quote-invoice-preview">
           <div className="pdf-page">
             <div className="pdf-canvas" ref={previewRef}>
-              <div className="pdf-header">
+              <div className="pdf-background">
+                <img className="pdf-table-background" src={quoteTableImage} alt="Quote table background" />
                 <div className="pdf-header-image">
-                  <img src={hodophileHeaderImage} alt="Hodophile logo" />
+                  <img src={quoteHeaderImage} alt="Hodophile header" />
                 </div>
-                <div className="pdf-title-block">
-                  <h1 className="pdf-title">{documentType === 'quotation' ? 'QUOTATION' : 'INVOICE'}</h1>
-                  <div className="pdf-meta">
-                    <div className="pdf-meta-row">
-                      <div className="pdf-label">{documentType === 'quotation' ? 'Quote #' : 'Invoice #'}</div>
-                      <div className="pdf-colon">:</div>
-                      <div className="pdf-value">{documentType === 'quotation' ? data.quoteNumber : data.invoiceNumber}</div>
-                    </div>
-                    <div className="pdf-meta-row">
-                      <div className="pdf-label">{documentType === 'quotation' ? 'Quote Date' : 'Date'}</div>
-                      <div className="pdf-colon">:</div>
-                      <div className="pdf-value">{formatDate(data.date)}</div>
-                    </div>
-                    <div className="pdf-meta-row">
-                      <div className="pdf-label">Destination</div>
-                      <div className="pdf-colon">:</div>
-                      <div className="pdf-value">{data.destination}</div>
-                    </div>
-                    <div className="pdf-meta-row">
-                      <div className="pdf-label">Travel Date</div>
-                      <div className="pdf-colon">:</div>
-                      <div className="pdf-value">{formatDate(data.travelDate)}</div>
-                    </div>
-                    <div className="pdf-meta-row">
-                      <div className="pdf-label">No. of Person(s)</div>
-                      <div className="pdf-colon">:</div>
-                      <div className="pdf-value">{data.persons}</div>
-                    </div>
+                <div className="pdf-header-info-box">
+                  <div className="pdf-header-info-left">
+                    <div className="pdf-header-info-label">Customer</div>
+                    <div className="pdf-header-info-value">{data.customerName}</div>
+                    <div className="pdf-header-info-value">{data.phone}</div>
+                    <div className="pdf-header-info-value">{data.city}</div>
                   </div>
+                  <div className="pdf-header-info-right">QUOTATION</div>
                 </div>
-              </div>
-
-              <div className="pdf-top-divider" />
-
-              <div className="pdf-customer-box">
-                <p className="pdf-customer-box-title">Customer</p>
-                <p className="pdf-customer-box-text"><strong>{data.customerName}</strong></p>
-                <p className="pdf-customer-box-text">{data.phone}</p>
-                <p className="pdf-customer-box-text">{data.city}</p>
-              </div>
-
-              <div className="pdf-table-section">
-                <div className="pdf-table-wrapper">
-                  <table className="pdf-table">
-                    <colgroup>
-                      <col />
-                      <col />
-                      <col />
-                      <col />
-                    </colgroup>
-                    <thead>
-                      <tr>
-                        <th>Particulars</th>
-                        <th>Number of Person(s)</th>
-                        <th>Price</th>
-                        <th>Amount in PKR</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visibleRows.map((row) => (
-                        <tr key={row.id}>
-                          <td>
-                            {row.particulars ? <span className="pdf-package-title">{row.particulars}</span> : ''}
-                            {!row.particulars && <span>&nbsp;</span>}
-                          </td>
-                          <td>{row.persons || ''}</td>
-                          <td className="right">{row.price || ''}</td>
-                          <td className="right">{row.amount || ''}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="pdf-summary-panel">
-                  <div className="pdf-summary-row">
-                    <div className="pdf-summary-label">Subtotal</div>
-                    <div className="pdf-summary-value">{subtotalValue.toLocaleString('en-US')}</div>
+                <div className="pdf-meta-overlay">
+                  <div className="pdf-overlay-row">
+                    <span>Quote #</span>
+                    <strong>{data.quoteNumber}</strong>
                   </div>
-                  <div className="pdf-summary-row">
-                    <div className="pdf-summary-label">Discount</div>
-                    <div className="pdf-summary-value">{discountValue.toLocaleString('en-US')}</div>
+                  <div className="pdf-overlay-row">
+                    <span>Quote Date</span>
+                    <strong>{formatDate(data.date)}</strong>
                   </div>
-                  <div className="pdf-summary-row">
-                    <div className="pdf-summary-label">Total Due</div>
-                    <div className="pdf-summary-value">{totalDueValue.toLocaleString('en-US')}</div>
+                  <div className="pdf-overlay-row">
+                    <span>Destination</span>
+                    <strong>{data.destination}</strong>
                   </div>
-                  <div className="pdf-summary-row">
-                    <div className="pdf-summary-label">Advance Amount</div>
-                    <div className="pdf-summary-value">{advanceValue.toLocaleString('en-US')}</div>
+                  <div className="pdf-overlay-row">
+                    <span>Travel Date</span>
+                    <strong>{formatDate(data.travelDate)}</strong>
                   </div>
-                  <div className="pdf-summary-row">
-                    <div className="pdf-summary-label">Balance Due</div>
-                    <div className="pdf-summary-value">{balanceValue.toLocaleString('en-US')}</div>
+                  <div className="pdf-overlay-row">
+                    <span>No. of Person(s)</span>
+                    <strong>{data.persons}</strong>
                   </div>
                 </div>
-              </div>
-
-              <div className="pdf-notes">
-                <p className="pdf-notes-title">Notes</p>
-                <ul className="pdf-notes-list">
+                <div className="pdf-totals-overlay">
+                  <div className="pdf-overlay-row"><span>Subtotal</span><strong>{subtotalValue.toLocaleString('en-US')}</strong></div>
+                  <div className="pdf-overlay-row"><span>Discount</span><strong>{discountValue.toLocaleString('en-US')}</strong></div>
+                  <div className="pdf-overlay-row"><span>Total</span><strong>{totalDueValue.toLocaleString('en-US')}</strong></div>
+                  <div className="pdf-overlay-row"><span>Amount Paid</span><strong>{advanceValue.toLocaleString('en-US')}</strong></div>
+                  <div className="pdf-overlay-row"><span>Quote</span><strong>{balanceValue.toLocaleString('en-US')}</strong></div>
+                </div>
+                <div className="pdf-notes-overlay">
                   {data.notes.map((note, index) => (
-                    <li key={index}>{note}</li>
+                    <div key={index} className="pdf-notes-item">{note}</div>
                   ))}
-                </ul>
-              </div>
-
-              {documentType === 'quotation' && (
-                <div className="pdf-package-includes">
-                  <p className="pdf-package-includes-title">Package Included:</p>
-                  <ul className="pdf-package-includes-list">
-                    {data.packageIncludes.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                  <p className="pdf-package-validity">Quotation valid only for 7 Days.</p>
                 </div>
-              )}
-
-              <div className="pdf-footer">
-                <div className="pdf-footer-logos">
-                  <div className="pdf-footer-logo pdf-footer-logo--govt">
-                    <img src={pakistanGovLogo} alt="Government of Pakistan logo" />
-                  </div>
-                  <div className="pdf-footer-logo pdf-footer-logo--fbr">
-                    <img src={fbrLogo} alt="FBR logo" />
-                  </div>
-                  <div className="pdf-footer-logo pdf-footer-logo--pato">
-                    <img src={patoLogo} alt="PATO logo" />
-                  </div>
-                  <div className="pdf-footer-logo pdf-footer-logo--nadra">
-                    <img src={nadraLogo} alt="NADRA logo" />
-                  </div>
-                </div>
-                <div className="pdf-footer-partners">
-                  <div className="pdf-footer-partner">NADRA</div>
-                  <div className="pdf-footer-partner">Government of Pakistan</div>
-                  <div className="pdf-footer-partner">PATO</div>
-                  <div className="pdf-footer-partner">FBR</div>
-                </div>
-                <div className="pdf-footer-bar">
-                  <div className="pdf-footer-item">
-                    <span className="pdf-footer-icon">W</span> hodophile.com
-                  </div>
-                  <div className="pdf-footer-item">
-                    <span className="pdf-footer-icon">E</span> info@hodophile.com
-                  </div>
-                  <div className="pdf-footer-item">
-                    <span className="pdf-footer-icon">P</span> +92 337 7774460
-                  </div>
-                  <div className="pdf-footer-item">
-                    <span className="pdf-footer-icon">O</span> Bin Suleman Tower, Karachi
-                  </div>
+                <div className="pdf-footer-image">
+                  <img src={quoteFooterImage} alt="Footer" />
                 </div>
               </div>
             </div>
