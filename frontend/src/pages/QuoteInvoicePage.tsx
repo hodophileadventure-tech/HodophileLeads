@@ -121,14 +121,16 @@ export const QuoteInvoicePage: React.FC = () => {
     try {
       setMessage('Generating PDF...');
       const canvas = await html2canvas(previewRef.current, {
-        scale: 2,
+        scale: 1,
         backgroundColor: '#f2f2f2',
         useCORS: true,
         allowTaint: false,
       });
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ unit: 'px', format: [794, 1123] });
-      pdf.addImage(imgData, 'PNG', 0, 0, 794, 1123);
+      const pdfWidth = canvas.width;
+      const pdfHeight = canvas.height;
+      const pdf = new jsPDF({ unit: 'px', format: [pdfWidth, pdfHeight] });
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.pdf`;
       pdf.save(filename);
       setMessage('PDF generated successfully.');
@@ -392,17 +394,17 @@ export const QuoteInvoicePage: React.FC = () => {
 
               <div className="pdf-footer">
                 <div className="pdf-footer-logos">
-                  <div className="pdf-footer-logo">
-                    <img src={nadraLogo} alt="NADRA logo" />
-                  </div>
-                  <div className="pdf-footer-logo">
+                  <div className="pdf-footer-logo pdf-footer-logo--govt">
                     <img src={pakistanGovLogo} alt="Government of Pakistan logo" />
                   </div>
-                  <div className="pdf-footer-logo">
+                  <div className="pdf-footer-logo pdf-footer-logo--fbr">
+                    <img src={fbrLogo} alt="FBR logo" />
+                  </div>
+                  <div className="pdf-footer-logo pdf-footer-logo--pato">
                     <img src={patoLogo} alt="PATO logo" />
                   </div>
-                  <div className="pdf-footer-logo">
-                    <img src={fbrLogo} alt="FBR logo" />
+                  <div className="pdf-footer-logo pdf-footer-logo--nadra">
+                    <img src={nadraLogo} alt="NADRA logo" />
                   </div>
                 </div>
                 <div className="pdf-footer-partners">

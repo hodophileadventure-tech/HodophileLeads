@@ -123,42 +123,47 @@ html, body {
 }
 
 .quote-invoice-preview {
-  width: 794px;
-  min-height: 1123px;
+  width: 2550px;
+  min-height: 3300px;
   position: relative;
+  overflow: auto;
 }
 
 .pdf-page {
-  width: 794px;
-  min-height: 1123px;
+  width: 2550px;
+  min-height: 3300px;
   background: #f2f2f2;
   border: 1px solid #d1d5db;
   box-shadow: 0 24px 64px rgba(15, 23, 36, 0.16);
-  padding: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .pdf-canvas {
-  width: 714px;
-  min-height: 1043px;
+  width: 2550px;
+  min-height: 3300px;
   background: #ffffff;
   position: relative;
   overflow: hidden;
-  padding: 40px;
+  padding: 0;
 }
 
 .pdf-header {
   width: 100%;
-  display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(280px, 1fr);
-  column-gap: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 300px;
 }
 
 .pdf-brand-block {
   display: grid;
-  row-gap: 16px;
+  row-gap: 14px;
+  justify-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .pdf-logo {
@@ -260,12 +265,12 @@ html, body {
 }
 
 .pdf-customer-box {
-  width: 100%;
-  max-width: 320px;
-  padding: 18px;
+  width: 850px;
+  min-height: 300px;
+  padding: 28px;
   border: 2px solid #555555;
   background: #f3f3f3;
-  margin: 24px 0;
+  margin: 40px auto 0;
 }
 
 .pdf-customer-box-title {
@@ -284,12 +289,13 @@ html, body {
 }
 
 .pdf-table-section {
-  width: 100%;
-  margin-top: 24px;
+  width: 2264px;
+  min-height: 1152px;
+  margin: 60px auto 0;
   position: relative;
   display: grid;
   grid-template-columns: 1fr 260px;
-  gap: 20px;
+  gap: 40px;
   align-items: start;
 }
 
@@ -451,27 +457,49 @@ html, body {
 }
 
 .pdf-footer {
-  width: 100%;
-  margin-top: 40px;
+  width: 2550px;
+  position: absolute;
+  left: 0;
+  top: 2936px;
+  padding: 0;
 }
 
 .pdf-footer-logos {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 18px 40px 0 40px;
+  position: relative;
+  width: 2550px;
+  height: 220px;
 }
 
 .pdf-footer-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
   background: #ffffff;
   display: grid;
   place-items: center;
   overflow: hidden;
   text-align: center;
+}
+
+.pdf-footer-logo--govt {
+  left: 329.5px;
+  top: 0;
+}
+
+.pdf-footer-logo--fbr {
+  left: 999.5px;
+  top: 0;
+}
+
+.pdf-footer-logo--pato {
+  left: 1662px;
+  top: 0;
+}
+
+.pdf-footer-logo--nadra {
+  left: 2203px;
+  top: 0;
 }
 
 .pdf-footer-logo img {
