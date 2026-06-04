@@ -1,7 +1,6 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import quoteHeaderImage from '../assets/quote-header.png';
-import quoteTableImage from '../assets/quote-table.jpeg';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import './QuoteInvoicePage.css';
 
@@ -278,7 +277,6 @@ export const QuoteInvoicePage: React.FC = () => {
           <div className="pdf-page">
             <div className="pdf-canvas" ref={previewRef}>
               <div className="pdf-background">
-                <img className="pdf-table-background" src={quoteTableImage} alt="Quote table background" />
                 <div className="pdf-header-image">
                   <img src={quoteHeaderImage} alt="Hodophile header" />
                 </div>
@@ -303,52 +301,71 @@ export const QuoteInvoicePage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="pdf-table-overlay">
-                  <div className="pdf-table-row">
-                    <div className="pdf-table-particulars-column">
-                      <strong>{tableRows[0]?.particulars || data.packageName}</strong>
+                <div className="pdf-table-wrapper">
+                  <table className="pdf-main-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Number of Person</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleRows.map((row, index) => (
+                        <tr key={row.id}>
+                          <td>
+                            <div className="pdf-table-item-title">{row.particulars || data.packageName}</div>
+                          </td>
+                          <td>
+                            {index === 0 ? (
+                              <>
+                                <div className="pdf-table-description-text">{data.packageDescription}</div>
+                                <div className="pdf-table-detail-text">{data.persons} Persons (Family Trip)</div>
+                                <div className="pdf-table-detail-text">03 Rooms each night</div>
+                              </>
+                            ) : null}
+                          </td>
+                          <td className="pdf-table-price-column">{row.price || data.price}</td>
+                          <td className="pdf-table-persons-column">{row.persons || data.persons}</td>
+                          <td className="pdf-table-amount-column">{row.amount || subtotalValue.toLocaleString('en-US')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="pdf-bottom-content">
+                  <div className="pdf-notes-panel">
+                    <div className="pdf-notes-heading">NOTES:</div>
+                    <div className="pdf-note-line"><span>Accommodation Type:</span> {data.accommodationType}</div>
+                    <div className="pdf-note-line"><span>Transportation Type:</span> {data.transportationType}</div>
+                    <div className="pdf-note-line"><span>Departure Location:</span> {data.departureLocation}</div>
+                    <div className="pdf-package-includes-title">Package included:</div>
+                    <ul className="pdf-package-includes-list">
+                      {data.packageIncludes.map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                    <div className="pdf-package-validity">Quotation valid only for 7 Days.</div>
+                  </div>
+                  <div className="pdf-summary-panel">
+                    <div className="pdf-summary-row">
+                      <span>Subtotal</span>
+                      <strong>{subtotalValue.toLocaleString('en-US')}</strong>
                     </div>
-                    <div className="pdf-table-description-column">
-                      <div className="pdf-table-particulars-subtext">{data.packageDescription}</div>
-                      <div className="pdf-item-details">
-                        <div>{data.persons} Persons (Family Trip)</div>
-                        <div>03 Rooms each night</div>
-                      </div>
+                    <div className="pdf-summary-row">
+                      <span>Total</span>
+                      <strong>{totalDueValue.toLocaleString('en-US')}</strong>
                     </div>
-                    <div className="pdf-table-price-column">{tableRows[0]?.price || data.price}</div>
-                    <div className="pdf-table-persons-column">{tableRows[0]?.persons || data.persons}</div>
-                    <div className="pdf-table-amount-column">{tableRows[0]?.amount || subtotalValue.toLocaleString('en-US')}</div>
-                  </div>
-                </div>
-                <div className="pdf-notes-overlay">
-                  <div className="pdf-notes-line">{data.accommodationType}</div>
-                  <div className="pdf-notes-line">{data.transportationType}</div>
-                  <div className="pdf-notes-line">{data.departureLocation}</div>
-                </div>
-                <div className="pdf-package-includes">
-                  <ul className="pdf-package-includes-list">
-                    {data.packageIncludes.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                  <div className="pdf-package-validity">Quotation valid only for 7 Days.</div>
-                </div>
-                <div className="pdf-summary-section">
-                  <div className="pdf-summary-row">
-                    <span>Subtotal</span>
-                    <strong>{subtotalValue.toLocaleString('en-US')}</strong>
-                  </div>
-                  <div className="pdf-summary-row">
-                    <span>Total</span>
-                    <strong>{totalDueValue.toLocaleString('en-US')}</strong>
-                  </div>
-                  <div className="pdf-summary-row">
-                    <span>Amount Paid</span>
-                    <strong>{advanceValue.toLocaleString('en-US')}</strong>
-                  </div>
-                  <div className="pdf-summary-row pdf-summary-row-total">
-                    <span>Quote</span>
-                    <strong>{balanceValue.toLocaleString('en-US')}</strong>
+                    <div className="pdf-summary-row">
+                      <span>Amount Paid</span>
+                      <strong>{advanceValue.toLocaleString('en-US')}</strong>
+                    </div>
+                    <div className="pdf-summary-row pdf-summary-row-total">
+                      <span>Quote</span>
+                      <strong>{balanceValue.toLocaleString('en-US')}</strong>
+                    </div>
                   </div>
                 </div>
                 <div className="pdf-footer-image">

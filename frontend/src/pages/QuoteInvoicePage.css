@@ -156,16 +156,6 @@ html, body {
   overflow: hidden;
 }
 
-.pdf-table-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-}
-
 .pdf-header-image {
   position: absolute;
   top: 0;
@@ -252,70 +242,75 @@ html, body {
   font-weight: 800;
 }
 
-.pdf-table-overlay {
+.pdf-table-wrapper {
   position: absolute;
-  top: 1120px;
+  top: 560px;
   left: 180px;
   width: 2190px;
   z-index: 3;
 }
 
-.pdf-table-row {
-  display: grid;
-  grid-template-columns: 20% 40% 14% 12% 14%;
-  gap: 12px;
-  align-items: start;
-  margin-bottom: 18px;
+.pdf-main-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: 1px solid #111827;
 }
 
-.pdf-table-particulars-column {
-  display: grid;
-}
-
-.pdf-table-particulars-column strong {
-  font-size: 28px;
-  line-height: 1.1;
-}
-
-.pdf-table-description-column {
-  display: grid;
-  gap: 8px;
-}
-
-.pdf-table-particulars-subtext {
-  font-size: 18px;
-  color: #4b5563;
-}
-
-.pdf-item-details {
-  display: grid;
-  gap: 8px;
-  margin-top: 10px;
-  font-size: 18px;
-  color: #111827;
-}
-
-.pdf-table-price-column,
-.pdf-table-persons-column,
-.pdf-table-amount-column {
-  font-size: 22px;
-  font-weight: 600;
-  text-align: right;
-}
-
-.pdf-table-particulars-column {
-  display: grid;
-  gap: 10px;
-}
-
-.pdf-table-particulars-column strong {
-  font-size: 30px;
-  line-height: 1.05;
-}
-
-.pdf-table-particulars-subtext {
+.pdf-main-table thead th {
+  padding: 18px 16px;
   font-size: 20px;
+  font-weight: 800;
+  border-bottom: 2px solid #111827;
+  text-align: left;
+  color: #111827;
+}
+
+.pdf-main-table tbody tr td {
+  padding: 20px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.pdf-main-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pdf-main-table th:nth-child(1) {
+  width: 24%;
+}
+
+.pdf-main-table th:nth-child(2) {
+  width: 40%;
+}
+
+.pdf-main-table th:nth-child(3) {
+  width: 14%;
+}
+
+.pdf-main-table th:nth-child(4) {
+  width: 12%;
+}
+
+.pdf-main-table th:nth-child(5) {
+  width: 10%;
+}
+
+.pdf-table-item-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.pdf-table-description-text,
+.pdf-table-detail-text {
+  font-size: 18px;
   color: #4b5563;
+}
+
+.pdf-table-detail-text {
+  margin-top: 6px;
 }
 
 .pdf-table-price-column,
@@ -324,43 +319,47 @@ html, body {
   font-size: 22px;
   font-weight: 600;
   text-align: right;
+  color: #111827;
 }
 
-.pdf-item-details {
-  margin-top: 22px;
+.pdf-bottom-content {
+  position: absolute;
+  top: 1760px;
+  left: 180px;
+  width: 2190px;
   display: grid;
-  gap: 10px;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 40px;
+  z-index: 3;
+}
+
+.pdf-notes-panel {
+  background: #ffffff;
+  padding: 26px 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+}
+
+.pdf-notes-heading {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.pdf-note-line {
+  margin-bottom: 10px;
   font-size: 18px;
   color: #111827;
-  margin-bottom: 18px;
 }
 
-.pdf-notes-overlay {
-  position: absolute;
-  top: 1680px;
-  left: 180px;
-  width: 900px;
-  padding: 0;
-  font-size: 18px;
-  line-height: 1.5;
-  z-index: 3;
-}
-
-.pdf-notes-line {
-  margin-bottom: 10px;
-}
-
-.pdf-package-includes {
-  position: absolute;
-  top: 1920px;
-  left: 180px;
-  width: 900px;
-  padding: 0;
-  z-index: 3;
+.pdf-note-line span {
+  font-weight: 800;
+  margin-right: 8px;
 }
 
 .pdf-package-includes-title {
-  margin-bottom: 10px;
+  margin: 22px 0 12px;
   font-size: 20px;
   font-weight: 800;
   color: #111827;
@@ -386,6 +385,15 @@ html, body {
   font-size: 18px;
   font-weight: 800;
   color: #111827;
+}
+
+.pdf-summary-panel {
+  background: #ffffff;
+  padding: 26px 24px;
+  border: 1px solid #111827;
+  border-radius: 18px;
+  display: grid;
+  gap: 12px;
 }
 
 .pdf-summary-section {
