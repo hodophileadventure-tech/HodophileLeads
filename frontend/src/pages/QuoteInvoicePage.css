@@ -146,14 +146,14 @@ html, body {
   background: #ffffff;
   position: relative;
   overflow: hidden;
+  padding: 40px;
 }
 
 .pdf-header {
   width: 100%;
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: minmax(240px, 1fr) minmax(280px, 1fr);
   column-gap: 24px;
-  padding: 32px 40px 0 40px;
 }
 
 .pdf-brand-block {
@@ -254,19 +254,18 @@ html, body {
 }
 
 .pdf-top-divider {
-  margin: 32px 40px 0 40px;
+  margin: 32px 0 0 0;
   height: 1px;
   background: #4a4a4a;
 }
 
 .pdf-customer-box {
-  width: 320px;
-  padding: 15px;
+  width: 100%;
+  max-width: 320px;
+  padding: 18px;
   border: 2px solid #555555;
   background: #f3f3f3;
-  position: absolute;
-  top: 210px;
-  left: 40px;
+  margin: 24px 0;
 }
 
 .pdf-customer-box-title {
@@ -286,13 +285,17 @@ html, body {
 
 .pdf-table-section {
   width: 100%;
-  margin-top: 120px;
+  margin-top: 24px;
   position: relative;
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 20px;
+  align-items: start;
 }
 
 .pdf-table-wrapper {
   position: relative;
-  padding: 30px 40px 24px 40px;
+  padding: 30px 24px 24px 24px;
 }
 
 .pdf-table-wrapper::before {
@@ -364,10 +367,7 @@ html, body {
 }
 
 .pdf-summary-panel {
-  position: absolute;
-  top: 320px;
-  right: 40px;
-  width: 240px;
+  width: 100%;
   padding: 26px 24px;
   border: 1px solid #555555;
   border-radius: 18px;
@@ -451,10 +451,8 @@ html, body {
 }
 
 .pdf-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
   width: 100%;
+  margin-top: 40px;
 }
 
 .pdf-footer-logos {
