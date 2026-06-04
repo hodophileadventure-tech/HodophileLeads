@@ -1,6 +1,11 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import hodophileLogo from '../assets/hodophile-logo-black.png';
+import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
+import pakistanGovLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
+import fbrLogo from '../assets/logos/images-removebg-preview.png';
+import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
 import './QuoteInvoicePage.css';
 
 type TableRow = {
@@ -252,7 +257,9 @@ export const QuoteInvoicePage: React.FC = () => {
             <div className="pdf-canvas" ref={previewRef}>
               <div className="pdf-header">
                 <div className="pdf-brand-block">
-                  <div className="pdf-logo">HOD</div>
+                  <div className="pdf-logo">
+                    <img src={hodophileLogo} alt="Hodophile logo" />
+                  </div>
                   <div className="pdf-brand-title">HODOPHILE ADVENTURES</div>
                   <div className="pdf-brand-address">
                     Suite # M2<br />
@@ -385,10 +392,24 @@ export const QuoteInvoicePage: React.FC = () => {
 
               <div className="pdf-footer">
                 <div className="pdf-footer-logos">
-                  <div className="pdf-footer-logo">GOV</div>
-                  <div className="pdf-footer-logo">GOV</div>
-                  <div className="pdf-footer-logo">GOV</div>
-                  <div className="pdf-footer-logo">GOV</div>
+                  <div className="pdf-footer-logo">
+                    <img src={nadraLogo} alt="NADRA logo" />
+                  </div>
+                  <div className="pdf-footer-logo">
+                    <img src={pakistanGovLogo} alt="Government of Pakistan logo" />
+                  </div>
+                  <div className="pdf-footer-logo">
+                    <img src={patoLogo} alt="PATO logo" />
+                  </div>
+                  <div className="pdf-footer-logo">
+                    <img src={fbrLogo} alt="FBR logo" />
+                  </div>
+                </div>
+                <div className="pdf-footer-partners">
+                  <div className="pdf-footer-partner">NADRA</div>
+                  <div className="pdf-footer-partner">Government of Pakistan</div>
+                  <div className="pdf-footer-partner">PATO</div>
+                  <div className="pdf-footer-partner">FBR</div>
                 </div>
                 <div className="pdf-footer-bar">
                   <div className="pdf-footer-item">
