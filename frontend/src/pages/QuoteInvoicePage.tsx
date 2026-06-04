@@ -307,15 +307,17 @@ export const QuoteInvoicePage: React.FC = () => {
                   <div className="pdf-table-row">
                     <div className="pdf-table-particulars-column">
                       <strong>{tableRows[0]?.particulars || data.packageName}</strong>
+                    </div>
+                    <div className="pdf-table-description-column">
                       <div className="pdf-table-particulars-subtext">{data.packageDescription}</div>
+                      <div className="pdf-item-details">
+                        <div>{data.persons} Persons (Family Trip)</div>
+                        <div>03 Rooms each night</div>
+                      </div>
                     </div>
                     <div className="pdf-table-price-column">{tableRows[0]?.price || data.price}</div>
                     <div className="pdf-table-persons-column">{tableRows[0]?.persons || data.persons}</div>
                     <div className="pdf-table-amount-column">{tableRows[0]?.amount || subtotalValue.toLocaleString('en-US')}</div>
-                  </div>
-                  <div className="pdf-item-details">
-                    <div>{data.persons} Persons (Family Trip)</div>
-                    <div>03 Rooms each night</div>
                   </div>
                 </div>
                 <div className="pdf-notes-overlay">

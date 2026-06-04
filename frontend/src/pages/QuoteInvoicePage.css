@@ -254,7 +254,7 @@ html, body {
 
 .pdf-table-overlay {
   position: absolute;
-  top: 1060px;
+  top: 1120px;
   left: 180px;
   width: 2190px;
   z-index: 3;
@@ -262,7 +262,7 @@ html, body {
 
 .pdf-table-row {
   display: grid;
-  grid-template-columns: 40% 16% 16% 16%;
+  grid-template-columns: 20% 40% 14% 12% 14%;
   gap: 12px;
   align-items: start;
   margin-bottom: 18px;
@@ -270,7 +270,6 @@ html, body {
 
 .pdf-table-particulars-column {
   display: grid;
-  gap: 10px;
 }
 
 .pdf-table-particulars-column strong {
@@ -278,9 +277,22 @@ html, body {
   line-height: 1.1;
 }
 
+.pdf-table-description-column {
+  display: grid;
+  gap: 8px;
+}
+
 .pdf-table-particulars-subtext {
   font-size: 18px;
   color: #4b5563;
+}
+
+.pdf-item-details {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 18px;
+  color: #111827;
 }
 
 .pdf-table-price-column,
