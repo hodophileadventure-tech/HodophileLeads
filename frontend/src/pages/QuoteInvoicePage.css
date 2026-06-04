@@ -161,7 +161,7 @@ html, body {
 .pdf-header-image {
   position: absolute;
   left: 1280.5px;
-  top: 300px;
+  top: 0;
   width: 400px;
   height: 120px;
 }

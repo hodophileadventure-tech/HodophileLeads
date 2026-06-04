@@ -1,7 +1,6 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import hodophileLogo from '../assets/hodophile-logo-black.png';
+import hodophileHeaderImage from '../assets/header-logo.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import pakistanGovLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
 import fbrLogo from '../assets/logos/images-removebg-preview.png';
@@ -116,27 +115,28 @@ export const QuoteInvoicePage: React.FC = () => {
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
-  const downloadPDF = async () => {
+  const downloadJPEG = async () => {
     if (!previewRef.current) return;
     try {
-      setMessage('Generating PDF...');
+      setMessage('Generating JPEG...');
       const canvas = await html2canvas(previewRef.current, {
         scale: 1,
-        backgroundColor: '#f2f2f2',
+        backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: false,
       });
-      const imgData = canvas.toDataURL('image/png');
-      const pdfWidth = canvas.width;
-      const pdfHeight = canvas.height;
-      const pdf = new jsPDF({ unit: 'px', format: [pdfWidth, pdfHeight] });
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.pdf`;
-      pdf.save(filename);
-      setMessage('PDF generated successfully.');
+      const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+      const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.jpeg`;
+      const link = document.createElement('a');
+      link.href = jpegData;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setMessage('JPEG generated successfully.');
     } catch (error) {
       console.error(error);
-      setMessage('Failed to generate PDF. Please try again.');
+      setMessage('Failed to generate JPEG. Please try again.');
     }
   };
 
@@ -234,8 +234,8 @@ export const QuoteInvoicePage: React.FC = () => {
               <textarea value={data.notes.join('\n')} onChange={(event) => updateField('notes', event.target.value.split('\n'))} />
               <small>Enter each note on a new line.</small>
             </div>
-            <button type="button" className="btn-primary" onClick={downloadPDF}>
-              Download PDF
+            <button type="button" className="btn-primary" onClick={downloadJPEG}>
+              Download JPEG
             </button>
             {message && <small>{message}</small>}
           </div>
@@ -259,7 +259,7 @@ export const QuoteInvoicePage: React.FC = () => {
             <div className="pdf-canvas" ref={previewRef}>
               <div className="pdf-header">
                 <div className="pdf-header-image">
-                  <img src={hodophileLogo} alt="Hodophile logo" />
+                  <img src={hodophileHeaderImage} alt="Hodophile logo" />
                 </div>
                 <div className="pdf-brand-block">
                   <div className="pdf-brand-title">Hodophile Adventure</div>
