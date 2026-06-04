@@ -258,11 +258,12 @@ export const QuoteInvoicePage: React.FC = () => {
           <div className="pdf-page">
             <div className="pdf-canvas" ref={previewRef}>
               <div className="pdf-header">
+                <div className="pdf-header-image">
+                  <img src={hodophileLogo} alt="Hodophile logo" />
+                </div>
                 <div className="pdf-brand-block">
-                  <div className="pdf-logo">
-                    <img src={hodophileLogo} alt="Hodophile logo" />
-                  </div>
-                  <div className="pdf-brand-title">HODOPHILE ADVENTURES</div>
+                  <div className="pdf-brand-title">Hodophile Adventure</div>
+                  <div className="pdf-brand-tagline">The perfect experience</div>
                   <div className="pdf-brand-address">
                     Suite # M2<br />
                     Mezzanine Floor<br />
