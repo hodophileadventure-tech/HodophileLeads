@@ -151,17 +151,14 @@ html, body {
 
 .pdf-header {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 300px;
   position: relative;
+  min-height: 920px;
 }
 
 .pdf-header-image {
   position: absolute;
   left: 1280.5px;
-  top: 0;
+  top: 300px;
   width: 400px;
   height: 120px;
 }
@@ -173,19 +170,103 @@ html, body {
 }
 
 .pdf-brand-block {
+  position: absolute;
+  top: 440px;
+  left: 50%;
+  transform: translateX(-50%);
   display: grid;
   row-gap: 10px;
   justify-items: center;
   text-align: center;
-  width: 100%;
-  max-width: 1200px;
+  width: 900px;
 }
 
 .pdf-brand-tagline {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #333333;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+}
+
+.pdf-title-block {
+  position: absolute;
+  top: 580px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.pdf-title {
+  margin: 0;
+  font-size: 90px;
+  font-weight: 800;
+  color: #fcc000;
+  line-height: 0.9;
+}
+
+.pdf-meta {
+  width: 100%;
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.pdf-meta-row {
+  display: grid;
+  grid-template-columns: 180px 12px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 0;
+  width: 100%;
+  max-width: 760px;
+}
+
+.pdf-customer-box {
+  position: absolute;
+  top: 1020px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 850px;
+  min-height: 300px;
+  padding: 28px;
+  border: 2px solid #555555;
+  background: #f3f3f3;
+}
+
+.pdf-table-section {
+  position: absolute;
+  top: 1450px;
+  left: 143px;
+  width: 2264px;
+  min-height: 1152px;
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 40px;
+  align-items: start;
+}
+
+.pdf-notes {
+  position: absolute;
+  top: 2650px;
+  left: 143px;
+  width: 2264px;
+  padding: 24px 40px;
+}
+
+.pdf-package-includes {
+  position: absolute;
+  top: 2760px;
+  left: 143px;
+  width: 2264px;
+  border: 1px solid #555555;
+  border-radius: 18px;
+  padding: 20px 22px;
+  background: #fafafa;
 }
 
 .pdf-logo {
