@@ -33,6 +33,9 @@ type DocumentData = {
   balanceDue: string;
   notes: string[];
   packageIncludes: string[];
+  accommodationType: string;
+  transportationType: string;
+  departureLocation: string;
 };
 
 const getDefaultRows = (): TableRow[] => [
@@ -73,6 +76,9 @@ const defaultData: DocumentData = {
     'Read Terms & Conditions.',
   ],
   packageIncludes: ['Transport', 'Accommodation', 'Breakfast & Dinner', 'Jeep Ride'],
+  accommodationType: 'Standard Accommodation',
+  transportationType: 'ISB-to-ISB',
+  departureLocation: 'Grand Cabin',
 };
 
 const formatDate = (value: string) => {
@@ -208,6 +214,22 @@ export const QuoteInvoicePage: React.FC = () => {
               <label>Package Description</label>
               <textarea value={data.packageDescription} onChange={(event) => updateField('packageDescription', event.target.value)} />
             </div>
+            <div className="field-row">
+              <div>
+                <label>Accommodation Type</label>
+                <input value={data.accommodationType} onChange={(event) => updateField('accommodationType', event.target.value)} />
+              </div>
+              <div>
+                <label>Transportation Type</label>
+                <input value={data.transportationType} onChange={(event) => updateField('transportationType', event.target.value)} />
+              </div>
+            </div>
+            <div className="field-row">
+              <div>
+                <label>Departure Location</label>
+                <input value={data.departureLocation} onChange={(event) => updateField('departureLocation', event.target.value)} />
+              </div>
+            </div>
             <div className="field-row-sm">
               <div>
                 <label>Price</label>
@@ -267,41 +289,80 @@ export const QuoteInvoicePage: React.FC = () => {
                     <div className="pdf-header-info-value">{data.phone}</div>
                     <div className="pdf-header-info-value">{data.city}</div>
                   </div>
-                  <div className="pdf-header-info-right">QUOTATION</div>
-                </div>
-                <div className="pdf-meta-overlay">
-                  <div className="pdf-overlay-row">
-                    <span>Quote #</span>
-                    <strong>{data.quoteNumber}</strong>
-                  </div>
-                  <div className="pdf-overlay-row">
-                    <span>Quote Date</span>
-                    <strong>{formatDate(data.date)}</strong>
-                  </div>
-                  <div className="pdf-overlay-row">
-                    <span>Destination</span>
-                    <strong>{data.destination}</strong>
-                  </div>
-                  <div className="pdf-overlay-row">
-                    <span>Travel Date</span>
-                    <strong>{formatDate(data.travelDate)}</strong>
-                  </div>
-                  <div className="pdf-overlay-row">
-                    <span>No. of Person(s)</span>
-                    <strong>{data.persons}</strong>
+                  <div className="pdf-header-info-right">
+                    <div className="pdf-quotation-title">QUOTATION</div>
+                    <div className="pdf-quote-meta">
+                      <div className="pdf-quote-meta-row">
+                        <span>Quote #</span>
+                        <strong>{data.quoteNumber}</strong>
+                      </div>
+                      <div className="pdf-quote-meta-row">
+                        <span>Quote Date</span>
+                        <strong>{formatDate(data.date)}</strong>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="pdf-totals-overlay">
-                  <div className="pdf-overlay-row"><span>Subtotal</span><strong>{subtotalValue.toLocaleString('en-US')}</strong></div>
-                  <div className="pdf-overlay-row"><span>Discount</span><strong>{discountValue.toLocaleString('en-US')}</strong></div>
-                  <div className="pdf-overlay-row"><span>Total</span><strong>{totalDueValue.toLocaleString('en-US')}</strong></div>
-                  <div className="pdf-overlay-row"><span>Amount Paid</span><strong>{advanceValue.toLocaleString('en-US')}</strong></div>
-                  <div className="pdf-overlay-row"><span>Quote</span><strong>{balanceValue.toLocaleString('en-US')}</strong></div>
+                <div className="pdf-table-overlay">
+                  <div className="pdf-table-headers">
+                    <div>Item</div>
+                    <div>Description</div>
+                    <div>Price</div>
+                    <div>Number of Person</div>
+                    <div>Amount</div>
+                  </div>
+                  <div className="pdf-table-row">
+                    <div className="pdf-table-particulars-column">
+                      <strong>{tableRows[0]?.particulars || data.packageName}</strong>
+                      <div className="pdf-table-particulars-subtext">({data.packageDescription})</div>
+                    </div>
+                    <div className="pdf-table-price-column">{tableRows[0]?.price || data.price}</div>
+                    <div className="pdf-table-persons-column">{tableRows[0]?.persons || data.persons}</div>
+                    <div className="pdf-table-amount-column">{tableRows[0]?.amount || subtotalValue.toLocaleString('en-US')}</div>
+                  </div>
+                  <div className="pdf-item-details">
+                    <div>{data.persons} Persons (Family Trip)</div>
+                    <div>03 Rooms each night</div>
+                  </div>
                 </div>
                 <div className="pdf-notes-overlay">
-                  {data.notes.map((note, index) => (
-                    <div key={index} className="pdf-notes-item">{note}</div>
-                  ))}
+                  <div className="pdf-notes-line">
+                    <span className="pdf-notes-label">NOTES:</span>
+                    <strong>Accommodation Type:</strong> {data.accommodationType}
+                  </div>
+                  <div className="pdf-notes-line">
+                    <strong>Transportation Type:</strong> {data.transportationType}
+                  </div>
+                  <div className="pdf-notes-line">
+                    <strong>Departure Location:</strong> {data.departureLocation}
+                  </div>
+                </div>
+                <div className="pdf-package-includes">
+                  <div className="pdf-package-includes-title">Package included:</div>
+                  <ul className="pdf-package-includes-list">
+                    {data.packageIncludes.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                  <div className="pdf-package-validity">Quotation valid only for 7 Days.</div>
+                </div>
+                <div className="pdf-summary-section">
+                  <div className="pdf-summary-row">
+                    <span>Subtotal</span>
+                    <strong>{subtotalValue.toLocaleString('en-US')}</strong>
+                  </div>
+                  <div className="pdf-summary-row">
+                    <span>Total</span>
+                    <strong>{totalDueValue.toLocaleString('en-US')}</strong>
+                  </div>
+                  <div className="pdf-summary-row">
+                    <span>Amount Paid</span>
+                    <strong>{advanceValue.toLocaleString('en-US')}</strong>
+                  </div>
+                  <div className="pdf-summary-row pdf-summary-row-total">
+                    <span>Quote</span>
+                    <strong>{balanceValue.toLocaleString('en-US')}</strong>
+                  </div>
                 </div>
                 <div className="pdf-footer-image">
                   <img src={quoteFooterImage} alt="Footer" />
