@@ -1,0 +1,208 @@
+.quote-invoice-root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.quote-invoice-root textarea,
+.quote-invoice-root input {
+  font-family: inherit;
+}
+
+.quote-invoice-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.quote-invoice-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 36, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.quote-invoice-modal-panel {
+  position: relative;
+  width: min(1200px, 100%);
+  max-height: 95vh;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 40px 120px rgba(15, 23, 36, 0.18);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.quote-invoice-modal-content {
+  overflow: auto;
+  padding: 2rem;
+  background: #f8fafc;
+}
+
+.preview-document {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+  border-radius: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.preview-header {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.preview-header-brand {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.preview-logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0.65rem;
+  background: white;
+}
+
+.preview-company {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.preview-company-meta {
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.preview-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: right;
+}
+
+.preview-tag {
+  display: inline-flex;
+  padding: 0.7rem 1rem;
+  border-radius: 9999px;
+  background: #f8fafc;
+  color: #0f1724;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.preview-details div {
+  margin-bottom: 0.5rem;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.preview-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.preview-box {
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+}
+
+.preview-box-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+  color: #0f1724;
+}
+
+.preview-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.preview-table th {
+  background: #f8fafc;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.preview-table td {
+  color: #0f1724;
+  font-size: 0.95rem;
+}
+
+.preview-summary-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.preview-summary-notes {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1rem 1.25rem;
+}
+
+.preview-summary-total {
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1rem 1.25rem;
+  background: white;
+}
+
+.preview-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  color: #475569;
+}
+
+.preview-summary-total-row {
+  font-weight: 700;
+  color: #0f1724;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 980px) {
+  .preview-header,
+  .preview-meta-grid,
+  .preview-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

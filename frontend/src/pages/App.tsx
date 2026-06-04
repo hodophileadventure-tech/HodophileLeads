@@ -14,10 +14,11 @@ import { LeadForm } from '../components/LeadForm';
 import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { Badge, Button, Spinner } from '../components/common';
+import { QuoteInvoicePage } from './QuoteInvoicePage';
 import type { Lead, FollowUp } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice';
 
 const normalizeFollowUp = (item: any): FollowUp => ({
   id: String(item.id),
@@ -476,6 +477,7 @@ export const App: React.FC = () => {
     { label: 'Dashboard', href: 'dashboard', icon: '📊' },
     { label: 'Leads', href: 'leads', icon: '🧾' },
     { label: 'Follow-ups', href: 'followups', icon: '🕒' },
+    { label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' },
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     { label: 'Analytics', href: 'analytics', icon: '📈' }
   ];
@@ -956,6 +958,12 @@ export const App: React.FC = () => {
                 <section className="card">
                   <AnalyticsDashboard isAdmin={user.role === 'admin'} />
                 </section>
+              </div>
+            )}
+
+            {currentPage === 'quoteinvoice' && (
+              <div className="space-y-6">
+                <QuoteInvoicePage />
               </div>
             )}
 
