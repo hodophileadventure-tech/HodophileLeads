@@ -261,19 +261,6 @@ export const QuoteInvoicePage: React.FC = () => {
                 <div className="pdf-header-image">
                   <img src={hodophileHeaderImage} alt="Hodophile logo" />
                 </div>
-                <div className="pdf-brand-block">
-                  <div className="pdf-brand-title">Hodophile Adventure</div>
-                  <div className="pdf-brand-tagline">The perfect experience</div>
-                  <div className="pdf-brand-address">
-                    Suite # M2<br />
-                    Mezzanine Floor<br />
-                    Plot #111-113-C<br />
-                    PECHS Block-2<br />
-                    Tariq Road Karachi<br />
-                    +92 337 7774460<br />
-                    Government License #5436
-                  </div>
-                </div>
                 <div className="pdf-title-block">
                   <h1 className="pdf-title">{documentType === 'quotation' ? 'QUOTATION' : 'INVOICE'}</h1>
                   <div className="pdf-meta">

@@ -152,15 +152,17 @@ html, body {
 .pdf-header {
   width: 100%;
   position: relative;
-  min-height: 920px;
+  min-height: 450px;
+  padding-top: 300px;
 }
 
 .pdf-header-image {
   position: absolute;
-  left: 1280.5px;
-  top: 300px;
-  width: 400px;
-  height: 120px;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 1280.5px;
+  height: 300px;
 }
 
 .pdf-header-image img {
@@ -169,40 +171,18 @@ html, body {
   object-fit: contain;
 }
 
-.pdf-brand-block {
-  position: absolute;
-  top: 440px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: grid;
-  row-gap: 10px;
-  justify-items: center;
-  text-align: center;
-  width: 900px;
-}
-
-.pdf-brand-tagline {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333333;
-  letter-spacing: 0.08em;
-}
-
 .pdf-title-block {
-  position: absolute;
-  top: 580px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
+  margin-top: 20px;
 }
 
 .pdf-title {
   margin: 0;
-  font-size: 90px;
+  font-size: 100px;
   font-weight: 800;
   color: #fcc000;
   line-height: 0.9;
