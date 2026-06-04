@@ -345,6 +345,24 @@ export const AgentPanel: React.FC = () => {
     setShowConfirmForm(false);
   };
 
+  const requestLeadDocument = async (lead: Lead) => {
+    const type = window.prompt('Enter document request type: quotation or invoice', 'quotation');
+    if (!type) return;
+    const normalizedType = type.trim().toLowerCase();
+    if (normalizedType !== 'quotation' && normalizedType !== 'invoice') {
+      alert('Please enter either quotation or invoice');
+      return;
+    }
+
+    try {
+      await leadsAPI.requestQuote(String(lead.id), normalizedType as 'quotation' | 'invoice');
+      alert(`Requested ${normalizedType} for ${lead.clientName || lead.phone}. Admin will be notified.`);
+    } catch (error) {
+      console.error('Failed to request document', error);
+      alert('Unable to submit document request. Please try again.');
+    }
+  };
+
   const deleteLead = async (lead: Lead) => {
     const confirmed = window.confirm(
       `Are you sure you want to permanently delete this lead (${lead.clientName})? This action cannot be undone.`
@@ -476,6 +494,7 @@ export const AgentPanel: React.FC = () => {
                     }
                   }}>Attachments</Button>
                 <Button variant="secondary" onClick={() => openFollowUp(lead)}>Schedule Follow Up</Button>
+                <Button variant="secondary" onClick={() => requestLeadDocument(lead)}>Request Quote/Invoice</Button>
                 {lifecycle.state !== 'confirmed' && (
                   <Button variant="primary" onClick={() => openConfirm(lead)}>Confirm</Button>
                 )}

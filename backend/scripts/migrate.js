@@ -241,7 +241,24 @@ async function migrate() {
     `);
     console.log('✅ Notifications table created');
 
-    // 10. Attachments Table (depends on leads, users)
+    // 10. Quote Requests Table (depends on leads, users)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS quote_requests (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+        requested_by UUID NOT NULL REFERENCES users(id),
+        request_type VARCHAR(50) NOT NULL CHECK (request_type IN ('quotation', 'invoice')),
+        status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'saved')),
+        document_data JSONB,
+        resolved_by UUID REFERENCES users(id),
+        resolved_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Quote Requests table created');
+
+    // 11. Attachments Table (depends on leads, users)
     await client.query(`
       CREATE TABLE IF NOT EXISTS attachments (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -285,6 +302,11 @@ async function migrate() {
       'CREATE INDEX IF NOT EXISTS idx_follow_ups_due_date ON follow_ups(due_date)',
       'CREATE INDEX IF NOT EXISTS idx_payments_lead_id ON payments(lead_id)',
       'CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity_type, entity_id)',
+      'CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)',
+      'CREATE INDEX IF NOT EXISTS idx_notifications_lead_id ON notifications(lead_id)',
+      'CREATE INDEX IF NOT EXISTS idx_quote_requests_lead_id ON quote_requests(lead_id)',
+      'CREATE INDEX IF NOT EXISTS idx_quote_requests_requested_by ON quote_requests(requested_by)',
+      'CREATE INDEX IF NOT EXISTS idx_quote_requests_status ON quote_requests(status)',
       'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
       'CREATE INDEX IF NOT EXISTS idx_client_profiles_phone ON client_profiles(phone)',
       'CREATE INDEX IF NOT EXISTS idx_screen_captures_agent_id ON screen_captures(agent_id)',

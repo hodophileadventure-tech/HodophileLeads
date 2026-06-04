@@ -1,5 +1,5 @@
 import apiClient from './api';
-import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix } from '../types';
+import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix, QuoteRequest } from '../types';
 
 export const leadsAPI = {
   list: () => apiClient.get<Lead[]>('/leads'),
@@ -10,7 +10,8 @@ export const leadsAPI = {
   updateStatus: (id: string, status: string) => apiClient.patch(`/leads/${id}/status`, { status }),
   updateStage: (id: string, stage: string) => apiClient.patch(`/leads/${id}/stage`, { stage }),
   cancel: (id: string, reason: string) => apiClient.patch(`/leads/${id}/cancel`, { reason }),
-  delete: (id: string) => apiClient.delete(`/leads/${id}`)
+  delete: (id: string) => apiClient.delete(`/leads/${id}`),
+  requestQuote: (id: string, requestType: 'quotation' | 'invoice') => apiClient.post(`/leads/${id}/quote-requests`, { requestType })
 };
 
 // upload confirmation document for a lead (multipart/form-data)
@@ -71,7 +72,9 @@ export const dashboardAPI = {
 export const adminAPI = {
   getRedFlags: () => apiClient.get('/admin/red-flags'),
   getOverview: () => apiClient.get('/admin/overview'),
-  exportLeadsSpreadsheet: () => apiClient.get('/admin/leads/export', { responseType: 'blob' })
+  exportLeadsSpreadsheet: () => apiClient.get('/admin/leads/export', { responseType: 'blob' }),
+  listQuoteRequests: () => apiClient.get<QuoteRequest[]>('/admin/quote-requests'),
+  saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
 };
 
 (adminAPI as any).getAgents = () => apiClient.get('/admin/agents');
@@ -82,6 +85,11 @@ export const adminAPI = {
 (adminAPI as any).submitScreenCapture = (requestId: string, data: { dataUrl?: string; error?: string; capturedAt?: string }) =>
   apiClient.post(`/admin/screen-captures/${requestId}`, data);
 (adminAPI as any).getAgentsFollowUpStats = () => apiClient.get('/admin/agents/follow-up-stats');
+
+export const quoteRequestsAPI = {
+  list: () => apiClient.get<QuoteRequest[]>('/quote-requests'),
+  save: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
+};
 (adminAPI as any).getAgentsRevenueStats = () => apiClient.get('/admin/agents/revenue-stats');
 (adminAPI as any).createAgent = (data: { email: string; name: string; password: string; role?: string }) =>
   apiClient.post('/auth/register', data);

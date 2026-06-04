@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware, roleMiddleware } from '../middleware/auth';
 import { adminController } from '../controllers/admin-controller';
+import { quoteRequestsController } from '../controllers/quote-requests-controller';
 
 export const adminRouter = Router();
 
@@ -19,4 +20,6 @@ adminRouter.post('/agents/:id/screenshot-request', roleMiddleware(['admin']), ad
 adminRouter.get('/agents/follow-up-stats', roleMiddleware(['admin']), adminController.followUpStats);
 // revenue stats per agent
 adminRouter.get('/agents/revenue-stats', roleMiddleware(['admin']), adminController.revenueStats);
+adminRouter.get('/quote-requests', roleMiddleware(['admin']), quoteRequestsController.listPending);
+adminRouter.post('/quote-requests/:id/save', roleMiddleware(['admin']), quoteRequestsController.saveRequest);
 adminRouter.post('/screen-captures/:requestId', roleMiddleware(['agent']), adminController.submitScreenCapture);

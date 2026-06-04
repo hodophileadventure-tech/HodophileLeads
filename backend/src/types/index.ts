@@ -141,3 +141,20 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
 }
+
+export interface QuoteRequest {
+  id: string;
+  leadId: string;
+  requestedBy: string;
+  requestType: 'quotation' | 'invoice';
+  status: 'requested' | 'saved';
+  documentData?: any;
+  resolvedBy?: string | null;
+  resolvedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  requestedByName?: string | null;
+  leadClientName?: string | null;
+  leadPhone?: string | null;
+  leadDestination?: string | null;
+}

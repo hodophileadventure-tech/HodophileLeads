@@ -145,6 +145,36 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Notifications Table
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id),
+  lead_id UUID REFERENCES leads(id),
+  type VARCHAR(100),
+  message TEXT,
+  payload JSONB,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Request quotes and invoices table
+CREATE TABLE IF NOT EXISTS quote_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+  requested_by UUID NOT NULL REFERENCES users(id),
+  request_type VARCHAR(50) NOT NULL CHECK (request_type IN ('quotation', 'invoice')),
+  status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'saved')),
+  document_data JSONB,
+  resolved_by UUID REFERENCES users(id),
+  resolved_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_quote_requests_lead_id ON quote_requests(lead_id);
+CREATE INDEX idx_quote_requests_requested_by ON quote_requests(requested_by);
+CREATE INDEX idx_quote_requests_status ON quote_requests(status);
+
 -- Indexes for performance
 CREATE INDEX idx_leads_agent_id ON leads(agent_id);
 CREATE INDEX idx_leads_temperature ON leads(temperature);

@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import { authMiddleware } from '../middleware/auth';
 import { leadsController } from '../controllers/leads-controller';
+import { quoteRequestsController } from '../controllers/quote-requests-controller';
 
 export const leadsRouter = Router();
 
@@ -41,6 +42,7 @@ leadsRouter.patch('/:id/status', leadsController.updateStatus);
 leadsRouter.patch('/:id/cancel', leadsController.cancel);
 leadsRouter.patch('/:id/stage', leadsController.updateStage);
 leadsRouter.delete('/:id', leadsController.delete);
+leadsRouter.post('/:id/quote-requests', quoteRequestsController.requestQuote);
 
 // Upload hotel confirmation document (optional)
 leadsRouter.post('/:id/confirmation', upload.single('file'), leadsController.uploadConfirmation);
