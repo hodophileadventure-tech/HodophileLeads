@@ -151,6 +151,15 @@ export const QuoteInvoicePage: React.FC = () => {
     return rows.slice(0, 5);
   }, [tableRows]);
 
+  const previewRows = useMemo(
+    () =>
+      visibleRows.map((row, index) => ({
+        ...row,
+        keepDefaultValues: index === 0 && !row.particulars && !row.persons && !row.price && !row.amount,
+      })),
+    [visibleRows],
+  );
+
   return (
     <div className="quote-invoice-root">
       <div className="quote-invoice-shell">
@@ -313,25 +322,33 @@ export const QuoteInvoicePage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleRows.map((row, index) => (
-                        <tr key={row.id}>
-                          <td>
-                            <div className="pdf-table-item-title">{row.particulars || data.packageName}</div>
-                          </td>
-                          <td>
-                            {index === 0 ? (
-                              <>
-                                <div className="pdf-table-description-text">{data.packageDescription}</div>
-                                <div className="pdf-table-detail-text">{data.persons} Persons (Family Trip)</div>
-                                <div className="pdf-table-detail-text">03 Rooms each night</div>
-                              </>
-                            ) : null}
-                          </td>
-                          <td className="pdf-table-price-column">{row.price || data.price}</td>
-                          <td className="pdf-table-persons-column">{row.persons || data.persons}</td>
-                          <td className="pdf-table-amount-column">{row.amount || subtotalValue.toLocaleString('en-US')}</td>
-                        </tr>
-                      ))}
+                      {previewRows.map((row, index) => {
+                        const useDefault = row.keepDefaultValues;
+                        const title = row.particulars || (useDefault ? data.packageName : '');
+                        const price = useDefault ? data.price : row.price;
+                        const persons = useDefault ? data.persons : row.persons;
+                        const amount = useDefault ? subtotalValue.toLocaleString('en-US') : row.amount;
+
+                        return (
+                          <tr key={row.id}>
+                            <td>
+                              <div className="pdf-table-item-title">{title}</div>
+                            </td>
+                            <td>
+                              {index === 0 && (row.particulars || useDefault) ? (
+                                <>
+                                  <div className="pdf-table-description-text">{data.packageDescription}</div>
+                                  <div className="pdf-table-detail-text">{data.persons} Persons (Family Trip)</div>
+                                  <div className="pdf-table-detail-text">03 Rooms each night</div>
+                                </>
+                              ) : null}
+                            </td>
+                            <td className="pdf-table-price-column">{price}</td>
+                            <td className="pdf-table-persons-column">{persons}</td>
+                            <td className="pdf-table-amount-column">{amount}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

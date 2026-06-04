@@ -154,6 +154,7 @@ html, body {
   width: 2550px;
   min-height: 3300px;
   overflow: hidden;
+  padding-top: 560px;
 }
 
 .pdf-header-image {
@@ -243,10 +244,9 @@ html, body {
 }
 
 .pdf-table-wrapper {
-  position: absolute;
-  top: 560px;
-  left: 180px;
+  position: relative;
   width: 2190px;
+  margin: 0 180px;
   z-index: 3;
 }
 
@@ -323,10 +323,9 @@ html, body {
 }
 
 .pdf-bottom-content {
-  position: absolute;
-  top: 1760px;
-  left: 180px;
+  position: relative;
   width: 2190px;
+  margin: 60px 180px 0;
   display: grid;
   grid-template-columns: 1.4fr 0.9fr;
   gap: 40px;
