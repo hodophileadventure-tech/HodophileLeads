@@ -254,30 +254,41 @@ html, body {
 
 .pdf-table-overlay {
   position: absolute;
-  top: 720px;
+  top: 1060px;
   left: 180px;
   width: 2190px;
   z-index: 3;
 }
 
-.pdf-table-headers,
 .pdf-table-row {
   display: grid;
-  grid-template-columns: 32% 26% 14% 14% 14%;
+  grid-template-columns: 40% 16% 16% 16%;
   gap: 12px;
-  align-items: center;
+  align-items: start;
+  margin-bottom: 18px;
 }
 
-.pdf-table-headers {
-  margin-bottom: 14px;
+.pdf-table-particulars-column {
+  display: grid;
+  gap: 10px;
+}
+
+.pdf-table-particulars-column strong {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.pdf-table-particulars-subtext {
+  font-size: 18px;
+  color: #4b5563;
+}
+
+.pdf-table-price-column,
+.pdf-table-persons-column,
+.pdf-table-amount-column {
   font-size: 22px;
-  font-weight: 800;
-  color: #111827;
-  text-transform: uppercase;
-}
-
-.pdf-table-row {
-  margin-bottom: 20px;
+  font-weight: 600;
+  text-align: right;
 }
 
 .pdf-table-particulars-column {
@@ -314,7 +325,7 @@ html, body {
 
 .pdf-notes-overlay {
   position: absolute;
-  top: 1580px;
+  top: 1680px;
   left: 180px;
   width: 900px;
   padding: 0;
@@ -324,20 +335,12 @@ html, body {
 }
 
 .pdf-notes-line {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
   margin-bottom: 10px;
-}
-
-.pdf-notes-label,
-.pdf-notes-line strong {
-  font-weight: 800;
 }
 
 .pdf-package-includes {
   position: absolute;
-  top: 1840px;
+  top: 1920px;
   left: 180px;
   width: 900px;
   padding: 0;
@@ -375,7 +378,7 @@ html, body {
 
 .pdf-summary-section {
   position: absolute;
-  top: 1840px;
+  top: 1920px;
   right: 180px;
   width: 460px;
   padding: 24px;

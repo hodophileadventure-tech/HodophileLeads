@@ -304,17 +304,10 @@ export const QuoteInvoicePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="pdf-table-overlay">
-                  <div className="pdf-table-headers">
-                    <div>Item</div>
-                    <div>Description</div>
-                    <div>Price</div>
-                    <div>Number of Person</div>
-                    <div>Amount</div>
-                  </div>
                   <div className="pdf-table-row">
                     <div className="pdf-table-particulars-column">
                       <strong>{tableRows[0]?.particulars || data.packageName}</strong>
-                      <div className="pdf-table-particulars-subtext">({data.packageDescription})</div>
+                      <div className="pdf-table-particulars-subtext">{data.packageDescription}</div>
                     </div>
                     <div className="pdf-table-price-column">{tableRows[0]?.price || data.price}</div>
                     <div className="pdf-table-persons-column">{tableRows[0]?.persons || data.persons}</div>
@@ -326,19 +319,11 @@ export const QuoteInvoicePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="pdf-notes-overlay">
-                  <div className="pdf-notes-line">
-                    <span className="pdf-notes-label">NOTES:</span>
-                    <strong>Accommodation Type:</strong> {data.accommodationType}
-                  </div>
-                  <div className="pdf-notes-line">
-                    <strong>Transportation Type:</strong> {data.transportationType}
-                  </div>
-                  <div className="pdf-notes-line">
-                    <strong>Departure Location:</strong> {data.departureLocation}
-                  </div>
+                  <div className="pdf-notes-line">{data.accommodationType}</div>
+                  <div className="pdf-notes-line">{data.transportationType}</div>
+                  <div className="pdf-notes-line">{data.departureLocation}</div>
                 </div>
                 <div className="pdf-package-includes">
-                  <div className="pdf-package-includes-title">Package included:</div>
                   <ul className="pdf-package-includes-list">
                     {data.packageIncludes.map((item, index) => (
                       <li key={index}>{item}</li>
