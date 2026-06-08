@@ -341,8 +341,9 @@ html, body {
 }
 
 .pdf-table-wrapper {
-  width: 2190px;
-  margin: 80px 180px 0;
+  width: 90%;
+  max-width: 2190px;
+  margin: 80px auto 0;
   z-index: 3;
 }
 
@@ -351,7 +352,7 @@ html, body {
   border-collapse: collapse;
   table-layout: fixed;
   border: 2px solid #111827;
-  margin-bottom: 32px;
+  margin: 0 auto 32px;
 }
 
 .pdf-main-table col.col-desc {
@@ -371,8 +372,8 @@ html, body {
 }
 
 .pdf-main-table thead th {
-  padding: 22px 18px;
-  font-size: 24px;
+  padding: 24px 20px;
+  font-size: 26px;
   font-weight: 800;
   border: 2px solid #111827;
   text-align: left;
@@ -385,12 +386,16 @@ html, body {
   border-top: none;
 }
 
+.pdf-main-table tbody tr:first-child td {
+  min-height: 560px;
+}
+
 .pdf-main-table tbody tr td {
   border: 2px solid #111827;
   vertical-align: top;
-  font-size: 20px;
+  font-size: 22px;
   color: #111827;
-  padding: 18px 20px;
+  padding: 20px 22px;
 }
 
 .pdf-main-table th.text-right,
@@ -482,10 +487,8 @@ html, body {
 }
 
 .pdf-left-box {
-  height: 280px;
-  border-left: 2px solid #111827;
-  border-right: 2px solid #111827;
-  border-bottom: 2px solid #111827;
+  min-height: 280px;
+  border: none;
 }
 
 .pdf-summary {
