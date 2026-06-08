@@ -328,40 +328,37 @@ export const QuoteInvoicePage: React.FC = () => {
                     </thead>
                     <tbody>
                       <tr>
+                        <td className="pdf-description-cell">
+                          <div className="pdf-package-title">{data.packageName}</div>
+                          <div className="pdf-package-description">{data.packageDescription}</div>
+                          <div className="pdf-package-info-group">
+                            <div className="pdf-package-info-line">
+                              <span>Accommodation Type</span>
+                              <strong>{data.accommodationType}</strong>
+                            </div>
+                            <div className="pdf-package-info-line">
+                              <span>Transportation Type</span>
+                              <strong>{data.transportationType}</strong>
+                            </div>
+                            <div className="pdf-package-info-line">
+                              <span>Departure Location</span>
+                              <strong>{data.departureLocation}</strong>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="pdf-price-cell text-right">{data.price}</td>
+                        <td className="pdf-person-cell text-center">{data.persons}</td>
+                        <td className="pdf-amount-cell text-right">
+                          {formatAmount(parseNumber(data.price) * parseNumber(data.persons))}
+                        </td>
+                      </tr>
+                      <tr>
                         <td colSpan={4} className="pdf-content-cell">
-                          <div className="pdf-content-inner">
-                            <div className="pdf-content-left">
-                              <div className="pdf-package-title">{data.packageName}</div>
-                              <div className="pdf-package-description">{data.packageDescription}</div>
-                            </div>
-                            <div className="pdf-content-right">
-                              <div className="pdf-package-info-line">
-                                <span>Package Price</span>
-                                <strong>{data.price}</strong>
-                              </div>
-                              <div className="pdf-package-info-line">
-                                <span>No. of Person(s)</span>
-                                <strong>{data.persons}</strong>
-                              </div>
-                              <div className="pdf-package-info-line">
-                                <span>Amount</span>
-                                <strong>{formatAmount(parseNumber(data.price) * parseNumber(data.persons))}</strong>
-                              </div>
-                              <div className="pdf-package-info-group">
-                                <div className="pdf-package-info-line">
-                                  <span>Accommodation Type</span>
-                                  <strong>{data.accommodationType}</strong>
-                                </div>
-                                <div className="pdf-package-info-line">
-                                  <span>Transportation Type</span>
-                                  <strong>{data.transportationType}</strong>
-                                </div>
-                                <div className="pdf-package-info-line">
-                                  <span>Departure Location</span>
-                                  <strong>{data.departureLocation}</strong>
-                                </div>
-                              </div>
-                            </div>
+                          <div className="pdf-notes">
+                            <div className="notes-title">NOTES:</div>
+                            {data.notes.map((note, index) => (
+                              <div key={index}>{note}</div>
+                            ))}
                           </div>
                         </td>
                       </tr>
