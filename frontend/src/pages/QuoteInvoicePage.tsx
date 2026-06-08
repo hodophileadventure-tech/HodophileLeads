@@ -112,15 +112,6 @@ const getQuoteCounterKey = (dateString: string) => {
   return `quote-counter-${year}${month}${day}`;
 };
 
-const getNextQuoteCounter = (dateString: string) => {
-  if (typeof window === 'undefined') return 1;
-  const counterKey = getQuoteCounterKey(dateString);
-  const existing = Number(window.localStorage.getItem(counterKey) || '0');
-  const next = existing + 1;
-  window.localStorage.setItem(counterKey, String(next));
-  return next;
-};
-
 const previewQuoteNumber = (dateString: string) => {
   if (typeof window === 'undefined') return formatQuoteNumber(dateString, 1);
   const counterKey = getQuoteCounterKey(dateString);
