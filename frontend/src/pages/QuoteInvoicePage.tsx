@@ -388,49 +388,34 @@ export const QuoteInvoicePage: React.FC = () => {
                         </td>
                       </tr>
                       <tr className="pdf-footer-row">
-                        {documentType === 'quotation' ? (
-                          <td colSpan={4}>
-                            <div className="pdf-left-box">
-                              <div className="pdf-notes">
-                                <div className="notes-title">NOTES:</div>
-                                {data.notes.map((note, index) => (
-                                  <div key={index}>{note}</div>
-                                ))}
-                              </div>
+                        <td colSpan={3}>
+                          <div className="pdf-left-box">
+                            <div className="pdf-notes">
+                              <div className="notes-title">NOTES:</div>
+                              {data.notes.map((note, index) => (
+                                <div key={index}>{note}</div>
+                              ))}
                             </div>
-                          </td>
-                        ) : (
-                          <>
-                            <td colSpan={3}>
-                              <div className="pdf-left-box">
-                                <div className="pdf-notes">
-                                  <div className="notes-title">NOTES:</div>
-                                  {data.notes.map((note, index) => (
-                                    <div key={index}>{note}</div>
-                                  ))}
-                                </div>
-                              </div>
-                            </td>
-                            <td>
-                              <table className="pdf-summary">
-                                <tbody>
-                                  <tr>
-                                    <td className="label">Subtotal</td>
-                                    <td className="value">{subtotalValue.toLocaleString('en-US')}</td>
-                                  </tr>
-                                  <tr>
-                                    <td className="label">Total Amount Paid</td>
-                                    <td className="value">{advanceValue.toLocaleString('en-US')}</td>
-                                  </tr>
-                                  <tr>
-                                    <td className="label">Quote</td>
-                                    <td className="value">{balanceValue.toLocaleString('en-US')}</td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </td>
-                          </>
-                        )}
+                          </div>
+                        </td>
+                        <td>
+                          <table className="pdf-summary">
+                            <tbody>
+                              <tr>
+                                <td className="label">Subtotal</td>
+                                <td className="value">{subtotalValue.toLocaleString('en-US')}</td>
+                              </tr>
+                              <tr>
+                                <td className="label">Total Amount Paid</td>
+                                <td className="value">{advanceValue.toLocaleString('en-US')}</td>
+                              </tr>
+                              <tr>
+                                <td className="label">Quote</td>
+                                <td className="value">{balanceValue.toLocaleString('en-US')}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
                       </tr>
                     </tbody>
                   </table>

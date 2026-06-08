@@ -277,7 +277,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .pdf-package-info-line span {
@@ -296,22 +296,6 @@ html, body {
 
 .pdf-main-table thead th:last-child {
   text-align: right;
-}
-
-.pdf-package-info-line {
-  display: flex;
-  justify-content: space-between;
-  font-size: 20px;
-  gap: 12px;
-}
-
-.pdf-package-info-line span {
-  opacity: 0.75;
-  font-weight: 600;
-}
-
-.pdf-package-info-line strong {
-  font-weight: 800;
 }
 
 .pdf-left-box {
@@ -508,8 +492,8 @@ html, body {
 
 .pdf-summary td {
   border: 2px solid #111827;
-  padding: 20px 18px;
-  font-size: 20px;
+  padding: 24px 20px;
+  font-size: 24px;
   text-align: left;
 }
 
@@ -519,7 +503,7 @@ html, body {
 
 .pdf-summary .value {
   text-align: right;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .pdf-footer-row td {
