@@ -86,13 +86,6 @@ const formatDate = (value: string) => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
-const parseNumber = (value: string) => {
-  const num = Number(String(value).replace(/[^0-9.]/g, ''));
-  return Number.isNaN(num) ? 0 : num;
-};
-
-const formatAmount = (value: number) => value.toLocaleString('en-US');
-
 export const QuoteInvoicePage: React.FC = () => {
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
@@ -288,15 +281,8 @@ export const QuoteInvoicePage: React.FC = () => {
                   <img src={quoteHeaderImage} alt="Hodophile header" />
                 </div>
                 <div className="pdf-header-info-box">
-                  <div className="pdf-header-info-left">
-                    <div className="pdf-header-info-label">Customer</div>
-                    <div className="pdf-header-info-value">{data.customerName}</div>
-                    <div className="pdf-header-info-value">{data.phone}</div>
-                    <div className="pdf-header-info-value">{data.city}</div>
-                  </div>
-                  <div className="pdf-header-info-right">
-                    <div className="pdf-quotation-title">QUOTATION</div>
-                    <div className="pdf-quote-meta">
+                  <div className="pdf-header-top">
+                    <div className="pdf-quote-meta-block">
                       <div className="pdf-quote-meta-row">
                         <span>Quote #</span>
                         <strong>{data.quoteNumber}</strong>
@@ -306,7 +292,14 @@ export const QuoteInvoicePage: React.FC = () => {
                         <strong>{formatDate(data.date)}</strong>
                       </div>
                     </div>
+                    <div className="pdf-customer-box">
+                      <div className="pdf-header-info-label">Customer</div>
+                      <div className="pdf-header-info-value">{data.customerName}</div>
+                      <div className="pdf-header-info-value">{data.phone}</div>
+                      <div className="pdf-header-info-value">{data.city}</div>
+                    </div>
                   </div>
+                  <div className="pdf-quotation-title">QUOTATION</div>
                 </div>
                 <div className="pdf-table-wrapper">
                   <table className="pdf-main-table">
@@ -330,34 +323,39 @@ export const QuoteInvoicePage: React.FC = () => {
                           <div className="pdf-package-details">
                             <div className="pdf-package-title">{data.packageName}</div>
                             <div className="pdf-package-description">{data.packageDescription}</div>
-                            <div className="pdf-package-meta-grid">
-                              <div>
-                                <div className="pdf-meta-label">Package Price</div>
-                                <div className="pdf-meta-value">{data.price}</div>
-                              </div>
-                              <div>
-                                <div className="pdf-meta-label">No. of Person(s)</div>
-                                <div className="pdf-meta-value">{data.persons}</div>
-                              </div>
-                              <div>
-                                <div className="pdf-meta-label">Amount</div>
-                                <div className="pdf-meta-value">
-                                  {formatAmount(parseNumber(data.price) * parseNumber(data.persons))}
-                                </div>
-                              </div>
+                            <div className="pdf-package-info-line">
+                              <span>Package Price:</span>
+                              <strong>{data.price}</strong>
                             </div>
-                            <div className="pdf-notes">
-                              <div className="notes-title">NOTES:</div>
-                              <div>Accommodation Type: {data.accommodationType}</div>
-                              <div>Transportation Type: {data.transportationType}</div>
-                              <div>Departure Location: {data.departureLocation}</div>
+                            <div className="pdf-package-info-line">
+                              <span>No. of Person(s):</span>
+                              <strong>{data.persons}</strong>
+                            </div>
+                            <div className="pdf-package-info-line">
+                              <span>Accommodation Type:</span>
+                              <strong>{data.accommodationType}</strong>
+                            </div>
+                            <div className="pdf-package-info-line">
+                              <span>Transportation Type:</span>
+                              <strong>{data.transportationType}</strong>
+                            </div>
+                            <div className="pdf-package-info-line">
+                              <span>Departure Location:</span>
+                              <strong>{data.departureLocation}</strong>
                             </div>
                           </div>
                         </td>
                       </tr>
                       <tr className="pdf-footer-row">
                         <td colSpan={3}>
-                          <div className="pdf-left-box"></div>
+                          <div className="pdf-left-box">
+                            <div className="pdf-notes">
+                              <div className="notes-title">NOTES:</div>
+                              {data.notes.map((note, index) => (
+                                <div key={index}>{note}</div>
+                              ))}
+                            </div>
+                          </div>
                         </td>
                         <td>
                           <table className="pdf-summary">
