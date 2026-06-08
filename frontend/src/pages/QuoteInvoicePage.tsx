@@ -4,6 +4,7 @@ import quoteHeaderImage from '../assets/quote-header.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import pakistanGovtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
+import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
 import fbrLogo from '../assets/logos/images-removebg-preview.png';
 import './QuoteInvoicePage.css';
 
@@ -430,6 +431,9 @@ export const QuoteInvoicePage: React.FC = () => {
                     </div>
                     <div className="pdf-logo-item">
                       <img src={nadraLogo} alt="NADRA" />
+                    </div>
+                    <div className="pdf-logo-item">
+                      <img src={patoLogo} alt="PATO" />
                     </div>
                     <div className="pdf-logo-item">
                       <img src={fbrLogo} alt="FBR" />

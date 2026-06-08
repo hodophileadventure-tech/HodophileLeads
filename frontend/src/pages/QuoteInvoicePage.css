@@ -674,23 +674,24 @@ html, body {
 
 .pdf-logos-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 80px;
+  gap: 40px;
   padding: 20px;
+  width: 100%;
 }
 
 .pdf-logo-item {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 120px;
+  height: 200px;
   width: auto;
 }
 
 .pdf-logo-item img {
-  max-height: 120px;
-  max-width: 180px;
+  max-height: 200px;
+  max-width: 280px;
   object-fit: contain;
 }
 
