@@ -278,7 +278,6 @@ html, body {
   font-size: 24px;
   font-weight: 800;
   border: 2px solid #111827;
-  border-bottom: none;
   text-align: left;
   color: #111827;
   background: #ffffff;
@@ -290,35 +289,33 @@ html, body {
 }
 
 .pdf-main-table tbody tr td {
-  padding: 18px 18px;
   border: 2px solid #111827;
-  border-top: none;
   vertical-align: top;
   font-size: 20px;
   color: #111827;
+  padding: 0;
 }
 
 .pdf-content-cell {
-  height: 240px;
+  height: 280px;
   position: relative;
+  padding: 20px;
 }
 
 .pdf-notes {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
   font-size: 18px;
-  line-height: 1.7;
+  line-height: 1.8;
+  color: #111827;
 }
 
 .pdf-notes .notes-title {
   font-weight: 800;
   text-decoration: underline;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .pdf-left-box {
-  min-height: 240px;
+  height: 280px;
   border-left: 2px solid #111827;
   border-right: 2px solid #111827;
   border-bottom: 2px solid #111827;
@@ -332,8 +329,9 @@ html, body {
 
 .pdf-summary td {
   border: 2px solid #111827;
-  padding: 16px 18px;
+  padding: 20px 18px;
   font-size: 20px;
+  text-align: left;
 }
 
 .pdf-summary .label {
@@ -342,10 +340,11 @@ html, body {
 
 .pdf-summary .value {
   text-align: right;
+  font-weight: 600;
 }
 
 .pdf-footer-row td {
-  border-top: none;
+  border-top: 2px solid #111827;
 }
 
 .pdf-body-notes {

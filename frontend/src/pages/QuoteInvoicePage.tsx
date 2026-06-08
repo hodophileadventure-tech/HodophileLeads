@@ -318,23 +318,6 @@ export const QuoteInvoicePage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleRows.map((row, index) => {
-                        const useDefault = index === 0 && !row.particulars && !row.persons && !row.price && !row.amount;
-                        const isEmpty = !row.particulars && !row.persons && !row.price && !row.amount && !useDefault;
-                        const description = row.particulars || (useDefault ? data.packageName : '');
-                        const price = row.price || (useDefault ? data.price : '');
-                        const persons = row.persons || (useDefault ? data.persons : '');
-                        const amount = row.amount || (useDefault ? data.subtotal : '');
-
-                        return (
-                          <tr key={row.id} className={isEmpty ? 'pdf-empty-row' : ''}>
-                            <td>{description}</td>
-                            <td>{price}</td>
-                            <td>{persons}</td>
-                            <td>{amount}</td>
-                          </tr>
-                        );
-                      })}
                       <tr>
                         <td colSpan={4} className="pdf-content-cell">
                           <div className="pdf-notes">
