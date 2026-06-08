@@ -125,6 +125,14 @@ export const QuoteInvoicePage: React.FC = () => {
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
+  const visibleRows = useMemo(() => {
+    const rows = [...tableRows];
+    while (rows.length < 5) {
+      rows.push({ id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' });
+    }
+    return rows.slice(0, 5);
+  }, [tableRows]);
+
   const downloadJPEG = async () => {
     if (!previewRef.current) return;
     try {
@@ -344,20 +352,6 @@ export const QuoteInvoicePage: React.FC = () => {
                               <div>Transportation Type: {data.transportationType}</div>
                               <div>Departure Location: {data.departureLocation}</div>
                             </div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="pdf-footer-row">
-                        <td colSpan={3}>
-                          <div className="pdf-left-box"></div>
-                        </td>
-                        <td>
-                          <table className="pdf-summary">
-                          <div className="pdf-notes">
-                            <div className="notes-title">NOTES:</div>
-                            <div>Accommodation Type: {data.accommodationType}</div>
-                            <div>Transportation Type: {data.transportationType}</div>
-                            <div>Departure Location: {data.departureLocation}</div>
                           </div>
                         </td>
                       </tr>
