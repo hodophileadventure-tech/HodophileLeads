@@ -303,10 +303,17 @@ export const QuoteInvoicePage: React.FC = () => {
                 </div>
                 <div className="pdf-table-wrapper">
                   <table className="pdf-main-table">
+                    <colgroup>
+                      <col className="col-desc" />
+                      <col className="col-price" />
+                      <col className="col-person" />
+                      <col className="col-amount" />
+                    </colgroup>
                     <thead>
                       <tr>
-                        <th>Item</th>
                         <th>Description</th>
+                        <th>Package Price</th>
+                        <th>No. of Person(s)</th>
                         <th>Amount</th>
                       </tr>
                     </thead>
@@ -314,59 +321,55 @@ export const QuoteInvoicePage: React.FC = () => {
                       {visibleRows.map((row, index) => {
                         const useDefault = index === 0 && !row.particulars && !row.persons && !row.price && !row.amount;
                         const isEmpty = !row.particulars && !row.persons && !row.price && !row.amount && !useDefault;
-                        const label = row.particulars || (useDefault ? data.packageName : '');
-                        const detail = useDefault ? (
-                          <>
-                            <div>Persons: {data.persons}</div>
-                            <div>Price: {data.price}</div>
-                          </>
-                        ) : row.persons || row.price ? (
-                          <>
-                            {row.persons ? <div>Persons: {row.persons}</div> : null}
-                            {row.price ? <div>Price: {row.price}</div> : null}
-                          </>
-                        ) : (
-                          ''
-                        );
+                        const description = row.particulars || (useDefault ? data.packageName : '');
+                        const price = row.price || (useDefault ? data.price : '');
+                        const persons = row.persons || (useDefault ? data.persons : '');
                         const amount = row.amount || (useDefault ? data.subtotal : '');
 
                         return (
                           <tr key={row.id} className={isEmpty ? 'pdf-empty-row' : ''}>
-                            <td>{label}</td>
-                            <td>{detail}</td>
+                            <td>{description}</td>
+                            <td>{price}</td>
+                            <td>{persons}</td>
                             <td>{amount}</td>
                           </tr>
                         );
                       })}
+                      <tr>
+                        <td colSpan={4} className="pdf-content-cell">
+                          <div className="pdf-notes">
+                            <div className="notes-title">NOTES:</div>
+                            <div>Accommodation Type: {data.accommodationType}</div>
+                            <div>Transportation Type: {data.transportationType}</div>
+                            <div>Departure Location: {data.departureLocation}</div>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="pdf-footer-row">
+                        <td colSpan={3}>
+                          <div className="pdf-left-box"></div>
+                        </td>
+                        <td>
+                          <table className="pdf-summary">
+                            <tbody>
+                              <tr>
+                                <td className="label">Subtotal</td>
+                                <td className="value">{subtotalValue.toLocaleString('en-US')}</td>
+                              </tr>
+                              <tr>
+                                <td className="label">Total Amount Paid</td>
+                                <td className="value">{advanceValue.toLocaleString('en-US')}</td>
+                              </tr>
+                              <tr>
+                                <td className="label">Quote</td>
+                                <td className="value">{balanceValue.toLocaleString('en-US')}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
-                  <div className="pdf-body-notes">
-                    <div className="pdf-notes-heading">NOTES:</div>
-                    <div className="pdf-note-line">Accommodation Type: {data.accommodationType}</div>
-                    <div className="pdf-note-line">Transportation Type: {data.transportationType}</div>
-                    <div className="pdf-note-line">Departure Location: {data.departureLocation}</div>
-                  </div>
-                </div>
-                <div className="pdf-footer-table">
-                  <div className="pdf-footer-left"></div>
-                  <div className="pdf-footer-right">
-                    <div className="pdf-summary-row">
-                      <span>Subtotal</span>
-                      <strong>{subtotalValue.toLocaleString('en-US')}</strong>
-                    </div>
-                    <div className="pdf-summary-row">
-                      <span>Total</span>
-                      <strong>{totalDueValue.toLocaleString('en-US')}</strong>
-                    </div>
-                    <div className="pdf-summary-row">
-                      <span>Amount Paid</span>
-                      <strong>{advanceValue.toLocaleString('en-US')}</strong>
-                    </div>
-                    <div className="pdf-summary-row pdf-summary-row-total">
-                      <span>Quote</span>
-                      <strong>{balanceValue.toLocaleString('en-US')}</strong>
-                    </div>
-                  </div>
                 </div>
                 <div className="pdf-footer-image">
                   <img src={quoteFooterImage} alt="Footer" />

@@ -244,7 +244,6 @@ html, body {
 }
 
 .pdf-table-wrapper {
-  position: relative;
   width: 2190px;
   margin: 80px 180px 0;
   z-index: 3;
@@ -254,13 +253,24 @@ html, body {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  border: 1px solid #111827;
+  border: 2px solid #111827;
+  margin-bottom: 32px;
 }
 
-.pdf-main-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 32px;
+.pdf-main-table col.col-desc {
+  width: 40%;
+}
+
+.pdf-main-table col.col-price {
+  width: 20%;
+}
+
+.pdf-main-table col.col-person {
+  width: 20%;
+}
+
+.pdf-main-table col.col-amount {
+  width: 20%;
 }
 
 .pdf-main-table thead th {
@@ -275,9 +285,8 @@ html, body {
 }
 
 .pdf-main-table tbody tr.pdf-empty-row td {
-  min-height: 140px;
+  min-height: 80px;
   border-top: none;
-  border-bottom: 2px solid #111827;
 }
 
 .pdf-main-table tbody tr td {
@@ -289,17 +298,54 @@ html, body {
   color: #111827;
 }
 
-.pdf-main-table tbody tr td:first-child {
-  width: 25%;
+.pdf-content-cell {
+  height: 240px;
+  position: relative;
 }
 
-.pdf-main-table tbody tr td:nth-child(2) {
-  width: 55%;
+.pdf-notes {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 18px;
+  line-height: 1.7;
 }
 
-.pdf-main-table tbody tr td:last-child {
-  width: 20%;
+.pdf-notes .notes-title {
+  font-weight: 800;
+  text-decoration: underline;
+  margin-bottom: 8px;
+}
+
+.pdf-left-box {
+  min-height: 240px;
+  border-left: 2px solid #111827;
+  border-right: 2px solid #111827;
+  border-bottom: 2px solid #111827;
+}
+
+.pdf-summary {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.pdf-summary td {
+  border: 2px solid #111827;
+  padding: 16px 18px;
+  font-size: 20px;
+}
+
+.pdf-summary .label {
+  font-weight: 800;
+}
+
+.pdf-summary .value {
   text-align: right;
+}
+
+.pdf-footer-row td {
+  border-top: none;
 }
 
 .pdf-body-notes {
