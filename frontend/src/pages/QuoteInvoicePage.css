@@ -495,7 +495,7 @@ html, body {
 }
 
 .pdf-summary td {
-  border: 2px solid #111827;
+  border: none;
   padding: 26px 22px;
   font-size: 32px;
   text-align: left;
@@ -515,7 +515,7 @@ html, body {
 }
 
 .pdf-footer-row td {
-  border-top: 2px solid #111827;
+  border-top: none;
 }
 
 .pdf-body-notes {
