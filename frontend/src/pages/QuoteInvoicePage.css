@@ -216,14 +216,14 @@ html, body {
 }
 
 .pdf-header-info-label {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   color: #1f2937;
 }
 
 .pdf-header-info-value {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 26px;
+  font-weight: 700;
   color: #111827;
 }
 
@@ -331,9 +331,14 @@ html, body {
   color: #111827;
 }
 
+.pdf-quote-meta-row {
+  font-size: 26px;
+}
+
 .pdf-quote-meta-row span {
   opacity: 0.75;
   font-weight: 600;
+  font-size: 22px;
 }
 
 .pdf-quote-meta-row strong {
@@ -375,8 +380,8 @@ html, body {
 }
 
 .pdf-main-table thead th {
-  padding: 24px 20px;
-  font-size: 26px;
+  padding: 26px 22px;
+  font-size: 28px;
   font-weight: 800;
   border: 2px solid #111827;
   text-align: left;
@@ -396,9 +401,9 @@ html, body {
 .pdf-main-table tbody tr td {
   border: 2px solid #111827;
   vertical-align: top;
-  font-size: 22px;
+  font-size: 24px;
   color: #111827;
-  padding: 24px 26px;
+  padding: 26px 28px;
 }
 
 .pdf-main-table th.text-right,
@@ -416,13 +421,13 @@ html, body {
 }
 
 .pdf-package-title {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 800;
   margin-bottom: 10px;
 }
 
 .pdf-package-description {
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.7;
   color: #111827;
   margin-bottom: 12px;
@@ -478,12 +483,13 @@ html, body {
 }
 
 .pdf-notes {
-  font-size: 18px;
-  line-height: 1.8;
+  font-size: 22px;
+  line-height: 1.7;
   color: #111827;
 }
 
 .pdf-notes .notes-title {
+  font-size: 24px;
   font-weight: 800;
   text-decoration: underline;
   margin-bottom: 12px;

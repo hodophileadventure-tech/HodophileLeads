@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useRef, useState } from 'react';
+﻿import React, { useMemo, useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import quoteHeaderImage from '../assets/quote-header.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
@@ -56,7 +56,7 @@ const defaultData: DocumentData = {
   phone: '+92 300 1234567',
   city: 'Karachi',
   invoiceNumber: 'INV-000142',
-  quoteNumber: 'QT-000142',
+  quoteNumber: '',
   date: new Date().toISOString().split('T')[0],
   travelDate: new Date().toISOString().split('T')[0],
   destination: 'Gilgit Baltistan',
@@ -93,12 +93,61 @@ const parseNumber = (value: string) => {
 
 const formatAmount = (value: number) => value.toLocaleString('en-US');
 
+const formatQuoteNumber = (dateString: string, count: number) => {
+  const date = new Date(dateString);
+  const normalizedDate = Number.isNaN(date.getTime()) ? new Date() : date;
+  const year = String(normalizedDate.getFullYear()).slice(-2);
+  const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
+  const day = String(normalizedDate.getDate()).padStart(2, '0');
+  const sequence = 1100 + count;
+  return `${year}${month}${day}${sequence}`;
+};
+
+const getQuoteCounterKey = (dateString: string) => {
+  const date = new Date(dateString);
+  const normalizedDate = Number.isNaN(date.getTime()) ? new Date() : date;
+  const year = normalizedDate.getFullYear();
+  const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
+  const day = String(normalizedDate.getDate()).padStart(2, '0');
+  return `quote-counter-${year}${month}${day}`;
+};
+
+const getNextQuoteCounter = (dateString: string) => {
+  if (typeof window === 'undefined') return 1;
+  const counterKey = getQuoteCounterKey(dateString);
+  const existing = Number(window.localStorage.getItem(counterKey) || '0');
+  const next = existing + 1;
+  window.localStorage.setItem(counterKey, String(next));
+  return next;
+};
+
+const generateQuoteNumber = (dateString: string) => {
+  const nextCounter = getNextQuoteCounter(dateString);
+  return formatQuoteNumber(dateString, nextCounter);
+};
+
+const previewQuoteNumber = (dateString: string) => {
+  if (typeof window === 'undefined') return formatQuoteNumber(dateString, 1);
+  const counterKey = getQuoteCounterKey(dateString);
+  const existing = Number(window.localStorage.getItem(counterKey) || '0');
+  return formatQuoteNumber(dateString, existing + 1);
+};
+
 export const QuoteInvoicePage: React.FC = () => {
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
   const previewRef = useRef<HTMLDivElement | null>(null);
+
+  const displayQuoteNumber = data.quoteNumber || previewQuoteNumber(data.date);
+
+  useEffect(() => {
+    if (documentType === 'quotation' && !data.quoteNumber) {
+      const generated = previewQuoteNumber(data.date);
+      setData((current) => ({ ...current, quoteNumber: generated }));
+    }
+  }, [data.date, documentType, data.quoteNumber]);
 
   const subtotalValue = useMemo(() => {
     const total = tableRows.reduce((sum, row) => {
@@ -195,7 +244,7 @@ export const QuoteInvoicePage: React.FC = () => {
             <div className="field-row-sm">
               <div>
                 <label>{documentType === 'quotation' ? 'Quote #' : 'Invoice #'}</label>
-                <input value={documentType === 'quotation' ? data.quoteNumber : data.invoiceNumber} onChange={(event) => updateField(documentType === 'quotation' ? 'quoteNumber' : 'invoiceNumber', event.target.value)} />
+                <input value={documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber} onChange={(event) => updateField(documentType === 'quotation' ? 'quoteNumber' : 'invoiceNumber', event.target.value)} />
               </div>
               <div>
                 <label>{documentType === 'quotation' ? 'Quote Date' : 'Date'}</label>
@@ -299,7 +348,7 @@ export const QuoteInvoicePage: React.FC = () => {
                       <div className="pdf-quote-meta-block">
                         <div className="pdf-quote-meta-row">
                           <span>Quote #</span>
-                          <strong>{data.quoteNumber}</strong>
+                          <strong>{displayQuoteNumber}</strong>
                         </div>
                         <div className="pdf-quote-meta-row">
                           <span>Quote Date</span>
