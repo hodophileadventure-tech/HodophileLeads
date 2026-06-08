@@ -667,7 +667,7 @@ html, body {
 .pdf-logos-section {
   width: 90%;
   max-width: 2190px;
-  margin: 120px auto 0;
+  margin: 0 auto 40px;
   display: flex;
   justify-content: center;
 }
