@@ -121,11 +121,6 @@ const getNextQuoteCounter = (dateString: string) => {
   return next;
 };
 
-const generateQuoteNumber = (dateString: string) => {
-  const nextCounter = getNextQuoteCounter(dateString);
-  return formatQuoteNumber(dateString, nextCounter);
-};
-
 const previewQuoteNumber = (dateString: string) => {
   if (typeof window === 'undefined') return formatQuoteNumber(dateString, 1);
   const counterKey = getQuoteCounterKey(dateString);
