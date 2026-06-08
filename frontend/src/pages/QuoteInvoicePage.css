@@ -257,86 +257,110 @@ html, body {
   border: 1px solid #111827;
 }
 
+.pdf-main-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 32px;
+}
+
 .pdf-main-table thead th {
-  padding: 18px 16px;
-  font-size: 20px;
+  padding: 22px 18px;
+  font-size: 24px;
   font-weight: 800;
-  border-bottom: 2px solid #111827;
+  border: 2px solid #111827;
+  border-bottom: none;
   text-align: left;
   color: #111827;
+  background: #ffffff;
+}
+
+.pdf-main-table tbody tr.pdf-empty-row td {
+  height: 400px;
+  border-top: none;
+  border-bottom: 2px solid #111827;
 }
 
 .pdf-main-table tbody tr td {
-  padding: 20px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 18px;
+  border: 2px solid #111827;
+  border-top: none;
   vertical-align: top;
+  font-size: 20px;
+  color: #111827;
 }
 
-.pdf-main-table tbody tr:last-child td {
+.pdf-main-table tbody tr td:first-child {
+  width: 25%;
+}
+
+.pdf-main-table tbody tr td:nth-child(2) {
+  width: 55%;
+}
+
+.pdf-main-table tbody tr td:last-child {
+  width: 20%;
+  text-align: right;
+}
+
+.pdf-body-notes {
+  margin-top: -2px;
+  padding: 20px 22px;
+  border: 2px solid #111827;
+  border-top: none;
+  min-height: 240px;
+}
+
+.pdf-body-notes .pdf-notes-heading {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.pdf-body-notes .pdf-note-line {
+  font-size: 18px;
+  line-height: 1.7;
+  color: #111827;
+}
+
+.pdf-footer-table {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.pdf-footer-left {
+  min-height: 250px;
+  border: 2px solid #111827;
+}
+
+.pdf-footer-right {
+  display: grid;
+  gap: 0;
+  border: 2px solid #111827;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.pdf-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid #111827;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.pdf-summary-row:last-child {
   border-bottom: none;
 }
 
-.pdf-main-table th:nth-child(1) {
-  width: 24%;
-}
-
-.pdf-main-table th:nth-child(2) {
-  width: 40%;
-}
-
-.pdf-main-table th:nth-child(3) {
-  width: 14%;
-}
-
-.pdf-main-table th:nth-child(4) {
-  width: 12%;
-}
-
-.pdf-main-table th:nth-child(5) {
-  width: 10%;
-}
-
-.pdf-table-item-title {
-  font-size: 28px;
+.pdf-summary-row-total {
+  font-size: 24px;
   font-weight: 800;
-  color: #111827;
-  margin-bottom: 12px;
-}
-
-.pdf-table-description-text,
-.pdf-table-detail-text {
-  font-size: 18px;
-  color: #4b5563;
-}
-
-.pdf-table-detail-text {
-  margin-top: 6px;
-}
-
-.pdf-table-price-column,
-.pdf-table-persons-column,
-.pdf-table-amount-column {
-  font-size: 22px;
-  font-weight: 600;
-  text-align: right;
-  color: #111827;
-}
-
-.pdf-bottom-content {
-  position: relative;
-  width: 2190px;
-  margin: 60px 180px 0;
-  display: grid;
-  grid-template-columns: 1.4fr 0.9fr;
-  gap: 40px;
-  z-index: 3;
-}
-
-.pdf-notes-panel {
-  background: #ffffff;
-  padding: 26px 28px;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
 }
 
 .pdf-notes-heading {

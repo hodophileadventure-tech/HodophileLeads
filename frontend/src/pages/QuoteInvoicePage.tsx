@@ -316,57 +316,41 @@ export const QuoteInvoicePage: React.FC = () => {
                       <tr>
                         <th>Item</th>
                         <th>Description</th>
-                        <th>Price</th>
-                        <th>Number of Person</th>
                         <th>Amount</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {previewRows.map((row, index) => {
-                        const useDefault = row.keepDefaultValues;
-                        const title = row.particulars || (useDefault ? data.packageName : '');
-                        const price = useDefault ? data.price : row.price;
-                        const persons = useDefault ? data.persons : row.persons;
-                        const amount = useDefault ? subtotalValue.toLocaleString('en-US') : row.amount;
+                      {visibleRows.map((row, index) => {
+                        const isEmpty = !row.particulars && !row.persons && !row.price && !row.amount;
+                        const label = row.particulars || (index === 0 ? data.packageName : '');
+                        const detail = row.persons || row.price ? (
+                          <>
+                            {row.persons ? <div>Persons: {row.persons}</div> : null}
+                            {row.price ? <div>Price: {row.price}</div> : null}
+                          </>
+                        ) : index === 0 ? data.packageDescription : '';
+                        const amount = row.amount || (index === 0 ? data.subtotal : '');
 
                         return (
-                          <tr key={row.id}>
-                            <td>
-                              <div className="pdf-table-item-title">{title}</div>
-                            </td>
-                            <td>
-                              {index === 0 && (row.particulars || useDefault) ? (
-                                <>
-                                  <div className="pdf-table-description-text">{data.packageDescription}</div>
-                                  <div className="pdf-table-detail-text">{data.persons} Persons (Family Trip)</div>
-                                  <div className="pdf-table-detail-text">03 Rooms each night</div>
-                                </>
-                              ) : null}
-                            </td>
-                            <td className="pdf-table-price-column">{price}</td>
-                            <td className="pdf-table-persons-column">{persons}</td>
-                            <td className="pdf-table-amount-column">{amount}</td>
+                          <tr key={row.id} className={isEmpty ? 'pdf-empty-row' : ''}>
+                            <td>{label}</td>
+                            <td>{detail}</td>
+                            <td>{amount}</td>
                           </tr>
                         );
                       })}
                     </tbody>
                   </table>
-                </div>
-                <div className="pdf-bottom-content">
-                  <div className="pdf-notes-panel">
+                  <div className="pdf-body-notes">
                     <div className="pdf-notes-heading">NOTES:</div>
-                    <div className="pdf-note-line"><span>Accommodation Type:</span> {data.accommodationType}</div>
-                    <div className="pdf-note-line"><span>Transportation Type:</span> {data.transportationType}</div>
-                    <div className="pdf-note-line"><span>Departure Location:</span> {data.departureLocation}</div>
-                    <div className="pdf-package-includes-title">Package included:</div>
-                    <ul className="pdf-package-includes-list">
-                      {data.packageIncludes.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
-                    <div className="pdf-package-validity">Quotation valid only for 7 Days.</div>
+                    <div className="pdf-note-line">Accommodation Type: {data.accommodationType}</div>
+                    <div className="pdf-note-line">Transportation Type: {data.transportationType}</div>
+                    <div className="pdf-note-line">Departure Location: {data.departureLocation}</div>
                   </div>
-                  <div className="pdf-summary-panel">
+                </div>
+                <div className="pdf-footer-table">
+                  <div className="pdf-footer-left"></div>
+                  <div className="pdf-footer-right">
                     <div className="pdf-summary-row">
                       <span>Subtotal</span>
                       <strong>{subtotalValue.toLocaleString('en-US')}</strong>
