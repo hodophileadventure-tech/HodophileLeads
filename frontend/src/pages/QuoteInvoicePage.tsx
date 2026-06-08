@@ -393,7 +393,7 @@ export const QuoteInvoicePage: React.FC = () => {
                             <div className="pdf-notes">
                               <div className="notes-title">NOTES:</div>
                               {data.notes.map((note, index) => (
-                                <div key={index}>{note}</div>
+                                <div key={index}><strong>{note}</strong></div>
                               ))}
                             </div>
                           </div>
