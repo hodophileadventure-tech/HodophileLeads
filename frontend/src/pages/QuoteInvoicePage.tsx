@@ -312,15 +312,23 @@ export const QuoteInvoicePage: React.FC = () => {
                     </thead>
                     <tbody>
                       {visibleRows.map((row, index) => {
-                        const isEmpty = !row.particulars && !row.persons && !row.price && !row.amount;
-                        const label = row.particulars || (index === 0 ? data.packageName : '');
-                        const detail = row.persons || row.price ? (
+                        const useDefault = index === 0 && !row.particulars && !row.persons && !row.price && !row.amount;
+                        const isEmpty = !row.particulars && !row.persons && !row.price && !row.amount && !useDefault;
+                        const label = row.particulars || (useDefault ? data.packageName : '');
+                        const detail = useDefault ? (
+                          <>
+                            <div>Persons: {data.persons}</div>
+                            <div>Price: {data.price}</div>
+                          </>
+                        ) : row.persons || row.price ? (
                           <>
                             {row.persons ? <div>Persons: {row.persons}</div> : null}
                             {row.price ? <div>Price: {row.price}</div> : null}
                           </>
-                        ) : index === 0 ? data.packageDescription : '';
-                        const amount = row.amount || (index === 0 ? data.subtotal : '');
+                        ) : (
+                          ''
+                        );
+                        const amount = row.amount || (useDefault ? data.subtotal : '');
 
                         return (
                           <tr key={row.id} className={isEmpty ? 'pdf-empty-row' : ''}>
