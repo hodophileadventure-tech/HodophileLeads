@@ -383,6 +383,10 @@ export const QuoteInvoicePage: React.FC = () => {
                               <span>Departure Location</span>
                               <strong>{data.departureLocation}</strong>
                             </div>
+                            <div className="pdf-package-info-line">
+                              <span>Package Includes</span>
+                              <strong>{data.packageIncludes.join(', ')}</strong>
+                            </div>
                           </div>
                         </td>
                         <td className="pdf-price-cell text-right"><strong>{data.price}</strong></td>
