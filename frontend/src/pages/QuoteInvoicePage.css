@@ -208,6 +208,13 @@ html, body {
   border-radius: 20px;
 }
 
+.pdf-quote-right {
+  display: grid;
+  gap: 20px;
+  align-items: flex-end;
+  justify-items: end;
+}
+
 .pdf-header-info-label {
   font-size: 18px;
   font-weight: 800;
@@ -243,6 +250,48 @@ html, body {
 
 .pdf-quote-meta-row strong {
   font-weight: 800;
+}
+
+.pdf-content-inner {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.pdf-content-left {
+  display: grid;
+  gap: 16px;
+}
+
+.pdf-content-right {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 2px solid #111827;
+  border-radius: 18px;
+  background: #f8f8f8;
+}
+
+.pdf-package-info-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 20px;
+}
+
+.pdf-package-info-line span {
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+.pdf-package-info-line strong {
+  font-weight: 800;
+}
+
+.pdf-package-info-group {
+  display: grid;
+  gap: 12px;
 }
 
 .pdf-main-table thead th:last-child {
