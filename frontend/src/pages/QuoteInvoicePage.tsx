@@ -352,16 +352,6 @@ export const QuoteInvoicePage: React.FC = () => {
                           {formatAmount(parseNumber(data.price) * parseNumber(data.persons))}
                         </td>
                       </tr>
-                      <tr>
-                        <td colSpan={4} className="pdf-content-cell">
-                          <div className="pdf-notes">
-                            <div className="notes-title">NOTES:</div>
-                            {data.notes.map((note, index) => (
-                              <div key={index}>{note}</div>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
                       <tr className="pdf-footer-row">
                         <td colSpan={3}>
                           <div className="pdf-left-box">
