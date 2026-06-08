@@ -345,26 +345,26 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 40%;
+  width: 55%;
 }
 
 .pdf-main-table col.col-price {
-  width: 20%;
+  width: 15%;
 }
 
 .pdf-main-table col.col-person {
-  width: 20%;
+  width: 15%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 20%;
+  width: 15%;
 }
 
 .pdf-main-table thead th {
   padding: 28px 24px;
   font-size: 30px;
   font-weight: 800;
-  border: 2px solid #111827;
+  border-bottom: 2px solid #111827;
   text-align: left;
   color: #111827;
   background: #ffffff;
@@ -380,7 +380,9 @@ html, body {
 }
 
 .pdf-main-table tbody tr td {
-  border: 2px solid #111827;
+  border-top: 2px solid #111827;
+  border-left: none;
+  border-right: none;
   vertical-align: top;
   font-size: 32px;
   color: #111827;
