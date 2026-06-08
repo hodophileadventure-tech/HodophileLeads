@@ -151,15 +151,6 @@ export const QuoteInvoicePage: React.FC = () => {
     return rows.slice(0, 5);
   }, [tableRows]);
 
-  const previewRows = useMemo(
-    () =>
-      visibleRows.map((row, index) => ({
-        ...row,
-        keepDefaultValues: index === 0 && !row.particulars && !row.persons && !row.price && !row.amount,
-      })),
-    [visibleRows],
-  );
-
   return (
     <div className="quote-invoice-root">
       <div className="quote-invoice-shell">
