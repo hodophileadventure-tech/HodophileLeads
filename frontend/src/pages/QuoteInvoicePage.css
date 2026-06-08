@@ -293,13 +293,83 @@ html, body {
   vertical-align: top;
   font-size: 20px;
   color: #111827;
-  padding: 0;
+  padding: 18px 20px;
+}
+
+.pdf-main-table th.text-right,
+.pdf-main-table td.text-right {
+  text-align: right;
+}
+
+.pdf-main-table th.text-center,
+.pdf-main-table td.text-center {
+  text-align: center;
+}
+
+.pdf-description-cell {
+  text-align: left;
+}
+
+.pdf-package-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.pdf-package-description {
+  font-size: 18px;
+  line-height: 1.7;
+  color: #111827;
+  margin-bottom: 12px;
 }
 
 .pdf-content-cell {
-  height: 280px;
+  min-height: 340px;
   position: relative;
   padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.pdf-package-details {
+  display: grid;
+  gap: 20px;
+}
+
+.pdf-package-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.pdf-package-description {
+  font-size: 18px;
+  color: #111827;
+  line-height: 1.6;
+}
+
+.pdf-package-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.pdf-package-meta-grid > div {
+  display: grid;
+  gap: 8px;
+}
+
+.pdf-meta-label {
+  font-size: 16px;
+  color: #111827;
+  opacity: 0.75;
+}
+
+.pdf-meta-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+  text-align: right;
 }
 
 .pdf-notes {

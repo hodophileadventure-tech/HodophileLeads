@@ -86,6 +86,13 @@ const formatDate = (value: string) => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
+const parseNumber = (value: string) => {
+  const num = Number(String(value).replace(/[^0-9.]/g, ''));
+  return Number.isNaN(num) ? 0 : num;
+};
+
+const formatAmount = (value: number) => value.toLocaleString('en-US');
+
 export const QuoteInvoicePage: React.FC = () => {
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
@@ -142,14 +149,6 @@ export const QuoteInvoicePage: React.FC = () => {
       setMessage('Failed to generate JPEG. Please try again.');
     }
   };
-
-  const visibleRows = useMemo(() => {
-    const rows = [...tableRows];
-    while (rows.length < 5) {
-      rows.push({ id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' });
-    }
-    return rows.slice(0, 5);
-  }, [tableRows]);
 
   return (
     <div className="quote-invoice-root">
@@ -320,6 +319,40 @@ export const QuoteInvoicePage: React.FC = () => {
                     <tbody>
                       <tr>
                         <td colSpan={4} className="pdf-content-cell">
+                          <div className="pdf-package-details">
+                            <div className="pdf-package-title">{data.packageName}</div>
+                            <div className="pdf-package-description">{data.packageDescription}</div>
+                            <div className="pdf-package-meta-grid">
+                              <div>
+                                <div className="pdf-meta-label">Package Price</div>
+                                <div className="pdf-meta-value">{data.price}</div>
+                              </div>
+                              <div>
+                                <div className="pdf-meta-label">No. of Person(s)</div>
+                                <div className="pdf-meta-value">{data.persons}</div>
+                              </div>
+                              <div>
+                                <div className="pdf-meta-label">Amount</div>
+                                <div className="pdf-meta-value">
+                                  {formatAmount(parseNumber(data.price) * parseNumber(data.persons))}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="pdf-notes">
+                              <div className="notes-title">NOTES:</div>
+                              <div>Accommodation Type: {data.accommodationType}</div>
+                              <div>Transportation Type: {data.transportationType}</div>
+                              <div>Departure Location: {data.departureLocation}</div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="pdf-footer-row">
+                        <td colSpan={3}>
+                          <div className="pdf-left-box"></div>
+                        </td>
+                        <td>
+                          <table className="pdf-summary">
                           <div className="pdf-notes">
                             <div className="notes-title">NOTES:</div>
                             <div>Accommodation Type: {data.accommodationType}</div>
