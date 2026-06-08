@@ -2,6 +2,9 @@
 import html2canvas from 'html2canvas';
 import quoteHeaderImage from '../assets/quote-header.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
+import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
+import pakistanGovtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
+import fbrLogo from '../assets/logos/images-removebg-preview.png';
 import './QuoteInvoicePage.css';
 
 type TableRow = {
@@ -419,6 +422,19 @@ export const QuoteInvoicePage: React.FC = () => {
                       </tr>
                     </tbody>
                   </table>
+                </div>
+                <div className="pdf-logos-section">
+                  <div className="pdf-logos-container">
+                    <div className="pdf-logo-item">
+                      <img src={pakistanGovtLogo} alt="Government of Pakistan" />
+                    </div>
+                    <div className="pdf-logo-item">
+                      <img src={nadraLogo} alt="NADRA" />
+                    </div>
+                    <div className="pdf-logo-item">
+                      <img src={fbrLogo} alt="FBR" />
+                    </div>
+                  </div>
                 </div>
                 <div className="pdf-footer-image">
                   <img src={quoteFooterImage} alt="Footer" />
