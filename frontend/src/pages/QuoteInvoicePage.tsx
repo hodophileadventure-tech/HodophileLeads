@@ -381,10 +381,10 @@ export const QuoteInvoicePage: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="pdf-price-cell text-right">{data.price}</td>
+                        <td className="pdf-price-cell text-right"><strong>{data.price}</strong></td>
                         <td className="pdf-person-cell text-center">{data.persons}</td>
                         <td className="pdf-amount-cell text-right">
-                          {formatAmount(parseNumber(data.price) * parseNumber(data.persons))}
+                          <strong>{formatAmount(parseNumber(data.price) * parseNumber(data.persons))}</strong>
                         </td>
                       </tr>
                       <tr className="pdf-footer-row">
@@ -403,15 +403,15 @@ export const QuoteInvoicePage: React.FC = () => {
                             <tbody>
                               <tr>
                                 <td className="label">Subtotal</td>
-                                <td className="value">{subtotalValue.toLocaleString('en-US')}</td>
+                                <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                               <tr>
                                 <td className="label">Total Amount Paid</td>
-                                <td className="value">{advanceValue.toLocaleString('en-US')}</td>
+                                <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                               <tr>
                                 <td className="label">Quote</td>
-                                <td className="value">{balanceValue.toLocaleString('en-US')}</td>
+                                <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                             </tbody>
                           </table>
