@@ -346,6 +346,7 @@ export const QuoteInvoicePage: React.FC = () => {
                       <div className="pdf-header-info-value">{data.city}</div>
                     </div>
                     <div className="pdf-quote-right">
+                      <div className="pdf-quotation-title">{documentType === 'quotation' ? 'QUOTATION' : 'INVOICE'}</div>
                       <div className="pdf-quote-meta-block">
                         <div className="pdf-quote-meta-row">
                           <span>{documentType === 'quotation' ? 'Quote #' : 'Invoice #'}</span>
@@ -356,7 +357,6 @@ export const QuoteInvoicePage: React.FC = () => {
                           <strong>{formatDate(data.date)}</strong>
                         </div>
                       </div>
-                      <div className="pdf-quotation-title">{documentType === 'quotation' ? 'QUOTATION' : 'INVOICE'}</div>
                     </div>
                   </div>
                 </div>

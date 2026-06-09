@@ -222,13 +222,13 @@ html, body {
 }
 
 .pdf-header-info-value {
-  font-size: 28px;
+  font-size: 18pt;
   font-weight: 700;
   color: #111827;
 }
 
 .pdf-quotation-title {
-  font-size: 72px;
+  font-size: 30pt;
   font-weight: 800;
   color: #fcc000;
   letter-spacing: 0.08em;
