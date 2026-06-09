@@ -21,13 +21,14 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  overflow-x: hidden;
 }
 
 .quote-invoice-shell {
   width: 100%;
   max-width: 1600px;
   display: grid;
-  grid-template-columns: 460px 40px 794px;
+  grid-template-columns: minmax(0, 460px) minmax(0, 24px) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -36,6 +37,12 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+@media (max-width: 1360px) {
+  .quote-invoice-shell {
+    grid-template-columns: 1fr;
+  }
 }
 
 .quote-invoice-panel {
@@ -135,21 +142,23 @@ html, body {
 }
 
 .quote-invoice-preview {
-  width: 2550px;
-  min-height: 3300px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
   position: relative;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .pdf-page {
-  width: 2550px;
-  min-height: 3300px;
+  width: 100%;
+  min-height: 100vh;
   background: #f2f2f2;
   border: 1px solid #d1d5db;
   box-shadow: 0 24px 64px rgba(15, 23, 36, 0.16);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding: 24px 0;
 }
 
 .pdf-canvas {
@@ -159,6 +168,20 @@ html, body {
   position: relative;
   overflow: hidden;
   padding: 0;
+  transform-origin: top left;
+  transform: scale(0.34);
+}
+
+@media (max-width: 1280px) {
+  .pdf-canvas {
+    transform: scale(0.30);
+  }
+}
+
+@media (max-width: 1024px) {
+  .pdf-canvas {
+    transform: scale(0.26);
+  }
 }
 
 .pdf-background {
@@ -172,17 +195,24 @@ html, body {
 .pdf-header-image {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  max-width: 2550px;
-  height: 400px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 2200px;
+  height: auto;
+  max-height: 260px;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pdf-header-image img {
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 260px;
   object-fit: contain;
+  display: block;
 }
 
 .pdf-header-info-box {
