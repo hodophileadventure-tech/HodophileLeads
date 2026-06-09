@@ -139,22 +139,41 @@ export const QuoteInvoicePage: React.FC = () => {
     }
   }, [data.date, documentType, data.quoteNumber]);
 
-  const subtotalValue = useMemo(() => {
-    const total = tableRows.reduce((sum, row) => {
-      const amount = Number(row.amount.replace(/[^0-9.]/g, '')) || 0;
-      return sum + amount;
-    }, 0);
-    return total;
+  const visibleRows = useMemo(() => {
+    const rows = [...tableRows];
+    while (rows.length < 5) {
+      rows.push({ id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' });
+    }
+    return rows.slice(0, 5);
   }, [tableRows]);
+
+  const subtotalValue = useMemo(() => {
+    return visibleRows.reduce((sum, row) => {
+      const rowAmount = row.amount
+        ? parseNumber(row.amount)
+        : parseNumber(row.price) * parseNumber(row.persons);
+      return sum + rowAmount;
+    }, 0);
+  }, [visibleRows]);
 
   const discountValue = useMemo(() => {
     const discount = Number(data.discount.replace(/[^0-9.]/g, '')) || 0;
     return Math.round((subtotalValue * discount) / 100);
   }, [data.discount, subtotalValue]);
 
-  const totalDueValue = useMemo(() => subtotalValue - discountValue, [subtotalValue, discountValue]);
+  const totalDueValue = useMemo(() => Math.max(subtotalValue - discountValue, 0), [subtotalValue, discountValue]);
   const advanceValue = useMemo(() => Number(data.advanceAmount.replace(/[^0-9.]/g, '')) || 0, [data.advanceAmount]);
   const balanceValue = useMemo(() => Math.max(totalDueValue - advanceValue, 0), [totalDueValue, advanceValue]);
+
+  const previewRows = useMemo(() => {
+    return visibleRows.map((row) => {
+      const rowAmountValue = row.amount
+        ? parseNumber(row.amount)
+        : parseNumber(row.price) * parseNumber(row.persons);
+      const displayAmount = rowAmountValue > 0 ? formatAmount(rowAmountValue) : '';
+      return { ...row, displayAmount };
+    });
+  }, [visibleRows]);
 
   const updateField = (field: keyof DocumentData, value: string | string[]) => {
     setData((current) => ({ ...current, [field]: value }));
@@ -163,14 +182,6 @@ export const QuoteInvoicePage: React.FC = () => {
   const updateRow = (id: string, field: keyof Omit<TableRow, 'id'>, value: string) => {
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
-
-  const visibleRows = useMemo(() => {
-    const rows = [...tableRows];
-    while (rows.length < 5) {
-      rows.push({ id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' });
-    }
-    return rows.slice(0, 5);
-  }, [tableRows]);
 
   const downloadJPEG = async () => {
     if (!previewRef.current) return;
@@ -337,15 +348,15 @@ export const QuoteInvoicePage: React.FC = () => {
                     <div className="pdf-quote-right">
                       <div className="pdf-quote-meta-block">
                         <div className="pdf-quote-meta-row">
-                          <span>Quote #</span>
-                          <strong>{displayQuoteNumber}</strong>
+                          <span>{documentType === 'quotation' ? 'Quote #' : 'Invoice #'}</span>
+                          <strong>{documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber}</strong>
                         </div>
                         <div className="pdf-quote-meta-row">
-                          <span>Quote Date</span>
+                          <span>{documentType === 'quotation' ? 'Quote Date' : 'Date'}</span>
                           <strong>{formatDate(data.date)}</strong>
                         </div>
                       </div>
-                      <div className="pdf-quotation-title">QUOTATION</div>
+                      <div className="pdf-quotation-title">{documentType === 'quotation' ? 'QUOTATION' : 'INVOICE'}</div>
                     </div>
                   </div>
                 </div>
@@ -366,35 +377,41 @@ export const QuoteInvoicePage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td className="pdf-description-cell">
-                          <div className="pdf-package-title">{data.packageName}</div>
-                          <div className="pdf-package-description">{data.packageDescription}</div>
-                          <div className="pdf-package-info-group">
-                            <div className="pdf-package-info-line">
-                              <span>Accommodation Type</span>
-                              <strong>{data.accommodationType}</strong>
-                            </div>
-                            <div className="pdf-package-info-line">
-                              <span>Transportation Type</span>
-                              <strong>{data.transportationType}</strong>
-                            </div>
-                            <div className="pdf-package-info-line">
-                              <span>Departure Location</span>
-                              <strong>{data.departureLocation}</strong>
-                            </div>
-                            <div className="pdf-package-info-line">
-                              <span>Package Includes</span>
-                              <strong>{data.packageIncludes.join(', ')}</strong>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="pdf-price-cell text-right"><strong>{data.price}</strong></td>
-                        <td className="pdf-person-cell text-center">{data.persons}</td>
-                        <td className="pdf-amount-cell text-right">
-                          <strong>{formatAmount(parseNumber(data.price) * parseNumber(data.persons))}</strong>
-                        </td>
-                      </tr>
+                      {previewRows.map((row, index) => (
+                        <tr key={row.id} className={index === previewRows.length - 1 ? 'pdf-last-item-row' : ''}>
+                          <td className="pdf-description-cell">
+                            {index === 0 ? (
+                              <>
+                                <div className="pdf-package-title">{data.packageName}</div>
+                                <div className="pdf-package-description">{data.packageDescription}</div>
+                                <div className="pdf-package-info-group">
+                                  <div className="pdf-package-info-line">
+                                    <span>Accommodation Type</span>
+                                    <strong>{data.accommodationType}</strong>
+                                  </div>
+                                  <div className="pdf-package-info-line">
+                                    <span>Transportation Type</span>
+                                    <strong>{data.transportationType}</strong>
+                                  </div>
+                                  <div className="pdf-package-info-line">
+                                    <span>Departure Location</span>
+                                    <strong>{data.departureLocation}</strong>
+                                  </div>
+                                  <div className="pdf-package-info-line">
+                                    <span>Package Includes</span>
+                                    <strong>{data.packageIncludes.join(', ')}</strong>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="pdf-package-title">{row.particulars}</div>
+                            )}
+                          </td>
+                          <td className="pdf-price-cell text-right"><strong>{row.price}</strong></td>
+                          <td className="pdf-person-cell text-center">{row.persons}</td>
+                          <td className="pdf-amount-cell text-right"><strong>{row.displayAmount}</strong></td>
+                        </tr>
+                      ))}
                       <tr className="pdf-footer-row">
                         <td colSpan={3}>
                           <div className="pdf-left-box">
@@ -414,11 +431,19 @@ export const QuoteInvoicePage: React.FC = () => {
                                 <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                               <tr>
-                                <td className="label">Total Amount Paid</td>
+                                <td className="label">Discount</td>
+                                <td className="value"><strong>{discountValue.toLocaleString('en-US')}</strong></td>
+                              </tr>
+                              <tr>
+                                <td className="label">Total Due</td>
+                                <td className="value"><strong>{totalDueValue.toLocaleString('en-US')}</strong></td>
+                              </tr>
+                              <tr>
+                                <td className="label">Amount Paid</td>
                                 <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                               <tr>
-                                <td className="label">Quote</td>
+                                <td className="label">Balance Due</td>
                                 <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                             </tbody>

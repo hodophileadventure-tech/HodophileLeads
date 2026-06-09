@@ -474,6 +474,8 @@ html, body {
   line-height: 1.8;
   color: #111827;
   font-weight: 600;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .pdf-notes .notes-title {
