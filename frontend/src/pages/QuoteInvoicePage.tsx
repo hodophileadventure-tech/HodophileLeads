@@ -166,13 +166,18 @@ export const QuoteInvoicePage: React.FC = () => {
   const balanceValue = useMemo(() => Math.max(totalDueValue - advanceValue, 0), [totalDueValue, advanceValue]);
 
   const previewRows = useMemo(() => {
-    return visibleRows.map((row) => {
-      const rowAmountValue = row.amount
-        ? parseNumber(row.amount)
-        : parseNumber(row.price) * parseNumber(row.persons);
-      const displayAmount = rowAmountValue > 0 ? formatAmount(rowAmountValue) : '';
-      return { ...row, displayAmount };
-    });
+    return visibleRows
+      .map((row) => {
+        const rowAmountValue = row.amount
+          ? parseNumber(row.amount)
+          : parseNumber(row.price) * parseNumber(row.persons);
+        const displayAmount = rowAmountValue > 0 ? formatAmount(rowAmountValue) : '';
+        return { ...row, displayAmount };
+      })
+      .filter((row, index) => {
+        if (index === 0) return true;
+        return Boolean(row.particulars || row.persons || row.price || row.amount);
+      });
   }, [visibleRows]);
 
   const updateField = (field: keyof DocumentData, value: string | string[]) => {
