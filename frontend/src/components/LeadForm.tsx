@@ -22,7 +22,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
       gender: '',
       age: '',
       destination: '',
-      travelDates: { from: '', to: '' },
+      travelDates: undefined,
       persons: 1,
       agentRemarks: '',
       remarks: '',
@@ -41,7 +41,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         gender: (initialData as any).gender || '',
         age: (initialData as any).age ?? '',
         destination: initialData.destination || '',
-        travelDates: initialData.travelDates || { from: '', to: '' },
+        travelDates: initialData.travelDates || undefined,
         persons: initialData.persons || 1,
         agentRemarks: (initialData as any).agentRemarks || '',
         remarks: (initialData as any).remarks || '',
@@ -62,7 +62,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
     setFormData((prev: any) => ({
       ...prev,
       travelDates: {
-        ...prev.travelDates!,
+        ...(prev.travelDates || { from: '', to: '' }),
         [field]: value
       }
     }));
@@ -77,19 +77,22 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         ? (formData as any).gender.trim()
         : undefined;
 
-      const payload = {
+      const payload: any = {
         clientName: formData.clientName,
         email: formData.email ? formData.email : undefined,
         phone: formData.phone,
         address: (formData as any).address ? (formData as any).address : undefined,
         gender,
         destination: formData.destination,
-        travelDates: formData.travelDates,
         persons: formData.persons,
         agentRemarks: (formData as any).agentRemarks,
         remarks: (formData as any).remarks,
         potential: (formData as any).potential
       };
+
+      if (formData.travelDates?.from || formData.travelDates?.to) {
+        payload.travelDates = formData.travelDates;
+      }
 
       const ageValue = (formData as any).age;
       if (ageValue !== '' && ageValue !== null && ageValue !== undefined) {
@@ -241,7 +244,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
                 value={formData.travelDates?.from || ''}
                 onChange={(e) => handleTravelDateChange('from', e.target.value)}
                 className="input-field"
-                required
               />
             </div>
             <div>
@@ -251,7 +253,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
                 value={formData.travelDates?.to || ''}
                 onChange={(e) => handleTravelDateChange('to', e.target.value)}
                 className="input-field"
-                required
               />
             </div>
           </div>

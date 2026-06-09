@@ -27,6 +27,19 @@ describe('validation helpers', () => {
     } as any)).toThrow();
   });
 
+  test('accepts a lead payload without travel dates or age', () => {
+    const payload = validatePayload(leadSchema, {
+      clientName: 'Test User',
+      phone: '1234567890',
+      destination: 'Bali',
+      persons: 2
+    } as any);
+
+    expect(payload.clientName).toBe('Test User');
+    expect(payload.travelDates).toBeUndefined();
+    expect(payload.age).toBeUndefined();
+  });
+
   test('accepts a follow-up reminder payload', () => {
     const payload = validatePayload(followUpSchema, {
       leadId: '123e4567-e89b-12d3-a456-426614174000',

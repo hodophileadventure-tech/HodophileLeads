@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS leads (
   phone VARCHAR(20) NOT NULL,
   destination VARCHAR(255) NOT NULL,
   destinations JSONB,
-  travel_dates JSONB NOT NULL,
+  travel_dates JSONB,
   hotel_info JSONB,
   hotel_options JSONB,
   profile_id UUID REFERENCES client_profiles(id),
