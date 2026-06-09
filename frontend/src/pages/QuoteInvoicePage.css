@@ -488,29 +488,30 @@ html, body {
 
 .pdf-summary {
   width: 100%;
-  min-width: 360px;
+  min-width: 0;
   border-collapse: separate;
-  border-spacing: 0 8px;
-  table-layout: fixed;
+  border-spacing: 0 6px;
+  table-layout: auto;
 }
 
 .pdf-summary td {
   border: none;
-  padding: 16px 22px;
-  font-size: 28px;
+  padding: 14px 16px;
+  font-size: 24px;
   text-align: left;
   vertical-align: middle;
-  line-height: 1.2;
+  line-height: 1.4;
 }
 
 .pdf-summary td strong {
-  display: inline-block;
-  font-size: 30px;
+  display: block;
+  font-size: 26px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 55%;
+  max-width: 65%;
+  padding-right: 12px;
   white-space: normal;
   word-break: break-word;
 }
@@ -518,10 +519,10 @@ html, body {
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  width: 45%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 35%;
+  padding-left: 12px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .pdf-footer-row td {
