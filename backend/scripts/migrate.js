@@ -78,12 +78,12 @@ async function migrate() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS leads (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        client_name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL,
+        client_name VARCHAR(255),
+        email VARCHAR(255),
         phone VARCHAR(20) NOT NULL,
-        destination VARCHAR(255) NOT NULL,
+        destination VARCHAR(255),
         destinations JSONB,
-        travel_dates JSONB NOT NULL,
+        travel_dates JSONB,
         hotel_info JSONB,
         hotel_options JSONB,
         profile_id UUID REFERENCES client_profiles(id),
@@ -115,6 +115,11 @@ async function migrate() {
       )
     `);
     console.log('✅ Leads table created');
+
+    await client.query('ALTER TABLE leads ALTER COLUMN client_name DROP NOT NULL');
+    await client.query('ALTER TABLE leads ALTER COLUMN email DROP NOT NULL');
+    await client.query('ALTER TABLE leads ALTER COLUMN destination DROP NOT NULL');
+    await client.query('ALTER TABLE leads ALTER COLUMN travel_dates DROP NOT NULL');
 
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
