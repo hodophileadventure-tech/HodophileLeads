@@ -1,5 +1,6 @@
 ﻿import React, { useMemo, useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import quoteHeaderImage from '../assets/quote-header.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
@@ -213,6 +214,32 @@ export const QuoteInvoicePage: React.FC = () => {
     }
   };
 
+  const downloadPDF = async () => {
+    if (!previewRef.current) return;
+    try {
+      setMessage('Generating PDF...');
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 1,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false,
+      });
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+      const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.pdf`;
+      pdf.save(filename);
+      setMessage('PDF generated successfully.');
+    } catch (error) {
+      console.error(error);
+      setMessage('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="quote-invoice-root">
       <div className="quote-invoice-shell">
@@ -315,9 +342,14 @@ export const QuoteInvoicePage: React.FC = () => {
               <textarea value={data.notes.join('\n')} onChange={(event) => updateField('notes', event.target.value.split('\n'))} />
               <small>Enter each note on a new line.</small>
             </div>
-            <button type="button" className="btn-primary" onClick={downloadJPEG}>
-              Download JPEG
-            </button>
+            <div className="download-actions">
+              <button type="button" className="btn-primary" onClick={downloadJPEG}>
+                Download JPEG
+              </button>
+              <button type="button" className="btn-primary btn-secondary" onClick={downloadPDF}>
+                Download PDF
+              </button>
+            </div>
             {message && <small>{message}</small>}
           </div>
           <div className="quote-invoice-panel">
