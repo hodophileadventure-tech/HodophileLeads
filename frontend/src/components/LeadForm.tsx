@@ -7,10 +7,11 @@ interface LeadFormProps {
   onSuccess?: (lead: Lead) => void;
   initialData?: Partial<Lead>;
   onOpenChange?: (isOpen: boolean) => void;
+  initiallyOpen?: boolean;
 }
 
-export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOpenChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOpenChange, initiallyOpen = false }) => {
+  const [isOpen, setIsOpen] = useState(initiallyOpen);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<any>(
@@ -48,8 +49,12 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         potential: (initialData as any).potential || false,
         leadStatus: (initialData as any).potential ? 'potential' : (initialData as any).pipelineStage === 'confirmed' || (initialData as any).status === 'booked' ? 'confirmed' : (initialData as any).status === 'completed' ? 'dead' : 'new'
       });
+
+      if (initiallyOpen) {
+        setIsOpen(true);
+      }
     }
-  }, [initialData]);
+  }, [initialData, initiallyOpen]);
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => ({
@@ -186,7 +191,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               value={formData.clientName || ''}
               onChange={(e) => handleChange('clientName', e.target.value)}
               className="input-field"
-              required
             />
           </div>
 
@@ -232,7 +236,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               value={formData.destination || ''}
               onChange={(e) => handleChange('destination', e.target.value)}
               className="input-field"
-              required
             />
           </div>
 

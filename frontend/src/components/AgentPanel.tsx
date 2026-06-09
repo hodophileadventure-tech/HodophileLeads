@@ -57,6 +57,7 @@ export const AgentPanel: React.FC = () => {
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [searchPhone, setSearchPhone] = useState('');
+  const [openSearchLeadForm, setOpenSearchLeadForm] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled'>('all');
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
   const [screenShareError, setScreenShareError] = useState('');
@@ -285,7 +286,16 @@ export const AgentPanel: React.FC = () => {
   }, [activeAlarm]);
 
   const handleNewLead = (lead: Lead) => {
-    setLeads((prev) => [lead, ...prev]);
+    setLeads((prev) => {
+      if (!lead.id) {
+        return [lead, ...prev];
+      }
+      const existingIndex = prev.findIndex((item) => item.id === lead.id);
+      if (existingIndex >= 0) {
+        return prev.map((item) => (item.id === lead.id ? lead : item));
+      }
+      return [lead, ...prev];
+    });
   };
 
   const updateLeadOutcome = async (lead: Lead, leadOutcome: 'confirmed' | 'budget_issue' | 'no_reply') => {
@@ -314,13 +324,13 @@ export const AgentPanel: React.FC = () => {
       const res: any = await (leadsAPI as any).searchByPhone(searchPhone);
       const results: Lead[] = res.data || [];
       if (results.length > 0) {
-        // open LeadForm prefilled with first profile info
+        // open LeadForm prefilled with existing lead data
         setSelectedLead(results[0]);
-        // open modal via LeadForm by rendering it with initialData
       } else {
-        // open empty LeadForm with phone prefilled
+        // open empty LeadForm with phone prefilled for a new lead
         setSelectedLead({ phone: searchPhone } as any);
       }
+      setOpenSearchLeadForm(true);
     } catch (err) {
       console.error(err);
     }
@@ -427,7 +437,16 @@ export const AgentPanel: React.FC = () => {
       <div className="flex items-center gap-3">
         <input className="input-field flex-1" placeholder="Search phone or enter to create" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} />
         <Button onClick={handleSearchPhone}>Search</Button>
-        <LeadForm onSuccess={handleNewLead} initialData={selectedLead || undefined} />
+        <LeadForm
+          onSuccess={handleNewLead}
+          initialData={selectedLead || undefined}
+          initiallyOpen={openSearchLeadForm}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpenSearchLeadForm(false);
+            }
+          }}
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">

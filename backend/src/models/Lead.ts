@@ -129,10 +129,10 @@ export const leadsModel = {
         : [];
 
     const params = [
-      data.clientName || (data as any).name,
-      data.email,
+      data.clientName || (data as any).name || null,
+      data.email || null,
       data.phone,
-      data.destination || destinations[0] || '',
+      data.destination || destinations[0] || null,
       destinations.length > 0 ? JSON.stringify(destinations) : null,
       data.source || 'direct',
       temperature,

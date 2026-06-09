@@ -19,18 +19,18 @@ export const authRegisterSchema = Joi.object({
 });
 
 export const leadSchema = Joi.object({
-  clientName: Joi.string().min(2).required(),
+  clientName: Joi.string().min(2).optional(),
   email: Joi.string().email().allow('').optional(),
   phone: Joi.string().min(7).required(),
   address: Joi.string().allow('').optional(),
   gender: Joi.string().valid('male','female','other').optional(),
   age: Joi.number().integer().min(0).optional(),
-  destination: Joi.string().min(2).required(),
+  destination: Joi.string().min(2).optional(),
   travelDates: Joi.object({
     from: Joi.string().allow('').optional(),
     to: Joi.string().allow('').optional()
   }).optional(),
-  persons: Joi.number().integer().min(1).required(),
+  persons: Joi.number().integer().min(1).optional(),
   budget: Joi.number().min(0).optional(),
   leadOutcome: Joi.string().valid('confirmed', 'budget_issue', 'no_reply').optional(),
   hotelInfo: hotelInfoSchema.optional(),

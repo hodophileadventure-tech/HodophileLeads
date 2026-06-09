@@ -121,14 +121,6 @@ export const leadsController = {
     try {
       const leadData = validatePayload(leadSchema, normalizeLeadPayload(req.body, req.user.id));
 
-      if (!leadData.destination && (!leadData.destinations || leadData.destinations.length === 0)) {
-        return res.status(400).json({ message: 'At least one destination is required' });
-      }
-
-      if (!leadData.hotelInfo && (!leadData.hotelOptions || leadData.hotelOptions.length === 0)) {
-        // hotels are optional, but this block is left intentionally for future hotel-required workflows
-      }
-
       const lead = await leadsModel.create(leadData);
       res.status(201).json(lead);
     } catch (error) {

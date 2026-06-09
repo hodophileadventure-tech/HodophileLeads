@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS users (
 -- Leads Table
 CREATE TABLE IF NOT EXISTS leads (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  client_name VARCHAR(255) NOT NULL,
+  client_name VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(20) NOT NULL,
-  destination VARCHAR(255) NOT NULL,
+  destination VARCHAR(255),
   destinations JSONB,
   travel_dates JSONB,
   hotel_info JSONB,
