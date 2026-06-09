@@ -2,16 +2,34 @@ import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { followUpsModel } from '../models/FollowUp';
 import { notificationsModel } from '../models/Notification';
+import { leadsModel } from '../models/Lead';
 import { sendToUser } from '../utils/wsServer';
 import { validatePayload, followUpSchema } from '../utils/validation';
+
+const ensureLeadAccess = (lead: any, user: any) => {
+  if (!lead) return false;
+  if (user.role === 'admin') return true;
+  return String(lead.agentId) === String(user.id);
+};
 
 export const followUpsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { leadId, status } = req.query;
-      const rows = leadId
-        ? await followUpsModel.findByLead(String(leadId))
-        : await followUpsModel.findAllByAssignee(req.user.id, status ? String(status) : undefined);
+
+      if (leadId) {
+        const lead = await leadsModel.findById(String(leadId));
+        if (!lead) {
+          return res.status(404).json({ message: 'Lead not found' });
+        }
+        if (!ensureLeadAccess(lead, req.user)) {
+          return res.status(403).json({ message: 'You do not have access to this lead' });
+        }
+        const rows = await followUpsModel.findByLead(String(leadId));
+        return res.json(rows);
+      }
+
+      const rows = await followUpsModel.findAllByAssignee(req.user.id, status ? String(status) : undefined);
       res.json(rows);
     } catch (error) {
       next(error);

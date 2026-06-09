@@ -67,9 +67,18 @@ const mapLeadRow = (row: any) => {
 };
 
 export const leadsModel = {
-  async findAll(_agentId?: string, limit = 50, offset = 0) {
-    const sql = 'SELECT * FROM leads ORDER BY created_at DESC LIMIT $1 OFFSET $2';
-    const params: any[] = [limit, offset];
+  async findAll(agentId?: string | null, limit = 50, offset = 0) {
+    let sql = 'SELECT * FROM leads';
+    const params: any[] = [];
+
+    if (agentId) {
+      sql += ' WHERE agent_id = $1';
+      params.push(agentId);
+    }
+
+    sql += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+    params.push(limit, offset);
+
     const result = await query(sql, params);
     return result.rows.map(mapLeadRow);
   },
@@ -79,8 +88,17 @@ export const leadsModel = {
     return mapLeadRow(result.rows[0]);
   },
 
-  async findByPhone(phone: string) {
-    const result = await query('SELECT * FROM leads WHERE phone = $1 ORDER BY created_at DESC', [phone]);
+  async findByPhone(phone: string, agentId?: string | null) {
+    let sql = 'SELECT * FROM leads WHERE phone = $1';
+    const params: any[] = [phone];
+
+    if (agentId) {
+      sql += ' AND agent_id = $2';
+      params.push(agentId);
+    }
+
+    sql += ' ORDER BY created_at DESC';
+    const result = await query(sql, params);
     return result.rows.map(mapLeadRow);
   },
 

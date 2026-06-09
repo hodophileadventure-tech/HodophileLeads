@@ -79,9 +79,9 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
 
       const payload = {
         clientName: formData.clientName,
-        email: formData.email,
+        email: formData.email ? formData.email : undefined,
         phone: formData.phone,
-        address: (formData as any).address,
+        address: (formData as any).address ? (formData as any).address : undefined,
         gender,
         destination: formData.destination,
         travelDates: formData.travelDates,
@@ -195,7 +195,6 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               value={formData.email || ''}
               onChange={(e) => handleChange('email', e.target.value)}
               className="input-field"
-              required
             />
           </div>
 

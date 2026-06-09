@@ -20,7 +20,7 @@ export const authRegisterSchema = Joi.object({
 
 export const leadSchema = Joi.object({
   clientName: Joi.string().min(2).required(),
-  email: Joi.string().email().required(),
+  email: Joi.string().email().allow('').optional(),
   phone: Joi.string().min(7).required(),
   address: Joi.string().allow('').optional(),
   gender: Joi.string().valid('male','female','other').optional(),

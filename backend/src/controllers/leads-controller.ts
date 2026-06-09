@@ -73,11 +73,18 @@ const VALID_PIPELINE_STAGES = [
   'completed'
 ];
 
+const ensureLeadAccess = (lead: any, user: any) => {
+  if (!lead) return false;
+  if (user.role === 'admin') return true;
+  return String(lead.agentId) === String(user.id);
+};
+
 export const leadsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { agentId, limit = 50, offset = 0 } = req.query;
-      const leads = await leadsModel.findAll(agentId as string, Number(limit), Number(offset));
+      const { limit = 50, offset = 0 } = req.query;
+      const isAgent = req.user.role !== 'admin';
+      const leads = await leadsModel.findAll(isAgent ? String(req.user.id) : undefined, Number(limit), Number(offset));
       res.json(leads);
     } catch (error) {
       next(error);
@@ -90,6 +97,9 @@ export const leadsController = {
       if (!lead) {
         return res.status(404).json({ message: 'Lead not found' });
       }
+      if (!ensureLeadAccess(lead, req.user)) {
+        return res.status(403).json({ message: 'You do not have access to this lead' });
+      }
       res.json(lead);
     } catch (error) {
       next(error);
@@ -100,7 +110,7 @@ export const leadsController = {
     try {
       const { phone } = req.query as any;
       if (!phone) return res.status(400).json({ message: 'phone query parameter is required' });
-      const leads = await leadsModel.findByPhone(phone as string);
+      const leads = await leadsModel.findByPhone(phone as string, req.user.role !== 'admin' ? String(req.user.id) : undefined);
       res.json(leads);
     } catch (error) {
       next(error);
