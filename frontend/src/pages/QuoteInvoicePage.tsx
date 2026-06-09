@@ -430,6 +430,10 @@ export const QuoteInvoicePage: React.FC = () => {
                         </td>
                         <td>
                           <table className="pdf-summary">
+                            <colgroup>
+                              <col style={{ width: '60%' }} />
+                              <col style={{ width: '40%' }} />
+                            </colgroup>
                             <tbody>
                               <tr>
                                 <td className="label">Subtotal</td>

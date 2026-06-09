@@ -496,7 +496,7 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 14px 16px;
+  padding: 12px 14px;
   font-size: 24px;
   text-align: left;
   vertical-align: middle;
@@ -504,13 +504,12 @@ html, body {
 }
 
 .pdf-summary td strong {
-  display: block;
+  display: inline-block;
   font-size: 26px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  max-width: 65%;
   padding-right: 12px;
   white-space: normal;
   word-break: break-word;
@@ -519,10 +518,10 @@ html, body {
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  max-width: 35%;
   padding-left: 12px;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-footer-row td {
