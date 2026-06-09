@@ -236,16 +236,44 @@ export const QuoteInvoicePage: React.FC<{
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
-  const downloadJPEG = async () => {
-    if (!previewRef.current) return;
+  const captureFullDocument = async () => {
+    if (!previewRef.current) return null;
+
+    const original = previewRef.current;
+    const clone = original.cloneNode(true) as HTMLElement;
+    clone.style.transform = 'none';
+    clone.style.position = 'absolute';
+    clone.style.top = '-99999px';
+    clone.style.left = '-99999px';
+    clone.style.width = `${original.scrollWidth}px`;
+    clone.style.height = `${original.scrollHeight}px`;
+    clone.style.overflow = 'visible';
+    clone.style.visibility = 'visible';
+    clone.style.pointerEvents = 'none';
+
+    document.body.appendChild(clone);
     try {
-      setMessage('Generating JPEG...');
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1,
+      const canvas = await html2canvas(clone, {
+        scale: window.devicePixelRatio || 2,
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: false,
       });
+      return canvas;
+    } finally {
+      document.body.removeChild(clone);
+    }
+  };
+
+  const downloadJPEG = async () => {
+    try {
+      if (!previewRef.current) return;
+      setMessage('Generating JPEG...');
+      const canvas = await captureFullDocument();
+      if (!canvas) {
+        setMessage('Failed to generate JPEG. Please try again.');
+        return;
+      }
       const jpegData = canvas.toDataURL('image/jpeg', 0.95);
       const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.jpeg`;
       const link = document.createElement('a');
@@ -265,12 +293,11 @@ export const QuoteInvoicePage: React.FC<{
     if (!previewRef.current) return;
     try {
       setMessage('Generating PDF...');
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        allowTaint: false,
-      });
+      const canvas = await captureFullDocument();
+      if (!canvas) {
+        setMessage('Failed to generate PDF. Please try again.');
+        return;
+      }
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const pdf = new jsPDF({
         orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
