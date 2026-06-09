@@ -345,7 +345,7 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 55%;
+  width: 45%;
 }
 
 .pdf-main-table col.col-price {
@@ -357,7 +357,7 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 15%;
+  width: 25%;
 }
 
 .pdf-main-table thead th {
@@ -488,10 +488,8 @@ html, body {
 
 .pdf-summary {
   width: 100%;
-  min-width: 0;
-  border-collapse: separate;
-  border-spacing: 0 6px;
-  table-layout: auto;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .pdf-summary td {
@@ -501,24 +499,25 @@ html, body {
   text-align: left;
   vertical-align: middle;
   line-height: 1.4;
+  white-space: nowrap;
 }
 
 .pdf-summary td strong {
-  display: inline-block;
+  display: inline;
   font-size: 26px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
+  width: 55%;
   padding-right: 12px;
-  white-space: normal;
-  word-break: break-word;
+  white-space: nowrap;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  padding-left: 12px;
+  width: 45%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
