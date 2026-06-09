@@ -375,10 +375,6 @@ html, body {
   border-top: none;
 }
 
-.pdf-main-table tbody tr:first-child td {
-  min-height: 1000px;
-}
-
 .pdf-main-table tbody tr td {
   border-top: 2px solid #111827;
   border-left: none;
@@ -492,28 +488,40 @@ html, body {
 
 .pdf-summary {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 360px;
+  border-collapse: separate;
+  border-spacing: 0 8px;
   table-layout: fixed;
 }
 
 .pdf-summary td {
   border: none;
-  padding: 26px 22px;
-  font-size: 32px;
+  padding: 16px 22px;
+  font-size: 28px;
   text-align: left;
+  vertical-align: middle;
+  line-height: 1.2;
 }
 
 .pdf-summary td strong {
-  font-size: 34px;
+  display: inline-block;
+  font-size: 30px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
+  width: 55%;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
+  width: 45%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-footer-row td {
