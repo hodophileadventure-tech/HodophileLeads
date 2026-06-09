@@ -7,6 +7,7 @@ import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import pakistanGovtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
 import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
 import fbrLogo from '../assets/logos/images-removebg-preview.png';
+import { leadsAPI, quoteRequestsAPI } from '../utils/api-service';
 import './QuoteInvoicePage.css';
 
 type TableRow = {
@@ -124,14 +125,60 @@ const previewQuoteNumber = (dateString: string) => {
   return formatQuoteNumber(dateString, existing + 1);
 };
 
-export const QuoteInvoicePage: React.FC = () => {
+export const QuoteInvoicePage: React.FC<{
+  leadId?: string;
+  requestId?: string;
+  onSaved?: (requestId: string) => void;
+  onClose?: () => void;
+}> = ({ leadId, requestId, onSaved, onClose }) => {
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState(!!leadId);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const displayQuoteNumber = data.quoteNumber || previewQuoteNumber(data.date);
+
+  // Load lead data if leadId is provided
+  useEffect(() => {
+    if (!leadId) return;
+
+    const loadLeadData = async () => {
+      try {
+        setLoading(true);
+        const response = await leadsAPI.getById(leadId);
+        const lead = response.data;
+
+        setData((current) => ({
+          ...current,
+          customerName: lead.clientName || '',
+          phone: lead.phone || '',
+          city: lead.address || '',
+          destination: Array.isArray(lead.destinations) ? lead.destinations.join(', ') : lead.destination || '',
+          travelDate: lead.travelDates?.from ? new Date(lead.travelDates.from).toISOString().split('T')[0] : current.travelDate,
+        }));
+
+        setDocumentType((current) => {
+          if (requestId) {
+            // Keep the document type from request if available
+            return current;
+          }
+          return 'quotation';
+        });
+
+        setLoading(false);
+        setMessage('Lead data loaded successfully');
+        setTimeout(() => setMessage(''), 3000);
+      } catch (error) {
+        console.error('Failed to load lead:', error);
+        setMessage('Failed to load lead data');
+        setLoading(false);
+      }
+    };
+
+    loadLeadData();
+  }, [leadId, requestId]);
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {
@@ -240,36 +287,91 @@ export const QuoteInvoicePage: React.FC = () => {
     }
   };
 
+  const saveQuotation = async () => {
+    if (!requestId) {
+      setMessage('No request ID available. Cannot save quotation.');
+      return;
+    }
+
+    try {
+      setMessage('Saving quotation...');
+      const documentData = {
+        customerName: data.customerName,
+        phone: data.phone,
+        city: data.city,
+        destination: data.destination,
+        invoiceNumber: data.invoiceNumber,
+        quoteNumber: data.quoteNumber,
+        date: data.date,
+        travelDate: data.travelDate,
+        packageName: data.packageName,
+        packageDescription: data.packageDescription,
+        persons: data.persons,
+        price: data.price,
+        subtotal: data.subtotal,
+        discount: data.discount,
+        totalDue: data.totalDue,
+        advanceAmount: data.advanceAmount,
+        balanceDue: data.balanceDue,
+        notes: data.notes,
+        packageIncludes: data.packageIncludes,
+        accommodationType: data.accommodationType,
+        transportationType: data.transportationType,
+        departureLocation: data.departureLocation,
+        tableRows: tableRows.filter((row) => row.particulars || row.persons || row.price || row.amount),
+      };
+
+      await quoteRequestsAPI.save(requestId, documentData);
+      setMessage('Quotation saved successfully!');
+      if (onSaved) {
+        onSaved(requestId);
+      }
+      setTimeout(() => {
+        if (onClose) onClose();
+      }, 1500);
+    } catch (error) {
+      console.error('Failed to save quotation:', error);
+      setMessage('Failed to save quotation. Please try again.');
+    }
+  };
+
   return (
     <div className="quote-invoice-root">
       <div className="quote-invoice-shell">
         <div className="quote-invoice-sidebar">
           <div className="quote-invoice-panel">
-            <h2>Invoice & Quotation Generator</h2>
-            <div className="quote-tabs">
-              <button type="button" className={`quote-tab ${documentType === 'quotation' ? 'active' : ''}`} onClick={() => setDocumentType('quotation')}>
-                Quotation
-              </button>
-              <button type="button" className={`quote-tab ${documentType === 'invoice' ? 'active' : ''}`} onClick={() => setDocumentType('invoice')}>
-                Invoice
-              </button>
-            </div>
-            <div className="field-row">
-              <div>
-                <label>Customer Name</label>
-                <input value={data.customerName} onChange={(event) => updateField('customerName', event.target.value)} />
+            {loading && (
+              <div className="text-center py-8 text-slate-500">
+                <p>Loading lead data...</p>
               </div>
-              <div>
-                <label>Phone Number</label>
-                <input value={data.phone} onChange={(event) => updateField('phone', event.target.value)} />
-              </div>
-            </div>
-            <div className="field-row">
-              <div>
-                <label>City</label>
-                <input value={data.city} onChange={(event) => updateField('city', event.target.value)} />
-              </div>
-              <div>
+            )}
+            {!loading && (
+              <>
+                <h2>Invoice & Quotation Generator</h2>
+                <div className="quote-tabs">
+                  <button type="button" className={`quote-tab ${documentType === 'quotation' ? 'active' : ''}`} onClick={() => setDocumentType('quotation')}>
+                    Quotation
+                  </button>
+                  <button type="button" className={`quote-tab ${documentType === 'invoice' ? 'active' : ''}`} onClick={() => setDocumentType('invoice')}>
+                    Invoice
+                  </button>
+                </div>
+                <div className="field-row">
+                  <div>
+                    <label>Customer Name</label>
+                    <input value={data.customerName} onChange={(event) => updateField('customerName', event.target.value)} />
+                  </div>
+                  <div>
+                    <label>Phone Number</label>
+                    <input value={data.phone} onChange={(event) => updateField('phone', event.target.value)} />
+                  </div>
+                </div>
+                <div className="field-row">
+                  <div>
+                    <label>City</label>
+                    <input value={data.city} onChange={(event) => updateField('city', event.target.value)} />
+                  </div>
+                  <div>
                 <label>Destination</label>
                 <input value={data.destination} onChange={(event) => updateField('destination', event.target.value)} />
               </div>
@@ -349,8 +451,15 @@ export const QuoteInvoicePage: React.FC = () => {
               <button type="button" className="btn-primary btn-secondary" onClick={downloadPDF}>
                 Download PDF
               </button>
+              {requestId && (
+                <button type="button" className="btn-primary" style={{ gridColumn: '1 / -1', backgroundColor: '#10b981' }} onClick={saveQuotation}>
+                  Save Quotation
+                </button>
+              )}
             </div>
-            {message && <small>{message}</small>}
+            {message && <small style={{ color: message.includes('saved') || message.includes('successfully') ? '#10b981' : '#ef4444' }}>{message}</small>}
+              </>
+            )}
           </div>
           <div className="quote-invoice-panel">
             <h2>Table Rows</h2>

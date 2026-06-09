@@ -88,7 +88,9 @@ export const adminAPI = {
 
 export const quoteRequestsAPI = {
   list: () => apiClient.get<QuoteRequest[]>('/quote-requests'),
-  save: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
+  listPending: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending'),
+  getById: (id: string) => apiClient.get<QuoteRequest>(`/quote-requests/${id}`),
+  save: (requestId: string, documentData: any) => apiClient.post(`/quote-requests/${requestId}/save`, { documentData })
 };
 (adminAPI as any).getAgentsRevenueStats = () => apiClient.get('/admin/agents/revenue-stats');
 (adminAPI as any).createAgent = (data: { email: string; name: string; password: string; role?: string }) =>

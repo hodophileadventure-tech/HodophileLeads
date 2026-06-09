@@ -13,12 +13,13 @@ import { KanbanPipeline } from '../components/KanbanPipeline';
 import { LeadForm } from '../components/LeadForm';
 import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
-import { Badge, Button, Spinner } from '../components/common';
+import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
-import type { Lead, FollowUp } from '../types';
+import { Badge, Button, Spinner } from '../components/common';
+import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes';
 
 const normalizeFollowUp = (item: any): FollowUp => ({
   id: String(item.id),
@@ -77,6 +78,7 @@ export const App: React.FC = () => {
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
+  const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const alarmAudioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
@@ -478,6 +480,7 @@ export const App: React.FC = () => {
     { label: 'Leads', href: 'leads', icon: '🧾' },
     { label: 'Follow-ups', href: 'followups', icon: '🕒' },
     { label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' },
+    ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     { label: 'Analytics', href: 'analytics', icon: '📈' }
   ];
@@ -958,6 +961,35 @@ export const App: React.FC = () => {
                 <section className="card">
                   <AnalyticsDashboard isAdmin={user.role === 'admin'} />
                 </section>
+              </div>
+            )}
+
+            {currentPage === 'pending-quotes' && user?.role === 'admin' && (
+              <div className="space-y-6">
+                {selectedQuoteRequest ? (
+                  <div>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => setSelectedQuoteRequest(null)}
+                      className="mb-4"
+                    >
+                      ← Back to Pending Requests
+                    </Button>
+                    <QuoteInvoicePage 
+                      leadId={selectedQuoteRequest.leadId}
+                      requestId={selectedQuoteRequest.id}
+                      onSaved={() => {
+                        setSelectedQuoteRequest(null);
+                        setCurrentPage('pending-quotes');
+                      }}
+                      onClose={() => setSelectedQuoteRequest(null)}
+                    />
+                  </div>
+                ) : (
+                  <PendingQuotesPanel onSelectRequest={(request) => {
+                    setSelectedQuoteRequest(request);
+                  }} />
+                )}
               </div>
             )}
 
