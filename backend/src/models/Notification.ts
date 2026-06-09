@@ -21,6 +21,10 @@ export const notificationsModel = {
   async markRead(id: string) {
     const res = await query('UPDATE notifications SET is_read = TRUE WHERE id = $1 RETURNING *', [id]);
     return res.rows[0];
+  },
+
+  async deleteByLead(leadId: string) {
+    await query('DELETE FROM notifications WHERE lead_id = $1', [leadId]);
   }
 };
 

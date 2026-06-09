@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id),
-  lead_id UUID REFERENCES leads(id),
+  lead_id UUID REFERENCES leads(id) ON DELETE CASCADE,
   type VARCHAR(100),
   message TEXT,
   payload JSONB,

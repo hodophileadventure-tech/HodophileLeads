@@ -4,6 +4,7 @@ import { leadsModel } from '../models/Lead';
 import { attachmentsModel } from '../models/Attachment';
 import { followUpsModel } from '../models/FollowUp';
 import { availabilityModel } from '../models/Availability';
+import { notificationsModel } from '../models/Notification';
 import { query } from '../utils/database';
 import { calculateBookingHealthScore, generateFollowUpTasks } from '../services/lead-service';
 import Joi from 'joi';
@@ -350,6 +351,7 @@ export const leadsController = {
 
   async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      await notificationsModel.deleteByLead(req.params.id);
       await leadsModel.delete(req.params.id);
       res.status(204).send();
     } catch (error) {
