@@ -77,6 +77,29 @@ export const quoteRequestsController = {
     }
   },
 
+  async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const requestId = String(req.params.id || '');
+      const request = await quoteRequestsModel.findById(requestId);
+      if (!request) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (req.user.role === 'admin') {
+        return res.json(request);
+      }
+
+      const lead = await leadsModel.findById(request.leadId);
+      if (!lead || lead.agentId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      res.json(request);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async listPending(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const pendingRequests = await quoteRequestsModel.findPending();

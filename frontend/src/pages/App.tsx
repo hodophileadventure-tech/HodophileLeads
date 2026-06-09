@@ -498,7 +498,14 @@ export const App: React.FC = () => {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-white dark:bg-slate-900">
-        <Navbar />
+        <Navbar onNotificationClick={(notification) => {
+          if (notification?.type === 'quote_saved' && notification.payload?.requestId) {
+            setCurrentPage('agent');
+            window.setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('open-saved-quote', { detail: { requestId: notification.payload.requestId } }));
+            }, 0);
+          }
+        }} />
         <div className="flex">
           <Sidebar
             navItems={navItems}

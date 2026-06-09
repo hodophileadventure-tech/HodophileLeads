@@ -130,12 +130,13 @@ export const QuoteInvoicePage: React.FC<{
   requestId?: string;
   onSaved?: (requestId: string) => void;
   onClose?: () => void;
-}> = ({ leadId, requestId, onSaved, onClose }) => {
+  viewOnly?: boolean;
+}> = ({ leadId, requestId, onSaved, onClose, viewOnly = false }) => {
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
-  const [loading, setLoading] = useState(!!leadId);
+  const [loading, setLoading] = useState(!!leadId || !!requestId);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const displayQuoteNumber = data.quoteNumber || previewQuoteNumber(data.date);
@@ -161,7 +162,6 @@ export const QuoteInvoicePage: React.FC<{
 
         setDocumentType((current) => {
           if (requestId) {
-            // Keep the document type from request if available
             return current;
           }
           return 'quotation';
@@ -179,6 +179,63 @@ export const QuoteInvoicePage: React.FC<{
 
     loadLeadData();
   }, [leadId, requestId]);
+
+  useEffect(() => {
+    if (!requestId) return;
+
+    const loadRequest = async () => {
+      try {
+        setLoading(true);
+        const response = await quoteRequestsAPI.getById(requestId);
+        const request = response.data;
+
+        if (request.documentData) {
+          const payload = request.documentData;
+          setData((current) => ({
+            ...current,
+            customerName: payload.customerName ?? current.customerName,
+            phone: payload.phone ?? current.phone,
+            city: payload.city ?? current.city,
+            destination: payload.destination ?? current.destination,
+            invoiceNumber: payload.invoiceNumber ?? current.invoiceNumber,
+            quoteNumber: payload.quoteNumber ?? current.quoteNumber,
+            date: payload.date ?? current.date,
+            travelDate: payload.travelDate ?? current.travelDate,
+            packageName: payload.packageName ?? current.packageName,
+            packageDescription: payload.packageDescription ?? current.packageDescription,
+            persons: payload.persons ?? current.persons,
+            price: payload.price ?? current.price,
+            subtotal: payload.subtotal ?? current.subtotal,
+            discount: payload.discount ?? current.discount,
+            totalDue: payload.totalDue ?? current.totalDue,
+            advanceAmount: payload.advanceAmount ?? current.advanceAmount,
+            balanceDue: payload.balanceDue ?? current.balanceDue,
+            notes: Array.isArray(payload.notes) ? payload.notes : current.notes,
+            packageIncludes: Array.isArray(payload.packageIncludes) ? payload.packageIncludes : current.packageIncludes,
+            accommodationType: payload.accommodationType ?? current.accommodationType,
+            transportationType: payload.transportationType ?? current.transportationType,
+            departureLocation: payload.departureLocation ?? current.departureLocation,
+          }));
+
+          if (Array.isArray(payload.tableRows) && payload.tableRows.length > 0) {
+            setTableRows(payload.tableRows.map((row: any) => ({
+              id: crypto.randomUUID(),
+              particulars: row.particulars || '',
+              persons: row.persons || '',
+              price: row.price || '',
+              amount: row.amount || ''
+            })));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load quote request:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRequest();
+  }, [requestId]);
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {
@@ -478,7 +535,7 @@ export const QuoteInvoicePage: React.FC<{
               <button type="button" className="btn-primary btn-secondary" onClick={downloadPDF}>
                 Download PDF
               </button>
-              {requestId && (
+              {requestId && !viewOnly && (
                 <button type="button" className="btn-primary" style={{ gridColumn: '1 / -1', backgroundColor: '#10b981' }} onClick={saveQuotation}>
                   Save Quotation
                 </button>

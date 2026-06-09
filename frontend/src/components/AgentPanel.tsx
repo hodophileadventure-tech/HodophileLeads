@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI } from '../utils/api-service';
+import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI, quoteRequestsAPI } from '../utils/api-service';
 import { LeadForm } from './LeadForm';
 import ConfirmedLeadForm from './ConfirmedLeadForm';
 import { Badge, Button } from './common';
-import type { Lead, FollowUp } from '../types';
+import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
 
 const normalizeFollowUp = (item: any): FollowUp => ({
   id: String(item.id),
@@ -59,6 +60,10 @@ export const AgentPanel: React.FC = () => {
   const [searchPhone, setSearchPhone] = useState('');
   const [openSearchLeadForm, setOpenSearchLeadForm] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled'>('all');
+  const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
+  const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
+  const [quoteRequestError, setQuoteRequestError] = useState('');
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
   const [screenShareError, setScreenShareError] = useState('');
   const [screenShareNotice, setScreenShareNotice] = useState('');
@@ -155,8 +160,23 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
+  const loadQuoteRequests = async () => {
+    try {
+      setLoadingQuoteRequests(true);
+      const res = await quoteRequestsAPI.list();
+      setQuoteRequests(res.data || []);
+      setQuoteRequestError('');
+    } catch (err) {
+      console.error(err);
+      setQuoteRequestError('Unable to load saved quotations.');
+    } finally {
+      setLoadingQuoteRequests(false);
+    }
+  };
+
   useEffect(() => {
     loadLeads();
+    loadQuoteRequests();
   }, []);
 
   useEffect(() => {
@@ -227,6 +247,32 @@ export const AgentPanel: React.FC = () => {
       window.removeEventListener('screen-capture-request', handleScreenshotRequest as EventListener);
     };
   }, [screenShareStatus]);
+
+  useEffect(() => {
+    const handleOpenSavedQuote = async (event: Event) => {
+      const detail = (event as CustomEvent).detail as { requestId?: string } | undefined;
+      const requestId = detail?.requestId;
+      if (!requestId) return;
+
+      const existing = quoteRequests.find((request) => request.id === requestId);
+      if (existing) {
+        setSelectedRequest(existing);
+        return;
+      }
+
+      try {
+        const res = await quoteRequestsAPI.getById(requestId);
+        setSelectedRequest(res.data);
+      } catch (error) {
+        console.error('Failed to load saved quote request from notification', error);
+      }
+    };
+
+    window.addEventListener('open-saved-quote', handleOpenSavedQuote as EventListener);
+    return () => {
+      window.removeEventListener('open-saved-quote', handleOpenSavedQuote as EventListener);
+    };
+  }, [quoteRequests]);
 
   useEffect(() => {
     let mounted = true;
@@ -536,6 +582,65 @@ export const AgentPanel: React.FC = () => {
           loadLeads();
           setSelectedLead(null);
         }} />
+      )}
+
+      <section className="card">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Saved Quotations</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">View quotations your admin has completed for your leads.</p>
+          </div>
+        </div>
+        {loadingQuoteRequests ? (
+          <p className="mt-4 text-sm text-slate-600">Loading saved quotations...</p>
+        ) : quoteRequestError ? (
+          <p className="mt-4 text-sm text-rose-600">{quoteRequestError}</p>
+        ) : quoteRequests.length === 0 ? (
+          <p className="mt-4 text-sm text-slate-600">No saved quotations have been completed yet.</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {quoteRequests.map((request) => (
+              <button
+                key={request.id}
+                type="button"
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
+                onClick={() => setSelectedRequest(request)}
+              >
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                  <div>
+                    <p className="font-semibold">{request.requestType === 'quotation' ? 'Quotation' : 'Invoice'} for {request.leadClientName || request.leadPhone}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Lead: {request.leadClientName || 'Unknown'} · {request.leadPhone}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{new Date(request.createdAt).toLocaleString()}</p>
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      {request.status}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {selectedRequest && (
+        <section className="card mt-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+            <div>
+              <h2 className="text-2xl font-semibold">Saved {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Admin completed this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
+            </div>
+            <Button variant="secondary" onClick={() => setSelectedRequest(null)}>
+              Back to saved quotations
+            </Button>
+          </div>
+          <QuoteInvoicePage
+            leadId={selectedRequest.leadId}
+            requestId={selectedRequest.id}
+            viewOnly
+          />
+        </section>
       )}
 
       {selectedLead && showConfirmForm && (

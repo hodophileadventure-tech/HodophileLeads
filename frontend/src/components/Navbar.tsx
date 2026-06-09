@@ -4,7 +4,7 @@ import { notificationsAPI } from '../utils/api-service';
 import { useDataStore } from '../context/store';
 import RemindersPanel from './RemindersPanel';
 
-export const Navbar: React.FC = () => {
+export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => void }> = ({ onNotificationClick }) => {
   const { user, logout } = useAuth();
   const [notifOpen, setNotifOpen] = React.useState(false);
   const [userOpen, setUserOpen] = React.useState(false);
@@ -68,7 +68,14 @@ export const Navbar: React.FC = () => {
                     <div className="p-4 text-sm text-slate-500">No notifications</div>
                   )}
                   {notifications.map((n: any) => (
-                    <div key={n.id} className={`px-4 py-3 border-b border-slate-100 dark:border-slate-600 ${n.is_read ? 'bg-white dark:bg-slate-700' : 'bg-slate-50 dark:bg-slate-800'}`}>
+                    <div
+                      key={n.id}
+                      className={`px-4 py-3 border-b border-slate-100 dark:border-slate-600 ${n.is_read ? 'bg-white dark:bg-slate-700' : 'bg-slate-50 dark:bg-slate-800'}`}
+                      onClick={() => {
+                        if (onNotificationClick) onNotificationClick(n);
+                      }}
+                      style={{ cursor: onNotificationClick ? 'pointer' : 'default' }}
+                    >
                       <div className="flex items-start gap-2">
                         <div className="flex-1">
                           <p className="text-sm font-medium">{n.message}</p>
