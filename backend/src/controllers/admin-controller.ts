@@ -152,6 +152,8 @@ export const adminController = {
       await query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
       await query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
       await query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      await query('DELETE FROM screen_captures WHERE agent_id = $1', [agentId]);
+      await query('DELETE FROM leads WHERE agent_id = $1', [agentId]);
       await query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
       await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
       await query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
@@ -166,7 +168,11 @@ export const adminController = {
       await query('COMMIT');
       res.json({ success: true });
     } catch (err) {
-      await query('ROLLBACK');
+      try {
+        await query('ROLLBACK');
+      } catch (rollbackErr) {
+        console.error('Rollback failed while deleting agent:', rollbackErr);
+      }
       next(err);
     }
   },
