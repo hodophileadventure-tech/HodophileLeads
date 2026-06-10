@@ -17,8 +17,8 @@ export const dashboardController = {
         `, [req.user.id]),
         query(`
           SELECT
-            COUNT(*) FILTER (WHERE status = 'pending')::int as pending_payments,
-            COUNT(*) FILTER (WHERE status = 'confirmed')::int as confirmed_payments
+            COUNT(*) FILTER (WHERE p.status = 'pending')::int as pending_payments,
+            COUNT(*) FILTER (WHERE p.status = 'confirmed')::int as confirmed_payments
           FROM payments p
           JOIN leads l ON l.id = p.lead_id
           WHERE l.agent_id = $1
