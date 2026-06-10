@@ -240,6 +240,22 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     }
   };
 
+  const handleDeleteAgent = async (agent: any) => {
+    if (!confirm(`Delete agent ${agent.name || agent.email}? This cannot be undone.`)) return;
+    try {
+      await (adminAPI as any).deleteAgent(agent.id);
+      setAgents((prev) => prev.filter((a) => a.id !== agent.id));
+      if (selectedAgent?.id === agent.id) {
+        setSelectedAgent(null);
+        setAgentLeads([]);
+      }
+      alert('Agent deleted successfully.');
+    } catch (e) {
+      console.error('Failed to delete agent', e);
+      alert('Failed to delete agent');
+    }
+  };
+
   const handleRequestScreenshot = async (agent: any) => {
     if (!confirm(`Request a screenshot from ${agent.name || agent.email}?`)) return;
 
@@ -552,6 +568,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => handleViewAgent(a)}>View Activity</Button>
                   <Button size="sm" variant="secondary" onClick={() => handleEditAgent(a)}>Edit</Button>
+                  <Button size="sm" variant="danger" onClick={() => handleDeleteAgent(a)}>Delete</Button>
                 </div>
               </div>
             ))}

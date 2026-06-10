@@ -14,23 +14,22 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
   const [isOpen, setIsOpen] = useState(initiallyOpen);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState<any>(
-    initialData || {
-      clientName: '',
-      email: '',
-      phone: '',
-      address: '',
-      gender: '',
-      age: '',
-      destination: '',
-      travelDates: undefined,
-      persons: 1,
-      agentRemarks: '',
-      remarks: '',
-      potential: false,
-      leadStatus: 'new'
-    }
-  );
+  const [formData, setFormData] = useState<any>({
+    clientName: '',
+    email: '',
+    phone: '',
+    address: '',
+    gender: '',
+    age: '',
+    destination: '',
+    travelDates: { from: '', to: '' },
+    createdAt: new Date().toISOString().slice(0, 10),
+    persons: 1,
+    agentRemarks: '',
+    remarks: '',
+    potential: false,
+    leadStatus: 'new'
+  });
 
   useEffect(() => {
     if (initialData) {
@@ -42,17 +41,35 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         gender: (initialData as any).gender || '',
         age: (initialData as any).age ?? '',
         destination: initialData.destination || '',
-        travelDates: initialData.travelDates || undefined,
+        travelDates: initialData.travelDates || { from: '', to: '' },
+        createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
         persons: initialData.persons || 1,
         agentRemarks: (initialData as any).agentRemarks || '',
         remarks: (initialData as any).remarks || '',
         potential: (initialData as any).potential || false,
         leadStatus: (initialData as any).potential ? 'potential' : (initialData as any).pipelineStage === 'confirmed' || (initialData as any).status === 'booked' ? 'confirmed' : (initialData as any).status === 'completed' ? 'dead' : 'new'
       });
+    } else {
+      setFormData({
+        clientName: '',
+        email: '',
+        phone: '',
+        address: '',
+        gender: '',
+        age: '',
+        destination: '',
+        travelDates: { from: '', to: '' },
+        createdAt: new Date().toISOString().slice(0, 10),
+        persons: 1,
+        agentRemarks: '',
+        remarks: '',
+        potential: false,
+        leadStatus: 'new'
+      });
+    }
 
-      if (initiallyOpen) {
-        setIsOpen(true);
-      }
+    if (initiallyOpen) {
+      setIsOpen(true);
     }
   }, [initialData, initiallyOpen]);
 
@@ -104,6 +121,10 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         (payload as any).age = typeof ageValue === 'number' ? ageValue : parseInt(String(ageValue), 10);
       }
 
+      if (formData.createdAt) {
+        payload.createdAt = formData.createdAt;
+      }
+
       // Map selected leadStatus into payload fields
       const status = (formData as any).leadStatus || 'new';
       if (status === 'potential') {
@@ -142,6 +163,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         age: '',
         destination: '',
         travelDates: { from: '', to: '' },
+        createdAt: new Date().toISOString().slice(0, 10),
         persons: 1,
         agentRemarks: '',
         remarks: '',
@@ -214,6 +236,16 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               onChange={(e) => handleChange('phone', e.target.value)}
               className="input-field"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Lead Created Date</label>
+            <input
+              type="date"
+              value={formData.createdAt || ''}
+              onChange={(e) => handleChange('createdAt', e.target.value)}
+              className="input-field"
             />
           </div>
 

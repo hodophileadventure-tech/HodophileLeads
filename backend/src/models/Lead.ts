@@ -111,8 +111,8 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, agent_id, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, agent_id, created_at, updated_at, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
       RETURNING *
     `;
 
@@ -128,6 +128,8 @@ export const leadsModel = {
         ? [data.hotelInfo]
         : [];
 
+    const createdAt = (data as any).createdAt || (data as any).created_at || new Date().toISOString();
+    const updatedAt = createdAt;
     const params = [
       data.clientName || (data as any).name || null,
       data.email || null,
@@ -142,6 +144,8 @@ export const leadsModel = {
       data.hotelInfo ? JSON.stringify(data.hotelInfo) : null,
       hotelOptions.length > 0 ? JSON.stringify(hotelOptions) : null,
       data.agentId || (data as any).agent_id || null,
+      createdAt,
+      updatedAt,
       null, // profile_id placeholder - will set below
       (data as any).address || null,
       (data as any).gender || null,
@@ -177,8 +181,8 @@ export const leadsModel = {
       }
     }
 
-    // place profileId into params (position 14 since array is 0-based and corresponds to $14 in SQL)
-    params[13] = profileId;
+    // place profileId into params (position 15 since array is 0-based and corresponds to $15 in SQL)
+    params[14] = profileId;
 
     const result = await query(sql, params);
     return mapLeadRow(result.rows[0]);
@@ -209,6 +213,7 @@ export const leadsModel = {
       'agent_remarks',
       'remarks',
       'potential',
+      'created_at',
       'lead_outcome',
       'special_requests',
       'transport_preference',
@@ -266,7 +271,10 @@ export const leadsModel = {
         } else {
           return;
         }
-      } else if (key !== 'id' && key !== 'createdAt') {
+      } else if (key === 'createdAt') {
+        fields.push(`created_at = $${paramCount}`);
+        params.push(value);
+      } else if (key !== 'id') {
         let dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
         if (key === 'clientName' || key === 'name') dbKey = 'client_name';
         if (key === 'destination') dbKey = 'destination';

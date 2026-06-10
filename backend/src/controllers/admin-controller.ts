@@ -143,6 +143,19 @@ export const adminController = {
     }
   },
 
+  async deleteAgent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const agentId = req.params.id;
+      const result = await query("DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id", [agentId]);
+      if (!result.rowCount) {
+        return res.status(404).json({ message: 'Agent not found or cannot delete admin user' });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async overview(req: any, res: any, next: any) {
     try {
       const summaryResult = await query(`
