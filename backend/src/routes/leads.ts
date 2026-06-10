@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, validateUserExists } from '../middleware/auth';
 import { leadsController } from '../controllers/leads-controller';
 import { quoteRequestsController } from '../controllers/quote-requests-controller';
 
@@ -31,6 +31,7 @@ const upload = multer({
 });
 
 leadsRouter.use(authMiddleware);
+leadsRouter.use(validateUserExists);
 
 leadsRouter.get('/', leadsController.list);
 leadsRouter.get('/search', leadsController.searchByPhone);

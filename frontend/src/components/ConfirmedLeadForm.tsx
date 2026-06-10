@@ -3,6 +3,14 @@ import { Button, Modal } from './common';
 import { leadsAPI, paymentsAPI } from '../utils/api-service';
 import type { Lead } from '../types';
 
+interface HotelOptionForm {
+  hotelName: string;
+  roomType: string;
+  roomPrice: number;
+  checkIn: string;
+  checkOut: string;
+}
+
 interface Props {
   lead: Lead;
   isOpen: boolean;
@@ -12,7 +20,7 @@ interface Props {
 
 export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSaved }) => {
   const [loading, setLoading] = useState(false);
-  const [hotelOptions, setHotelOptions] = useState(
+  const [hotelOptions, setHotelOptions] = useState<HotelOptionForm[]>(
     lead.hotelOptions && lead.hotelOptions.length > 0
       ? lead.hotelOptions.map((option) => ({
           hotelName: option.hotelName || '',
@@ -43,15 +51,15 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
             hotelName: option.hotelName || '',
             roomType: option.roomType || '',
             roomPrice: option.roomPrice || 0,
-            checkIn: (option as any).checkIn || '',
-            checkOut: (option as any).checkOut || ''
+            checkIn: option.checkIn || '',
+            checkOut: option.checkOut || ''
           }))
         : [{
             hotelName: lead.hotelInfo?.hotelName || '',
             roomType: lead.hotelInfo?.roomType || '',
             roomPrice: lead.hotelInfo?.roomPrice || 0,
-            checkIn: (lead.hotelInfo as any)?.checkIn || '',
-            checkOut: (lead.hotelInfo as any)?.checkOut || ''
+            checkIn: lead.hotelInfo?.checkIn || '',
+            checkOut: lead.hotelInfo?.checkOut || ''
           }]
     );
   }, [lead]);
@@ -98,7 +106,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       await leadsAPI.update(lead.id as string, { leadOutcome: 'confirmed', status: 'booked' } as any);
 
       if (total > 0) {
-        const dueDate = checkIn || new Date().toISOString();
+        const dueDate = hotelOptions[0]?.checkIn || new Date().toISOString();
         await paymentsAPI.create({ leadId: lead.id, amount: advance, method, status: 'pending', dueDate, notes: 'Advance on confirmation' } as any);
       }
 

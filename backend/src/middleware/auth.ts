@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/auth';
+import { query } from '../utils/database';
 
 export interface AuthenticatedRequest extends Request {
   user?: any;
@@ -25,6 +26,23 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
   // IP restrictions removed - all users allowed to login
   req.user = decoded;
   next();
+};
+
+export const validateUserExists = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const result = await query('SELECT id FROM users WHERE id = $1', [req.user.id]);
+    if (!result.rows.length) {
+      return res.status(401).json({ message: 'User has been deleted. Please log in again.' });
+    }
+
+    next();
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const roleMiddleware = (allowedRoles: string[]) => {

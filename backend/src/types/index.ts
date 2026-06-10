@@ -67,6 +67,8 @@ export interface LeadHotelInfo {
   hotelName: string;
   roomType: string;
   roomPrice: number;
+  checkIn?: string;
+  checkOut?: string;
 }
 
 export interface FollowUp {
