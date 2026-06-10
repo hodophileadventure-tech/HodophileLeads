@@ -306,10 +306,12 @@ export const QuoteInvoicePage: React.FC<{
   }, [visibleRows, data.packageName, data.persons, data.price]);
 
   const updateField = (field: keyof DocumentData, value: string | string[]) => {
+    if (viewOnly) return;
     setData((current) => ({ ...current, [field]: value }));
   };
 
   const updateRow = (id: string, field: keyof Omit<TableRow, 'id'>, value: string) => {
+    if (viewOnly) return;
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
@@ -568,91 +570,91 @@ export const QuoteInvoicePage: React.FC<{
                 <div className="field-row">
                   <div>
                     <label>Customer Name</label>
-                    <input value={data.customerName} onChange={(event) => updateField('customerName', event.target.value)} />
+                    <input value={data.customerName} disabled={viewOnly} onChange={(event) => updateField('customerName', event.target.value)} />
                   </div>
                   <div>
                     <label>Phone Number</label>
-                    <input value={data.phone} onChange={(event) => updateField('phone', event.target.value)} />
+                    <input value={data.phone} disabled={viewOnly} onChange={(event) => updateField('phone', event.target.value)} />
                   </div>
                 </div>
                 <div className="field-row">
                   <div>
                     <label>City</label>
-                    <input value={data.city} onChange={(event) => updateField('city', event.target.value)} />
+                    <input value={data.city} disabled={viewOnly} onChange={(event) => updateField('city', event.target.value)} />
                   </div>
                   <div>
-                <label>Destination</label>
-                <input value={data.destination} onChange={(event) => updateField('destination', event.target.value)} />
-              </div>
-            </div>
-            <div className="field-row-sm">
-              <div>
-                <label>{documentType === 'quotation' ? 'Quote #' : 'Invoice #'}</label>
-                <input value={documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber} onChange={(event) => updateField(documentType === 'quotation' ? 'quoteNumber' : 'invoiceNumber', event.target.value)} />
-              </div>
-              <div>
-                <label>{documentType === 'quotation' ? 'Quote Date' : 'Date'}</label>
-                <input type="date" value={data.date} onChange={(event) => updateField('date', event.target.value)} />
-              </div>
-              <div>
-                <label>Travel Date</label>
-                <input type="date" value={data.travelDate} onChange={(event) => updateField('travelDate', event.target.value)} />
-              </div>
-            </div>
-            <div className="field-row">
-              <div>
-                <label>Package Name</label>
-                <input value={data.packageName} onChange={(event) => updateField('packageName', event.target.value)} />
-              </div>
-              <div>
-                <label>No. of Person(s)</label>
-                <input value={data.persons} onChange={(event) => updateField('persons', event.target.value)} />
-              </div>
-            </div>
-            <div>
-              <label>Package Description</label>
-              <textarea value={data.packageDescription} onChange={(event) => updateField('packageDescription', event.target.value)} />
-            </div>
-            <div className="field-row">
-              <div>
-                <label>Accommodation Type</label>
-                <input value={data.accommodationType} onChange={(event) => updateField('accommodationType', event.target.value)} />
-              </div>
-              <div>
-                <label>Transportation Type</label>
-                <input value={data.transportationType} onChange={(event) => updateField('transportationType', event.target.value)} />
-              </div>
-            </div>
-            <div className="field-row">
-              <div>
-                <label>Departure Location</label>
-                <input value={data.departureLocation} onChange={(event) => updateField('departureLocation', event.target.value)} />
-              </div>
-            </div>
-            <div className="field-row-sm">
-              <div>
-                <label>Price</label>
-                <input value={data.price} onChange={(event) => updateField('price', event.target.value)} />
-              </div>
-              <div>
-                <label>Discount %</label>
-                <input value={data.discount} onChange={(event) => updateField('discount', event.target.value)} />
-              </div>
-              <div>
-                <label>Advance Amount</label>
-                <input value={data.advanceAmount} onChange={(event) => updateField('advanceAmount', event.target.value)} />
-              </div>
-            </div>
-            <div>
-              <label>Package Includes</label>
-              <textarea value={data.packageIncludes.join('\n')} onChange={(event) => updateField('packageIncludes', event.target.value.split('\n'))} />
-              <small>Enter each item on a new line.</small>
-            </div>
-            <div>
-              <label>Notes</label>
-              <textarea value={data.notes.join('\n')} onChange={(event) => updateField('notes', event.target.value.split('\n'))} />
-              <small>Enter each note on a new line.</small>
-            </div>
+                    <label>Destination</label>
+                    <input value={data.destination} disabled={viewOnly} onChange={(event) => updateField('destination', event.target.value)} />
+                  </div>
+                </div>
+                <div className="field-row-sm">
+                  <div>
+                    <label>{documentType === 'quotation' ? 'Quote #' : 'Invoice #'}</label>
+                    <input value={documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber} disabled={viewOnly} onChange={(event) => updateField(documentType === 'quotation' ? 'quoteNumber' : 'invoiceNumber', event.target.value)} />
+                  </div>
+                  <div>
+                    <label>{documentType === 'quotation' ? 'Quote Date' : 'Date'}</label>
+                    <input type="date" value={data.date} disabled={viewOnly} onChange={(event) => updateField('date', event.target.value)} />
+                  </div>
+                  <div>
+                    <label>Travel Date</label>
+                    <input type="date" value={data.travelDate} disabled={viewOnly} onChange={(event) => updateField('travelDate', event.target.value)} />
+                  </div>
+                </div>
+                <div className="field-row">
+                  <div>
+                    <label>Package Name</label>
+                    <input value={data.packageName} disabled={viewOnly} onChange={(event) => updateField('packageName', event.target.value)} />
+                  </div>
+                  <div>
+                    <label>No. of Person(s)</label>
+                    <input value={data.persons} disabled={viewOnly} onChange={(event) => updateField('persons', event.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <label>Package Description</label>
+                  <textarea value={data.packageDescription} disabled={viewOnly} onChange={(event) => updateField('packageDescription', event.target.value)} />
+                </div>
+                <div className="field-row">
+                  <div>
+                    <label>Accommodation Type</label>
+                    <input value={data.accommodationType} disabled={viewOnly} onChange={(event) => updateField('accommodationType', event.target.value)} />
+                  </div>
+                  <div>
+                    <label>Transportation Type</label>
+                    <input value={data.transportationType} disabled={viewOnly} onChange={(event) => updateField('transportationType', event.target.value)} />
+                  </div>
+                </div>
+                <div className="field-row">
+                  <div>
+                    <label>Departure Location</label>
+                    <input value={data.departureLocation} disabled={viewOnly} onChange={(event) => updateField('departureLocation', event.target.value)} />
+                  </div>
+                </div>
+                <div className="field-row-sm">
+                  <div>
+                    <label>Price</label>
+                    <input value={data.price} disabled={viewOnly} onChange={(event) => updateField('price', event.target.value)} />
+                  </div>
+                  <div>
+                    <label>Discount %</label>
+                    <input value={data.discount} disabled={viewOnly} onChange={(event) => updateField('discount', event.target.value)} />
+                  </div>
+                  <div>
+                    <label>Advance Amount</label>
+                    <input value={data.advanceAmount} disabled={viewOnly} onChange={(event) => updateField('advanceAmount', event.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <label>Package Includes</label>
+                  <textarea value={data.packageIncludes.join('\n')} disabled={viewOnly} onChange={(event) => updateField('packageIncludes', event.target.value.split('\n'))} />
+                  <small>Enter each item on a new line.</small>
+                </div>
+                <div>
+                  <label>Notes</label>
+                  <textarea value={data.notes.join('\n')} disabled={viewOnly} onChange={(event) => updateField('notes', event.target.value.split('\n'))} />
+                  <small>Enter each note on a new line.</small>
+                </div>
             <div className="download-actions">
               <button type="button" className="btn-primary" onClick={downloadJPEG}>
                 Download JPEG
@@ -675,10 +677,10 @@ export const QuoteInvoicePage: React.FC<{
             <div style={{ display: 'grid', gap: '14px' }}>
               {visibleRows.map((row, index) => (
                 <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '10px' }}>
-                  <input value={row.particulars} placeholder={index === 0 ? 'Package title' : ''} onChange={(event) => updateRow(row.id, 'particulars', event.target.value)} />
-                  <input value={row.persons} placeholder="Pax" onChange={(event) => updateRow(row.id, 'persons', event.target.value)} />
-                  <input value={row.price} placeholder="Price" onChange={(event) => updateRow(row.id, 'price', event.target.value)} />
-                  <input value={row.amount} placeholder="Amount" onChange={(event) => updateRow(row.id, 'amount', event.target.value)} />
+                  <input value={row.particulars} placeholder={index === 0 ? 'Package title' : ''} disabled={viewOnly} onChange={(event) => updateRow(row.id, 'particulars', event.target.value)} />
+                  <input value={row.persons} placeholder="Pax" disabled={viewOnly} onChange={(event) => updateRow(row.id, 'persons', event.target.value)} />
+                  <input value={row.price} placeholder="Price" disabled={viewOnly} onChange={(event) => updateRow(row.id, 'price', event.target.value)} />
+                  <input value={row.amount} placeholder="Amount" disabled={viewOnly} onChange={(event) => updateRow(row.id, 'amount', event.target.value)} />
                 </div>
               ))}
             </div>

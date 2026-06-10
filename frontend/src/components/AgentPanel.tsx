@@ -177,8 +177,10 @@ export const AgentPanel: React.FC = () => {
 
   useEffect(() => {
     loadLeads();
-    loadQuoteRequests();
-  }, []);
+    if (user?.role === 'admin') {
+      loadQuoteRequests();
+    }
+  }, [user?.role]);
 
   useEffect(() => {
     const handleScreenshotRequest = async (event: Event) => {
@@ -653,7 +655,7 @@ export const AgentPanel: React.FC = () => {
         )}
       </section>
 
-      {selectedRequest && (
+      {user?.role === 'admin' && selectedRequest && (
         <section className="card mt-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
             <div>

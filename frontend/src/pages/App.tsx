@@ -479,7 +479,7 @@ export const App: React.FC = () => {
     { label: 'Dashboard', href: 'dashboard', icon: '📊' },
     { label: 'Leads', href: 'leads', icon: '🧾' },
     { label: 'Follow-ups', href: 'followups', icon: '🕒' },
-    { label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' },
+    ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     { label: 'Analytics', href: 'analytics', icon: '📈' }
@@ -1020,9 +1020,17 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'quoteinvoice' && (
+            {currentPage === 'quoteinvoice' && user?.role === 'admin' && (
               <div className="space-y-6">
                 <QuoteInvoicePage />
+              </div>
+            )}
+            {currentPage === 'quoteinvoice' && user?.role !== 'admin' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <h1 className="text-3xl font-bold">Access Denied</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">You do not have permission to view quotes and invoices.</p>
+                </section>
               </div>
             )}
 
