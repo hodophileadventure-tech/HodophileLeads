@@ -95,6 +95,7 @@ async function migrate() {
         source VARCHAR(100) NOT NULL,
         temperature VARCHAR(50) NOT NULL DEFAULT 'cold',
         status VARCHAR(50) NOT NULL DEFAULT 'new',
+        tour_type VARCHAR(100),
         lead_outcome VARCHAR(50),
         agent_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         notes TEXT,
@@ -127,6 +128,7 @@ async function migrate() {
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS lead_outcome VARCHAR(50)');
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS adults INTEGER');
     await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS kids INTEGER');
+    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS tour_type VARCHAR(100)');
     console.log('✅ Lead cancel tracking columns ensured');
 
     // 4. Follow-ups Table (depends on leads, users)

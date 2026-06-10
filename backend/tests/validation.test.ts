@@ -40,6 +40,18 @@ describe('validation helpers', () => {
     expect(payload.age).toBeUndefined();
   });
 
+  test('accepts a lead payload with tour type', () => {
+    const payload = validatePayload(leadSchema, {
+      clientName: 'Test User',
+      phone: '1234567890',
+      destination: 'Bali',
+      tourType: 'Family',
+      persons: 2
+    } as any);
+
+    expect(payload.tourType).toBe('Family');
+  });
+
   test('accepts a follow-up reminder payload', () => {
     const payload = validatePayload(followUpSchema, {
       leadId: '123e4567-e89b-12d3-a456-426614174000',

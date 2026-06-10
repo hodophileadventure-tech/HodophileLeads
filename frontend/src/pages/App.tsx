@@ -712,6 +712,30 @@ export const App: React.FC = () => {
                           </div>
                         )}
 
+                        {selectedLead.tourType && (
+                          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Tour Type</p>
+                            <p className="font-medium">{selectedLead.tourType}</p>
+                          </div>
+                        )}
+
+                        {(selectedLead.agentRemarks || selectedLead.remarks) && (
+                          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 space-y-3">
+                            {selectedLead.agentRemarks && (
+                              <div>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Agent Remarks</p>
+                                <p className="text-sm">{selectedLead.agentRemarks}</p>
+                              </div>
+                            )}
+                            {selectedLead.remarks && (
+                              <div>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Remarks</p>
+                                <p className="text-sm">{selectedLead.remarks}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {selectedLead.hotelOptions && selectedLead.hotelOptions.length > 1 && (
                           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Additional Hotels</p>

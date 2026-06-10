@@ -49,6 +49,7 @@ const mapLeadRow = (row: any) => {
     specialRequests: row.specialRequests || row.special_requests,
     transportPreference: row.transportPreference || row.transport_preference,
     hotelPreference: row.hotelPreference || row.hotel_preference,
+    tourType: row.tourType || row.tour_type || null,
     createdAt: row.createdAt || row.created_at,
     updatedAt: row.updatedAt || row.updated_at,
     canceledReason: row.canceledReason || row.canceled_reason || null,
@@ -111,8 +112,8 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, agent_remarks, remarks, potential, lead_outcome
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
+          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, tour_type, agent_remarks, remarks, potential, lead_outcome
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27)
       RETURNING *
     `;
 
@@ -154,6 +155,7 @@ export const leadsModel = {
       (data as any).age || null,
       (data as any).adults ?? null,
       (data as any).kids ?? null,
+      (data as any).tourType || (data as any).tour_type || null,
       (data as any).agentRemarks || (data as any).agent_remarks || null,
       (data as any).remarks || null,
       (data as any).potential ? true : false,
@@ -225,6 +227,7 @@ export const leadsModel = {
       'special_requests',
       'transport_preference',
       'hotel_preference',
+      'tour_type',
       'canceled_reason',
       'canceled_by',
       'canceled_at',
@@ -286,6 +289,7 @@ export const leadsModel = {
         if (key === 'clientName' || key === 'name') dbKey = 'client_name';
         if (key === 'destination') dbKey = 'destination';
         if (key === 'leadOutcome') dbKey = 'lead_outcome';
+        if (key === 'tourType') dbKey = 'tour_type';
         if (!allowedColumns.has(dbKey)) return;
         fields.push(`${dbKey} = $${paramCount}`);
         params.push(value);

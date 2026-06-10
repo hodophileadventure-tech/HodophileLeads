@@ -39,6 +39,7 @@ export interface Lead {
   };
   travel_date?: string;
   persons?: number;
+  tourType?: string;
   budget: number;
   source: string;
   leadSource?: 'whatsapp' | 'call' | 'insta' | 'form';

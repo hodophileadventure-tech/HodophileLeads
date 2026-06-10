@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS leads (
   persons INTEGER NOT NULL DEFAULT 1,
   adults INTEGER DEFAULT NULL,
   kids INTEGER DEFAULT NULL,
+  tour_type VARCHAR(100),
   address TEXT,
   gender VARCHAR(20),
   age INTEGER,

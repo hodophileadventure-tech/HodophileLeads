@@ -23,6 +23,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
     age: '',
     destination: '',
     travelDates: { from: '', to: '' },
+    tourType: '',
     createdAt: new Date().toISOString().slice(0, 10),
     adults: '',
     kids: '',
@@ -46,6 +47,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
         adults: initialData.adults ?? (initialData.persons ? initialData.persons : '') ,
         kids: initialData.kids ?? '',
+        tourType: (initialData as any).tourType || '',
         agentRemarks: (initialData as any).agentRemarks || '',
         remarks: (initialData as any).remarks || '',
         potential: (initialData as any).potential || false,
@@ -61,6 +63,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         age: '',
         destination: '',
         travelDates: { from: '', to: '' },
+        tourType: '',
         createdAt: new Date().toISOString().slice(0, 10),
         persons: 1,
         agentRemarks: '',
@@ -110,6 +113,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         destination: formData.destination,
         adults: (formData as any).adults === '' ? undefined : Number((formData as any).adults),
         kids: (formData as any).kids === '' ? undefined : Number((formData as any).kids),
+        tourType: (formData as any).tourType || undefined,
         agentRemarks: (formData as any).agentRemarks,
         remarks: (formData as any).remarks,
         potential: (formData as any).potential
@@ -166,6 +170,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         age: '',
         destination: '',
         travelDates: { from: '', to: '' },
+        tourType: '',
         createdAt: new Date().toISOString().slice(0, 10),
         adults: '',
         kids: '',
@@ -274,6 +279,22 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               onChange={(e) => handleChange('destination', e.target.value)}
               className="input-field"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Tour Type</label>
+            <select
+              className="input-field"
+              value={(formData as any).tourType || ''}
+              onChange={(e) => handleChange('tourType', e.target.value)}
+            >
+              <option value="">Select tour type</option>
+              <option value="Family">Family</option>
+              <option value="Honeymoon">Honeymoon</option>
+              <option value="Adventure">Adventure</option>
+              <option value="Corporate">Corporate</option>
+              <option value="Custom">Custom</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

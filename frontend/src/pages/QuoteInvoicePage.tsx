@@ -45,13 +45,7 @@ type DocumentData = {
 };
 
 const getDefaultRows = (): TableRow[] => [
-  {
-    id: crypto.randomUUID(),
-    particulars: '8 Days Hunza & Skardu (By Road)',
-    persons: '04',
-    price: '160,000',
-    amount: '640,000',
-  },
+  { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
   { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
   { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
   { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
@@ -59,32 +53,28 @@ const getDefaultRows = (): TableRow[] => [
 ];
 
 const defaultData: DocumentData = {
-  customerName: 'Farhan Ahmed',
-  phone: '+92 300 1234567',
-  city: 'Karachi',
-  invoiceNumber: 'INV-000142',
+  customerName: '',
+  phone: '',
+  city: '',
+  invoiceNumber: '',
   quoteNumber: '',
   date: new Date().toISOString().split('T')[0],
   travelDate: new Date().toISOString().split('T')[0],
-  destination: 'Gilgit Baltistan',
-  packageName: '8 Days Hunza & Skardu (By Road)',
-  packageDescription: 'A premium mountain experience with luxury camps and private transport.',
-  persons: '04',
-  price: '160,000',
-  subtotal: '640,000',
-  discount: '5',
-  totalDue: '608,000',
-  advanceAmount: '200,000',
-  balanceDue: '408,000',
-  notes: [
-    'Remaining amount handed over to Driver cum Guide at departure is mandatory.',
-    'Detailed itinerary already shared.',
-    'Read Terms & Conditions.',
-  ],
-  packageIncludes: ['Transport', 'Accommodation', 'Breakfast & Dinner', 'Jeep Ride'],
-  accommodationType: 'Standard Accommodation',
-  transportationType: 'ISB-to-ISB',
-  departureLocation: 'Grand Cabin',
+  destination: '',
+  packageName: '',
+  packageDescription: '',
+  persons: '',
+  price: '',
+  subtotal: '',
+  discount: '',
+  totalDue: '',
+  advanceAmount: '',
+  balanceDue: '',
+  notes: [],
+  packageIncludes: [],
+  accommodationType: '',
+  transportationType: '',
+  departureLocation: '',
 };
 
 const formatDate = (value: string) => {
@@ -154,13 +144,22 @@ export const QuoteInvoicePage: React.FC<{
         const lead = response.data;
 
         setLeadData(lead);
+        const totalPersons = ((lead.adults ?? 0) + (lead.kids ?? 0)) || lead.persons || 0;
+        const destinationValue = Array.isArray(lead.destinations) && lead.destinations.length > 0
+          ? lead.destinations.join(', ')
+          : lead.destination || '';
+
         setData((current) => ({
           ...current,
           customerName: lead.clientName || '',
           phone: lead.phone || '',
           city: lead.address || '',
-          destination: Array.isArray(lead.destinations) ? lead.destinations.join(', ') : lead.destination || '',
+          destination: destinationValue,
           travelDate: lead.travelDates?.from ? new Date(lead.travelDates.from).toISOString().split('T')[0] : current.travelDate,
+          persons: totalPersons > 0 ? String(totalPersons).padStart(2, '0') : current.persons,
+          packageName: lead.tourType ? `${lead.tourType} Tour Package` : current.packageName,
+          transportationType: lead.transportPreference || current.transportationType,
+          accommodationType: lead.hotelPreference || current.accommodationType,
         }));
 
         setDocumentType((current) => {
@@ -247,13 +246,25 @@ export const QuoteInvoicePage: React.FC<{
     }
   }, [data.date, documentType, data.quoteNumber]);
 
+  const effectiveRows = useMemo(() => {
+    return tableRows.map((row, index) => {
+      if (index !== 0) return row;
+      return {
+        ...row,
+        particulars: data.packageName,
+        persons: data.persons,
+        price: data.price,
+      };
+    });
+  }, [tableRows, data.packageName, data.persons, data.price]);
+
   const visibleRows = useMemo(() => {
-    const rows = [...tableRows];
+    const rows = [...effectiveRows];
     while (rows.length < 5) {
       rows.push({ id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' });
     }
     return rows.slice(0, 5);
-  }, [tableRows]);
+  }, [effectiveRows]);
 
   const subtotalValue = useMemo(() => {
     return visibleRows.reduce((sum, row) => {
@@ -275,18 +286,24 @@ export const QuoteInvoicePage: React.FC<{
 
   const previewRows = useMemo(() => {
     return visibleRows
-      .map((row) => {
-        const rowAmountValue = row.amount
-          ? parseNumber(row.amount)
-          : parseNumber(row.price) * parseNumber(row.persons);
+      .map((row, index) => {
+        const details = index === 0 ? {
+          ...row,
+          particulars: data.packageName,
+          persons: data.persons,
+          price: data.price,
+        } : row;
+        const rowAmountValue = details.amount
+          ? parseNumber(details.amount)
+          : parseNumber(details.price) * parseNumber(details.persons);
         const displayAmount = rowAmountValue > 0 ? formatAmount(rowAmountValue) : '';
-        return { ...row, displayAmount };
+        return { ...details, displayAmount };
       })
       .filter((row, index) => {
         if (index === 0) return true;
         return Boolean(row.particulars || row.persons || row.price || row.amount);
       });
-  }, [visibleRows]);
+  }, [visibleRows, data.packageName, data.persons, data.price]);
 
   const updateField = (field: keyof DocumentData, value: string | string[]) => {
     setData((current) => ({ ...current, [field]: value }));
@@ -472,6 +489,14 @@ export const QuoteInvoicePage: React.FC<{
                       </div>
                     </div>
                   </div>
+                  {leadData?.tourType && (
+                    <div className="field-row">
+                      <div>
+                        <label>Tour Type</label>
+                        <div className="field-value">{leadData.tourType}</div>
+                      </div>
+                    </div>
+                  )}
                   <div className="field-row">
                     <div>
                       <label>Adults</label>

@@ -40,6 +40,7 @@ export interface Lead {
   persons: number;
   budget: number;
   source: string;
+  tourType?: string;
   leadSource?: 'whatsapp' | 'call' | 'insta' | 'form';
   budgetRange?: 'economy' | 'standard' | 'premium';
   adults?: number;
