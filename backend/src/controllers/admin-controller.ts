@@ -152,6 +152,7 @@ export const adminController = {
       await query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
       await query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
       await query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      await query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
       await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
       await query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
       await query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
