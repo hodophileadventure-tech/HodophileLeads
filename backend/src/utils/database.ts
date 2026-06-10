@@ -309,6 +309,7 @@ export const query = async (text: string, params?: any[]) => {
           travelDatesRaw,
           hotelInfoRaw,
           hotelOptionsRaw,
+          persons,
           agentId
         ] = normalizedParams;
 
@@ -352,8 +353,9 @@ export const query = async (text: string, params?: any[]) => {
           source: source || 'direct',
           leadSource: source || 'whatsapp',
           budgetRange: Number(budget || 0) > 800000 ? 'premium' : Number(budget || 0) > 300000 ? 'standard' : 'economy',
-          adults: 1,
-          kids: 0,
+          persons: Number(persons || 1),
+          adults: Number(normalizedParams[19] ?? 1),
+          kids: Number(normalizedParams[20] ?? 0),
           seniors: 0,
           temperature: temperature || 'cold',
           status: status || 'new',

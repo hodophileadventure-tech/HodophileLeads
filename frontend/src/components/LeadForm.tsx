@@ -24,7 +24,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
     destination: '',
     travelDates: { from: '', to: '' },
     createdAt: new Date().toISOString().slice(0, 10),
-    persons: 1,
+    adults: '',
+    kids: '',
     agentRemarks: '',
     remarks: '',
     potential: false,
@@ -43,7 +44,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         destination: initialData.destination || '',
         travelDates: initialData.travelDates || { from: '', to: '' },
         createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
-        persons: initialData.persons || 1,
+        adults: initialData.adults ?? (initialData.persons ? initialData.persons : '') ,
+        kids: initialData.kids ?? '',
         agentRemarks: (initialData as any).agentRemarks || '',
         remarks: (initialData as any).remarks || '',
         potential: (initialData as any).potential || false,
@@ -106,7 +108,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         address: (formData as any).address ? (formData as any).address : undefined,
         gender,
         destination: formData.destination,
-        persons: formData.persons,
+        adults: (formData as any).adults === '' ? undefined : Number((formData as any).adults),
+        kids: (formData as any).kids === '' ? undefined : Number((formData as any).kids),
         agentRemarks: (formData as any).agentRemarks,
         remarks: (formData as any).remarks,
         potential: (formData as any).potential
@@ -164,14 +167,16 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         destination: '',
         travelDates: { from: '', to: '' },
         createdAt: new Date().toISOString().slice(0, 10),
-        persons: 1,
+        adults: '',
+        kids: '',
         agentRemarks: '',
         remarks: '',
         potential: false
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Form submission error:', error);
-      setError('Could not create lead. Please check all fields and try again.');
+      const message = error?.response?.data?.message || 'Could not create lead. Please check all fields and try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -292,16 +297,30 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Enter Number of Persons</label>
-            <input
-              type="number"
-              placeholder="Number of Persons"
-              value={formData.persons || 1}
-              onChange={(e) => handleChange('persons', parseInt(e.target.value || '1', 10))}
-              className="input-field"
-              min="1"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Number of Adults</label>
+              <input
+                type="number"
+                placeholder="Adults"
+                value={(formData as any).adults ?? ''}
+                onChange={(e) => handleChange('adults', e.target.value === '' ? '' : parseInt(e.target.value, 10))}
+                className="input-field"
+                min="1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Number of Kids</label>
+              <input
+                type="number"
+                placeholder="Kids"
+                value={(formData as any).kids ?? ''}
+                onChange={(e) => handleChange('kids', e.target.value === '' ? '' : parseInt(e.target.value, 10))}
+                className="input-field"
+                min="0"
+                max="7"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">

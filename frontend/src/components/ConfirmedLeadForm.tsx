@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Modal } from './common';
 import { leadsAPI, paymentsAPI } from '../utils/api-service';
 import type { Lead } from '../types';
@@ -12,11 +12,23 @@ interface Props {
 
 export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSaved }) => {
   const [loading, setLoading] = useState(false);
-  const [hotelName, setHotelName] = useState(lead.hotelInfo?.hotelName || '');
-  const [roomType, setRoomType] = useState(lead.hotelInfo?.roomType || '');
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
-  const [roomPrice, setRoomPrice] = useState(lead.hotelInfo?.roomPrice || 0);
+  const [hotelOptions, setHotelOptions] = useState(
+    lead.hotelOptions && lead.hotelOptions.length > 0
+      ? lead.hotelOptions.map((option) => ({
+          hotelName: option.hotelName || '',
+          roomType: option.roomType || '',
+          roomPrice: option.roomPrice || 0,
+          checkIn: option.checkIn || '',
+          checkOut: option.checkOut || ''
+        }))
+      : [{
+          hotelName: lead.hotelInfo?.hotelName || '',
+          roomType: lead.hotelInfo?.roomType || '',
+          roomPrice: lead.hotelInfo?.roomPrice || 0,
+          checkIn: lead.hotelInfo?.checkIn || '',
+          checkOut: lead.hotelInfo?.checkOut || ''
+        }]
+  );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [vehicle, setVehicle] = useState('');
@@ -24,12 +36,42 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
   const [advance, setAdvance] = useState(0);
   const [method, setMethod] = useState('cash');
 
+  useEffect(() => {
+    setHotelOptions(
+      lead.hotelOptions && lead.hotelOptions.length > 0
+        ? lead.hotelOptions.map((option) => ({
+            hotelName: option.hotelName || '',
+            roomType: option.roomType || '',
+            roomPrice: option.roomPrice || 0,
+            checkIn: (option as any).checkIn || '',
+            checkOut: (option as any).checkOut || ''
+          }))
+        : [{
+            hotelName: lead.hotelInfo?.hotelName || '',
+            roomType: lead.hotelInfo?.roomType || '',
+            roomPrice: lead.hotelInfo?.roomPrice || 0,
+            checkIn: (lead.hotelInfo as any)?.checkIn || '',
+            checkOut: (lead.hotelInfo as any)?.checkOut || ''
+          }]
+    );
+  }, [lead]);
+
   const handleSave = async () => {
     setLoading(true);
     try {
-      const hotelInfo: any = { hotelName, roomType, roomPrice, checkIn, checkOut };
+      const validHotelOptions = hotelOptions
+        .filter((option) => option.hotelName || option.roomType || option.roomPrice || option.checkIn || option.checkOut)
+        .map((option) => ({
+          hotelName: option.hotelName,
+          roomType: option.roomType,
+          roomPrice: option.roomPrice,
+          checkIn: option.checkIn,
+          checkOut: option.checkOut
+        }));
+
       const updatePayload: Partial<Lead> = {
-        hotelInfo,
+        hotelInfo: validHotelOptions[0] || null,
+        hotelOptions: validHotelOptions,
         transportPreference: vehicle
       };
 
@@ -82,29 +124,74 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       }
     >
       <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium mb-1">Hotel Name</label>
-          <input className="input-field" value={hotelName} onChange={(e) => setHotelName(e.target.value)} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Room Type</label>
-          <input className="input-field" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Check-in</label>
-            <input type="date" className="input-field" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
+        {hotelOptions.map((option, index) => (
+          <div key={index} className="p-3 border rounded-lg">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <p className="font-medium">Hotel Option {index + 1}</p>
+              {hotelOptions.length > 1 && (
+                <button
+                  type="button"
+                  className="text-sm text-red-600"
+                  onClick={() => setHotelOptions((prev) => prev.filter((_, i) => i !== index))}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Hotel Name</label>
+              <input
+                className="input-field"
+                value={option.hotelName}
+                onChange={(e) => setHotelOptions((prev) => prev.map((item, i) => i === index ? { ...item, hotelName: e.target.value } : item))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Room Type</label>
+              <input
+                className="input-field"
+                value={option.roomType}
+                onChange={(e) => setHotelOptions((prev) => prev.map((item, i) => i === index ? { ...item, roomType: e.target.value } : item))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Check-in</label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={option.checkIn}
+                  onChange={(e) => setHotelOptions((prev) => prev.map((item, i) => i === index ? { ...item, checkIn: e.target.value } : item))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Check-out</label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={option.checkOut}
+                  onChange={(e) => setHotelOptions((prev) => prev.map((item, i) => i === index ? { ...item, checkOut: e.target.value } : item))}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Room Price</label>
+              <input
+                type="number"
+                className="input-field"
+                value={option.roomPrice}
+                onChange={(e) => setHotelOptions((prev) => prev.map((item, i) => i === index ? { ...item, roomPrice: parseFloat(e.target.value || '0') } : item))}
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Check-out</label>
-            <input type="date" className="input-field" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Room Price</label>
-          <input type="number" className="input-field" value={roomPrice} onChange={(e) => setRoomPrice(parseFloat(e.target.value || '0'))} />
-        </div>
+        ))}
+        <button
+          type="button"
+          className="text-sm text-slate-700 hover:text-slate-900"
+          onClick={() => setHotelOptions((prev) => [...prev, { hotelName: '', roomType: '', roomPrice: 0, checkIn: '', checkOut: '' }])}
+        >
+          + Add another hotel option
+        </button>
 
         <div>
           <label className="block text-sm font-medium mb-1">Hotel Confirmation (optional)</label>

@@ -111,8 +111,8 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, agent_id, created_at, updated_at, profile_id, address, gender, age, agent_remarks, remarks, potential, lead_outcome
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, agent_remarks, remarks, potential, lead_outcome
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
       RETURNING *
     `;
 
@@ -130,6 +130,8 @@ export const leadsModel = {
 
     const createdAt = (data as any).createdAt || (data as any).created_at || new Date().toISOString();
     const updatedAt = createdAt;
+    const persons = (data.persons ?? (((data as any).adults ?? 0) + ((data as any).kids ?? 0))) || 1;
+    const persons = (data.persons ?? (((data as any).adults ?? 0) + ((data as any).kids ?? 0))) || 1;
     const params = [
       data.clientName || (data as any).name || null,
       data.email || null,
@@ -143,6 +145,7 @@ export const leadsModel = {
       data.travelDates ? JSON.stringify(data.travelDates) : null,
       data.hotelInfo ? JSON.stringify(data.hotelInfo) : null,
       hotelOptions.length > 0 ? JSON.stringify(hotelOptions) : null,
+      persons,
       data.agentId || (data as any).agent_id || null,
       createdAt,
       updatedAt,
@@ -150,6 +153,8 @@ export const leadsModel = {
       (data as any).address || null,
       (data as any).gender || null,
       (data as any).age || null,
+      (data as any).adults ?? null,
+      (data as any).kids ?? null,
       (data as any).agentRemarks || (data as any).agent_remarks || null,
       (data as any).remarks || null,
       (data as any).potential ? true : false,
@@ -181,8 +186,8 @@ export const leadsModel = {
       }
     }
 
-    // place profileId into params (position 16 since array is 0-based and corresponds to $16 in SQL)
-    params[15] = profileId;
+    // place profileId into params (position 17 since array is 0-based and corresponds to $17 in SQL)
+    params[16] = profileId;
 
     const result = await query(sql, params);
     return mapLeadRow(result.rows[0]);
@@ -206,6 +211,9 @@ export const leadsModel = {
       'hotel_info',
       'destinations',
       'hotel_options',
+      'persons',
+      'adults',
+      'kids',
       'notes',
       'address',
       'gender',

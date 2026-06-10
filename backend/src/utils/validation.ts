@@ -30,6 +30,8 @@ export const leadSchema = Joi.object({
     from: Joi.string().allow('').optional(),
     to: Joi.string().allow('').optional()
   }).optional(),
+  adults: Joi.number().integer().min(1).optional(),
+  kids: Joi.number().integer().min(0).max(7).optional(),
   persons: Joi.number().integer().min(1).optional(),
   budget: Joi.number().min(0).optional(),
   leadOutcome: Joi.string().valid('confirmed', 'budget_issue', 'no_reply').optional(),

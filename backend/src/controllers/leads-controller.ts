@@ -20,6 +20,12 @@ const normalizeLeadPayload = (body: any, agentId: string) => {
   const normalizedGender = typeof body.gender === 'string' && body.gender.trim()
     ? body.gender.trim()
     : undefined;
+  const normalizedAdults = body.adults === '' || body.adults == null
+    ? undefined
+    : Number(body.adults);
+  const normalizedKids = body.kids === '' || body.kids == null
+    ? undefined
+    : Number(body.kids);
   const normalizedHotelInfo = body.hotelInfo && typeof body.hotelInfo === 'object' && !Array.isArray(body.hotelInfo)
     ? body.hotelInfo
     : undefined;
@@ -48,7 +54,12 @@ const normalizeLeadPayload = (body: any, agentId: string) => {
     destination: primaryDestination,
     destinations: normalizedDestinations,
     hotelInfo: primaryHotel,
-    hotelOptions: normalizedHotelOptions
+    hotelOptions: normalizedHotelOptions,
+    adults: normalizedAdults,
+    kids: normalizedKids,
+    persons: normalizedAdults != null || normalizedKids != null
+      ? ((normalizedAdults || 0) + (normalizedKids || 0))
+      : body.persons
   };
 
   if (normalizedGender) {
@@ -121,6 +132,15 @@ export const leadsController = {
   async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const leadData = validatePayload(leadSchema, normalizeLeadPayload(req.body, req.user.id));
+
+      const existingLeads = await leadsModel.findByPhone(leadData.phone);
+      if (existingLeads.length > 0) {
+        const sameAgentLead = existingLeads.find((lead) => String(lead.agentId) === String(req.user.id));
+        if (sameAgentLead) {
+          return res.status(409).json({ message: 'Duplicate lead: a lead with this phone already exists for you.' });
+        }
+        return res.status(409).json({ message: 'This lead is already assigned to another agent.' });
+      }
 
       const lead = await leadsModel.create(leadData);
       res.status(201).json(lead);

@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS leads (
   hotel_options JSONB,
   profile_id UUID REFERENCES client_profiles(id),
   persons INTEGER NOT NULL DEFAULT 1,
+  adults INTEGER DEFAULT NULL,
+  kids INTEGER DEFAULT NULL,
   address TEXT,
   gender VARCHAR(20),
   age INTEGER,
