@@ -13,10 +13,10 @@ import { validatePayload, leadSchema } from '../utils/validation';
 const normalizeLeadPayload = (body: any, agentId: string) => {
   const destinations = Array.isArray(body.destinations)
     ? body.destinations.filter(Boolean)
-    : [];
+    : undefined;
   const hotelOptions = Array.isArray(body.hotelOptions)
     ? body.hotelOptions.filter(Boolean)
-    : [];
+    : undefined;
   const normalizedGender = typeof body.gender === 'string' && body.gender.trim()
     ? body.gender.trim()
     : undefined;
@@ -30,37 +30,57 @@ const normalizeLeadPayload = (body: any, agentId: string) => {
     ? body.hotelInfo
     : undefined;
 
-  const primaryDestination = body.destination || destinations[0] || '';
-  const normalizedDestinations = destinations.length > 0
-    ? Array.from(new Set([primaryDestination, ...destinations].filter(Boolean)))
-    : primaryDestination
-      ? [primaryDestination]
-      : [];
+  const primaryDestination = body.destination !== undefined
+    ? body.destination
+    : destinations?.[0];
 
-  const primaryHotel = normalizedHotelInfo || hotelOptions[0];
-  const normalizedHotelOptions = hotelOptions.length > 0
+  const normalizedDestinations = destinations
+    ? Array.from(new Set([...(primaryDestination ? [primaryDestination] : []), ...destinations].filter(Boolean)))
+    : undefined;
+
+  const primaryHotel = normalizedHotelInfo || hotelOptions?.[0];
+  const normalizedHotelOptions = hotelOptions
     ? Array.from(new Set([
         ...(primaryHotel ? [JSON.stringify(primaryHotel)] : []),
         ...hotelOptions.map((item: any) => JSON.stringify(item))
       ]))
         .map((item) => JSON.parse(item))
-    : primaryHotel
-      ? [primaryHotel]
-      : [];
+    : undefined;
 
-  const payload = {
+  const payload: any = {
     ...body,
-    agentId,
-    destination: primaryDestination,
-    destinations: normalizedDestinations,
-    hotelInfo: primaryHotel,
-    hotelOptions: normalizedHotelOptions,
-    adults: normalizedAdults,
-    kids: normalizedKids,
-    persons: normalizedAdults != null || normalizedKids != null
-      ? ((normalizedAdults || 0) + (normalizedKids || 0))
-      : body.persons
+    agentId
   };
+
+  if (primaryDestination !== undefined) {
+    payload.destination = primaryDestination;
+  }
+
+  if (normalizedDestinations !== undefined) {
+    payload.destinations = normalizedDestinations;
+  }
+
+  if (primaryHotel !== undefined) {
+    payload.hotelInfo = primaryHotel;
+  }
+
+  if (normalizedHotelOptions !== undefined) {
+    payload.hotelOptions = normalizedHotelOptions;
+  }
+
+  if (normalizedAdults !== undefined) {
+    payload.adults = normalizedAdults;
+  }
+
+  if (normalizedKids !== undefined) {
+    payload.kids = normalizedKids;
+  }
+
+  if (normalizedAdults != null || normalizedKids != null) {
+    payload.persons = ((normalizedAdults || 0) + (normalizedKids || 0));
+  } else if (body.persons !== undefined) {
+    payload.persons = body.persons;
+  }
 
   if (normalizedGender) {
     payload.gender = normalizedGender;

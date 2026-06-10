@@ -632,18 +632,20 @@ export const App: React.FC = () => {
                                   return;
                                 }
                                 (async () => {
-                                  const payload: any = {};
-                                  if (value === 'potential') payload.potential = true; else payload.potential = false;
+                                  const payload: any = {
+                                    potential: value === 'potential'
+                                  };
                                   if (value === 'dead') payload.status = 'completed';
                                   else if (value === 'in_progress') payload.status = 'contacted';
-                                  else if (value === 'new') payload.status = 'new';
+                                  else if (value === 'new' || value === 'potential') payload.status = 'new';
                                   try {
                                     const resp = await leadsAPI.update(String(selectedLead.id), payload);
                                     setSelectedLead(resp.data);
                                     await refreshLeads();
-                                  } catch (err) {
+                                  } catch (err: any) {
                                     console.error('Failed to update lead status', err);
-                                    alert('Failed to update lead status');
+                                    const message = err?.response?.data?.message || err?.message || 'Unknown error';
+                                    alert(`Failed to update lead status: ${message}`);
                                   }
                                 })();
                               }}

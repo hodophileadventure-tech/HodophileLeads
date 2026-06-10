@@ -235,6 +235,10 @@ export const leadsModel = {
     ]);
 
     Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined) {
+        return;
+      }
+
       if (key === 'travelDates') {
         fields.push(`travel_dates = $${paramCount}`);
         let dateVal: any = value;

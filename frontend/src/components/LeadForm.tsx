@@ -148,7 +148,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         (payload as any).status = 'booked';
       } else if (status === 'in_progress') {
         (payload as any).status = 'contacted';
-      } else if (status === 'new') {
+      } else if (status === 'new' || status === 'potential') {
         (payload as any).status = 'new';
       }
 
