@@ -8,6 +8,7 @@ import pakistanGovtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-19
 import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
 import fbrLogo from '../assets/logos/images-removebg-preview.png';
 import { leadsAPI, quoteRequestsAPI } from '../utils/api-service';
+import type { Lead } from '../types';
 import './QuoteInvoicePage.css';
 
 type TableRow = {
@@ -136,7 +137,8 @@ export const QuoteInvoicePage: React.FC<{
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
-  const [loading, setLoading] = useState(!!leadId || !!requestId);
+  const [loading, setLoading] = useState<boolean>(!!leadId || !!requestId);
+  const [leadData, setLeadData] = useState<Lead | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const displayQuoteNumber = data.quoteNumber || previewQuoteNumber(data.date);
@@ -151,6 +153,7 @@ export const QuoteInvoicePage: React.FC<{
         const response = await leadsAPI.getById(leadId);
         const lead = response.data;
 
+        setLeadData(lead);
         setData((current) => ({
           ...current,
           customerName: lead.clientName || '',
@@ -419,9 +422,105 @@ export const QuoteInvoicePage: React.FC<{
     }
   };
 
+  const showLeadDetails = Boolean(leadId && requestId);
+  const shellStyle = showLeadDetails
+    ? { gridTemplateColumns: 'minmax(0, 420px) minmax(0, 560px) minmax(0, 1fr)' }
+    : undefined;
+
   return (
     <div className="quote-invoice-root">
-      <div className="quote-invoice-shell">
+      <div className="quote-invoice-shell" style={shellStyle}>
+        {showLeadDetails && (
+          <div className="quote-invoice-sidebar">
+            <div className="quote-invoice-panel">
+              <h2>Agent Lead Details</h2>
+              {loading && !leadData ? (
+                <div className="text-center py-8 text-slate-500">
+                  <p>Loading lead details...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="field-row">
+                    <div>
+                      <label>Name</label>
+                      <div className="field-value">{leadData?.clientName || '—'}</div>
+                    </div>
+                    <div>
+                      <label>Phone</label>
+                      <div className="field-value">{leadData?.phone || '—'}</div>
+                    </div>
+                  </div>
+                  <div className="field-row">
+                    <div>
+                      <label>Email</label>
+                      <div className="field-value">{leadData?.email || '—'}</div>
+                    </div>
+                    <div>
+                      <label>Address</label>
+                      <div className="field-value">{leadData?.address || '—'}</div>
+                    </div>
+                  </div>
+                  <div className="field-row">
+                    <div>
+                      <label>Destination</label>
+                      <div className="field-value">{leadData?.destination || '—'}</div>
+                    </div>
+                    <div>
+                      <label>Travel Dates</label>
+                      <div className="field-value">
+                        {leadData?.travelDates?.from || '—'} — {leadData?.travelDates?.to || '—'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="field-row">
+                    <div>
+                      <label>Adults</label>
+                      <div className="field-value">{leadData?.adults ?? '—'}</div>
+                    </div>
+                    <div>
+                      <label>Kids</label>
+                      <div className="field-value">{leadData?.kids ?? '—'}</div>
+                    </div>
+                  </div>
+                  <div className="field-row-sm">
+                    <div>
+                      <label>Gender</label>
+                      <div className="field-value">{leadData?.gender || '—'}</div>
+                    </div>
+                    <div>
+                      <label>Age</label>
+                      <div className="field-value">{leadData?.age ?? '—'}</div>
+                    </div>
+                    <div>
+                      <label>Status</label>
+                      <div className="field-value">
+                        {leadData?.leadStatus || leadData?.status || (leadData?.potential ? 'Potential' : 'New')}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label>Agent Remarks</label>
+                    <div className="field-value">{leadData?.agentRemarks || '—'}</div>
+                  </div>
+                  <div>
+                    <label>Remarks</label>
+                    <div className="field-value">{leadData?.remarks || '—'}</div>
+                  </div>
+                  <div className="field-row">
+                    <div>
+                      <label>Created</label>
+                      <div className="field-value">{leadData?.createdAt ? formatDate(leadData.createdAt) : '—'}</div>
+                    </div>
+                    <div>
+                      <label>Lead Source</label>
+                      <div className="field-value">{leadData?.leadSource || leadData?.source || '—'}</div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
         <div className="quote-invoice-sidebar">
           <div className="quote-invoice-panel">
             {loading && (
