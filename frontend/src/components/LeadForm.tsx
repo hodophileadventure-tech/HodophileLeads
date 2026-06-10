@@ -289,11 +289,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               onChange={(e) => handleChange('tourType', e.target.value)}
             >
               <option value="">Select tour type</option>
-              <option value="Family">Family</option>
-              <option value="Honeymoon">Honeymoon</option>
-              <option value="Adventure">Adventure</option>
-              <option value="Corporate">Corporate</option>
-              <option value="Custom">Custom</option>
+              <option value="private">Private</option>
+              <option value="group">Group</option>
             </select>
           </div>
 

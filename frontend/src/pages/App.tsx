@@ -685,10 +685,6 @@ export const App: React.FC = () => {
                             <p className="text-sm text-slate-600 dark:text-slate-400">Status</p>
                             <p className="capitalize">{selectedLead.status}</p>
                           </div>
-                          <div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Temperature</p>
-                            <p className="capitalize">{selectedLead.temperature}</p>
-                          </div>
                         </div>
                       </div>
 

@@ -57,7 +57,8 @@ export const AgentPanel: React.FC = () => {
   const [followUpDateTime, setFollowUpDateTime] = useState('');
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
-  const [searchPhone, setSearchPhone] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<'phone' | 'agent'>('phone');
   const [openSearchLeadForm, setOpenSearchLeadForm] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -364,21 +365,21 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
-  const handleSearchPhone = async () => {
-    if (!searchPhone) return;
-    try {
-      const res: any = await (leadsAPI as any).searchByPhone(searchPhone);
-      const results: Lead[] = res.data || [];
-      if (results.length > 0) {
-        // open LeadForm prefilled with existing lead data
-        setSelectedLead(results[0]);
-      } else {
-        // open empty LeadForm with phone prefilled for a new lead
-        setSelectedLead({ phone: searchPhone } as any);
+  const handleSearch = async () => {
+    if (!searchQuery) return;
+    if (searchMode === 'phone') {
+      try {
+        const res: any = await (leadsAPI as any).searchByPhone(searchQuery);
+        const results: Lead[] = res.data || [];
+        if (results.length > 0) {
+          setSelectedLead(results[0]);
+        } else {
+          setSelectedLead({ phone: searchQuery } as any);
+        }
+        setOpenSearchLeadForm(true);
+      } catch (err) {
+        console.error(err);
       }
-      setOpenSearchLeadForm(true);
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -435,10 +436,25 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
   const filteredLeads = leads.filter((lead) => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'canceled') return String((lead as any).status || '').toLowerCase() === 'canceled';
-    return getLeadLifecycleState(lead) === activeFilter;
+    if (activeFilter !== 'all') {
+      if (activeFilter === 'canceled') {
+        if (String((lead as any).status || '').toLowerCase() !== 'canceled') return false;
+      } else if (getLeadLifecycleState(lead) !== activeFilter) {
+        return false;
+      }
+    }
+
+    if (!normalizedSearch) return true;
+
+    if (searchMode === 'phone') {
+      return String(lead.phone || '').toLowerCase().includes(normalizedSearch);
+    }
+
+    const agentName = String((lead as any).agentName || (lead as any).agent_name || '').toLowerCase();
+    const agentId = String(lead.agentId || '').toLowerCase();
+    return agentId.includes(normalizedSearch) || agentName.includes(normalizedSearch);
   });
 
   const counts = {
@@ -480,19 +496,32 @@ export const AgentPanel: React.FC = () => {
         <video ref={screenVideoRef} className="hidden" muted playsInline />
       </div>
 
-      <div className="flex items-center gap-3">
-        <input className="input-field flex-1" placeholder="Search phone or enter to create" value={searchPhone} onChange={(e) => setSearchPhone(e.target.value)} />
-        <Button onClick={handleSearchPhone}>Search</Button>
-        <LeadForm
-          onSuccess={handleNewLead}
-          initialData={selectedLead || undefined}
-          initiallyOpen={openSearchLeadForm}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setOpenSearchLeadForm(false);
-            }
-          }}
-        />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2">
+          <select className="input-field" value={searchMode} onChange={(e) => setSearchMode(e.target.value as 'phone' | 'agent')}>
+            <option value="phone">Search by Number</option>
+            <option value="agent">Search by Agent</option>
+          </select>
+          <input
+            className="input-field flex-1"
+            placeholder={searchMode === 'phone' ? 'Search phone or enter to create' : 'Search by agent id or name'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={handleSearch}>Search</Button>
+          <LeadForm
+            onSuccess={handleNewLead}
+            initialData={selectedLead || undefined}
+            initiallyOpen={openSearchLeadForm}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setOpenSearchLeadForm(false);
+              }
+            }}
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

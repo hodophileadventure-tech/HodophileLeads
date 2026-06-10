@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatDate, formatCurrency, getTemperatureColor, getStatusColor, getKarachiLocalDateTimeString, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { formatDate, formatCurrency, getStatusColor, getKarachiLocalDateTimeString, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
 import type { Lead } from '../types';
 import { Badge } from './common';
 import { availabilityAPI, leadsAPI, followUpsAPI } from '../utils/api-service';
@@ -87,9 +87,6 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge color={getTemperatureColor(lead.temperature)}>
-            {lead.temperature.toUpperCase()}
-          </Badge>
           <Badge color={lifecycle.badge}>
             {lifecycle.label.toUpperCase()}
           </Badge>
