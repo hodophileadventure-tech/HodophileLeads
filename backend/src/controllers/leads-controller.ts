@@ -88,6 +88,20 @@ const normalizeLeadPayload = (body: any, agentId: string) => {
     delete payload.gender;
   }
 
+  // Remove empty numeric fields so Joi treats them as missing, not invalid
+  if (body.adults === '' || body.adults == null) {
+    delete payload.adults;
+  }
+  if (body.kids === '' || body.kids == null) {
+    delete payload.kids;
+  }
+  if (body.age === '' || body.age == null) {
+    delete payload.age;
+  }
+  if (body.persons === '' || body.persons == null) {
+    delete payload.persons;
+  }
+
   if (!payload.hotelInfo) {
     delete payload.hotelInfo;
   }
