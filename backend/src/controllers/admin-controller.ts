@@ -6,7 +6,7 @@ import ExcelJS from 'exceljs';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { followUpsModel } from '../models/FollowUp';
 import { screenCaptureModel } from '../models/ScreenCapture';
-import { query } from '../utils/database';
+import { query, getClient } from '../utils/database';
 import { hashPassword } from '../utils/auth';
 import { consumeScreenCaptureRequest, createScreenCaptureRequest, getScreenCaptureRequest, sendToUser } from '../utils/wsServer';
 
@@ -145,35 +145,39 @@ export const adminController = {
 
   async deleteAgent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     const agentId = req.params.id;
-    try {
-      await query('BEGIN');
-      // Clean up or detach references that do not cascade automatically
-      await query('DELETE FROM quote_requests WHERE requested_by = $1', [agentId]);
-      await query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
-      await query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
-      await query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
-      await query('DELETE FROM screen_captures WHERE agent_id = $1', [agentId]);
-      await query('DELETE FROM leads WHERE agent_id = $1', [agentId]);
-      await query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
-      await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
-      await query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
-      await query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
-      await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [agentId]);
+    const client = await getClient();
 
-      const result = await query("DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id", [agentId]);
+    try {
+      await client.query('BEGIN');
+      // Clean up or detach references that do not cascade automatically
+      await client.query('DELETE FROM quote_requests WHERE requested_by = $1', [agentId]);
+      await client.query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
+      await client.query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
+      await client.query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      await client.query('DELETE FROM screen_captures WHERE agent_id = $1', [agentId]);
+      await client.query('DELETE FROM leads WHERE agent_id = $1', [agentId]);
+      await client.query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      await client.query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
+      await client.query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
+      await client.query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
+      await client.query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [agentId]);
+
+      const result = await client.query("DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id", [agentId]);
       if (!result.rowCount) {
-        await query('ROLLBACK');
+        await client.query('ROLLBACK');
         return res.status(404).json({ message: 'Agent not found or cannot delete admin user' });
       }
-      await query('COMMIT');
+      await client.query('COMMIT');
       res.json({ success: true });
     } catch (err) {
       try {
-        await query('ROLLBACK');
+        await client.query('ROLLBACK');
       } catch (rollbackErr) {
         console.error('Rollback failed while deleting agent:', rollbackErr);
       }
       next(err);
+    } finally {
+      client.release();
     }
   },
 
