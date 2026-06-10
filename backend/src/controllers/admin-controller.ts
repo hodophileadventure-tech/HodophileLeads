@@ -144,14 +144,28 @@ export const adminController = {
   },
 
   async deleteAgent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    const agentId = req.params.id;
     try {
-      const agentId = req.params.id;
+      await query('BEGIN');
+      // Clean up or detach references that do not cascade automatically
+      await query('DELETE FROM quote_requests WHERE requested_by = $1', [agentId]);
+      await query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
+      await query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
+      await query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
+      await query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
+      await query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
+      await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [agentId]);
+
       const result = await query("DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id", [agentId]);
       if (!result.rowCount) {
+        await query('ROLLBACK');
         return res.status(404).json({ message: 'Agent not found or cannot delete admin user' });
       }
+      await query('COMMIT');
       res.json({ success: true });
     } catch (err) {
+      await query('ROLLBACK');
       next(err);
     }
   },
