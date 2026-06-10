@@ -155,11 +155,12 @@ export const adminController = {
       await client.query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
       await client.query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
       await client.query('DELETE FROM screen_captures WHERE agent_id = $1', [agentId]);
-      await client.query('DELETE FROM leads WHERE agent_id = $1', [agentId]);
-      await client.query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
-      await client.query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
-      await client.query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
       await client.query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
+      await client.query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
+      await client.query('DELETE FROM notifications WHERE lead_id IN (SELECT id FROM leads WHERE agent_id = $1)', [agentId]);
+      await client.query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      await client.query('DELETE FROM leads WHERE agent_id = $1', [agentId]);
+      await client.query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
       await client.query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [agentId]);
 
       const result = await client.query("DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id", [agentId]);
