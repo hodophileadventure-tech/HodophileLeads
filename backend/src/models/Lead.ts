@@ -131,7 +131,6 @@ export const leadsModel = {
     const createdAt = (data as any).createdAt || (data as any).created_at || new Date().toISOString();
     const updatedAt = createdAt;
     const persons = (data.persons ?? (((data as any).adults ?? 0) + ((data as any).kids ?? 0))) || 1;
-    const persons = (data.persons ?? (((data as any).adults ?? 0) + ((data as any).kids ?? 0))) || 1;
     const params = [
       data.clientName || (data as any).name || null,
       data.email || null,
