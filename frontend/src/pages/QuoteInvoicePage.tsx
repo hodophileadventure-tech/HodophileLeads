@@ -427,6 +427,7 @@ export const QuoteInvoicePage: React.FC<{
 
       await quoteRequestsAPI.save(requestId, documentData);
       setMessage('Quotation saved successfully!');
+      window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { requestId } }));
       if (onSaved) {
         onSaved(requestId);
       }
