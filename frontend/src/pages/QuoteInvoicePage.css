@@ -31,9 +31,7 @@ html, body {
   grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
-}
-
-.quote-invoice-shell {
+  min-width: 1200px;
   overflow: visible;
 }
 
@@ -176,7 +174,7 @@ html, body {
   justify-content: center;
   align-items: flex-start;
   padding: 24px 0;
-  overflow: auto;
+  overflow: visible;
 }
 
 .pdf-canvas {
@@ -184,7 +182,7 @@ html, body {
   min-height: 3300px;
   background: #ffffff;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
   transform-origin: top left;
   transform: scale(0.34);
@@ -206,7 +204,7 @@ html, body {
   position: relative;
   width: 2550px;
   min-height: 3300px;
-  overflow: hidden;
+  overflow: visible;
   padding-top: 720px;
 }
 
