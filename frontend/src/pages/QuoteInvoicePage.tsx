@@ -150,7 +150,7 @@ export const QuoteInvoicePage: React.FC<{
 
   // Load lead data if leadId is provided
   useEffect(() => {
-    if (!leadId) return;
+    if (!leadId || requestId) return; // Skip lead data loading if viewing a saved quotation
 
     const loadLeadData = async () => {
       try {
@@ -205,6 +205,16 @@ export const QuoteInvoicePage: React.FC<{
         setLoading(true);
         const response = await quoteRequestsAPI.getById(requestId);
         const request = response.data;
+
+        // Load lead data for display
+        if (request.leadId) {
+          try {
+            const leadResponse = await leadsAPI.getById(request.leadId);
+            setLeadData(leadResponse.data);
+          } catch (err) {
+            console.error('Failed to load lead data:', err);
+          }
+        }
 
         if (request.documentData) {
           const payload = request.documentData;
