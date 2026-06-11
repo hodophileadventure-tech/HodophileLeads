@@ -155,5 +155,121 @@ export const quoteRequestsController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async deleteRequest(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const requestId = req.params.id;
+
+      const existingRequest = await quoteRequestsModel.findById(requestId);
+      if (!existingRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      // Only the agent who requested it can delete their own request
+      if (req.user.role === 'agent' && existingRequest.requestedBy !== req.user.id) {
+        return res.status(403).json({ message: 'You can only delete your own quote requests' });
+      }
+
+      // Admin can delete any request
+      if (req.user.role !== 'agent' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      const deletedRequest = await quoteRequestsModel.delete(requestId);
+      
+      // Notify admin if agent deleted
+      if (req.user.role === 'agent') {
+        const admins = await query('SELECT id FROM users WHERE role = $1', ['admin']);
+        const lead = await leadsModel.findById(existingRequest.leadId);
+        const message = `Quote request deleted by agent for ${lead?.clientName || lead?.phone || 'unknown'}`;
+        
+        for (const admin of admins.rows) {
+          const notification = await notificationsModel.create({
+            userId: admin.id,
+            leadId: existingRequest.leadId,
+            type: 'quote_deleted',
+            message,
+            payload: {
+              requestId,
+              leadId: existingRequest.leadId,
+              requestType: existingRequest.requestType
+            },
+            is_read: false
+          });
+          sendToUser(admin.id, 'notification', notification);
+        }
+      }
+
+      res.json(deletedRequest);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async reRequestQuote(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const requestId = req.params.id;
+      const { notes } = req.body;
+
+      if (!notes || notes.trim() === '') {
+        return res.status(400).json({ message: 'Please provide notes for the re-request' });
+      }
+
+      const existingRequest = await quoteRequestsModel.findById(requestId);
+      if (!existingRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      // Only agent can re-request
+      if (req.user.role !== 'agent') {
+        return res.status(403).json({ message: 'Only agents can re-request quotations' });
+      }
+
+      const lead = await leadsModel.findById(existingRequest.leadId);
+      if (!lead || lead.agentId !== req.user.id) {
+        return res.status(403).json({ message: 'You can only re-request documents for your own leads' });
+      }
+
+      // Create new re-request with notes
+      const newRequest = await quoteRequestsModel.create({
+        leadId: existingRequest.leadId,
+        requestedBy: req.user.id,
+        requestType: existingRequest.requestType,
+        status: 'requested',
+        reRequestNotes: notes.trim(),
+        parentRequestId: requestId
+      });
+
+      // Notify admins
+      const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
+      const actorLabel = req.user.email || 'Agent';
+      const notificationMessage = `Re-request: ${actorLabel} re-requested a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
+
+      for (const admin of admins.rows) {
+        const notification = await notificationsModel.create({
+          userId: admin.id,
+          leadId: lead.id,
+          type: 'quote_re_request',
+          message: notificationMessage,
+          payload: {
+            requestId: newRequest.id,
+            parentRequestId: requestId,
+            leadId: lead.id,
+            requestType: existingRequest.requestType,
+            notes,
+            requestedBy: req.user.id,
+            requestedByEmail: req.user.email
+          },
+          is_read: false
+        });
+
+        sendToUser(admin.id, 'notification', notification);
+      }
+
+      res.status(201).json(newRequest);
+    } catch (error) {
+      next(error);
+    }
   }
 };

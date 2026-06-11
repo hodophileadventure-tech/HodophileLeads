@@ -12,6 +12,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
   const [savedRequests, setSavedRequests] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadRequests();
@@ -44,7 +45,25 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
     }
   };
 
-  const renderRequestCard = (request: QuoteRequest, actionLabel: string) => (
+  const handleDelete = async (requestId: string) => {
+    if (!window.confirm('Are you sure you want to delete this quote request? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeletingId(requestId);
+      await quoteRequestsAPI.delete(requestId);
+      setPendingRequests(pendingRequests.filter(r => r.id !== requestId));
+      setSavedRequests(savedRequests.filter(r => r.id !== requestId));
+    } catch (err) {
+      console.error('Failed to delete quote request:', err);
+      alert('Failed to delete quote request. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const renderRequestCard = (request: QuoteRequest, actionLabel: string, isPending: boolean = true) => (
     <div
       key={request.id}
       className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition"
@@ -61,10 +80,20 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
             <span className="px-2 py-1 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 capitalize">
               {request.status === 'saved' ? 'Created' : 'Pending'}
             </span>
+            {request.reRequestNotes && (
+              <span className="px-2 py-1 rounded text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+                Re-requested
+              </span>
+            )}
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
             Requested by: <span className="font-medium">{request.requestedByName || 'Unknown'}</span>
           </p>
+          {request.reRequestNotes && (
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 italic">
+              Changes needed: {request.reRequestNotes}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-xs text-slate-500 dark:text-slate-400">Phone</p>
@@ -76,7 +105,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
             </div>
           </div>
         </div>
-        <div className="text-right space-y-2">
+        <div className="text-right space-y-2 flex flex-col">
           <p className="text-xs text-slate-500 dark:text-slate-400">
             {new Date(request.createdAt).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -84,13 +113,57 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
               day: 'numeric',
             })}
           </p>
-          <Button variant="primary" size="sm" onClick={() => onSelectRequest(request)}>
-            {actionLabel}
-          </Button>
+          {isPending && (
+            <Button variant="primary" size="sm" onClick={() => onSelectRequest(request)}>
+              {actionLabel}
+            </Button>
+          )}
+          {!isPending && (
+            <>
+              <Button variant="primary" size="sm" onClick={() => onSelectRequest(request)}>
+                {actionLabel}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const notes = window.prompt('What changes would you like to make to this quotation?', request.reRequestNotes || '');
+                  if (notes) {
+                    handleReRequest(request.id, notes);
+                  }
+                }}
+                className="text-orange-600 dark:text-orange-400"
+              >
+                Re-request
+              </Button>
+            </>
+          )}
+          {isPending && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => handleDelete(request.id)}
+              disabled={deletingId === request.id}
+              className="text-red-600 dark:text-red-400"
+            >
+              {deletingId === request.id ? 'Deleting...' : 'Delete'}
+            </Button>
+          )}
         </div>
       </div>
     </div>
   );
+
+  const handleReRequest = async (requestId: string, notes: string) => {
+    try {
+      await quoteRequestsAPI.reRequest(requestId, notes);
+      alert('Re-request submitted. Admin will be notified.');
+      loadRequests();
+    } catch (err) {
+      console.error('Failed to re-request quote:', err);
+      alert('Failed to re-request quote. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -136,7 +209,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
           </div>
         ) : (
           <div className="space-y-3">
-            {pendingRequests.map((request) => renderRequestCard(request, `Create ${request.requestType === 'quotation' ? 'Quotation' : 'Invoice'}`))}
+            {pendingRequests.map((request) => renderRequestCard(request, `Create ${request.requestType === 'quotation' ? 'Quotation' : 'Invoice'}`, true))}
           </div>
         )}
       </section>
@@ -158,7 +231,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
           </div>
         ) : (
           <div className="space-y-3">
-            {savedRequests.map((request) => renderRequestCard(request, 'View Document'))}
+            {savedRequests.map((request) => renderRequestCard(request, 'View Document', false))}
           </div>
         )}
       </section>

@@ -261,6 +261,8 @@ async function migrate() {
         document_data JSONB,
         resolved_by UUID REFERENCES users(id),
         resolved_at TIMESTAMP,
+        re_request_notes TEXT,
+        parent_request_id UUID REFERENCES quote_requests(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

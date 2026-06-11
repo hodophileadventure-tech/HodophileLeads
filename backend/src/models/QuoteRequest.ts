@@ -13,6 +13,8 @@ const mapQuoteRequestRow = (row: any) => {
     documentData: row.document_data || row.documentData || null,
     resolvedBy: row.resolved_by || row.resolvedBy || null,
     resolvedAt: row.resolved_at || row.resolvedAt || null,
+    reRequestNotes: row.re_request_notes || row.reRequestNotes || null,
+    parentRequestId: row.parent_request_id || row.parentRequestId || null,
     createdAt: row.created_at || row.createdAt,
     updatedAt: row.updated_at || row.updatedAt,
     requestedByName: row.requested_by_name || row.requestedByName || null,
@@ -33,9 +35,11 @@ export const quoteRequestsModel = {
         document_data,
         resolved_by,
         resolved_at,
+        re_request_notes,
+        parent_request_id,
         created_at,
         updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
       RETURNING *
     `;
     const params = [
@@ -45,7 +49,9 @@ export const quoteRequestsModel = {
       data.status || 'requested',
       data.documentData || null,
       data.resolvedBy || null,
-      data.resolvedAt || null
+      data.resolvedAt || null,
+      data.reRequestNotes || null,
+      data.parentRequestId || null
     ];
     const res = await query(sql, params);
     return mapQuoteRequestRow(res.rows[0]);
@@ -117,6 +123,14 @@ export const quoteRequestsModel = {
       fields.push(`resolved_at = $${paramIndex++}`);
       params.push(data.resolvedAt);
     }
+    if (data.reRequestNotes !== undefined) {
+      fields.push(`re_request_notes = $${paramIndex++}`);
+      params.push(data.reRequestNotes);
+    }
+    if (data.parentRequestId !== undefined) {
+      fields.push(`parent_request_id = $${paramIndex++}`);
+      params.push(data.parentRequestId);
+    }
 
     if (fields.length === 0) {
       const existing = await this.findById(id);
@@ -128,6 +142,11 @@ export const quoteRequestsModel = {
     params.push(id);
 
     const res = await query(sql, params);
+    return mapQuoteRequestRow(res.rows[0]);
+  },
+
+  async delete(id: string) {
+    const res = await query('DELETE FROM quote_requests WHERE id = $1 RETURNING *', [id]);
     return mapQuoteRequestRow(res.rows[0]);
   }
 };

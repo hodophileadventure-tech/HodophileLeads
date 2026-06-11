@@ -9,3 +9,5 @@ quoteRequestsRouter.get('/', quoteRequestsController.listByUser);
 quoteRequestsRouter.get('/pending', roleMiddleware(['admin']), quoteRequestsController.listPending);
 quoteRequestsRouter.get('/:id', quoteRequestsController.getById);
 quoteRequestsRouter.post('/:id/save', roleMiddleware(['admin']), quoteRequestsController.saveRequest);
+quoteRequestsRouter.delete('/:id', quoteRequestsController.deleteRequest);
+quoteRequestsRouter.post('/:id/re-request', roleMiddleware(['agent']), quoteRequestsController.reRequestQuote);

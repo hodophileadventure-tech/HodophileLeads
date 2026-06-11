@@ -467,6 +467,30 @@ export const QuoteInvoicePage: React.FC<{
     }
   };
 
+  const handleReRequest = async () => {
+    if (!requestId) {
+      setMessage('No request ID available. Cannot re-request quotation.');
+      return;
+    }
+
+    const notes = window.prompt('What changes would you like to make to this quotation?', '');
+    if (!notes || notes.trim() === '') {
+      return;
+    }
+
+    try {
+      setMessage('Submitting re-request...');
+      await quoteRequestsAPI.reRequest(requestId, notes);
+      setMessage('Re-request submitted successfully! Admin will be notified.');
+      setTimeout(() => {
+        if (onClose) onClose();
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to re-request quotation:', error);
+      setMessage('Failed to re-request quotation. Please try again.');
+    }
+  };
+
   const showLeadDetails = Boolean(leadId && requestId);
   const shellStyle = showLeadDetails
     ? { gridTemplateColumns: 'minmax(0, 420px) minmax(0, 560px) minmax(0, 1fr)' }
@@ -690,6 +714,11 @@ export const QuoteInvoicePage: React.FC<{
               {requestId && !viewOnly && (
                 <button type="button" className="btn-primary" style={{ gridColumn: '1 / -1', backgroundColor: '#10b981' }} onClick={saveQuotation}>
                   Save Quotation
+                </button>
+              )}
+              {requestId && viewOnly && (
+                <button type="button" className="btn-primary" style={{ gridColumn: '1 / -1', backgroundColor: '#f59e0b' }} onClick={handleReRequest}>
+                  Re-request Changes
                 </button>
               )}
             </div>

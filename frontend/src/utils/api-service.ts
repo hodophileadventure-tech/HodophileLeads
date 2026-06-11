@@ -91,7 +91,9 @@ export const quoteRequestsAPI = {
   list: () => apiClient.get<QuoteRequest[]>('/quote-requests'),
   listPending: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending'),
   getById: (id: string) => apiClient.get<QuoteRequest>(`/quote-requests/${id}`),
-  save: (requestId: string, documentData: any) => apiClient.post(`/quote-requests/${requestId}/save`, { documentData })
+  save: (requestId: string, documentData: any) => apiClient.post(`/quote-requests/${requestId}/save`, { documentData }),
+  delete: (id: string) => apiClient.delete(`/quote-requests/${id}`),
+  reRequest: (id: string, notes: string) => apiClient.post(`/quote-requests/${id}/re-request`, { notes })
 };
 (adminAPI as any).getAgentsRevenueStats = () => apiClient.get('/admin/agents/revenue-stats');
 (adminAPI as any).createAgent = (data: { email: string; name: string; password: string; role?: string }) =>

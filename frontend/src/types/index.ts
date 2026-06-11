@@ -193,6 +193,8 @@ export interface QuoteRequest {
   documentData?: any;
   resolvedBy?: string | null;
   resolvedAt?: string | null;
+  reRequestNotes?: string | null;
+  parentRequestId?: string | null;
   createdAt: string;
   updatedAt: string;
   requestedByName?: string | null;
