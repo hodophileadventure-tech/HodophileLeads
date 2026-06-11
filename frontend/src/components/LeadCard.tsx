@@ -131,6 +131,20 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           <p className="text-slate-600 dark:text-slate-400">Budget</p>
           <p className="font-medium">{formatCurrency(lead.budget)}</p>
         </div>
+        <div>
+          <p className="text-slate-600 dark:text-slate-400">Created Date</p>
+          <p className="font-medium text-xs sm:text-sm">{formatDate(lead.createdAt)}</p>
+        </div>
+        <div>
+          <p className="text-slate-600 dark:text-slate-400">Tour Type</p>
+          <p className="font-medium">{lead.tourType ? lead.tourType.charAt(0).toUpperCase() + lead.tourType.slice(1) : 'Not set'}</p>
+        </div>
+        {lead.agentRemarks && (
+          <div className="sm:col-span-2">
+            <p className="text-slate-600 dark:text-slate-400">Agent Remarks</p>
+            <p className="font-medium text-xs break-words">{lead.agentRemarks}</p>
+          </div>
+        )}
         {lead.hotelInfo && (
           <div className="sm:col-span-2 rounded-lg bg-slate-50 dark:bg-slate-800 p-3">
             <div className="flex items-center justify-between gap-2 mb-1">
