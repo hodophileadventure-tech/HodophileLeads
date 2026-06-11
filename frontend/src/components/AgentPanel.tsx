@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI, quoteRequestsAPI } from '../utils/api-service';
 import { LeadForm } from './LeadForm';
 import ConfirmedLeadForm from './ConfirmedLeadForm';
+import { PendingQuotesPanel } from './PendingQuotesPanel';
 import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
@@ -612,6 +613,10 @@ export const AgentPanel: React.FC = () => {
           setSelectedLead(null);
         }} />
       )}
+
+      <PendingQuotesPanel onSelectRequest={(request) => {
+        setSelectedRequest(request);
+      }} />
 
       <section className="card">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
