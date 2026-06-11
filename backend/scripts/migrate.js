@@ -117,18 +117,27 @@ async function migrate() {
     `);
     console.log('✅ Leads table created');
 
-    await client.query('ALTER TABLE leads ALTER COLUMN client_name DROP NOT NULL');
-    await client.query('ALTER TABLE leads ALTER COLUMN email DROP NOT NULL');
-    await client.query('ALTER TABLE leads ALTER COLUMN destination DROP NOT NULL');
-    await client.query('ALTER TABLE leads ALTER COLUMN travel_dates DROP NOT NULL');
-
-    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
-    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
-    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP');
-    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS lead_outcome VARCHAR(50)');
-    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS adults INTEGER');
-    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS kids INTEGER');
-    await client.query('ALTER TABLE leads ADD COLUMN IF NOT EXISTS tour_type VARCHAR(100)');
+    // Add missing columns if they don't exist (safely)
+    const addColumnCommands = [
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_reason TEXT',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS lead_outcome VARCHAR(50)',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS adults INTEGER',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS kids INTEGER',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS tour_type VARCHAR(100)'
+    ];
+    
+    for (const cmd of addColumnCommands) {
+      try {
+        await client.query(cmd);
+      } catch (err) {
+        // Column might already exist - ignore
+        if (err.code !== '42701') { // 42701 = duplicate column
+          console.warn(`Warning: ${cmd} - ${err.message}`);
+        }
+      }
+    }
     console.log('✅ Lead cancel tracking columns ensured');
 
     // 4. Follow-ups Table (depends on leads, users)
