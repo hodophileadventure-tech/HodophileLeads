@@ -70,8 +70,23 @@ const defaultData: DocumentData = {
   totalDue: '',
   advanceAmount: '',
   balanceDue: '',
-  notes: [],
-  packageIncludes: [],
+  notes: [
+    'Remaing amount to be handed over to guide cum driver at the time of departure is mandatory.',
+    'Detailed itinerary is already shared.',
+    'Read Terms & Conditions.'
+  ],
+  packageIncludes: [
+    '2 nightstays Islamabad',
+    'Toyota Corolla GLI',
+    'Guide Expense',
+    'Fuel',
+    'Toll - Tax',
+    '4x4 Jeep ride ( - )',
+    'Standard Accommodation',
+    'Breakfast',
+    'Bonfire',
+    'Dinner'
+  ],
   accommodationType: '',
   transportationType: '',
   departureLocation: '',

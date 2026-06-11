@@ -20,7 +20,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
     phone: '',
     address: '',
     gender: '',
-    age: '',
+    islamabadStay: '',
     destination: '',
     travelDates: { from: '', to: '' },
     tourType: '',
@@ -41,7 +41,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: initialData.phone || '',
         address: initialData.address || '',
         gender: (initialData as any).gender || '',
-        age: (initialData as any).age ?? '',
+        islamabadStay: (initialData as any).islamabadStay ?? '',
         destination: initialData.destination || '',
         travelDates: initialData.travelDates || { from: '', to: '' },
         createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
@@ -328,7 +328,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Number of Kids</label>
+              <label className="block text-sm font-medium mb-1">Number of Kids (3 to 7)</label>
               <input
                 type="number"
                 placeholder="Kids"
@@ -352,8 +352,12 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Age</label>
-              <input type="number" className="input-field" value={(formData as any).age ?? ''} onChange={(e) => handleChange('age', e.target.value === '' ? '' : parseInt(e.target.value, 10))} min={0} placeholder="Optional" />
+              <label className="block text-sm font-medium mb-1">Islamabad Stay</label>
+              <select className="input-field" value={(formData as any).islamabadStay || ''} onChange={(e) => handleChange('islamabadStay', e.target.value)}>
+                <option value="">Select</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Lead Status</label>
