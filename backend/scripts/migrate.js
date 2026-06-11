@@ -267,6 +267,18 @@ async function migrate() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Add missing columns if they don't exist
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS re_request_notes TEXT
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS parent_request_id UUID REFERENCES quote_requests(id) ON DELETE SET NULL
+    `);
+    
     console.log('✅ Quote Requests table created');
 
     // 11. Attachments Table (depends on leads, users)
