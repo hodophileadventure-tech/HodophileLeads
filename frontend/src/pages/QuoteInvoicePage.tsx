@@ -491,7 +491,7 @@ export const QuoteInvoicePage: React.FC<{
     }
   };
 
-  const showLeadDetails = Boolean(leadId && requestId);
+  const showLeadDetails = Boolean(leadData || (leadId && requestId));
   const shellStyle = showLeadDetails
     ? { gridTemplateColumns: 'minmax(0, 420px) minmax(0, 560px) minmax(0, 1fr)' }
     : undefined;
