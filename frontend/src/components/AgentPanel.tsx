@@ -177,9 +177,7 @@ export const AgentPanel: React.FC = () => {
 
   useEffect(() => {
     loadLeads();
-    if (user?.role === 'admin') {
-      loadQuoteRequests();
-    }
+    loadQuoteRequests();
   }, [user?.role]);
 
   useEffect(() => {
@@ -655,12 +653,12 @@ export const AgentPanel: React.FC = () => {
         )}
       </section>
 
-      {user?.role === 'admin' && selectedRequest && (
+      {selectedRequest && (
         <section className="card mt-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
             <div>
               <h2 className="text-2xl font-semibold">Saved {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Admin completed this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">{user?.role === 'admin' ? 'Admin completed' : 'View'} this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
             </div>
             <Button variant="secondary" onClick={() => setSelectedRequest(null)}>
               Back to saved quotations
@@ -669,7 +667,7 @@ export const AgentPanel: React.FC = () => {
           <QuoteInvoicePage
             leadId={selectedRequest.leadId}
             requestId={selectedRequest.id}
-            viewOnly
+            viewOnly={user?.role !== 'admin'}
           />
         </section>
       )}
