@@ -31,8 +31,19 @@ html, body {
   grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
-  min-width: 1200px;
+  min-width: 0;
   overflow: visible;
+}
+
+.quote-invoice-shell,
+.quote-invoice-shell > * {
+  min-width: 0;
+}
+
+.quote-invoice-sidebar,
+.quote-invoice-preview,
+.quote-invoice-panel {
+  min-width: 0;
 }
 
 
@@ -174,7 +185,7 @@ html, body {
   justify-content: center;
   align-items: flex-start;
   padding: 24px 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .pdf-canvas {
@@ -819,5 +830,35 @@ html, body {
   .quote-invoice-preview {
     margin-top: 24px;
     justify-self: center;
+  }
+}
+
+@media (max-width: 1120px) {
+  .quote-invoice-panel .field-row,
+  .quote-invoice-panel .field-row-sm,
+  .download-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .quote-invoice-root {
+    padding: 16px;
+  }
+
+  .quote-invoice-panel {
+    padding: 18px;
+  }
+
+  .quote-invoice-panel h2 {
+    font-size: 20px;
+  }
+
+  .quote-tabs {
+    flex-wrap: wrap;
+  }
+
+  .download-actions {
+    gap: 10px;
   }
 }
