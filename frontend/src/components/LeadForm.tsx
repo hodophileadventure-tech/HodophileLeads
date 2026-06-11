@@ -328,7 +328,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Number of Kids (3 to 7)</label>
+              <label className="block text-sm font-medium mb-1">Kids (3 to 7)</label>
               <input
                 type="number"
                 placeholder="Kids"
