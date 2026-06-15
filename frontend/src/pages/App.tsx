@@ -50,6 +50,20 @@ export const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (!selectedLead || !leadDetailRef.current) return;
+    // small delay to allow layout to update before scrolling
+    const t = setTimeout(() => {
+      try {
+        leadDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 50);
+    return () => clearTimeout(t);
+  }, [selectedLead]);
   const [leadView, setLeadView] = useState<'list' | 'kanban'>('kanban');
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
@@ -573,7 +587,7 @@ export const App: React.FC = () => {
                 </section>
 
                 {selectedLead && (
-                  <section className="card">
+                  <section className="card" ref={leadDetailRef}>
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                         <div className="space-y-3">
