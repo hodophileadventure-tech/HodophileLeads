@@ -18,28 +18,11 @@ import { QuoteInvoicePage } from './QuoteInvoicePage';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { normalizeFollowUp } from '../utils/followup-utils';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes';
 
-const normalizeFollowUp = (item: any): FollowUp => ({
-  id: String(item.id),
-  leadId: String(item.leadId || item.lead_id || ''),
-  type: item.type || item.reminder_type || 'manual',
-  reminderType: item.reminderType || item.reminder_type,
-  title: item.title || item.task_type || 'Follow up',
-  description: item.description || item.notes || '',
-  dueDate: item.dueDate || item.due_date || new Date().toISOString(),
-  status: item.status || item.task_status || 'upcoming',
-  priority: item.priority || 'medium',
-  assignedTo: String(item.assignedTo || item.assigned_to || ''),
-  whatsappNumber: item.whatsappNumber || item.whatsapp_number,
-  whatsappLink: item.whatsappLink || item.whatsapp_link,
-  completedAt: item.completedAt || item.completed_at,
-  canceledReason: item.canceledReason || item.canceled_reason,
-  canceledBy: item.canceledBy || item.canceled_by,
-  canceledAt: item.canceledAt || item.canceled_at,
-  createdAt: item.createdAt || item.created_at || new Date().toISOString()
-});
+ 
 
 const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
 

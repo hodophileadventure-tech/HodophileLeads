@@ -3,6 +3,7 @@ import type { Lead } from '../types';
 import { LeadCard } from './LeadCard';
 import { getLeadLifecycleStyle } from '../utils/helpers';
 import { followUpsAPI } from '../utils/api-service';
+import { normalizeFollowUp } from '../utils/followup-utils';
 
 interface KanbanPipelineProps {
   leads: Lead[];
@@ -29,7 +30,8 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
       try {
         const res = await followUpsAPI.list();
         const now = Date.now();
-        const ids = (res.data || [])
+        const normalized = (res.data || []).map(normalizeFollowUp);
+        const ids = normalized
           .filter((f: any) => f.status !== 'completed' && new Date(f.dueDate || f.due_date).getTime() < now)
           .map((f: any) => String(f.leadId || f.lead_id));
         setOverdueLeadIds(Array.from(new Set(ids)));

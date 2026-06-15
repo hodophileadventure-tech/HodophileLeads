@@ -7,24 +7,10 @@ import { PendingQuotesPanel } from './PendingQuotesPanel';
 import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { normalizeFollowUp } from '../utils/followup-utils';
 import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
 
-const normalizeFollowUp = (item: any): FollowUp => ({
-  id: String(item.id),
-  leadId: String(item.leadId || item.lead_id || ''),
-  type: item.type || item.reminder_type || 'manual',
-  reminderType: item.reminderType || item.reminder_type,
-  title: item.title || item.task_type || 'Follow up',
-  description: item.description || item.notes || '',
-  dueDate: item.dueDate || item.due_date || new Date().toISOString(),
-  status: item.status || item.task_status || 'upcoming',
-  priority: item.priority || 'medium',
-  assignedTo: String(item.assignedTo || item.assigned_to || ''),
-  whatsappNumber: item.whatsappNumber || item.whatsapp_number,
-  whatsappLink: item.whatsappLink || item.whatsapp_link,
-  completedAt: item.completedAt || item.completed_at,
-  createdAt: item.createdAt || item.created_at || new Date().toISOString()
-});
+
 
 const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
 
@@ -54,6 +40,7 @@ export const AgentPanel: React.FC = () => {
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpLead, setFollowUpLead] = useState<Lead | null>(null);
+  const quotePanelRef = useRef<HTMLDivElement | null>(null);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
@@ -275,6 +262,11 @@ export const AgentPanel: React.FC = () => {
       window.removeEventListener('open-saved-quote', handleOpenSavedQuote as EventListener);
     };
   }, [quoteRequests]);
+
+  useEffect(() => {
+    if (!selectedRequest || !quotePanelRef.current) return;
+    quotePanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selectedRequest]);
 
   useEffect(() => {
     let mounted = true;
@@ -659,7 +651,7 @@ export const AgentPanel: React.FC = () => {
       </section>
 
       {selectedRequest && (
-        <section className="card mt-6">
+        <section className="card mt-6" ref={quotePanelRef}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
             <div>
               <h2 className="text-2xl font-semibold">Saved {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
@@ -764,15 +756,11 @@ export const AgentPanel: React.FC = () => {
               {attachments.length === 0 && <div className="text-sm text-slate-500">No attachments found.</div>}
               {attachments.map((a) => {
                 const url = `${window.location.origin}${a.url}`;
-                const isImage = a.mime_type?.startsWith('image/');
                 return (
                   <div key={a.id} className="flex items-center justify-between border rounded p-3">
-                    <div className="flex items-center gap-3">
-                      {isImage && <img src={url} alt={a.file_name} className="h-12 w-16 object-cover rounded" />}
-                      <div>
-                        <div className="font-medium">{a.file_name}</div>
-                        <div className="text-sm text-slate-500">{(a.size || 0)} bytes • {a.mime_type}</div>
-                      </div>
+                    <div>
+                      <div className="font-medium">{a.file_name}</div>
+                      <div className="text-sm text-slate-500">{(a.size || 0)} bytes • {a.mime_type}</div>
                     </div>
                     <div className="flex gap-2">
                       <a href={url} target="_blank" rel="noreferrer" className="btn">Preview</a>

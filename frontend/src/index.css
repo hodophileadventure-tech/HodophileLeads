@@ -33,6 +33,26 @@
   .btn-secondary {
     @apply px-4 py-2 bg-transparent border border-[rgba(15,23,36,0.06)] text-[var(--text)] rounded-lg hover:bg-[rgba(15,23,36,0.03)] transition-all;
   }
+
+  button,
+  .quote-tab,
+  .nav-btn {
+    transition: transform 150ms ease, box-shadow 150ms ease, background-color 180ms ease, color 180ms ease;
+  }
+
+  button:active,
+  .quote-tab:active,
+  .nav-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 4px rgba(15,23,36,0.15);
+  }
+
+  button:focus-visible,
+  .quote-tab:focus-visible,
+  .nav-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(252,192,0,0.35);
+  }
   
   .card {
     @apply bg-[var(--surface)] rounded-lg shadow-sm p-6 border border-[rgba(15,23,36,0.04)];

@@ -35,13 +35,19 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
 
   useEffect(() => {
     if (initialData) {
+      const rawIslamabad = (initialData as any).islamabadStay;
+      let islamabadStayVal = '';
+      if (rawIslamabad === true) islamabadStayVal = 'yes';
+      else if (rawIslamabad === false) islamabadStayVal = 'no';
+      else if (typeof rawIslamabad === 'string') islamabadStayVal = rawIslamabad;
+
       setFormData({
         clientName: initialData.clientName || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
         address: initialData.address || '',
         gender: (initialData as any).gender || '',
-        islamabadStay: (initialData as any).islamabadStay ?? '',
+        islamabadStay: islamabadStayVal,
         destination: initialData.destination || '',
         travelDates: initialData.travelDates || { from: '', to: '' },
         createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
@@ -61,6 +67,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         address: '',
         gender: '',
         age: '',
+        islamabadStay: '',
         destination: '',
         travelDates: { from: '', to: '' },
         tourType: '',
@@ -118,6 +125,10 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         remarks: (formData as any).remarks,
         potential: (formData as any).potential
       };
+
+      if ((formData as any).islamabadStay !== undefined && (formData as any).islamabadStay !== '') {
+        payload.islamabadStay = (formData as any).islamabadStay;
+      }
 
       if (formData.travelDates?.from || formData.travelDates?.to) {
         payload.travelDates = formData.travelDates;

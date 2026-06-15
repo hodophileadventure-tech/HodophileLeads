@@ -1,7 +1,7 @@
 ﻿import React, { useMemo, useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import quoteHeaderImage from '../assets/quote-header.png';
+import quoteHeaderImage from '../assets/quote-header-custom.jpg';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import pakistanGovtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';

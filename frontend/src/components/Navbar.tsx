@@ -13,6 +13,9 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
+  const notifRef = React.useRef<HTMLDivElement | null>(null);
+  const userRef = React.useRef<HTMLDivElement | null>(null);
+
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -31,6 +34,23 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
     };
   }, [setNotifications]);
 
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (notifOpen && notifRef.current && !notifRef.current.contains(target)) {
+        setNotifOpen(false);
+      }
+
+      if (userOpen && userRef.current && !userRef.current.contains(target)) {
+        setUserOpen(false);
+      }
+    };
+
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [notifOpen, userOpen]);
+
   if (!user) return null;
 
   const [remindersOpen, setRemindersOpen] = React.useState(false);
@@ -44,7 +64,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
               onClick={() => setNotifOpen((v) => !v)}
               className="relative px-3 py-2 rounded-lg hover:bg-[rgba(0,0,0,0.04)]"
@@ -108,7 +128,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
             <div>
             <button onClick={() => setRemindersOpen(true)} className="text-xs px-3 py-2 rounded" style={{background: 'rgba(0,0,0,0.06)', color: '#000'}}>Reminders</button>
           </div>
-          <div className="relative">
+          <div className="relative" ref={userRef}>
             <button
               onClick={() => setUserOpen(!userOpen)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[rgba(0,0,0,0.04)]"

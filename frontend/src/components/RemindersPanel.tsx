@@ -1,5 +1,6 @@
 import React from 'react';
 import { followUpsAPI } from '../utils/api-service';
+import { normalizeFollowUp } from '../utils/followup-utils';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
 
 export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -13,7 +14,7 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
     setLoading(true);
     try {
       const res = await followUpsAPI.list();
-      setItems(res.data || []);
+      setItems((res.data || []).map(normalizeFollowUp));
     } catch (e) {
       // ignore
     } finally { setLoading(false); }

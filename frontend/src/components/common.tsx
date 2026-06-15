@@ -43,11 +43,13 @@ export const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg'
   };
 
+  const clickFeedback = 'transform-gpu transition duration-150 ease-out active:scale-95 active:translate-y-0.5 active:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2';
+
   return (
     <button
       {...props}
       disabled={disabled || loading}
-      className={`${variants[variant]} ${sizes[size]} ${className} disabled:opacity-50 disabled:cursor-not-allowed`}
+      className={`${variants[variant]} ${sizes[size]} ${clickFeedback} ${className} disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {loading ? '...' : children}
     </button>
@@ -105,7 +107,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, defaultTab = 0 }) => {
           <button
             key={idx}
             onClick={() => setActive(idx)}
-            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 font-medium border-b-2 transition-colors transform-gpu duration-150 ease-out active:scale-95 active:translate-y-0.5 ${
               active === idx
                 ? 'border-primary-500 text-primary-500'
                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'

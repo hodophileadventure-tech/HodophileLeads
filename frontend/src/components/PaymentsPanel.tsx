@@ -48,8 +48,8 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId }) => {
                 <p className="text-xs text-slate-500">Status: {payment.status}</p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={async () => { await paymentsAPI.confirm(payment.id); await load(); }}>Confirm</Button>
-                <Button size="sm" variant="danger" onClick={async () => { if (!confirm('Delete payment?')) return; await paymentsAPI.delete(payment.id); await load(); }}>Delete</Button>
+                <Button size="sm" variant="secondary" onClick={async () => { await paymentsAPI.confirm(payment.id); await load(); window.dispatchEvent(new Event('dashboard-refresh')); }}>Confirm</Button>
+                <Button size="sm" variant="danger" onClick={async () => { if (!confirm('Delete payment?')) return; await paymentsAPI.delete(payment.id); await load(); window.dispatchEvent(new Event('dashboard-refresh')); }}>Delete</Button>
               </div>
             </div>
           ))}
@@ -74,6 +74,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId }) => {
               setOpen(false);
               setForm({ amount: 0, method: 'cash', dueDate: '', notes: '' });
               await load();
+              window.dispatchEvent(new Event('dashboard-refresh'));
             }}>Save</Button>
           </>
         }

@@ -103,14 +103,34 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
           console.error('File upload failed', e);
         }
       }
-      await leadsAPI.update(lead.id as string, { leadOutcome: 'confirmed', status: 'booked' } as any);
+      const bookedResponse = await leadsAPI.update(lead.id as string, { leadOutcome: 'confirmed', status: 'booked' } as any);
+      const finalLead = bookedResponse.data as Lead;
 
-      if (total > 0) {
+      if (total > 0 && advance > 0) {
         const dueDate = hotelOptions[0]?.checkIn || new Date().toISOString();
         await paymentsAPI.create({ leadId: lead.id, amount: advance, method, status: 'pending', dueDate, notes: 'Advance on confirmation' } as any);
       }
 
-      onSaved?.(updated.data as Lead);
+      if (selectedFile) {
+        try {
+          const form = new FormData();
+          form.append('file', selectedFile);
+          await (leadsAPI as any).uploadConfirmation(lead.id as string, form);
+        } catch (e) {
+          console.error('File upload failed', e);
+        }
+      }
+
+      let refreshedLead = finalLead;
+      try {
+        const refreshed = await leadsAPI.getById(lead.id as string);
+        refreshedLead = refreshed.data as Lead;
+      } catch {
+        // ignore refresh errors
+      }
+
+      onSaved?.(refreshedLead);
+      window.dispatchEvent(new Event('dashboard-refresh'));
       onClose();
     } catch (err) {
       console.error(err);
@@ -245,7 +265,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
             <label className="block text-sm font-medium mb-1">Method</label>
             <select className="input-field" value={method} onChange={(e) => setMethod(e.target.value)}>
               <option value="cash">Cash</option>
-              <option value="bank">Bank Transfer</option>
+              <option value="bank_transfer">Bank Transfer</option>
               <option value="card">Card</option>
             </select>
           </div>

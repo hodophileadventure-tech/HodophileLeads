@@ -96,7 +96,7 @@ export const quoteRequestsModel = {
       FROM quote_requests qr
       INNER JOIN leads l ON l.id = qr.lead_id
       LEFT JOIN users u ON u.id = qr.requested_by
-      WHERE l.agent_id = $1 AND qr.status = 'saved'
+      WHERE l.agent_id = $1 AND qr.status IN ('requested', 'saved')
       ORDER BY qr.created_at DESC
     `, [userId]);
     return res.rows.map(mapQuoteRequestRow);

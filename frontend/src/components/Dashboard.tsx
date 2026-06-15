@@ -25,7 +25,17 @@ export const Dashboard: React.FC = () => {
       }
     };
 
+    const handleRefresh = () => {
+      setLoading(true);
+      fetchStats();
+    };
+
+    window.addEventListener('dashboard-refresh', handleRefresh);
     fetchStats();
+
+    return () => {
+      window.removeEventListener('dashboard-refresh', handleRefresh);
+    };
   }, []);
 
   if (loading) {

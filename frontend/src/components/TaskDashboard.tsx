@@ -3,6 +3,7 @@ import { Card, Badge, Button, Spinner } from './common';
 import type { Lead, FollowUp } from '../types';
 import { formatDate } from '../utils/helpers';
 import { followUpsAPI } from '../utils/api-service';
+import { normalizeFollowUp } from '../utils/followup-utils';
 
 interface TaskDashboardProps {
   leads: Lead[];
@@ -41,7 +42,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
       try {
         setError('');
         const response = await followUpsAPI.list();
-        setFollowUps(response.data || []);
+        setFollowUps((response.data || []).map(normalizeFollowUp));
       } catch (err) {
         setError('Failed to load follow-up tasks.');
       } finally {
