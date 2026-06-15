@@ -84,7 +84,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       };
 
       // First update lead fields (hotel info, transport)
-      const updated = await leadsAPI.update(lead.id as string, updatePayload);
+      await leadsAPI.update(lead.id as string, updatePayload);
 
       // If a file was selected, upload it as multipart to keep files off the JSON payload
       if (selectedFile) {
