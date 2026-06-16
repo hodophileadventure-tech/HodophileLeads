@@ -195,7 +195,7 @@ const DailyReportsPage: React.FC = () => {
           </div>
         )}
 
-        {isAdmin && Array.isArray(report.reportRows) && report.reportRows.length > 0 && (
+        {isAdmin && report && Array.isArray(report.reportRows) && report.reportRows.length > 0 && (
           <div className="space-y-4">
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden">
               <div className="px-4 py-3 bg-slate-100 dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-200">
