@@ -128,7 +128,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
               Changes needed: {request.reRequestNotes}
             </p>
           )}
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <p className="text-xs text-slate-500 dark:text-slate-400">Phone</p>
               <p className="font-medium">{request.leadPhone || 'N/A'}</p>
@@ -137,16 +137,32 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
               <p className="text-xs text-slate-500 dark:text-slate-400">Destination</p>
               <p className="font-medium">{request.leadDestination || 'N/A'}</p>
             </div>
+            {request.status === 'saved' && request.documentData?.date && (
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Created</p>
+                <p className="font-medium">{new Date(request.documentData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+              </div>
+            )}
           </div>
         </div>
         <div className="text-right space-y-2 flex flex-col">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            {new Date(request.createdAt).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
+          <div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Requested</p>
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+              {new Date(request.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {new Date(request.createdAt).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })}
+            </p>
+          </div>
           {isPending && (
             <Button variant="primary" size="sm" onClick={() => onSelectRequest(request)}>
               {actionLabel}

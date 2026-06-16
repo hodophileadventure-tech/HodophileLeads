@@ -626,7 +626,6 @@ export const AgentPanel: React.FC = () => {
           <p className="mt-4 text-sm text-slate-600">No saved quotations have been completed yet.</p>
         ) : (
           <div className="mt-4 space-y-3">
-            {quoteRequests.map((request) => (
               <button
                 key={request.id}
                 type="button"
@@ -637,16 +636,21 @@ export const AgentPanel: React.FC = () => {
                   <div>
                     <p className="font-semibold">{request.requestType === 'quotation' ? 'Quotation' : 'Invoice'} for {request.leadClientName || request.leadPhone}</p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Lead: {request.leadClientName || 'Unknown'} · {request.leadPhone}</p>
+                    {request.documentData?.quoteNumber && (
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Quote #: {request.documentData.quoteNumber}</p>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{new Date(request.createdAt).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Requested: {new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(request.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+                    {request.status === 'saved' && request.documentData?.date && (
+                      <p className="text-xs text-green-600 dark:text-green-400 mb-1">Created: {new Date(request.documentData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    )}
                     <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                       {request.status}
                     </span>
                   </div>
                 </div>
               </button>
-            ))}
           </div>
         )}
       </section>

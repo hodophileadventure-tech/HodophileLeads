@@ -76,10 +76,12 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
         <div className="min-w-0">
           <h3 className="font-semibold text-lg break-words">{lead.clientName}</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">{lead.destination}</p>
-          {lead.destinations && lead.destinations.length > 1 && (
-            <p className="text-xs text-slate-500 mt-1">+{lead.destinations.length - 1} more destinations</p>
-          )}
+          <div className="flex flex-col gap-1 mt-1">
+            <p className="text-sm text-slate-600 dark:text-slate-400">📍 {lead.destination} {lead.travelDates?.from ? '• ' + new Date(lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' - ' + new Date(lead.travelDates.to || lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</p>
+            {lead.destinations && lead.destinations.length > 1 && (
+              <p className="text-xs text-slate-500">+{lead.destinations.length - 1} more destinations</p>
+            )}
+          </div>
           {lead.hotelInfo && (
             <p className="text-xs text-slate-500 mt-1 truncate">
               {lead.hotelInfo.hotelName} · {formatCurrency(lead.hotelInfo.roomPrice)}
