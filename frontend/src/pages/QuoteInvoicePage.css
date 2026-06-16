@@ -711,28 +711,6 @@ html, body {
   margin-right: 8px;
 }
 
-.pdf-package-includes-title {
-  margin: 22px 0 12px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #111827;
-}
-
-.pdf-package-includes-list {
-  margin: 0;
-  padding-left: 22px;
-  list-style: none;
-  display: grid;
-  gap: 8px;
-}
-
-.pdf-package-includes-list li::before {
-  content: '•';
-  margin-right: 8px;
-  color: #111827;
-  font-weight: 800;
-}
-
 .pdf-package-validity {
   margin-top: 16px;
   font-size: 18px;
