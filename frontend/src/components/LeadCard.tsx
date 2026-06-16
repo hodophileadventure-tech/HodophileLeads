@@ -75,9 +75,17 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
       )}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
         <div className="min-w-0">
-          <h3 className="font-semibold text-lg break-words">{lead.clientName}</h3>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-lg break-words">{lead.clientName}</h3>
+            {(lead as any).islamabadStay && (
+              <span className={`text-xs px-2 py-1 rounded font-medium ${(lead as any).islamabadStay === 'yes' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'}`}>
+                Islamabad: {(lead as any).islamabadStay === 'yes' ? '✓ Yes' : '✗ No'}
+              </span>
+            )}
+          </div>
           <div className="flex flex-col gap-1 mt-1">
             <p className="text-sm text-slate-600 dark:text-slate-400">📍 {lead.destination} {lead.travelDates?.from ? '• ' + new Date(lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' - ' + new Date(lead.travelDates.to || lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Created: {new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(lead.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
             {lead.destinations && lead.destinations.length > 1 && (
               <p className="text-xs text-slate-500">+{lead.destinations.length - 1} more destinations</p>
             )}
