@@ -664,8 +664,8 @@ export const AgentPanel: React.FC = () => {
           </div>
 
           {user?.role === 'agent' ? (
-            <div className="grid grid-cols-12 gap-4">
-              <aside className="col-span-12 sm:col-span-3">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <aside className="col-span-1 md:col-span-3">
                 <div className="border rounded p-4">
                   <h3 className="font-semibold mb-2">Requested Details</h3>
                   <p className="text-sm text-slate-600">Type: {selectedRequest.requestType}</p>
@@ -677,7 +677,7 @@ export const AgentPanel: React.FC = () => {
                 </div>
               </aside>
 
-              <main className="col-span-12 sm:col-span-6">
+              <main className="col-span-1 md:col-span-6">
                 <QuoteInvoicePage
                   leadId={selectedRequest.leadId}
                   requestId={selectedRequest.id}
@@ -687,12 +687,12 @@ export const AgentPanel: React.FC = () => {
                 />
               </main>
 
-              <aside className="col-span-12 sm:col-span-3">
-                <div className="border rounded p-4 h-full flex flex-col">
+              <aside className="col-span-1 md:col-span-3">
+                <div className="border rounded p-4 h-full flex flex-col overflow-hidden">
                   <h3 className="font-semibold mb-2">Preview</h3>
                   {previewDataUrl ? (
-                    <div className="flex-1 overflow-auto">
-                      <img src={previewDataUrl} alt="Quotation preview" className="w-full rounded" />
+                    <div className="flex-1 overflow-auto flex items-center justify-center">
+                      <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-[60vh] object-contain rounded" />
                     </div>
                   ) : (
                     <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Generating preview…</div>
