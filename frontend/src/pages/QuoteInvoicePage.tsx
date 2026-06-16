@@ -2,6 +2,7 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import quoteHeaderImage from '../assets/quote-header-custom.jpg';
+import emblemImage from '../assets/emblem.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import pakistanGovtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
@@ -825,8 +826,15 @@ export const QuoteInvoicePage: React.FC<{
           <div className="pdf-page">
             <div className="pdf-canvas" ref={previewRef}>
               <div className="pdf-background">
-                <div className="pdf-header-image">
-                  <img src={quoteHeaderImage} alt="Hodophile header" />
+                <div className="pdf-header-custom">
+                  <div className="pdf-header-emblem">
+                    <img src={emblemImage} alt="Hodophile emblem" />
+                  </div>
+                  <div className="pdf-header-text">
+                    <div className="header-company-name">HODOPHILE ADVENTURES</div>
+                    <div className="header-tagline">The Perfect Experience</div>
+                    <div className="header-license">Government License #1536</div>
+                  </div>
                 </div>
                 <div className="pdf-header-info-box">
                   <div className="pdf-header-top">
