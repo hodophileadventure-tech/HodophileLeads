@@ -65,7 +65,7 @@ html, body {
   gap: 20px;
 }
 
-@media (max-width: 1360px) {
+@media (max-width: 900px) {
   .quote-invoice-shell {
     grid-template-columns: 1fr;
   }
@@ -132,9 +132,12 @@ html, body {
 }
 
 .quote-invoice-panel .btn-primary {
-  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
   margin-top: 16px;
-  padding: 14px 20px;
+  padding: 10px 16px;
   border: none;
   border-radius: 16px;
   background: #fcc000;
@@ -150,9 +153,14 @@ html, body {
 
 .download-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   margin-top: 16px;
+  align-items: center;
+}
+
+.download-actions .full-span {
+  grid-column: 1 / -1;
 }
 
 .btn-secondary {
@@ -170,14 +178,18 @@ html, body {
 .quote-invoice-preview {
   width: 100%;
   max-width: 100%;
-  min-height: 100vh;
   position: relative;
+  /* keep preview visible and scrollable while form stays in place */
+  align-self: start;
+  position: sticky;
+  top: 88px;
+  max-height: calc(100vh - 120px);
   overflow: auto;
 }
 
 .pdf-page {
   width: 100%;
-  min-height: 100vh;
+  min-height: auto;
   background: #f2f2f2;
   border: 1px solid #d1d5db;
   box-shadow: 0 24px 64px rgba(15, 23, 36, 0.16);
@@ -185,7 +197,7 @@ html, body {
   justify-content: center;
   align-items: flex-start;
   padding: 24px 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .pdf-canvas {

@@ -10,6 +10,7 @@ interface PendingQuotesPanelProps {
 export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelectRequest }) => {
   const [pendingRequests, setPendingRequests] = useState<QuoteRequest[]>([]);
   const [savedRequests, setSavedRequests] = useState<QuoteRequest[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -21,9 +22,40 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       loadRequests();
     };
 
+    const handleJump = (e: Event) => {
+      const ev = e as CustomEvent<string> | any;
+      const target = ev?.detail || ev?.type;
+      if (target === 'pending' && document.getElementById('pending-section')) {
+        document.getElementById('pending-section')!.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      if (target === 'saved' && document.getElementById('saved-section')) {
+        document.getElementById('saved-section')!.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    const handleFocusSearch = async (e: Event) => {
+      const ev = e as CustomEvent<{ query?: string }>;
+      if (ev?.detail?.query) {
+        const q = ev.detail.query;
+        setSearchQuery(q);
+        try {
+          const allRequests = await loadRequests();
+          const ql = q.toLowerCase();
+          const found = allRequests.find((r: QuoteRequest) => ((r.quoteNumber || '') + ' ' + (r.leadClientName || '') + ' ' + (r.leadPhone || '')).toLowerCase().includes(ql));
+          if (found) onSelectRequest(found);
+        } catch (err) {
+          // ignore
+        }
+      }
+    };
+
     window.addEventListener('quote-request-saved', handleQuoteSaved as EventListener);
+    window.addEventListener('jump-to-quote-section', handleJump as EventListener);
+    window.addEventListener('focus-quote-search', handleFocusSearch as EventListener);
     return () => {
       window.removeEventListener('quote-request-saved', handleQuoteSaved as EventListener);
+      window.removeEventListener('jump-to-quote-section', handleJump as EventListener);
+      window.removeEventListener('focus-quote-search', handleFocusSearch as EventListener);
     };
   }, []);
 
@@ -35,11 +67,13 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       setPendingRequests(allRequests.filter((request) => request.status === 'requested'));
       setSavedRequests(allRequests.filter((request) => request.status === 'saved'));
       setError(null);
+      return allRequests;
     } catch (err) {
       console.error('Failed to load quote requests:', err);
       setError('Failed to load quote requests.');
       setPendingRequests([]);
       setSavedRequests([]);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -192,7 +226,33 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
 
   return (
     <div className="space-y-6">
-      <section className="card">
+      <div className="flex items-center gap-3">
+        <input
+          aria-label="Search quotations"
+          placeholder="Search by client, phone, or quote #"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="border rounded p-2 flex-1"
+        />
+        <button
+          className="btn-secondary px-3 py-2"
+          onClick={() => {
+            // navigate to pending section
+            document.getElementById('pending-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          Jump to Pending
+        </button>
+        <button
+          className="btn-secondary px-3 py-2"
+          onClick={() => {
+            document.getElementById('saved-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          Jump to Saved
+        </button>
+      </div>
+      <section id="pending-section" className="card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-semibold">Pending Quote Requests</h2>
@@ -203,18 +263,26 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
           </span>
         </div>
 
-        {pendingRequests.length === 0 ? (
+        {pendingRequests.filter(r => {
+            if (!searchQuery) return true;
+            const q = searchQuery.toLowerCase();
+            return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+          }).length === 0 ? (
           <div className="text-center py-8 text-slate-500">
             <p>No pending quote requests right now.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {pendingRequests.map((request) => renderRequestCard(request, `Create ${request.requestType === 'quotation' ? 'Quotation' : 'Invoice'}`, true))}
+            {pendingRequests.filter(r => {
+              if (!searchQuery) return true;
+              const q = searchQuery.toLowerCase();
+              return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+            }).map((request) => renderRequestCard(request, `Create ${request.requestType === 'quotation' ? 'Quotation' : 'Invoice'}`, true))}
           </div>
         )}
       </section>
 
-      <section className="card">
+      <section id="saved-section" className="card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-semibold">Created Quotations</h2>
@@ -225,13 +293,21 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
           </span>
         </div>
 
-        {savedRequests.length === 0 ? (
+        {savedRequests.filter(r => {
+            if (!searchQuery) return true;
+            const q = searchQuery.toLowerCase();
+            return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+          }).length === 0 ? (
           <div className="text-center py-8 text-slate-500">
             <p>No created quotations yet.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {savedRequests.map((request) => renderRequestCard(request, 'View Document', false))}
+            {savedRequests.filter(r => {
+              if (!searchQuery) return true;
+              const q = searchQuery.toLowerCase();
+              return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+            }).map((request) => renderRequestCard(request, 'View Document', false))}
           </div>
         )}
       </section>

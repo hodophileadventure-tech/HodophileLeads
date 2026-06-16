@@ -755,12 +755,12 @@ export const QuoteInvoicePage: React.FC<{
                 Download PDF
               </button>
               {requestId && !viewOnly && (
-                <button type="button" className="btn-primary" style={{ gridColumn: '1 / -1', backgroundColor: '#10b981' }} onClick={saveQuotation}>
+                <button type="button" className="btn-primary full-span" style={{ backgroundColor: '#10b981' }} onClick={saveQuotation}>
                   Save Quotation
                 </button>
               )}
               {requestId && viewOnly && (
-                <button type="button" className="btn-primary" style={{ gridColumn: '1 / -1', backgroundColor: '#f59e0b' }} onClick={handleReRequest}>
+                <button type="button" className="btn-primary full-span" style={{ backgroundColor: '#f59e0b' }} onClick={handleReRequest}>
                   Re-request Changes
                 </button>
               )}

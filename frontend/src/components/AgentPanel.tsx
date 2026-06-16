@@ -664,20 +664,20 @@ export const AgentPanel: React.FC = () => {
           </div>
 
           {user?.role === 'agent' ? (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <aside className="col-span-1 md:col-span-3">
-                <div className="border rounded p-4">
-                  <h3 className="font-semibold mb-2">Requested Details</h3>
-                  <p className="text-sm text-slate-600">Type: {selectedRequest.requestType}</p>
-                  <p className="text-sm text-slate-600">Requested By: {selectedRequest.requestedByName || selectedRequest.requestedBy}</p>
-                  <p className="text-sm text-slate-600">Client: {selectedRequest.leadClientName || '—'}</p>
-                  <p className="text-sm text-slate-600">Phone: {selectedRequest.leadPhone || '—'}</p>
-                  <p className="text-sm text-slate-600">Destination: {selectedRequest.leadDestination || '—'}</p>
-                  <p className="text-sm text-slate-500 mt-2">Created: {new Date(selectedRequest.createdAt).toLocaleString()}</p>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
+              <aside className="col-span-1 md:col-span-3 overflow-y-auto">
+                <div className="border rounded p-4 sticky top-0">
+                  <h3 className="font-semibold mb-3 text-base">Requested Details</h3>
+                  <p className="text-sm text-slate-600 mb-1">Type: {selectedRequest.requestType}</p>
+                  <p className="text-sm text-slate-600 mb-1">Requested By: {selectedRequest.requestedByName || selectedRequest.requestedBy}</p>
+                  <p className="text-sm text-slate-600 mb-1">Client: {selectedRequest.leadClientName || '—'}</p>
+                  <p className="text-sm text-slate-600 mb-1">Phone: {selectedRequest.leadPhone || '—'}</p>
+                  <p className="text-sm text-slate-600 mb-1">Destination: {selectedRequest.leadDestination || '—'}</p>
+                  <p className="text-sm text-slate-500 mt-3">Created: {new Date(selectedRequest.createdAt).toLocaleString()}</p>
                 </div>
               </aside>
 
-              <main className="col-span-1 md:col-span-6">
+              <main className="col-span-1 md:col-span-6 overflow-y-auto">
                 <QuoteInvoicePage
                   leadId={selectedRequest.leadId}
                   requestId={selectedRequest.id}
@@ -687,20 +687,20 @@ export const AgentPanel: React.FC = () => {
                 />
               </main>
 
-              <aside className="col-span-1 md:col-span-3">
-                <div className="border rounded p-4 h-full flex flex-col overflow-hidden">
-                  <h3 className="font-semibold mb-2">Preview</h3>
-                  {previewDataUrl ? (
-                    <div className="flex-1 overflow-auto flex items-center justify-center">
-                      <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-[60vh] object-contain rounded" />
-                    </div>
-                  ) : (
-                    <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Generating preview…</div>
-                  )}
-                  <div className="mt-3 flex items-center gap-2">
-                    <Button variant="secondary" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate Preview</Button>
+              <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
+                <div className="border rounded p-4 flex flex-col h-full">
+                  <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
+                  <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
+                    {previewDataUrl ? (
+                      <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                    ) : (
+                      <div className="text-sm text-slate-500">Generating preview…</div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    <Button variant="secondary" size="sm" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</Button>
                     {previewDataUrl && (
-                      <a className="btn-primary inline-block" href={previewDataUrl} download={`${selectedRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                      <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                     )}
                   </div>
                 </div>

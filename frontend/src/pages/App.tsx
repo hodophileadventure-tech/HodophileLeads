@@ -539,6 +539,46 @@ export const App: React.FC = () => {
 
           {/* Main Content */}
           <main className="flex-1 p-6 mt-16 md:mt-0 ml-0 md:ml-0 overflow-auto">
+            {(user?.role === 'admin' || user?.role === 'agent') && (
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <input
+                    placeholder="Search quotations by client, phone, or quote #"
+                    aria-label="Search quotations"
+                    id="quick-quote-search"
+                    className="border rounded px-3 py-2 w-full sm:w-[420px]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const q = (e.target as HTMLInputElement).value.trim();
+                        if (!q) return;
+                        setCurrentPage('pending-quotes');
+                        // let pending page render, then focus search
+                        setTimeout(() => window.dispatchEvent(new CustomEvent('focus-quote-search', { detail: { query: q } })), 150);
+                      }
+                    }}
+                  />
+                  <button
+                    className="btn-secondary px-3 py-2"
+                    onClick={() => {
+                      setCurrentPage('pending-quotes');
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'pending' })), 100);
+                    }}
+                  >
+                    Pending
+                  </button>
+                  <button
+                    className="btn-secondary px-3 py-2"
+                    onClick={() => {
+                      setCurrentPage('pending-quotes');
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'saved' })), 100);
+                    }}
+                  >
+                    Saved
+                  </button>
+                </div>
+                <div />
+              </div>
+            )}
             {currentPage === 'dashboard' && (
               <div className="space-y-6">
                 <section className="card">
@@ -1031,20 +1071,20 @@ export const App: React.FC = () => {
                       ← Back to Pending Requests
                     </Button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                      <aside className="col-span-1 md:col-span-3">
-                        <div className="border rounded p-4">
-                          <h3 className="font-semibold mb-2">Requested Details</h3>
-                          <p className="text-sm text-slate-600">Type: {selectedQuoteRequest.requestType}</p>
-                          <p className="text-sm text-slate-600">Requested By: {selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy}</p>
-                          <p className="text-sm text-slate-600">Client: {selectedQuoteRequest.leadClientName || '—'}</p>
-                          <p className="text-sm text-slate-600">Phone: {selectedQuoteRequest.leadPhone || '—'}</p>
-                          <p className="text-sm text-slate-600">Destination: {selectedQuoteRequest.leadDestination || '—'}</p>
-                          <p className="text-sm text-slate-500 mt-2">Created: {new Date(selectedQuoteRequest.createdAt).toLocaleString()}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
+                      <aside className="col-span-1 md:col-span-3 overflow-y-auto">
+                        <div className="border rounded p-4 sticky top-0">
+                          <h3 className="font-semibold mb-3 text-base">Requested Details</h3>
+                          <p className="text-sm text-slate-600 mb-1">Type: {selectedQuoteRequest.requestType}</p>
+                          <p className="text-sm text-slate-600 mb-1">Requested By: {selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy}</p>
+                          <p className="text-sm text-slate-600 mb-1">Client: {selectedQuoteRequest.leadClientName || '—'}</p>
+                          <p className="text-sm text-slate-600 mb-1">Phone: {selectedQuoteRequest.leadPhone || '—'}</p>
+                          <p className="text-sm text-slate-600 mb-1">Destination: {selectedQuoteRequest.leadDestination || '—'}</p>
+                          <p className="text-sm text-slate-500 mt-3">Created: {new Date(selectedQuoteRequest.createdAt).toLocaleString()}</p>
                         </div>
                       </aside>
 
-                      <main className="col-span-1 md:col-span-6">
+                      <main className="col-span-1 md:col-span-6 overflow-y-auto">
                         <QuoteInvoicePage
                           leadId={selectedQuoteRequest.leadId}
                           requestId={selectedQuoteRequest.id}
@@ -1059,20 +1099,20 @@ export const App: React.FC = () => {
                         />
                       </main>
 
-                      <aside className="col-span-1 md:col-span-3">
-                        <div className="border rounded p-4 h-full flex flex-col overflow-hidden">
-                          <h3 className="font-semibold mb-2">Preview</h3>
-                          {previewDataUrl ? (
-                            <div className="flex-1 overflow-auto flex items-center justify-center">
-                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-[60vh] object-contain rounded" />
-                            </div>
-                          ) : (
-                            <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Generating preview…</div>
-                          )}
-                          <div className="mt-3 flex items-center gap-2">
-                            <button className="btn-secondary" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate Preview</button>
+                      <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
+                        <div className="border rounded p-4 flex flex-col h-full">
+                          <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
+                          <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
+                            {previewDataUrl ? (
+                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                            ) : (
+                              <div className="text-sm text-slate-500">Generating preview…</div>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2 flex-shrink-0">
+                            <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
                             {previewDataUrl && (
-                              <a className="btn-primary inline-block" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                              <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                             )}
                           </div>
                         </div>
