@@ -297,19 +297,25 @@ html, body {
 }
 
 .pdf-header-info-label {
-  font-size: 20px;
+  font-size: 30px;
   font-weight: 800;
   color: #1f2937;
 }
 
 .pdf-header-info-value {
-  font-size: 28pt;
+  font-size: 38pt;
   font-weight: 700;
   color: #111827;
 }
 
+.pdf-customer-box .pdf-header-info-value:first-of-type {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .pdf-quotation-title {
-  font-size: 40pt;
+  font-size: 50pt;
   font-weight: 800;
   color: #fcc000;
   letter-spacing: 0.08em;
@@ -320,14 +326,14 @@ html, body {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-size: 38px;
+  font-size: 48px;
   color: #111827;
 }
 
 .pdf-quote-meta-row span {
   opacity: 0.75;
   font-weight: 600;
-  font-size: 34px;
+  font-size: 44px;
 }
 
 .pdf-quote-meta-row strong {
@@ -359,7 +365,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 24px;
+  font-size: 34px;
 }
 
 .pdf-package-info-line span {
@@ -485,13 +491,13 @@ html, body {
 }
 
 .pdf-package-title {
-  font-size: 28px;
+  font-size: 38px;
   font-weight: 800;
   margin-bottom: 10px;
 }
 
 .pdf-package-description {
-  font-size: 22px;
+  font-size: 32px;
   line-height: 1.7;
   color: #111827;
   margin-bottom: 12px;
@@ -511,7 +517,7 @@ html, body {
 }
 
 .pdf-package-name {
-  font-size: 22px;
+  font-size: 32px;
   font-weight: 800;
   color: #111827;
 }
