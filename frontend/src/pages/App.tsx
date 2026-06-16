@@ -78,6 +78,7 @@ export const App: React.FC = () => {
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
+  const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const alarmAudioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
@@ -1024,20 +1025,58 @@ export const App: React.FC = () => {
                   <div>
                     <Button 
                       variant="secondary" 
-                      onClick={() => setSelectedQuoteRequest(null)}
+                      onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }}
                       className="mb-4"
                     >
                       ← Back to Pending Requests
                     </Button>
-                    <QuoteInvoicePage 
-                      leadId={selectedQuoteRequest.leadId}
-                      requestId={selectedQuoteRequest.id}
-                      onSaved={() => {
-                        setSelectedQuoteRequest(null);
-                        setCurrentPage('pending-quotes');
-                      }}
-                      onClose={() => setSelectedQuoteRequest(null)}
-                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      <aside className="col-span-1 md:col-span-3">
+                        <div className="border rounded p-4">
+                          <h3 className="font-semibold mb-2">Requested Details</h3>
+                          <p className="text-sm text-slate-600">Type: {selectedQuoteRequest.requestType}</p>
+                          <p className="text-sm text-slate-600">Requested By: {selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy}</p>
+                          <p className="text-sm text-slate-600">Client: {selectedQuoteRequest.leadClientName || '—'}</p>
+                          <p className="text-sm text-slate-600">Phone: {selectedQuoteRequest.leadPhone || '—'}</p>
+                          <p className="text-sm text-slate-600">Destination: {selectedQuoteRequest.leadDestination || '—'}</p>
+                          <p className="text-sm text-slate-500 mt-2">Created: {new Date(selectedQuoteRequest.createdAt).toLocaleString()}</p>
+                        </div>
+                      </aside>
+
+                      <main className="col-span-1 md:col-span-6">
+                        <QuoteInvoicePage
+                          leadId={selectedQuoteRequest.leadId}
+                          requestId={selectedQuoteRequest.id}
+                          onSaved={() => {
+                            setSelectedQuoteRequest(null);
+                            setCurrentPage('pending-quotes');
+                          }}
+                          onClose={() => setSelectedQuoteRequest(null)}
+                          viewOnly={false}
+                          generatePreviewOnMount
+                          onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                        />
+                      </main>
+
+                      <aside className="col-span-1 md:col-span-3">
+                        <div className="border rounded p-4 h-full flex flex-col overflow-hidden">
+                          <h3 className="font-semibold mb-2">Preview</h3>
+                          {previewDataUrl ? (
+                            <div className="flex-1 overflow-auto flex items-center justify-center">
+                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-[60vh] object-contain rounded" />
+                            </div>
+                          ) : (
+                            <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Generating preview…</div>
+                          )}
+                          <div className="mt-3">
+                            {previewDataUrl && (
+                              <a className="btn-primary inline-block" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                            )}
+                          </div>
+                        </div>
+                      </aside>
+                    </div>
                   </div>
                 ) : (
                   <PendingQuotesPanel onSelectRequest={(request) => {
