@@ -259,12 +259,12 @@ html, body {
   top: 340px;
   left: 180px;
   right: 180px;
-  min-height: 260px;
+  min-height: 340px;
   background: #f3f3f3;
   border-radius: 24px;
-  padding: 32px 44px;
+  padding: 36px 48px;
   display: grid;
-  gap: 24px;
+  gap: 32px;
   z-index: 3;
 }
 
@@ -272,7 +272,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
+  gap: 32px;
 }
 
 .pdf-quote-meta-block,
@@ -282,8 +282,8 @@ html, body {
 }
 
 .pdf-customer-box {
-  width: 420px;
-  padding: 24px;
+  width: 520px;
+  padding: 30px;
   border: 2px solid #111827;
   background: #ffffff;
   border-radius: 20px;
@@ -308,7 +308,7 @@ html, body {
   color: #111827;
 }
 
-.pdf-customer-box .pdf-header-info-value:first-of-type {
+.pdf-customer-box .pdf-header-info-value {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -364,17 +364,20 @@ html, body {
 .pdf-package-info-line {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  font-size: 34px;
+  gap: 16px;
+  font-size: 44px;
 }
 
 .pdf-package-info-line span {
-  opacity: 0.75;
-  font-weight: 600;
+  opacity: 1;
+  font-weight: 800;
+  color: #111827;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
+  color: #111827;
+  font-size: 44px;
 }
 
 .pdf-package-info-group {
@@ -416,7 +419,7 @@ html, body {
 .pdf-table-wrapper {
   width: 90%;
   max-width: 2190px;
-  margin: 200px auto 0;
+  margin: 340px auto 0;
   z-index: 3;
   display: flex;
   justify-content: center;
