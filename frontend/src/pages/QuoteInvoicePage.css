@@ -303,13 +303,13 @@ html, body {
 }
 
 .pdf-header-info-value {
-  font-size: 18pt;
+  font-size: 28pt;
   font-weight: 700;
   color: #111827;
 }
 
 .pdf-quotation-title {
-  font-size: 30pt;
+  font-size: 40pt;
   font-weight: 800;
   color: #fcc000;
   letter-spacing: 0.08em;
@@ -320,14 +320,14 @@ html, body {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-size: 28px;
+  font-size: 38px;
   color: #111827;
 }
 
 .pdf-quote-meta-row span {
   opacity: 0.75;
   font-weight: 600;
-  font-size: 24px;
+  font-size: 34px;
 }
 
 .pdf-quote-meta-row strong {
