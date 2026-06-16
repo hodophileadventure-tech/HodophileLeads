@@ -228,7 +228,7 @@ html, body {
   width: 2550px;
   min-height: 3300px;
   overflow: visible;
-  padding-top: 650px;
+  padding-top: 860px;
 }
 
 .pdf-header-image {
@@ -254,75 +254,9 @@ html, body {
   display: block;
 }
 
-.pdf-header-custom {
-  position: absolute;
-  top: 20px;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 180px;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  padding: 0 40px;
-  z-index: 2;
-  background: #ffffff;
-  border-bottom: 3px solid #000000;
-}
-
-.pdf-header-emblem {
-  flex-shrink: 0;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pdf-header-emblem img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.pdf-header-text {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 40px;
-}
-
-.header-company-name {
-  font-size: 42px;
-  font-weight: 900;
-  color: #000000;
-  letter-spacing: 1px;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.header-tagline {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333333;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.header-license {
-  font-size: 11px;
-  font-weight: 700;
-  color: #666666;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-}
-
-
 .pdf-header-info-box {
   position: absolute;
-  top: 210px;
+  top: 520px;
   left: 180px;
   right: 180px;
   min-height: 340px;
