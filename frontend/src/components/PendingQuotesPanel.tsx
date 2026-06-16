@@ -41,7 +41,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         try {
           const allRequests = await loadRequests();
           const ql = q.toLowerCase();
-          const found = allRequests.find((r: QuoteRequest) => ((r.quoteNumber || '') + ' ' + (r.leadClientName || '') + ' ' + (r.leadPhone || '')).toLowerCase().includes(ql));
+          const found = allRequests.find((r: QuoteRequest) => ((r.documentData?.quoteNumber ?? '') + ' ' + (r.leadClientName || '') + ' ' + (r.leadPhone || '')).toLowerCase().includes(ql));
           if (found) onSelectRequest(found);
         } catch (err) {
           // ignore
@@ -266,7 +266,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         {pendingRequests.filter(r => {
             if (!searchQuery) return true;
             const q = searchQuery.toLowerCase();
-            return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+            return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.documentData?.quoteNumber ?? '').toLowerCase().includes(q);
           }).length === 0 ? (
           <div className="text-center py-8 text-slate-500">
             <p>No pending quote requests right now.</p>
@@ -276,7 +276,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
             {pendingRequests.filter(r => {
               if (!searchQuery) return true;
               const q = searchQuery.toLowerCase();
-              return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+              return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.documentData?.quoteNumber ?? '').toLowerCase().includes(q);
             }).map((request) => renderRequestCard(request, `Create ${request.requestType === 'quotation' ? 'Quotation' : 'Invoice'}`, true))}
           </div>
         )}
@@ -296,7 +296,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         {savedRequests.filter(r => {
             if (!searchQuery) return true;
             const q = searchQuery.toLowerCase();
-            return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+            return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.documentData?.quoteNumber ?? '').toLowerCase().includes(q);
           }).length === 0 ? (
           <div className="text-center py-8 text-slate-500">
             <p>No created quotations yet.</p>
@@ -306,7 +306,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
             {savedRequests.filter(r => {
               if (!searchQuery) return true;
               const q = searchQuery.toLowerCase();
-              return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.quoteNumber || '').toLowerCase().includes(q);
+              return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || (r.documentData?.quoteNumber ?? '').toLowerCase().includes(q);
             }).map((request) => renderRequestCard(request, 'View Document', false))}
           </div>
         )}
