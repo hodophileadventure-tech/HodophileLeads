@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useUIStore, useDataStore } from '../context/store';
-import { leadsAPI, followUpsAPI } from '../utils/api-service';
+import { leadsAPI, followUpsAPI, quoteRequestsAPI } from '../utils/api-service';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { Dashboard } from '../components/Dashboard';
@@ -499,12 +499,29 @@ export const App: React.FC = () => {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-white dark:bg-slate-900">
-        <Navbar onNotificationClick={(notification) => {
-          if (notification?.type === 'quote_saved' && notification.payload?.requestId) {
-            setCurrentPage('agent');
-            window.setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('open-saved-quote', { detail: { requestId: notification.payload.requestId } }));
-            }, 0);
+        <Navbar onNotificationClick={async (notification) => {
+          try {
+            if (notification?.type === 'quote_saved' && notification.payload?.requestId) {
+              setCurrentPage('agent');
+              window.setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('open-saved-quote', { detail: { requestId: notification.payload.requestId } }));
+              }, 0);
+              return;
+            }
+
+            if (notification?.type === 'quote_request' && notification.payload?.requestId) {
+              const requestId = notification.payload.requestId;
+              try {
+                const res = await quoteRequestsAPI.getById(requestId);
+                setSelectedQuoteRequest(res.data || null);
+              } catch (err) {
+                setSelectedQuoteRequest({ id: requestId, leadId: notification.payload.leadId, requestType: notification.payload.requestType } as any);
+              }
+              setCurrentPage('pending-quotes');
+              return;
+            }
+          } catch (e) {
+            console.error('Notification click handler error', e);
           }
         }} />
         <div className="flex">
