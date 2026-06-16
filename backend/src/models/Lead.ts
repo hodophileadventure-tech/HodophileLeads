@@ -181,9 +181,9 @@ export const leadsModel = {
           phone: (data as any).phone,
           name: params[0],
           email: params[1],
-          address: params[16],
-          gender: params[17],
-          age: params[18]
+          address: params[17],
+          gender: params[18],
+          age: params[19]
         });
         profileId = created.id;
       }
