@@ -137,7 +137,9 @@ export const QuoteInvoicePage: React.FC<{
   onSaved?: (requestId: string) => void;
   onClose?: () => void;
   viewOnly?: boolean;
-}> = ({ leadId, requestId, onSaved, onClose, viewOnly = false }) => {
+  generatePreviewOnMount?: boolean;
+  onPreviewGenerated?: (dataUrl: string) => void;
+}> = ({ leadId, requestId, onSaved, onClose, viewOnly = false, generatePreviewOnMount = false, onPreviewGenerated }) => {
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
@@ -335,6 +337,28 @@ export const QuoteInvoicePage: React.FC<{
     setData((current) => ({ ...current, [field]: value }));
   };
 
+  // Auto-generate a JPEG preview on mount when requested by parent
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      if (!generatePreviewOnMount) return;
+      // allow DOM to settle
+      await new Promise((r) => setTimeout(r, 250));
+      try {
+        const canvas = await captureFullDocument();
+        if (!canvas) return;
+        const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+        if (mounted && onPreviewGenerated) onPreviewGenerated(jpegData);
+      } catch (err) {
+        console.error('preview generation failed', err);
+      }
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [generatePreviewOnMount, requestId]);
+
   const updateRow = (id: string, field: keyof Omit<TableRow, 'id'>, value: string) => {
     if (viewOnly) return;
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
@@ -387,6 +411,7 @@ export const QuoteInvoicePage: React.FC<{
       link.click();
       document.body.removeChild(link);
       setMessage('JPEG generated successfully.');
+      if (onPreviewGenerated) onPreviewGenerated(jpegData);
     } catch (error) {
       console.error(error);
       setMessage('Failed to generate JPEG. Please try again.');

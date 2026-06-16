@@ -51,6 +51,7 @@ export const AgentPanel: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
+  const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
   const [quoteRequestError, setQuoteRequestError] = useState('');
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
@@ -657,15 +658,60 @@ export const AgentPanel: React.FC = () => {
               <h2 className="text-2xl font-semibold">Saved {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
               <p className="text-sm text-slate-600 dark:text-slate-400">{user?.role === 'admin' ? 'Admin completed' : 'View'} this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
             </div>
-            <Button variant="secondary" onClick={() => setSelectedRequest(null)}>
+            <Button variant="secondary" onClick={() => { setPreviewDataUrl(null); setSelectedRequest(null); }}>
               Back to saved quotations
             </Button>
           </div>
-          <QuoteInvoicePage
-            leadId={selectedRequest.leadId}
-            requestId={selectedRequest.id}
-            viewOnly={user?.role !== 'admin'}
-          />
+
+          {user?.role === 'agent' ? (
+            <div className="grid grid-cols-12 gap-4">
+              <aside className="col-span-12 sm:col-span-3">
+                <div className="border rounded p-4">
+                  <h3 className="font-semibold mb-2">Requested Details</h3>
+                  <p className="text-sm text-slate-600">Type: {selectedRequest.requestType}</p>
+                  <p className="text-sm text-slate-600">Requested By: {selectedRequest.requestedByName || selectedRequest.requestedBy}</p>
+                  <p className="text-sm text-slate-600">Client: {selectedRequest.leadClientName || '—'}</p>
+                  <p className="text-sm text-slate-600">Phone: {selectedRequest.leadPhone || '—'}</p>
+                  <p className="text-sm text-slate-600">Destination: {selectedRequest.leadDestination || '—'}</p>
+                  <p className="text-sm text-slate-500 mt-2">Created: {new Date(selectedRequest.createdAt).toLocaleString()}</p>
+                </div>
+              </aside>
+
+              <main className="col-span-12 sm:col-span-6">
+                <QuoteInvoicePage
+                  leadId={selectedRequest.leadId}
+                  requestId={selectedRequest.id}
+                  viewOnly={true}
+                  generatePreviewOnMount
+                  onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                />
+              </main>
+
+              <aside className="col-span-12 sm:col-span-3">
+                <div className="border rounded p-4 h-full flex flex-col">
+                  <h3 className="font-semibold mb-2">Preview</h3>
+                  {previewDataUrl ? (
+                    <div className="flex-1 overflow-auto">
+                      <img src={previewDataUrl} alt="Quotation preview" className="w-full rounded" />
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Generating preview…</div>
+                  )}
+                  <div className="mt-3">
+                    {previewDataUrl && (
+                      <a className="btn-primary inline-block" href={previewDataUrl} download={`${selectedRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                    )}
+                  </div>
+                </div>
+              </aside>
+            </div>
+          ) : (
+            <QuoteInvoicePage
+              leadId={selectedRequest.leadId}
+              requestId={selectedRequest.id}
+              viewOnly={user?.role !== 'admin'}
+            />
+          )}
         </section>
       )}
 
