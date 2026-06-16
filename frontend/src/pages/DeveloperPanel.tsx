@@ -14,6 +14,12 @@ type Issue = {
   reporterEmail?: string;
   attachmentUrl?: string;
   createdAt?: string;
+  reporter_name?: string;
+  reporter_email?: string;
+  reporter_role?: string;
+  reporter_id?: string;
+  attachment_url?: string;
+  created_at?: string;
 };
 
 const DeveloperPanel: React.FC = () => {
