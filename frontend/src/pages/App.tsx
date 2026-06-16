@@ -1072,19 +1072,7 @@ export const App: React.FC = () => {
                     </Button>
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
-                      <aside className="col-span-1 md:col-span-3 overflow-y-auto">
-                        <div className="border rounded p-4 sticky top-0">
-                          <h3 className="font-semibold mb-3 text-base">Requested Details</h3>
-                          <p className="text-sm text-slate-600 mb-1">Type: {selectedQuoteRequest.requestType}</p>
-                          <p className="text-sm text-slate-600 mb-1">Requested By: {selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy}</p>
-                          <p className="text-sm text-slate-600 mb-1">Client: {selectedQuoteRequest.leadClientName || '—'}</p>
-                          <p className="text-sm text-slate-600 mb-1">Phone: {selectedQuoteRequest.leadPhone || '—'}</p>
-                          <p className="text-sm text-slate-600 mb-1">Destination: {selectedQuoteRequest.leadDestination || '—'}</p>
-                          <p className="text-sm text-slate-500 mt-3">Created: {new Date(selectedQuoteRequest.createdAt).toLocaleString()}</p>
-                        </div>
-                      </aside>
-
-                      <main className="col-span-1 md:col-span-6 overflow-y-auto">
+                        <main className="col-span-1 md:col-span-9 overflow-y-auto">
                         <QuoteInvoicePage
                           leadId={selectedQuoteRequest.leadId}
                           requestId={selectedQuoteRequest.id}
