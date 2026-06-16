@@ -1,7 +1,6 @@
 ﻿import React, { useMemo, useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import quoteHeaderImage from '../assets/quote-header-custom.jpg';
 import emblemImage from '../assets/emblem.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
