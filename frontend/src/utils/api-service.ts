@@ -77,6 +77,19 @@ export const adminAPI = {
   saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
 };
 
+export const reportsAPI = {
+  listMyReports: (type: 'daily' | 'weekly' | 'monthly', page = 1, limit = 30) =>
+    apiClient.get('/reports', { params: { type, page, limit } }),
+  getMyReport: (type: 'daily' | 'weekly' | 'monthly', date: string) =>
+    apiClient.get('/reports/me', { params: { type, date } }),
+  compileMyReport: (type: 'daily' | 'weekly' | 'monthly', date: string) =>
+    apiClient.post('/reports/compile', { type, date }),
+  listAdminReports: (type: 'daily' | 'weekly' | 'monthly', date: string) =>
+    apiClient.get('/reports/admin', { params: { type, date } }),
+  exportAdminReports: (type: 'daily' | 'weekly' | 'monthly', date: string) =>
+    apiClient.get('/reports/export', { params: { type, date }, responseType: 'blob' })
+};
+
 // Issue reporting API
 (adminAPI as any).createIssue = (formData: FormData) =>
   apiClient.post('/admin/issues', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

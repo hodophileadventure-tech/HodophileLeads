@@ -245,7 +245,25 @@ async function migrate() {
     `);
     console.log('✅ Audit Logs table created');
 
-    // 9. Notifications Table (depends on users, leads)
+    // 9. Daily Reports Table (depends on users)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS daily_reports (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        report_type VARCHAR(20) NOT NULL CHECK (report_type IN ('daily', 'weekly', 'monthly')),
+        report_date DATE NOT NULL,
+        user_id UUID REFERENCES users(id),
+        period_start DATE NOT NULL,
+        period_end DATE NOT NULL,
+        report_data JSONB NOT NULL,
+        total_activities INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(report_type, report_date, user_id)
+      )
+    `);
+    console.log('✅ Daily Reports table created');
+
+    // 10. Notifications Table (depends on users, leads)
     await client.query(`
       CREATE TABLE IF NOT EXISTS notifications (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -35,18 +35,18 @@ async function seed() {
     // 2. Insert sample leads
     const leadsResult = await client.query(`
       INSERT INTO leads 
-      (name, email, phone, destination, budget, source, temperature, status, agent_id, special_requests)
+      (name, email, phone, destination, budget, source, temperature, status, agent_id, special_requests, islamabad_stay)
       VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10),
-        ($11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11),
+        ($12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       ON CONFLICT DO NOTHING
       RETURNING id;
     `, [
       'John Doe', 'john@example.com', '+1-555-0101', 'Paris, France', 
-      5000, 'website', 'hot', 'potential', adminId, 'Honeymoon trip',
+      5000, 'website', 'hot', 'potential', adminId, 'Honeymoon trip', 'yes',
       
       'Jane Smith', 'jane@example.com', '+1-555-0102', 'Tokyo, Japan',
-      8000, 'referral', 'warm', 'potential', adminId, 'Family vacation with kids'
+      8000, 'referral', 'warm', 'potential', adminId, 'Family vacation with kids', 'no'
     ]);
 
     const leadIds = leadsResult.rows.map(r => r.id);

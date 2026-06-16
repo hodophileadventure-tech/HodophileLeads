@@ -15,9 +15,11 @@ import { itinerariesRouter } from './routes/itineraries';
 import { notificationsRouter } from './routes/notifications';
 import { paymentsRouter } from './routes/payments';
 import { quoteRequestsRouter } from './routes/quote-requests';
+import { reportsRouter } from './routes/reports';
 import { errorHandler } from './middleware/auth';
 import { initDatabase } from './utils/database';
 import { startFollowUpWorker } from './workers/followUpWorker';
+import { startReportWorker } from './workers/reportWorker';
 import { createServer } from 'http';
 import { initWebsocket } from './utils/wsServer';
 import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
@@ -64,6 +66,7 @@ app.use('/api/follow-ups', followUpsRouter);
 app.use('/api/availability', availabilityRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/quote-requests', quoteRequestsRouter);
+app.use('/api/reports', reportsRouter);
 app.use('/api/itineraries', itinerariesRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/payments', paymentsRouter);
@@ -143,8 +146,9 @@ app.use(errorHandler);
 // Start server after DB init and worker start
 const start = async () => {
   await initDatabase();
-  // start background worker
+  // start background workers
   startFollowUpWorker();
+  startReportWorker();
   startScreenCaptureCleanup();
 
   const server = createServer(app);

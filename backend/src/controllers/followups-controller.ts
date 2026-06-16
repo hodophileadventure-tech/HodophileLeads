@@ -5,6 +5,7 @@ import { notificationsModel } from '../models/Notification';
 import { leadsModel } from '../models/Lead';
 import { sendToUser } from '../utils/wsServer';
 import { validatePayload, followUpSchema } from '../utils/validation';
+import { logActivity } from '../utils/activity-log';
 
 const ensureLeadAccess = (lead: any, user: any) => {
   if (!lead) return false;
@@ -57,6 +58,18 @@ export const followUpsController = {
       } catch (nerr) {
         console.error('[FollowUps] failed to create notification', nerr);
       }
+      // log activity
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'follow_up',
+          entityId: item.id,
+          action: 'create',
+          changes: { title: item.title, dueDate: item.due_date, assignedTo: item.assigned_to }
+        });
+      } catch (e) {
+        // logging failure should not block
+      }
       res.status(201).json(item);
     } catch (error) {
       next(error);
@@ -74,6 +87,15 @@ export const followUpsController = {
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'follow_up',
+          entityId: req.params.id,
+          action: 'update',
+          changes: payload as Record<string, any>
+        });
+      } catch (_) {}
       res.json(item);
     } catch (error) {
       next(error);
@@ -86,6 +108,14 @@ export const followUpsController = {
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'follow_up',
+          entityId: req.params.id,
+          action: 'delete'
+        });
+      } catch (_) {}
       res.json({ message: 'Deleted', item });
     } catch (error) {
       next(error);
@@ -98,6 +128,14 @@ export const followUpsController = {
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'follow_up',
+          entityId: req.params.id,
+          action: 'complete'
+        });
+      } catch (_) {}
       res.json(item);
     } catch (error) {
       next(error);
@@ -114,6 +152,15 @@ export const followUpsController = {
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'follow_up',
+          entityId: req.params.id,
+          action: 'cancel',
+          changes: { reason: reason || '' }
+        });
+      } catch (_) {}
       res.json(item);
     } catch (error) {
       next(error);

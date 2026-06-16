@@ -7,6 +7,7 @@ import { Sidebar } from '../components/Sidebar';
 import { Dashboard } from '../components/Dashboard';
 import AgentPanel from '../components/AgentPanel';
 import ReportIssuePage from './ReportIssuePage';
+import DailyReportsPage from './DailyReportsPage';
 import DeveloperPanel from './DeveloperPanel';
 import { TaskDashboard } from '../components/TaskDashboard';
 import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
@@ -22,7 +23,7 @@ import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'dev-panel';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel';
 
  
 
@@ -480,6 +481,7 @@ export const App: React.FC = () => {
     { label: 'Leads', href: 'leads', icon: '🧾' },
     { label: 'Follow-ups', href: 'followups', icon: '🕒' },
     { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
+    ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
@@ -619,6 +621,10 @@ export const App: React.FC = () => {
             )}
             {currentPage === 'report-issue' && (
               <ReportIssuePage />
+            )}
+
+            {currentPage === 'daily-reports' && user?.role === 'admin' && (
+              <DailyReportsPage />
             )}
 
             {currentPage === 'dev-panel' && user?.role === 'admin' && (

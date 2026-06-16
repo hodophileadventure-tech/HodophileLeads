@@ -9,6 +9,7 @@ import { query } from '../utils/database';
 import { calculateBookingHealthScore, generateFollowUpTasks } from '../services/lead-service';
 import Joi from 'joi';
 import { validatePayload, leadSchema } from '../utils/validation';
+import { logActivity } from '../utils/activity-log';
 
 const normalizeLeadPayload = (body: any, agentId: string) => {
   const destinations = Array.isArray(body.destinations)
@@ -177,6 +178,15 @@ export const leadsController = {
       }
 
       const lead = await leadsModel.create(leadData);
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'lead',
+          entityId: lead.id,
+          action: 'create',
+          changes: { status: lead.status, destination: lead.destination }
+        });
+      } catch (_) {}
       res.status(201).json(lead);
     } catch (error) {
       next(error);
@@ -193,6 +203,18 @@ export const leadsController = {
         payload = validatePayload(Joi.object().unknown(true), normalizeLeadPayload(req.body, req.user.id));
       }
       const lead = await leadsModel.update(req.params.id, payload);
+      if (!lead) {
+        return res.status(404).json({ message: 'Lead not found' });
+      }
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'lead',
+          entityId: req.params.id,
+          action: 'update',
+          changes: payload as Record<string, any>
+        });
+      } catch (_) {}
       res.json(lead);
     } catch (error) {
       next(error);
@@ -270,6 +292,18 @@ export const leadsController = {
     try {
       const { status } = req.body;
       const lead = await leadsModel.update(req.params.id, { status });
+      if (!lead) {
+        return res.status(404).json({ message: 'Lead not found' });
+      }
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'lead',
+          entityId: req.params.id,
+          action: 'update',
+          changes: { status }
+        });
+      } catch (_) {}
       res.json(lead);
     } catch (error) {
       next(error);
@@ -336,6 +370,16 @@ export const leadsController = {
           autoTasksCreated += 1;
         }
       }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'lead',
+          entityId: req.params.id,
+          action: 'update',
+          changes: { pipelineStage: stage }
+        });
+      } catch (_) {}
 
       res.json({
         lead,
@@ -406,7 +450,15 @@ export const leadsController = {
   async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       await notificationsModel.deleteByLead(req.params.id);
-      await leadsModel.delete(req.params.id);
+      const deletedLead = await leadsModel.delete(req.params.id);
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'lead',
+          entityId: req.params.id,
+          action: 'delete'
+        });
+      } catch (_) {}
       res.status(204).send();
     } catch (error) {
       next(error);

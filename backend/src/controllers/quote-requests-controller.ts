@@ -5,6 +5,7 @@ import { leadsModel } from '../models/Lead';
 import { notificationsModel } from '../models/Notification';
 import { sendToUser } from '../utils/wsServer';
 import { query } from '../utils/database';
+import { logActivity } from '../utils/activity-log';
 
 export const quoteRequestsController = {
   async requestQuote(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -60,6 +61,16 @@ export const quoteRequestsController = {
 
         sendToUser(admin.id, 'notification', notification);
       }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: quoteRequest.id,
+          action: 'create',
+          changes: { requestType }
+        });
+      } catch (_) {}
 
       res.status(201).json(quoteRequest);
     } catch (error) {
@@ -150,6 +161,15 @@ export const quoteRequestsController = {
         });
         sendToUser(existingRequest.requestedBy, 'notification', notification);
       }
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: updatedRequest.id,
+          action: 'save',
+          changes: { resolvedBy: req.user.id }
+        });
+      } catch (_) {}
 
       res.json(updatedRequest);
     } catch (error) {
@@ -200,6 +220,15 @@ export const quoteRequestsController = {
           sendToUser(admin.id, 'notification', notification);
         }
       }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: requestId,
+          action: 'delete'
+        });
+      } catch (_) {}
 
       res.json(deletedRequest);
     } catch (error) {
@@ -266,6 +295,15 @@ export const quoteRequestsController = {
 
         sendToUser(admin.id, 'notification', notification);
       }
+        try {
+          await logActivity({
+            userId: req.user.id,
+            entityType: 'quote_request',
+            entityId: newRequest.id,
+            action: 're-request',
+            changes: { parentRequestId: requestId }
+          });
+        } catch (_) {}
 
       res.status(201).json(newRequest);
     } catch (error) {
