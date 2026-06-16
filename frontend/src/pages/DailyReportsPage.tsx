@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Card, Spinner } from '../components/common';
 import { reportsAPI } from '../utils/api-service';
 import { useAuth } from '../context/AuthContext';
@@ -18,10 +18,7 @@ const DailyReportsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const selectedEmployeeReport = React.useMemo(() => {
-    if (!report || !selectedReportId || !Array.isArray(report.reportRows)) return null;
-    return report.reportRows.find((row: any) => String(row.id) === String(selectedReportId)) || null;
-  }, [report, selectedReportId]);
+  const selectedEmployeeReport = report?.reportRows?.find((row: any) => String(row.id) === String(selectedReportId)) || null;
 
   const fetchReports = async () => {
     setLoading(true);
@@ -168,10 +165,10 @@ const DailyReportsPage: React.FC = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(report.report_data?.totals || {}).map(([key, value]) => (
+              {Object.entries((report.report_data?.totals as Record<string, any>) || {}).map(([key, value]) => (
                 <div key={key} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
                   <h4 className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{key.replace(/([A-Z])/g, ' $1')}</h4>
-                  <p className="mt-2 text-xl font-semibold">{value}</p>
+                  <p className="mt-2 text-xl font-semibold">{String(value)}</p>
                 </div>
               ))}
             </div>
@@ -263,10 +260,10 @@ const DailyReportsPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(selectedEmployeeReport.report_data?.totals || {}).map(([key, value]) => (
+                  {Object.entries((selectedEmployeeReport.report_data?.totals as Record<string, any>) || {}).map(([key, value]) => (
                     <div key={key} className="rounded-xl bg-white dark:bg-slate-900 p-3">
                       <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{key.replace(/([A-Z])/g, ' $1')}</div>
-                      <div className="mt-2 font-semibold">{value}</div>
+                      <div className="mt-2 font-semibold">{String(value)}</div>
                     </div>
                   ))}
                 </div>
