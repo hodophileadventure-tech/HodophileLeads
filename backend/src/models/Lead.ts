@@ -49,6 +49,7 @@ const mapLeadRow = (row: any) => {
     specialRequests: row.specialRequests || row.special_requests,
     transportPreference: row.transportPreference || row.transport_preference,
     hotelPreference: row.hotelPreference || row.hotel_preference,
+    islamabadStay: row.islamabadStay || row.islamabad_stay || null,
     tourType: row.tourType || row.tour_type || null,
     createdAt: row.createdAt || row.created_at,
     updatedAt: row.updatedAt || row.updated_at,
@@ -112,8 +113,8 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, tour_type, agent_remarks, remarks, potential, lead_outcome
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27)
+          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, tour_type, agent_remarks, remarks, potential, lead_outcome, islamabad_stay
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
       RETURNING *
     `;
 
@@ -159,7 +160,8 @@ export const leadsModel = {
       (data as any).agentRemarks || (data as any).agent_remarks || null,
       (data as any).remarks || null,
       (data as any).potential ? true : false,
-      (data as any).leadOutcome || (data as any).lead_outcome || null
+      (data as any).leadOutcome || (data as any).lead_outcome || null,
+      (data as any).islamabadStay || (data as any).islamabad_stay || null
     ];
 
     // handle profile by phone
@@ -228,6 +230,7 @@ export const leadsModel = {
       'transport_preference',
       'hotel_preference',
       'tour_type',
+      'islamabad_stay',
       'canceled_reason',
       'canceled_by',
       'canceled_at',

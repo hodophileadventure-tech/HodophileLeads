@@ -125,7 +125,8 @@ async function migrate() {
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS lead_outcome VARCHAR(50)',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS adults INTEGER',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS kids INTEGER',
-      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS tour_type VARCHAR(100)'
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS tour_type VARCHAR(100)',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS islamabad_stay VARCHAR(10)'
     ];
     
     for (const cmd of addColumnCommands) {

@@ -70,6 +70,7 @@ export interface Lead {
   canceledReason?: string | null;
   canceledBy?: string | null;
   canceledAt?: string | null;
+  islamabadStay?: string;
 }
 
 export interface LeadHotelInfo {

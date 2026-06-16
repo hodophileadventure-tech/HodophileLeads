@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS leads (
   special_requests TEXT,
   transport_preference VARCHAR(255),
   hotel_preference VARCHAR(255),
+  islamabad_stay VARCHAR(10),
   canceled_reason TEXT,
   canceled_by UUID REFERENCES users(id),
   canceled_at TIMESTAMP,
