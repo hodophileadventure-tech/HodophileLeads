@@ -342,6 +342,8 @@ export const QuoteInvoicePage: React.FC<{
     let mounted = true;
     const run = async () => {
       if (!generatePreviewOnMount) return;
+      // wait until initial loading completes so the preview contains admin-filled data
+      if (loading) return;
       // allow DOM to settle
       await new Promise((r) => setTimeout(r, 250));
       try {
@@ -357,7 +359,7 @@ export const QuoteInvoicePage: React.FC<{
     return () => {
       mounted = false;
     };
-  }, [generatePreviewOnMount, requestId]);
+  }, [generatePreviewOnMount, requestId, loading]);
 
   const updateRow = (id: string, field: keyof Omit<TableRow, 'id'>, value: string) => {
     if (viewOnly) return;
