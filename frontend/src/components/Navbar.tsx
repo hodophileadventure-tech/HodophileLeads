@@ -57,7 +57,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
 
   return (
     <>
-    <nav className="brand-header border-b sticky top-0 z-10">
+    <nav className="brand-header border-b sticky top-0 z-10 md:pl-64">
       <div className="px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold" style={{color: '#000000'}}>TRIPNEXUS</h1>
