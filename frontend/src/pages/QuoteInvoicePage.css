@@ -410,10 +410,10 @@ html, body {
 }
 
 .pdf-package-includes-list li {
-  font-size: 32px;
+  font-size: 44px;
   line-height: 1.6;
   color: #111827;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
   break-inside: avoid-column;
 }
