@@ -534,7 +534,23 @@ export const adminController = {
     try {
       if (process.env.DATABASE_URL) {
         try {
-          const result = await query('SELECT * FROM issues ORDER BY created_at DESC');
+          const result = await query(`
+            SELECT 
+              i.id,
+              i.location,
+              i.description,
+              i.reporter_role,
+              i.reporter_id,
+              i.status,
+              i.attachment_url,
+              i.created_at,
+              i.updated_at,
+              u.name AS reporter_name,
+              u.email AS reporter_email
+            FROM issues i
+            LEFT JOIN users u ON u.id = i.reporter_id
+            ORDER BY i.created_at DESC
+          `);
           return res.json({ issues: result.rows });
         } catch (dbErr) {
           console.warn('DB select for issues failed, falling back to file storage', (dbErr as any)?.message || String(dbErr));

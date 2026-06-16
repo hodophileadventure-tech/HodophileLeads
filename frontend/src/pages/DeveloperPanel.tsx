@@ -10,6 +10,8 @@ type Issue = {
   status?: string;
   reporterRole?: string;
   reporterId?: string;
+  reporterName?: string;
+  reporterEmail?: string;
   attachmentUrl?: string;
   createdAt?: string;
 };
@@ -78,19 +80,23 @@ const DeveloperPanel: React.FC = () => {
         {Array.isArray(issues) && issues.map((issue) => (
           <div key={issue.id} className="border rounded p-3 bg-white">
             <div className="flex justify-between items-start">
-              <div>
+              <div className="flex-1">
                 <div className="text-sm text-slate-500">{issue.location} • {issue.createdAt ? new Date(issue.createdAt).toLocaleString() : ''}</div>
-                <div className="font-medium">{issue.description}</div>
-                <div className="text-xs text-slate-600">Reported by {issue.reporterRole} {issue.reporterId ? `(${issue.reporterId})` : ''}</div>
+                <div className="font-medium mt-2">{issue.description}</div>
+                <div className="text-sm text-slate-700 mt-2">
+                  <strong>Reported by:</strong> {issue.reporterName || 'Unknown'} 
+                  {issue.reporterEmail && <span className="text-slate-600"> ({issue.reporterEmail})</span>}
+                  {issue.reporterRole && <span className="ml-2 px-2 py-1 bg-slate-200 rounded text-xs font-medium">{issue.reporterRole.toUpperCase()}</span>}
+                </div>
                 {issue.attachmentUrl && (
                   <div className="mt-2">
-                    <a href={issue.attachmentUrl} target="_blank" rel="noreferrer" className="text-primary-600 underline">View attachment</a>
+                    <a href={issue.attachmentUrl} target="_blank" rel="noreferrer" className="text-primary-600 underline text-sm">📎 View attachment</a>
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-col items-end gap-2">
-                <select className="input-field" value={issue.status || 'open'} onChange={(e) => updateStatus(issue, e.target.value)}>
+              <div className="flex flex-col items-end gap-2 ml-4">
+                <select className="input-field text-sm" value={issue.status || 'open'} onChange={(e) => updateStatus(issue, e.target.value)}>
                   <option value="open">Open</option>
                   <option value="in_progress">In Progress</option>
                   <option value="fixed">Fixed</option>
