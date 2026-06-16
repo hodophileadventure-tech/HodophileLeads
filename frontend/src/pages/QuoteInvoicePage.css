@@ -233,7 +233,7 @@ html, body {
 
 .pdf-header-image {
   position: absolute;
-  top: 60px;
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
