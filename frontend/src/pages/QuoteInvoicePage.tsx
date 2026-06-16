@@ -207,11 +207,13 @@ export const QuoteInvoicePage: React.FC<{
         setLoading(true);
         const response = await quoteRequestsAPI.getById(requestId);
         const request = response.data;
+        let leadData = null;
 
         // Load lead data for display
         if (request.leadId) {
           try {
             const leadResponse = await leadsAPI.getById(request.leadId);
+            leadData = leadResponse.data;
             setLeadData(leadResponse.data);
           } catch (err) {
             console.error('Failed to load lead data:', err);
@@ -255,6 +257,26 @@ export const QuoteInvoicePage: React.FC<{
               amount: row.amount || ''
             })));
           }
+        } else if (leadData) {
+          // Auto-fill from lead data if no documentData exists
+          const totalPersons = ((leadData.adults ?? 0) + (leadData.kids ?? 0)) || leadData.persons || 0;
+          const destinationValue = Array.isArray(leadData.destinations) && leadData.destinations.length > 0
+            ? leadData.destinations.join(', ')
+            : leadData.destination || '';
+
+          setData((current) => ({
+            ...current,
+            customerName: leadData.clientName || '',
+            phone: leadData.phone || '',
+            city: leadData.address || '',
+            destination: destinationValue,
+            travelDate: leadData.travelDates?.from ? new Date(leadData.travelDates.from).toISOString().split('T')[0] : current.travelDate,
+            persons: totalPersons > 0 ? String(totalPersons).padStart(2, '0') : current.persons,
+            packageName: leadData.tourType ? `${leadData.tourType} Tour Package` : current.packageName,
+            transportationType: leadData.transportPreference || current.transportationType,
+            accommodationType: leadData.hotelPreference || current.accommodationType,
+            departureLocation: leadData.departureLocation || current.departureLocation,
+          }));
         }
       } catch (error) {
         console.error('Failed to load quote request:', error);
@@ -863,22 +885,14 @@ export const QuoteInvoicePage: React.FC<{
                                     <span>Transportation Type</span>
                                     <strong>{data.transportationType}</strong>
                                   </div>
-                                  <div className="pdf-package-info-line">
-                                    <span>Departure Location</span>
-                                    <strong>{data.departureLocation}</strong>
-                                  </div>
-                                  <div className="pdf-package-includes-block">
-                                    <div className="pdf-package-includes-title">Package Includes</div>
-                                    <ul className="pdf-package-includes-list">
-                                      {Array.isArray(data.packageIncludes) && data.packageIncludes.length > 0 ? (
-                                        data.packageIncludes.map((item, index) => (
-                                          <li key={index}>{item}</li>
-                                        ))
-                                      ) : (
-                                        <li>No items specified</li>
-                                      )}
-                                    </ul>
-                                  </div>
+                                </div>
+                                <div className="pdf-package-includes-block">
+                                  <div className="pdf-package-includes-title">Package Includes</div>
+                                  <ul className="pdf-package-includes-list">
+                                    {data.packageIncludes.map((item, itemIndex) => (
+                                      <li key={itemIndex}>{item}</li>
+                                    ))}
+                                  </ul>
                                 </div>
                               </>
                             ) : (
