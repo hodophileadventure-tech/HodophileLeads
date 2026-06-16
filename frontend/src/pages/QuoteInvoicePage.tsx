@@ -420,6 +420,22 @@ export const QuoteInvoicePage: React.FC<{
     }
   };
 
+  // Listen for manual preview generation requests from parent UI
+  useEffect(() => {
+    const handler = async () => {
+      try {
+        const canvas = await captureFullDocument();
+        if (!canvas) return;
+        const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+        if (onPreviewGenerated) onPreviewGenerated(jpegData);
+      } catch (err) {
+        console.error('manual preview generation failed', err);
+      }
+    };
+    window.addEventListener('generate-quote-preview', handler as EventListener);
+    return () => window.removeEventListener('generate-quote-preview', handler as EventListener);
+  }, [requestId, loading]);
+
   const downloadPDF = async () => {
     if (!previewRef.current) return;
     try {

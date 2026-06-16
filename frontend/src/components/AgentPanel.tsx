@@ -697,7 +697,8 @@ export const AgentPanel: React.FC = () => {
                   ) : (
                     <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Generating preview…</div>
                   )}
-                  <div className="mt-3">
+                  <div className="mt-3 flex items-center gap-2">
+                    <Button variant="secondary" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate Preview</Button>
                     {previewDataUrl && (
                       <a className="btn-primary inline-block" href={previewDataUrl} download={`${selectedRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                     )}

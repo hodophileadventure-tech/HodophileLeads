@@ -1069,7 +1069,8 @@ export const App: React.FC = () => {
                           ) : (
                             <div className="flex-1 flex items-center justify-center text-sm text-slate-500">Generating preview…</div>
                           )}
-                          <div className="mt-3">
+                          <div className="mt-3 flex items-center gap-2">
+                            <button className="btn-secondary" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate Preview</button>
                             {previewDataUrl && (
                               <a className="btn-primary inline-block" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                             )}
