@@ -47,7 +47,8 @@ export const leadSchema = Joi.object({
   remarks: Joi.string().allow('').optional(),
   potential: Joi.boolean().optional(),
   canceledReason: Joi.string().allow('').optional(),
-  canceledBy: Joi.string().optional()
+  canceledBy: Joi.string().optional(),
+  islamabadStay: Joi.string().valid('yes', 'no').optional().allow('')
 });
 
 export const followUpSchema = Joi.object({

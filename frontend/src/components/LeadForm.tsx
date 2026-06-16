@@ -139,7 +139,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         (payload as any).age = typeof ageValue === 'number' ? ageValue : parseInt(String(ageValue), 10);
       }
 
-      if (formData.createdAt) {
+      if (initialData?.id && formData.createdAt) {
         payload.createdAt = formData.createdAt;
       }
 

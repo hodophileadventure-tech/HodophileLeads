@@ -63,6 +63,15 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
       ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
       : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
 
+  const createdAtDate = React.useMemo(() => {
+    const value = lead.createdAt;
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    return new Date(value);
+  }, [lead.createdAt]);
+
   const lifecycle = getLeadLifecycleStyle(lead);
 
   return (
@@ -85,7 +94,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           </div>
           <div className="flex flex-col gap-1 mt-1">
             <p className="text-sm text-slate-600 dark:text-slate-400">📍 {lead.destination} {lead.travelDates?.from ? '• ' + new Date(lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' - ' + new Date(lead.travelDates.to || lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Created: {new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(lead.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Created: {createdAtDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {createdAtDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
             {lead.destinations && lead.destinations.length > 1 && (
               <p className="text-xs text-slate-500">+{lead.destinations.length - 1} more destinations</p>
             )}
