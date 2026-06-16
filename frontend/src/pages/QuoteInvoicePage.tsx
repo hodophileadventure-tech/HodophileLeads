@@ -275,7 +275,6 @@ export const QuoteInvoicePage: React.FC<{
             packageName: leadData.tourType ? `${leadData.tourType} Tour Package` : current.packageName,
             transportationType: leadData.transportPreference || current.transportationType,
             accommodationType: leadData.hotelPreference || current.accommodationType,
-            departureLocation: leadData.departureLocation || current.departureLocation,
           }));
         }
       } catch (error) {
