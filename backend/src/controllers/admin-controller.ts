@@ -481,6 +481,164 @@ export const adminController = {
     }
   },
 
+  // Issue reporting: create, list, update, upload attachment
+  async createIssue(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { location, description, reporterRole, reporterId } = req.body || {};
+      const file = (req as any).file;
+      const id = randomUUID();
+      const createdAt = new Date().toISOString();
+
+      const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'issues');
+      fs.mkdirSync(uploadDir, { recursive: true });
+
+      const attachmentUrl = file ? `/uploads/issues/${file.filename}` : null;
+
+      // Try saving to DB if available
+      if (process.env.DATABASE_URL) {
+        try {
+          const sql = `
+            INSERT INTO issues (id, location, description, reporter_role, reporter_id, status, attachment_url, created_at)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            RETURNING *
+          `;
+          const params = [id, location || null, description || null, reporterRole || null, reporterId || null, 'open', attachmentUrl, createdAt];
+          const result = await query(sql, params);
+          return res.json({ issue: result.rows[0] });
+        } catch (dbErr) {
+          console.warn('DB insert for issue failed, falling back to file storage', (dbErr as any)?.message || String(dbErr));
+          // continue to file fallback
+        }
+      }
+
+      // File fallback storage
+      const filePath = path.join(uploadDir, 'issues.json');
+      let list: any[] = [];
+      try {
+        const raw = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '[]';
+        list = JSON.parse(raw || '[]');
+      } catch {
+        list = [];
+      }
+
+      const issue = { id, location: location || null, description: description || null, reporterRole: reporterRole || null, reporterId: reporterId || null, status: 'open', attachmentUrl, createdAt };
+      list.unshift(issue);
+      fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
+      res.json({ issue });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async listIssues(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (process.env.DATABASE_URL) {
+        try {
+          const result = await query('SELECT * FROM issues ORDER BY created_at DESC');
+          return res.json({ issues: result.rows });
+        } catch (dbErr) {
+          console.warn('DB select for issues failed, falling back to file storage', (dbErr as any)?.message || String(dbErr));
+        }
+      }
+
+      const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'issues');
+      const filePath = path.join(uploadDir, 'issues.json');
+      let list: any[] = [];
+      try {
+        const raw = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '[]';
+        list = JSON.parse(raw || '[]');
+      } catch (err) {
+        list = [];
+      }
+      res.json({ issues: list });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async updateIssue(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const issueId = String(req.params.id || '');
+      const data = req.body || {};
+
+      if (process.env.DATABASE_URL) {
+        try {
+          const fields = [] as string[];
+          const params: any[] = [];
+          let idx = 1;
+          for (const key of Object.keys(data)) {
+            fields.push(`${key} = $${idx}`);
+            params.push(data[key]);
+            idx++;
+          }
+          if (fields.length) {
+            const sql = `UPDATE issues SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${idx} RETURNING *`;
+            params.push(issueId);
+            const result = await query(sql, params);
+            return res.json({ issue: result.rows[0] });
+          }
+        } catch (dbErr) {
+          console.warn('DB update for issue failed, falling back to file storage', (dbErr as any)?.message || String(dbErr));
+        }
+      }
+
+      const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'issues');
+      const filePath = path.join(uploadDir, 'issues.json');
+      let list: any[] = [];
+      try {
+        const raw = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '[]';
+        list = JSON.parse(raw || '[]');
+      } catch {
+        list = [];
+      }
+
+      const idx = list.findIndex((i) => String(i.id) === issueId);
+      if (idx === -1) return res.status(404).json({ message: 'Issue not found' });
+      list[idx] = { ...list[idx], ...data, updatedAt: new Date().toISOString() };
+      fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
+      res.json({ issue: list[idx] });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async uploadIssueAttachment(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const issueId = String(req.params.id || '');
+      const file = (req as any).file;
+      if (!file) return res.status(400).json({ message: 'Missing file' });
+
+      const attachmentUrl = `/uploads/issues/${file.filename}`;
+
+      if (process.env.DATABASE_URL) {
+        try {
+          const sql = 'UPDATE issues SET attachment_url = $1, updated_at = NOW() WHERE id = $2 RETURNING *';
+          const result = await query(sql, [attachmentUrl, issueId]);
+          return res.json({ issue: result.rows[0] });
+        } catch (dbErr) {
+          console.warn('DB update for issue attachment failed, falling back to file storage', (dbErr as any)?.message || String(dbErr));
+        }
+      }
+
+      const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'issues');
+      const filePath = path.join(uploadDir, 'issues.json');
+      let list: any[] = [];
+      try {
+        const raw = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '[]';
+        list = JSON.parse(raw || '[]');
+      } catch {
+        list = [];
+      }
+      const idx = list.findIndex((i) => String(i.id) === issueId);
+      if (idx === -1) return res.status(404).json({ message: 'Issue not found' });
+      list[idx] = { ...list[idx], attachmentUrl, updatedAt: new Date().toISOString() };
+      fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
+      res.json({ issue: list[idx] });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async followUpStats(req: any, res: any, next: any) {
     try {
       const sql = `

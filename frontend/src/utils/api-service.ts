@@ -77,6 +77,17 @@ export const adminAPI = {
   saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
 };
 
+// Issue reporting API
+(adminAPI as any).createIssue = (formData: FormData) =>
+  apiClient.post('/admin/issues', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+
+(adminAPI as any).listIssues = () => apiClient.get('/admin/issues');
+
+(adminAPI as any).updateIssue = (issueId: string, data: any) => apiClient.put(`/admin/issues/${issueId}`, data);
+
+(adminAPI as any).uploadIssueAttachment = (issueId: string, formData: FormData) =>
+  apiClient.post(`/admin/issues/${issueId}/attachments`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+
 (adminAPI as any).getAgents = () => apiClient.get('/admin/agents');
 (adminAPI as any).getAgentLeads = (agentId: string) => apiClient.get(`/admin/agents/${agentId}/leads`);
 (adminAPI as any).updateAgent = (agentId: string, data: any) => apiClient.put(`/admin/agents/${agentId}`, data);

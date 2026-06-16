@@ -322,6 +322,22 @@ async function migrate() {
     `);
     console.log('✅ Screen Captures table created');
 
+    // 12. Issues Table (for bug/issue reports)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS issues (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        location VARCHAR(255),
+        description TEXT,
+        reporter_role VARCHAR(50),
+        reporter_id UUID REFERENCES users(id),
+        status VARCHAR(50) NOT NULL DEFAULT 'open',
+        attachment_url VARCHAR(1000),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Issues table created');
+
     // 12. Create Indexes for performance
     const indexQueries = [
       'CREATE INDEX IF NOT EXISTS idx_leads_agent_id ON leads(agent_id)',
@@ -342,7 +358,8 @@ async function migrate() {
       'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
       'CREATE INDEX IF NOT EXISTS idx_client_profiles_phone ON client_profiles(phone)',
       'CREATE INDEX IF NOT EXISTS idx_screen_captures_agent_id ON screen_captures(agent_id)',
-      'CREATE INDEX IF NOT EXISTS idx_screen_captures_expires_at ON screen_captures(expires_at)'
+      'CREATE INDEX IF NOT EXISTS idx_screen_captures_expires_at ON screen_captures(expires_at)',
+      'CREATE INDEX IF NOT EXISTS idx_issues_created_at ON issues(created_at DESC)'
     ];
 
     for (const query of indexQueries) {
