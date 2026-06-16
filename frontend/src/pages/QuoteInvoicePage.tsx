@@ -867,9 +867,17 @@ export const QuoteInvoicePage: React.FC<{
                                     <span>Departure Location</span>
                                     <strong>{data.departureLocation}</strong>
                                   </div>
-                                  <div className="pdf-package-info-line">
-                                    <span>Package Includes</span>
-                                    <strong>{data.packageIncludes.join(', ')}</strong>
+                                  <div className="pdf-package-includes-block">
+                                    <div className="pdf-package-includes-title">Package Includes</div>
+                                    <ul className="pdf-package-includes-list">
+                                      {Array.isArray(data.packageIncludes) && data.packageIncludes.length > 0 ? (
+                                        data.packageIncludes.map((item, index) => (
+                                          <li key={index}>{item}</li>
+                                        ))
+                                      ) : (
+                                        <li>No items specified</li>
+                                      )}
+                                    </ul>
                                   </div>
                                 </div>
                               </>
