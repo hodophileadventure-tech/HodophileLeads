@@ -42,6 +42,17 @@ const DeveloperPanel: React.FC = () => {
         issueList = res.issues;
       }
       
+      // Normalize API fields to camelCase for rendering
+      issueList = issueList.map((issue) => ({
+        ...issue,
+        reporterName: issue.reporterName || issue.reporter_name,
+        reporterEmail: issue.reporterEmail || issue.reporter_email,
+        reporterRole: issue.reporterRole || issue.reporter_role,
+        reporterId: issue.reporterId || issue.reporter_id,
+        attachmentUrl: issue.attachmentUrl || issue.attachment_url,
+        createdAt: issue.createdAt || issue.created_at,
+      }));
+
       setIssues(issueList);
       console.log('Loaded issues:', issueList);
     } catch (err: any) {

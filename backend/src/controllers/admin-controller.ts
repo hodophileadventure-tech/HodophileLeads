@@ -484,34 +484,32 @@ export const adminController = {
   // Issue reporting: create, list, update, upload attachment
   async createIssue(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { location, description, reporterRole, reporterId } = req.body || {};
-      const file = (req as any).file;
-      const id = randomUUID();
+      const { location, description } = req.body || {};
+      const reporterRole = req.user?.role || 'admin';
+      const reporterId = String(req.user?.id || '');
+      const reporterName = String(req.user?.name || '');
+      const reporterEmail = String(req.user?.email || '');
+      const attachmentUrl = req.file ? `/uploads/issues/${req.file.filename}` : null;
       const createdAt = new Date().toISOString();
 
       const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'issues');
       fs.mkdirSync(uploadDir, { recursive: true });
 
-      const attachmentUrl = file ? `/uploads/issues/${file.filename}` : null;
-
-      // Try saving to DB if available
       if (process.env.DATABASE_URL) {
         try {
-          const sql = `
-            INSERT INTO issues (id, location, description, reporter_role, reporter_id, status, attachment_url, created_at)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-            RETURNING *
-          `;
-          const params = [id, location || null, description || null, reporterRole || null, reporterId || null, 'open', attachmentUrl, createdAt];
-          const result = await query(sql, params);
-          return res.json({ issue: result.rows[0] });
+          const result = await query(
+            `INSERT INTO issues (location, description, reporter_role, reporter_id, status, attachment_url, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             RETURNING id, location, description, reporter_role, reporter_id, status, attachment_url, created_at, updated_at`,
+            [location, description, reporterRole, reporterId || null, 'open', attachmentUrl, createdAt, createdAt]
+          );
+          return res.status(201).json(result.rows[0]);
         } catch (dbErr) {
           console.warn('DB insert for issue failed, falling back to file storage', (dbErr as any)?.message || String(dbErr));
           // continue to file fallback
         }
       }
 
-      // File fallback storage
       const filePath = path.join(uploadDir, 'issues.json');
       let list: any[] = [];
       try {
@@ -521,10 +519,22 @@ export const adminController = {
         list = [];
       }
 
-      const issue = { id, location: location || null, description: description || null, reporterRole: reporterRole || null, reporterId: reporterId || null, status: 'open', attachmentUrl, createdAt };
+      const issue = {
+        id: randomUUID(),
+        location: location || null,
+        description: description || null,
+        reporter_role: reporterRole,
+        reporter_id: reporterId || null,
+        reporter_name: reporterName || null,
+        reporter_email: reporterEmail || null,
+        status: 'open',
+        attachment_url: attachmentUrl,
+        created_at: createdAt,
+        updated_at: createdAt,
+      };
       list.unshift(issue);
       fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
-      res.json({ issue });
+      return res.status(201).json(issue);
     } catch (err) {
       next(err);
     }
