@@ -496,6 +496,22 @@ export const QuoteInvoicePage: React.FC<{
       };
 
       await quoteRequestsAPI.save(requestId, documentData);
+      // Persist the quote counter for the date so previews increment next time
+      try {
+        if (documentType === 'quotation' && data.quoteNumber) {
+          const counterKey = getQuoteCounterKey(data.date);
+          const existing = Number(window.localStorage.getItem(counterKey) || '0');
+          // Extract sequence portion from quoteNumber (last 4 digits expected)
+          const seqStr = String(data.quoteNumber).slice(-4);
+          const seq = Number(seqStr) - 1100;
+          if (!Number.isNaN(seq) && seq > existing) {
+            window.localStorage.setItem(counterKey, String(seq));
+          }
+        }
+      } catch (err) {
+        // non-fatal — localStorage may be unavailable in some environments
+        console.warn('Failed to persist quote counter:', err);
+      }
       setMessage('Quotation saved successfully!');
       window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { requestId } }));
       if (onSaved) {
