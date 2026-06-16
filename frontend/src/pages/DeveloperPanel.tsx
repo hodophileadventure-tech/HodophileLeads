@@ -18,15 +18,35 @@ const DeveloperPanel: React.FC = () => {
   const { user } = useAuth();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
+      console.log('Fetching issues...');
       const res = await (adminAPI as any).listIssues();
-      setIssues(res.data || []);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to load issues');
+      console.log('Issues response:', res);
+      
+      // Handle different response structures
+      let issueList: Issue[] = [];
+      if (Array.isArray(res)) {
+        issueList = res;
+      } else if (res?.data && Array.isArray(res.data)) {
+        issueList = res.data;
+      } else if (res?.data?.issues && Array.isArray(res.data.issues)) {
+        issueList = res.data.issues;
+      } else if (res?.issues && Array.isArray(res.issues)) {
+        issueList = res.issues;
+      }
+      
+      setIssues(issueList);
+      console.log('Loaded issues:', issueList);
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      console.error('Failed to load issues:', errMsg);
+      setError(`Failed to load issues: ${errMsg}`);
+      setIssues([]);
     } finally {
       setLoading(false);
     }
@@ -51,9 +71,11 @@ const DeveloperPanel: React.FC = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Developer Panel (Issues)</h1>
-      {loading && <div>Loading...</div>}
+      {loading && <div className="text-slate-600">Loading issues...</div>}
+      {error && <div className="text-red-600 mb-4">{error}</div>}
+      {!loading && issues.length === 0 && !error && <div className="text-slate-600">No issues reported yet.</div>}
       <div className="space-y-4">
-        {issues.map((issue) => (
+        {Array.isArray(issues) && issues.map((issue) => (
           <div key={issue.id} className="border rounded p-3 bg-white">
             <div className="flex justify-between items-start">
               <div>
