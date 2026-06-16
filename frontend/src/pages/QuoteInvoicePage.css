@@ -151,7 +151,7 @@ html, body {
   filter: brightness(0.98);
 }
 
-.download-actions {
+.quote-invoice-panel .download-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
@@ -159,7 +159,7 @@ html, body {
   align-items: center;
 }
 
-.download-actions .full-span {
+.quote-invoice-panel .download-actions .full-span {
   grid-column: 1 / -1;
 }
 
