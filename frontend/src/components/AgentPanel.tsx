@@ -626,6 +626,7 @@ export const AgentPanel: React.FC = () => {
           <p className="mt-4 text-sm text-slate-600">No saved quotations have been completed yet.</p>
         ) : (
           <div className="mt-4 space-y-3">
+            {quoteRequests.map((request) => (
               <button
                 key={request.id}
                 type="button"
@@ -651,6 +652,7 @@ export const AgentPanel: React.FC = () => {
                   </div>
                 </div>
               </button>
+            ))}
           </div>
         )}
       </section>
