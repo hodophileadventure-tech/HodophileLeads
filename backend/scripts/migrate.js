@@ -307,6 +307,11 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS parent_request_id UUID REFERENCES quote_requests(id) ON DELETE SET NULL
     `);
     
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE
+    `);
+    
     console.log('✅ Quote Requests table created');
 
     // 11. Attachments Table (depends on leads, users)

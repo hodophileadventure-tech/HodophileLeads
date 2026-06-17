@@ -105,32 +105,6 @@ const parseNumber = (value: string) => {
 
 const formatAmount = (value: number) => value.toLocaleString('en-US');
 
-const formatQuoteNumber = (dateString: string, count: number) => {
-  const date = new Date(dateString);
-  const normalizedDate = Number.isNaN(date.getTime()) ? new Date() : date;
-  const year = String(normalizedDate.getFullYear()).slice(-2);
-  const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
-  const day = String(normalizedDate.getDate()).padStart(2, '0');
-  const sequence = 1100 + count;
-  return `${year}${month}${day}${sequence}`;
-};
-
-const getQuoteCounterKey = (dateString: string) => {
-  const date = new Date(dateString);
-  const normalizedDate = Number.isNaN(date.getTime()) ? new Date() : date;
-  const year = normalizedDate.getFullYear();
-  const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
-  const day = String(normalizedDate.getDate()).padStart(2, '0');
-  return `quote-counter-${year}${month}${day}`;
-};
-
-const previewQuoteNumber = (dateString: string) => {
-  if (typeof window === 'undefined') return formatQuoteNumber(dateString, 1);
-  const counterKey = getQuoteCounterKey(dateString);
-  const existing = Number(window.localStorage.getItem(counterKey) || '0');
-  return formatQuoteNumber(dateString, existing + 1);
-};
-
 export const QuoteInvoicePage: React.FC<{
   leadId?: string;
   requestId?: string;
@@ -148,7 +122,7 @@ export const QuoteInvoicePage: React.FC<{
   const [leadData, setLeadData] = useState<Lead | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
-  const displayQuoteNumber = data.quoteNumber || previewQuoteNumber(data.date);
+  const displayQuoteNumber = data.quoteNumber || '';
 
   // Load lead data if leadId is provided
   useEffect(() => {
@@ -289,8 +263,21 @@ export const QuoteInvoicePage: React.FC<{
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {
-      const generated = previewQuoteNumber(data.date);
-      setData((current) => ({ ...current, quoteNumber: generated }));
+      // Fetch the next quotation number from the server
+      const fetchNextNumber = async () => {
+        try {
+          const response = await quoteRequestsAPI.getNextQuotationNumber(data.date);
+          setData((current) => ({ ...current, quoteNumber: response.data.quotationNumber }));
+        } catch (error) {
+          console.error('Failed to fetch quotation number:', error);
+          // Fallback to a temporary number if server call fails
+          setData((current) => ({
+            ...current,
+            quoteNumber: `TEMP-${Date.now()}`
+          }));
+        }
+      };
+      fetchNextNumber();
     }
   }, [data.date, documentType, data.quoteNumber]);
 
@@ -517,22 +504,7 @@ export const QuoteInvoicePage: React.FC<{
       };
 
       await quoteRequestsAPI.save(requestId, documentData);
-      // Persist the quote counter for the date so previews increment next time
-      try {
-        if (documentType === 'quotation' && data.quoteNumber) {
-          const counterKey = getQuoteCounterKey(data.date);
-          const existing = Number(window.localStorage.getItem(counterKey) || '0');
-          // Extract sequence portion from quoteNumber (last 4 digits expected)
-          const seqStr = String(data.quoteNumber).slice(-4);
-          const seq = Number(seqStr) - 1100;
-          if (!Number.isNaN(seq) && seq > existing) {
-            window.localStorage.setItem(counterKey, String(seq));
-          }
-        }
-      } catch (err) {
-        // non-fatal — localStorage may be unavailable in some environments
-        console.warn('Failed to persist quote counter:', err);
-      }
+      
       setMessage('Quotation saved successfully!');
       window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { requestId } }));
       if (onSaved) {
@@ -907,9 +879,9 @@ export const QuoteInvoicePage: React.FC<{
                         <td colSpan={3}>
                           <div className="pdf-left-box">
                             <div className="pdf-notes">
-                              <div className="notes-title">NOTES:</div>
-                              {data.notes.map((note, index) => (
-                                <div key={index}><strong>{note}</strong></div>
+                              <div className="notes-title">PACKAGE INCLUDES:</div>
+                              {data.packageIncludes.map((item, index) => (
+                                <div key={index}>{item}</div>
                               ))}
                             </div>
                           </div>

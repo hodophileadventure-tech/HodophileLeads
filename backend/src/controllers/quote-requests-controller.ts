@@ -6,6 +6,7 @@ import { notificationsModel } from '../models/Notification';
 import { sendToUser } from '../utils/wsServer';
 import { query } from '../utils/database';
 import { logActivity } from '../utils/activity-log';
+import { generateQuotationNumber } from '../services/quotation-number-service';
 
 export const quoteRequestsController = {
   async requestQuote(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -138,9 +139,19 @@ export const quoteRequestsController = {
         return res.status(404).json({ message: 'Quote request not found' });
       }
 
+      // Generate quotation number if this is a quotation
+      let quotationNumber = documentData.quoteNumber || null;
+      if (existingRequest.requestType === 'quotation' && !quotationNumber) {
+        const referenceDate = documentData.date ? new Date(documentData.date) : new Date();
+        quotationNumber = await generateQuotationNumber(referenceDate);
+      }
+
       const updatedRequest = await quoteRequestsModel.update(requestId, {
         status: 'saved',
-        documentData,
+        documentData: {
+          ...documentData,
+          quoteNumber: quotationNumber
+        },
         resolvedBy: req.user.id,
         resolvedAt: new Date().toISOString()
       });
@@ -155,7 +166,8 @@ export const quoteRequestsController = {
           payload: {
             requestId: updatedRequest.id,
             leadId: lead.id,
-            requestType: updatedRequest.requestType
+            requestType: updatedRequest.requestType,
+            quotationNumber
           },
           is_read: false
         });
@@ -167,7 +179,7 @@ export const quoteRequestsController = {
           entityType: 'quote_request',
           entityId: updatedRequest.id,
           action: 'save',
-          changes: { resolvedBy: req.user.id }
+          changes: { resolvedBy: req.user.id, quotationNumber }
         });
       } catch (_) {}
 
@@ -306,6 +318,27 @@ export const quoteRequestsController = {
         } catch (_) {}
 
       res.status(201).json(newRequest);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getNextQuotationNumber(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can generate quotation numbers' });
+      }
+
+      const { date } = req.query;
+      const referenceDate = date ? new Date(String(date)) : new Date();
+      
+      if (isNaN(referenceDate.getTime())) {
+        return res.status(400).json({ message: 'Invalid date provided' });
+      }
+
+      const quotationNumber = await generateQuotationNumber(referenceDate);
+      
+      res.json({ quotationNumber });
     } catch (error) {
       next(error);
     }
