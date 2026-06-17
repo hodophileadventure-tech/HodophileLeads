@@ -530,6 +530,18 @@ html, body {
   text-align: left;
 }
 
+.pdf-price-cell {
+  text-align: right;
+}
+
+.pdf-person-cell {
+  text-align: center;
+}
+
+.pdf-amount-cell {
+  text-align: right;
+}
+
 .pdf-package-title {
   font-size: 48px;
   font-weight: 800;

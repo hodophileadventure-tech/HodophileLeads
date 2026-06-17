@@ -797,7 +797,7 @@ export const QuoteInvoicePage: React.FC<{
                 <div className="pdf-header-info-box">
                   <div className="pdf-header-top">
                     <div className="pdf-customer-box">
-                      <div className="pdf-header-info-label">Customer</div>
+                      <div className="pdf-header-info-label">Customer Name</div>
                       <div className="pdf-header-info-value">{data.customerName}</div>
                       <div className="pdf-header-info-value">{data.phone}</div>
                       <div className="pdf-header-info-value">{data.city}</div>
@@ -828,9 +828,9 @@ export const QuoteInvoicePage: React.FC<{
                     <thead>
                       <tr>
                         <th>Description</th>
-                        <th>Package Price</th>
-                        <th>No. of Person(s)</th>
-                        <th>Amount</th>
+                        <th className="text-right">Package Price</th>
+                        <th className="text-center">No. of Person(s)</th>
+                        <th className="text-right">Amount</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -849,6 +849,10 @@ export const QuoteInvoicePage: React.FC<{
                                   <div className="pdf-package-info-line">
                                     <span>Transportation Type</span>
                                     <strong>{data.transportationType}</strong>
+                                  </div>
+                                  <div className="pdf-package-info-line">
+                                    <span>Departure Location</span>
+                                    <strong>{data.departureLocation}</strong>
                                   </div>
                                 </div>
                               </>
