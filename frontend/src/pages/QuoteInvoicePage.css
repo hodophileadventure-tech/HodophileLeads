@@ -278,12 +278,12 @@ html, body {
 .pdf-quote-meta-block,
 .pdf-customer-box {
   display: grid;
-  gap: 14px;
+  gap: 24px;
 }
 
 .pdf-customer-box {
   width: 750px;
-  min-height: 280px;
+  min-height: 380px;
   padding: 36px 34px;
   border: 2px solid #111827;
   background: #ffffff;
