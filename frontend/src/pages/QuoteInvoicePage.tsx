@@ -857,14 +857,6 @@ export const QuoteInvoicePage: React.FC<{
                                     <strong>{data.transportationType}</strong>
                                   </div>
                                 </div>
-                                <div className="pdf-package-includes-block">
-                                  <div className="pdf-package-includes-title">Package Includes</div>
-                                  <ul className="pdf-package-includes-list">
-                                    {data.packageIncludes.map((item, itemIndex) => (
-                                      <li key={itemIndex}>{item}</li>
-                                    ))}
-                                  </ul>
-                                </div>
                               </>
                             ) : (
                               <div className="pdf-package-title">{row.particulars}</div>
