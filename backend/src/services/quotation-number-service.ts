@@ -8,28 +8,25 @@ export async function generateQuotationNumber(referenceDate: Date = new Date()):
     const day = String(referenceDate.getDate()).padStart(2, '0');
     const datePrefix = `${year}${month}${day}`;
 
-    // Query to find the highest sequence number for this date
+    // Thread-safe atomic increment using UPSERT pattern
+    // This ensures that even with concurrent requests, each gets a unique number
     const result = await query(
-      `SELECT quotation_number FROM quote_requests 
-       WHERE quotation_number LIKE $1 
-       ORDER BY quotation_number DESC 
-       LIMIT 1`,
-      [`${datePrefix}%`]
+      `WITH upserted AS (
+        INSERT INTO quotation_counters (date_key, last_sequence, updated_at)
+        VALUES ($1, 1100, NOW())
+        ON CONFLICT (date_key) 
+        DO UPDATE SET last_sequence = quotation_counters.last_sequence + 1, updated_at = NOW()
+        RETURNING last_sequence
+      )
+      SELECT last_sequence FROM upserted`,
+      [datePrefix]
     );
 
-    let nextSequence = 1101; // Start from 1101
-
-    if (result.rows.length > 0) {
-      const lastNumber = result.rows[0].quotation_number;
-      // Extract last 4 digits (the sequence part)
-      const lastSequenceStr = lastNumber.slice(-4);
-      const lastSequence = parseInt(lastSequenceStr, 10);
-      
-      if (!isNaN(lastSequence)) {
-        nextSequence = lastSequence + 1;
-      }
-    }
-
+    // The RETURNING gives us the updated value
+    // On first call: insert 1100, return 1100, add 1 → 1101 ✓
+    // On second call: update to 1101, return 1101, add 1 → 1102 ✓
+    const lastSequence = result.rows[0].last_sequence;
+    const nextSequence = lastSequence + 1;
     const quotationNumber = `${datePrefix}${nextSequence}`;
     
     return quotationNumber;

@@ -312,6 +312,15 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE
     `);
     
+    // Create quotation counter table for thread-safe number generation
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS quotation_counters (
+        date_key VARCHAR(8) PRIMARY KEY,
+        last_sequence INTEGER NOT NULL DEFAULT 1100,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
     console.log('✅ Quote Requests table created');
 
     // 11. Attachments Table (depends on leads, users)
