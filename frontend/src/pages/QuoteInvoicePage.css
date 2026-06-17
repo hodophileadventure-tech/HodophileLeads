@@ -283,7 +283,7 @@ html, body {
 
 .pdf-customer-box {
   width: 580px;
-  min-height: 220px;
+  min-height: 280px;
   padding: 36px 34px;
   border: 2px solid #111827;
   background: #ffffff;
@@ -310,9 +310,12 @@ html, body {
 }
 
 .pdf-customer-box .pdf-header-info-value {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+  white-space: normal;
+  color: #111827;
 }
 
 .pdf-quotation-title {
