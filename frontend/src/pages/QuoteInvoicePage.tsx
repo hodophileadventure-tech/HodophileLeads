@@ -76,16 +76,10 @@ const defaultData: DocumentData = {
     'Read Terms & Conditions.'
   ],
   packageIncludes: [
-    '2 nightstays Islamabad',
-    'Toyota Corolla GLI',
-    'Guide Expense',
-    'Fuel',
-    'Toll - Tax',
-    '4x4 Jeep ride ( - )',
-    'Standard Accommodation',
-    'Breakfast',
-    'Bonfire',
-    'Dinner'
+    'Transport',
+    'Breakfast and Dinner',
+    'Accomodation',
+    'Jeep Ride'
   ],
   accommodationType: '',
   transportationType: '',

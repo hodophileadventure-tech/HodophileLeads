@@ -404,9 +404,9 @@ html, body {
   margin: 0;
   padding-left: 22px;
   list-style: disc;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 30px;
 }
 
 .pdf-package-includes-list li {
