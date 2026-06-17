@@ -400,6 +400,14 @@ html, body {
   color: #111827;
 }
 
+.pdf-package-includes-title {
+  font-size: 30px;
+  font-weight: 800;
+  text-decoration: underline;
+  margin-bottom: 14px;
+  color: #111827;
+}
+
 .pdf-package-includes-list {
   margin: 0;
   padding: 0;

@@ -865,10 +865,12 @@ export const QuoteInvoicePage: React.FC<{
                         <td colSpan={3}>
                           <div className="pdf-left-box">
                             <div className="pdf-notes">
-                              <div className="notes-title">PACKAGE INCLUDES:</div>
-                              {data.packageIncludes.map((item, index) => (
-                                <div key={index}>{item}</div>
-                              ))}
+                              <div className="pdf-package-includes-title">PACKAGE INCLUDES:</div>
+                              <ul className="pdf-package-includes-list">
+                                {data.packageIncludes.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
                         </td>
