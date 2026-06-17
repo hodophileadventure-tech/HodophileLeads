@@ -622,7 +622,7 @@ html, body {
 .pdf-summary td {
   border: none;
   padding: 12px 14px;
-  font-size: 24px;
+  font-size: 36px;
   text-align: left;
   vertical-align: middle;
   line-height: 1.4;
@@ -631,7 +631,7 @@ html, body {
 
 .pdf-summary td strong {
   display: inline;
-  font-size: 26px;
+  font-size: 40px;
 }
 
 .pdf-summary .label {
@@ -639,6 +639,7 @@ html, body {
   width: 55%;
   padding-right: 12px;
   white-space: nowrap;
+  font-size: 36px;
 }
 
 .pdf-summary .value {
@@ -648,6 +649,7 @@ html, body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 40px;
 }
 
 .pdf-footer-row td {
