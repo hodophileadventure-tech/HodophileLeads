@@ -402,20 +402,29 @@ html, body {
 
 .pdf-package-includes-list {
   margin: 0;
-  padding-left: 22px;
-  list-style: disc;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px 30px;
+  padding: 0;
+  list-style: none;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  align-items: center;
 }
 
 .pdf-package-includes-list li {
-  font-size: 44px;
-  line-height: 1.6;
+  font-size: 28px;
+  line-height: 1.4;
   color: #111827;
-  font-weight: 800;
+  font-weight: 600;
   margin: 0;
-  break-inside: avoid-column;
+  display: inline;
+  position: relative;
+  padding-left: 8px;
+}
+
+.pdf-package-includes-list li::before {
+  content: "•";
+  margin-right: 8px;
+  font-weight: 800;
 }
 
 .pdf-main-table thead th:last-child {
