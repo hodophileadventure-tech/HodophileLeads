@@ -844,15 +844,15 @@ export const QuoteInvoicePage: React.FC<{
                                 <div className="pdf-package-info-group">
                                   <div className="pdf-package-info-line">
                                     <span>Accommodation Type</span>
-                                    <strong>{data.accommodationType}</strong>
+                                    <span>{data.accommodationType}</span>
                                   </div>
                                   <div className="pdf-package-info-line">
                                     <span>Transportation Type</span>
-                                    <strong>{data.transportationType}</strong>
+                                    <span>{data.transportationType}</span>
                                   </div>
                                   <div className="pdf-package-info-line">
                                     <span>Departure Location</span>
-                                    <strong>{data.departureLocation}</strong>
+                                    <span>{data.departureLocation}</span>
                                   </div>
                                 </div>
                               </>
@@ -890,19 +890,7 @@ export const QuoteInvoicePage: React.FC<{
                                 <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                               <tr>
-                                <td className="label">Discount</td>
-                                <td className="value"><strong>{discountValue.toLocaleString('en-US')}</strong></td>
-                              </tr>
-                              <tr>
-                                <td className="label">Total Due</td>
-                                <td className="value"><strong>{totalDueValue.toLocaleString('en-US')}</strong></td>
-                              </tr>
-                              <tr>
-                                <td className="label">Amount Paid</td>
-                                <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
-                              </tr>
-                              <tr>
-                                <td className="label">Balance Due</td>
+                                <td className="label">Total Amount</td>
                                 <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                             </tbody>

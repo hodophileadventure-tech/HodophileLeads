@@ -369,16 +369,18 @@ html, body {
 }
 
 .pdf-package-info-line {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 40% 1fr;
   gap: 16px;
   font-size: 44px;
+  align-items: center;
 }
 
 .pdf-package-info-line span {
   opacity: 1;
-  font-weight: 800;
+  font-weight: 400;
   color: #111827;
+  flex: 1;
 }
 
 .pdf-package-info-line strong {
@@ -472,19 +474,19 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 45%;
+  width: 30%;
 }
 
 .pdf-main-table col.col-price {
-  width: 12%;
-}
-
-.pdf-main-table col.col-person {
   width: 20%;
 }
 
+.pdf-main-table col.col-person {
+  width: 25%;
+}
+
 .pdf-main-table col.col-amount {
-  width: 23%;
+  width: 25%;
 }
 
 .pdf-main-table thead th {
