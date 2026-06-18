@@ -474,7 +474,7 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 42%;
+  width: 45%;
 }
 
 .pdf-main-table col.col-price {
@@ -486,7 +486,7 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 28%;
+  width: 25%;
 }
 
 .pdf-main-table thead th {
