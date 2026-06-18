@@ -474,19 +474,19 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 40%;
+  width: 32%;
 }
 
 .pdf-main-table col.col-price {
-  width: 12%;
+  width: 8%;
 }
 
 .pdf-main-table col.col-person {
-  width: 23%;
+  width: 30%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 25%;
+  width: 30%;
 }
 
 .pdf-main-table thead th {
