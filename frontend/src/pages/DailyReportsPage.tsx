@@ -55,6 +55,22 @@ const DailyReportsPage: React.FC = () => {
     }
   };
 
+  const compileReportsNow = async () => {
+    if (!isAdmin) return;
+    setLoading(true);
+    try {
+      await reportsAPI.compileAllReportsNow();
+      setError('');
+      await fetchReport();
+      await fetchReports();
+    } catch (err: any) {
+      console.error('Failed to compile reports', err);
+      setError('Failed to compile reports: ' + (err?.response?.data?.message || err?.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchReport = async () => {
     if (!date) return;
     setLoading(true);
@@ -138,7 +154,12 @@ const DailyReportsPage: React.FC = () => {
             <Button onClick={fetchReport}>Load Report</Button>
             <Button variant="secondary" onClick={fetchReports}>Refresh History</Button>
             {isAdmin && (
-              <Button variant="secondary" onClick={downloadReportExport}>Export Reports</Button>
+              <>
+                <Button variant="secondary" onClick={compileReportsNow} disabled={loading}>
+                  {loading ? 'Compiling...' : 'Compile Now'}
+                </Button>
+                <Button variant="secondary" onClick={downloadReportExport}>Export Reports</Button>
+              </>
             )}
           </div>
         </div>

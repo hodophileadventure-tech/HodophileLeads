@@ -18,6 +18,7 @@ const mockDb: {
   clientProfiles: MockRow[];
   auditLogs: MockRow[];
   screenCaptures: MockRow[];
+  dailyReports: MockRow[];
 } = {
   users: [
     {
@@ -40,7 +41,8 @@ const mockDb: {
   availability: [],
   clientProfiles: [],
   auditLogs: [],
-  screenCaptures: []
+  screenCaptures: [],
+  dailyReports: []
 };
 
 // Passwords are stored as bcrypt hashes in the mock DB seed above.
@@ -959,6 +961,128 @@ export const query = async (text: string, params?: any[]) => {
           });
           return { rows, rowCount: rows.length };
         }
+
+      // INSERT INTO audit_logs
+      if (normalized.includes('insert into audit_logs')) {
+        const [entityType, entityId, action, changes, userId] = params || [];
+        const newLog = {
+          id: Math.random().toString(36).substr(2, 9),
+          entity_type: entityType,
+          entity_id: entityId,
+          action,
+          changes: typeof changes === 'string' ? JSON.parse(changes) : changes || {},
+          user_id: userId,
+          created_at: new Date().toISOString()
+        };
+        mockDb.auditLogs.push(newLog);
+        return { rows: [newLog], rowCount: 1 };
+      }
+
+      // SELECT FROM audit_logs for reports
+      if (normalized.includes('select entity_type, action, changes, user_id, created_at') && normalized.includes('from audit_logs')) {
+        const userId = params?.[0];
+        const startDate = params?.[1];
+        const endDate = params?.[2];
+        
+        let logs = mockDb.auditLogs.filter((log: any) => log.user_id === userId);
+        
+        if (startDate && endDate) {
+          const start = new Date(startDate).getTime();
+          const end = new Date(endDate).getTime();
+          logs = logs.filter((log: any) => {
+            const logTime = new Date(log.created_at).getTime();
+            return logTime >= start && logTime <= end;
+          });
+        }
+        
+        logs = logs.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        return { rows: logs, rowCount: logs.length };
+      }
+
+      // INSERT INTO daily_reports (upsert)
+      if (normalized.includes('insert into daily_reports') && normalized.includes('on conflict')) {
+        const [reportType, reportDate, userId, periodStart, periodEnd, reportData, totalActivities] = params || [];
+        
+        const existingIndex = mockDb.dailyReports.findIndex((r: any) => 
+          r.report_type === reportType && r.report_date === reportDate && r.user_id === userId
+        );
+        
+        const reportObj = {
+          id: Math.random().toString(36).substr(2, 9),
+          report_type: reportType,
+          report_date: reportDate,
+          user_id: userId,
+          period_start: periodStart,
+          period_end: periodEnd,
+          report_data: typeof reportData === 'string' ? JSON.parse(reportData) : reportData || {},
+          total_activities: totalActivities,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        if (existingIndex >= 0) {
+          mockDb.dailyReports[existingIndex] = reportObj;
+        } else {
+          mockDb.dailyReports.push(reportObj);
+        }
+        
+        return { rows: [reportObj], rowCount: 1 };
+      }
+
+      // SELECT FROM daily_reports
+      if (normalized.includes('select * from daily_reports') && normalized.includes('where')) {
+        let reports = [...mockDb.dailyReports];
+        
+        // Filter by user_id if present
+        if (normalized.includes('where user_id = $1')) {
+          const userId = params?.[0];
+          const reportType = params?.[1];
+          reports = reports.filter((r: any) => r.user_id === userId && r.report_type === reportType);
+          
+          const limit = Number(params?.[2]) || 50;
+          const offset = Number(params?.[3]) || 0;
+          reports = reports.slice(offset, offset + limit);
+        } else if (normalized.includes('where report_type = $1 and report_date between')) {
+          // Admin query for date range
+          const reportType = params?.[0];
+          const startDate = params?.[1];
+          const endDate = params?.[2];
+          
+          reports = reports.filter((r: any) => {
+            return r.report_type === reportType && 
+              r.report_date >= startDate && 
+              r.report_date <= endDate;
+          });
+          
+          if (params?.[3] && !isNaN(params[3])) {
+            const limit = Number(params[3]) || 100;
+            const offset = Number(params[4]) || 0;
+            reports = reports.slice(offset, offset + limit);
+          }
+        } else if (normalized.includes('where report_type = $1 and report_date = $2 and user_id = $3')) {
+          const reportType = params?.[0];
+          const reportDate = params?.[1];
+          const userId = params?.[2];
+          
+          reports = reports.filter((r: any) => 
+            r.report_type === reportType && 
+            r.report_date === reportDate && 
+            r.user_id === userId
+          );
+        }
+        
+        reports = reports.sort((a: any, b: any) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime());
+        return { rows: reports, rowCount: reports.length };
+      }
+
+      // SELECT COUNT FROM users for report compilation
+      if (normalized.includes('select id from users where role = \'agent\'') || normalized.includes('select id from users where role = \'admin\'') || normalized.includes('select id from users')) {
+        let users = mockDb.users;
+        if (normalized.includes("where role = 'agent'")) {
+          users = users.filter((u: any) => u.role === 'agent');
+        }
+        return { rows: users.map((u: any) => ({ id: u.id })), rowCount: users.length };
+      }
 
       // Default response for mock
       return {

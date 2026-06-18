@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { dailyReportsModel } from '../models/DailyReport';
 import { query } from '../utils/database';
-import { compileReportForUser } from '../workers/reportWorker';
+import { compileReportForUser, compileAllReports } from '../workers/reportWorker';
 
 const getPeriodDates = (reportType: 'daily' | 'weekly' | 'monthly', date: string) => {
   const target = new Date(date);
@@ -136,6 +136,17 @@ export const reportController = {
 
       res.json(result.rows[0]);
     } catch (error) {
+      next(error);
+    }
+  },
+
+  async compileAllReports(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      console.log('[ReportController] Admin triggered manual report compilation');
+      await compileAllReports();
+      res.json({ success: true, message: 'Reports compiled successfully for all users' });
+    } catch (error) {
+      console.error('[ReportController] Failed to compile reports', error);
       next(error);
     }
   }

@@ -143,3 +143,5 @@ export const startReportWorker = () => {
 export const compileReportForUser = async (userId: string, reportType: 'daily' | 'weekly' | 'monthly', date: Date) => {
   return compileReport(userId, reportType, date);
 };
+
+export { compileAllReports };

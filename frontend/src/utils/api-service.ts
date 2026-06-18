@@ -87,7 +87,9 @@ export const reportsAPI = {
   listAdminReports: (type: 'daily' | 'weekly' | 'monthly', date: string) =>
     apiClient.get('/reports/admin', { params: { type, date } }),
   exportAdminReports: (type: 'daily' | 'weekly' | 'monthly', date: string) =>
-    apiClient.get('/reports/export', { params: { type, date }, responseType: 'blob' })
+    apiClient.get('/reports/export', { params: { type, date }, responseType: 'blob' }),
+  compileAllReportsNow: () =>
+    apiClient.post('/reports/admin/compile-all', {})
 };
 
 // Issue reporting API
