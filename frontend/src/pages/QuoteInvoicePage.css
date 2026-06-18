@@ -478,15 +478,15 @@ html, body {
 }
 
 .pdf-main-table col.col-price {
-  width: 15%;
+  width: 10%;
 }
 
 .pdf-main-table col.col-person {
-  width: 20%;
+  width: 23%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 20%;
+  width: 22%;
 }
 
 .pdf-main-table thead th {
