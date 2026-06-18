@@ -634,11 +634,11 @@ html, body {
 }
 
 .pdf-summary colgroup col:first-child {
-  width: 45% !important;
+  width: 30% !important;
 }
 
 .pdf-summary colgroup col:last-child {
-  width: 55% !important;
+  width: 70% !important;
 }
 
 .pdf-summary td {
@@ -658,18 +658,20 @@ html, body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 50%;
-  padding-right: 20px;
+  width: 30%;
+  padding-right: 10px;
   white-space: nowrap;
   font-size: 36px;
+  text-align: left;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  width: 50%;
+  width: 70%;
   white-space: nowrap;
   font-size: 40px;
+  padding-left: 20px;
 }
 
 .pdf-footer-row td {
