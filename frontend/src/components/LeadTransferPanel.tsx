@@ -195,7 +195,7 @@ const LeadTransferPanel: React.FC = () => {
                   <option value="">Choose a lead...</option>
                   {agentLeads.map((lead) => (
                     <option key={lead.id} value={lead.id}>
-                      {lead.clientName || lead.client_name} - {lead.phone} ({lead.destination})
+                      {lead.clientName} - {lead.phone} ({lead.destination})
                     </option>
                   ))}
                 </select>
@@ -210,7 +210,7 @@ const LeadTransferPanel: React.FC = () => {
               <div className="text-sm space-y-1">
                 <p>
                   <span className="text-slate-600 dark:text-slate-400">Name:</span>{' '}
-                  <span className="font-medium">{selectedLead.clientName || selectedLead.client_name}</span>
+                  <span className="font-medium">{selectedLead.clientName}</span>
                 </p>
                 <p>
                   <span className="text-slate-600 dark:text-slate-400">Phone:</span>{' '}
@@ -226,7 +226,7 @@ const LeadTransferPanel: React.FC = () => {
                 </p>
                 <p>
                   <span className="text-slate-600 dark:text-slate-400">Status:</span>{' '}
-                  <Badge variant={selectedLead.status === 'booked' ? 'success' : 'default'}>
+                  <Badge color={selectedLead.status === 'booked' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}>
                     {selectedLead.status}
                   </Badge>
                 </p>
@@ -274,7 +274,7 @@ const LeadTransferPanel: React.FC = () => {
                 </p>
                 <p>
                   <span className="text-slate-600 dark:text-slate-400">Lead:</span>{' '}
-                  <span className="font-medium">{selectedLead.clientName || selectedLead.client_name}</span>
+                  <span className="font-medium">{selectedLead.clientName}</span>
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">
                   This will remove the lead from {getSourceAgentName()}'s panel and add it to {getTargetAgentName()}'s panel.
@@ -303,7 +303,7 @@ const LeadTransferPanel: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg max-w-md w-full p-6 space-y-4">
             <h3 className="text-lg font-semibold">Confirm Lead Transfer</h3>
             <p className="text-slate-600 dark:text-slate-400">
-              Are you sure you want to transfer <strong>{selectedLead?.clientName || selectedLead?.client_name}</strong> from {' '}
+              Are you sure you want to transfer <strong>{selectedLead?.clientName}</strong> from {' '}
               <strong>{getSourceAgentName()}</strong> to <strong>{getTargetAgentName()}</strong>?
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-500">

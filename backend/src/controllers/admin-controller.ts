@@ -8,6 +8,7 @@ import { followUpsModel } from '../models/FollowUp';
 import { screenCaptureModel } from '../models/ScreenCapture';
 import { query, getClient } from '../utils/database';
 import { hashPassword } from '../utils/auth';
+import { logActivity } from '../utils/activity-log';
 import { consumeScreenCaptureRequest, createScreenCaptureRequest, getScreenCaptureRequest, sendToUser } from '../utils/wsServer';
 
 type LeadOutcomeBucket = 'confirmed' | 'budget_issue' | 'no_reply';
