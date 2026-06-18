@@ -650,7 +650,7 @@ html, body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 55%;
+  width: 35%;
   padding-right: 12px;
   white-space: nowrap;
   font-size: 36px;
@@ -659,10 +659,8 @@ html, body {
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  width: 45%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: 65%;
+  white-space: normal;
   font-size: 40px;
 }
 
