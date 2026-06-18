@@ -640,7 +640,8 @@ html, body {
   text-align: left;
   vertical-align: middle;
   line-height: 1.4;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .pdf-summary td strong {
@@ -652,8 +653,9 @@ html, body {
   font-weight: 800;
   width: 35%;
   padding-right: 12px;
-  white-space: nowrap;
+  white-space: normal;
   font-size: 36px;
+  overflow-wrap: break-word;
 }
 
 .pdf-summary .value {
