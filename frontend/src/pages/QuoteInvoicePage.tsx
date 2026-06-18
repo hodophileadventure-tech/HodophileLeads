@@ -860,7 +860,7 @@ export const QuoteInvoicePage: React.FC<{
                               <div className="pdf-package-title">{row.particulars}</div>
                             )}
                           </td>
-                          <td className="pdf-price-cell text-right"><strong>{row.price}</strong></td>
+                          <td className="pdf-price-cell text-right"><strong>{row.price ? formatAmount(parseNumber(row.price)) : ''}</strong></td>
                           <td className="pdf-person-cell text-center">{row.persons}</td>
                           <td className="pdf-amount-cell text-right"><strong>{row.displayAmount}</strong></td>
                         </tr>
