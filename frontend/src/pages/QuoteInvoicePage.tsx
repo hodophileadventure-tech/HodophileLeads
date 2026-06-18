@@ -844,15 +844,15 @@ export const QuoteInvoicePage: React.FC<{
                                 <div className="pdf-package-info-group">
                                   <div className="pdf-package-info-line">
                                     <span>Accommodation Type</span>
-                                    <span>{data.accommodationType}</span>
+                                    <strong>{data.accommodationType}</strong>
                                   </div>
                                   <div className="pdf-package-info-line">
                                     <span>Transportation Type</span>
-                                    <span>{data.transportationType}</span>
+                                    <strong>{data.transportationType}</strong>
                                   </div>
                                   <div className="pdf-package-info-line">
                                     <span>Departure Location</span>
-                                    <span>{data.departureLocation}</span>
+                                    <strong>{data.departureLocation}</strong>
                                   </div>
                                 </div>
                               </>
