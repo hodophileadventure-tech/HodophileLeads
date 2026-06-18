@@ -2,7 +2,7 @@ import apiClient from './api';
 import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix, QuoteRequest } from '../types';
 
 export const leadsAPI = {
-  list: () => apiClient.get<Lead[]>('/leads'),
+  list: (limit = 10000, offset = 0) => apiClient.get<Lead[]>('/leads', { params: { limit, offset } }),
   getById: (id: string) => apiClient.get<Lead>(`/leads/${id}`),
   getHealth: (id: string) => apiClient.get(`/leads/${id}/health`),
   create: (data: Partial<Lead>) => apiClient.post<Lead>('/leads', data),
