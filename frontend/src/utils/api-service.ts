@@ -74,7 +74,9 @@ export const adminAPI = {
   getOverview: () => apiClient.get('/admin/overview'),
   exportLeadsSpreadsheet: () => apiClient.get('/admin/leads/export', { responseType: 'blob' }),
   listQuoteRequests: () => apiClient.get<QuoteRequest[]>('/admin/quote-requests'),
-  saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
+  saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData }),
+  transferLead: (leadId: string, targetAgentId: string) => 
+    apiClient.post(`/admin/leads/${leadId}/transfer`, { targetAgentId })
 };
 
 export const reportsAPI = {

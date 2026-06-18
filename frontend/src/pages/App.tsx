@@ -18,12 +18,13 @@ import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
+import LeadTransferPanel from '../components/LeadTransferPanel';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'lead-transfer';
 
  
 
@@ -484,6 +485,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
+    ...(user?.role === 'admin' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
@@ -631,6 +633,12 @@ export const App: React.FC = () => {
               <DeveloperPanel />
             )}
 
+            {currentPage === 'lead-transfer' && user?.role === 'admin' && (
+              <div className="space-y-6">
+                <LeadTransferPanel />
+              </div>
+            )}
+
             {currentPage === 'leads' && (
               <div className="space-y-6">
                 <section className="card">
@@ -702,12 +710,16 @@ export const App: React.FC = () => {
                                   if (value === 'dead') payload.status = 'completed';
                                   else if (value === 'in_progress') payload.status = 'contacted';
                                   else if (value === 'new' || value === 'potential') payload.status = 'new';
+                                  console.log('[App] Status change:', { selectedValue: value, payload });
                                   try {
+                                    console.log('[App] Calling leadsAPI.update with:', { leadId: String(selectedLead.id), payload });
                                     const resp = await leadsAPI.update(String(selectedLead.id), payload);
+                                    console.log('[App] Update response:', { status: resp.status, data: resp.data });
                                     setSelectedLead(resp.data);
                                     await refreshLeads();
+                                    console.log('[App] Status update completed successfully');
                                   } catch (err: any) {
-                                    console.error('Failed to update lead status', err);
+                                    console.error('[App] Failed to update lead status', err);
                                     const message = err?.response?.data?.message || err?.message || 'Unknown error';
                                     alert(`Failed to update lead status: ${message}`);
                                   }

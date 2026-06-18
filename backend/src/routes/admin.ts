@@ -33,6 +33,7 @@ const issueUpload = multer({
 adminRouter.get('/red-flags', roleMiddleware(['admin']), adminController.redFlags);
 adminRouter.get('/overview', roleMiddleware(['admin']), adminController.overview);
 adminRouter.get('/leads/export', roleMiddleware(['admin']), adminController.exportLeadsSpreadsheet);
+adminRouter.post('/leads/:id/transfer', roleMiddleware(['admin']), adminController.transferLead);
  
 // Agents management
 adminRouter.get('/agents', roleMiddleware(['admin']), adminController.listAgents);

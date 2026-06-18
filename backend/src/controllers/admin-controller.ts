@@ -704,6 +704,67 @@ export const adminController = {
     }
   },
 
+  async transferLead(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const leadId = req.params.id;
+      const { targetAgentId } = req.body;
+
+      // Validate input
+      if (!targetAgentId) {
+        return res.status(400).json({ message: 'targetAgentId is required' });
+      }
+
+      // Check if lead exists
+      const leadResult = await query('SELECT * FROM leads WHERE id = $1', [leadId]);
+      if (!leadResult.rows[0]) {
+        return res.status(404).json({ message: 'Lead not found' });
+      }
+
+      const lead = leadResult.rows[0];
+
+      // Check if target agent exists
+      const targetAgentResult = await query("SELECT id FROM users WHERE id = $1 AND role = 'agent'", [targetAgentId]);
+      if (!targetAgentResult.rows[0]) {
+        return res.status(404).json({ message: 'Target agent not found' });
+      }
+
+      // Check if current agent exists (optional, but good practice)
+      const currentAgentResult = await query("SELECT id FROM users WHERE id = $1 AND role = 'agent'", [lead.agent_id]);
+      if (!currentAgentResult.rows[0]) {
+        return res.status(400).json({ message: 'Current agent not found' });
+      }
+
+      // Transfer the lead
+      const updateResult = await query(
+        'UPDATE leads SET agent_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+        [targetAgentId, leadId]
+      );
+
+      // Log the activity
+      await logActivity({
+        userId: req.user?.id,
+        action: 'LEAD_TRANSFERRED',
+        entityType: 'lead',
+        entityId: leadId,
+        details: {
+          fromAgentId: lead.agent_id,
+          toAgentId: targetAgentId,
+          clientName: lead.client_name,
+          email: lead.email,
+          phone: lead.phone
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        lead: updateResult.rows[0],
+        message: `Lead transferred successfully from agent to ${targetAgentId}` 
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async redFlags(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const overdueFollowUps = await followUpsModel.findOverdue();
