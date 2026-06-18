@@ -634,11 +634,11 @@ html, body {
 }
 
 .pdf-summary colgroup col:first-child {
-  width: 50% !important;
+  width: 45% !important;
 }
 
 .pdf-summary colgroup col:last-child {
-  width: 50% !important;
+  width: 55% !important;
 }
 
 .pdf-summary td {
