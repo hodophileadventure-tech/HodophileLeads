@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminAPI } from '../utils/api-service';
-import { Badge, Button, Spinner } from './common';
+import { Button, Spinner } from './common';
 import type { Lead } from '../types';
 
 interface Agent {
@@ -141,8 +141,6 @@ const LeadTransferPanel: React.FC = () => {
       setTransferring(false);
     }
   };
-
-  const selectedLead = getSelectedLead();
 
   return (
     <div className="space-y-6">
