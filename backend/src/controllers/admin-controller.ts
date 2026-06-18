@@ -743,11 +743,11 @@ export const adminController = {
 
       // Log the activity
       await logActivity({
-        userId: req.user?.id,
+        userId: req.user?.id as string,
         action: 'LEAD_TRANSFERRED',
         entityType: 'lead',
         entityId: leadId,
-        details: {
+        changes: {
           fromAgentId: lead.agent_id,
           toAgentId: targetAgentId,
           clientName: lead.client_name,
