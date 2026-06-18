@@ -643,35 +643,35 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 12px 14px;
-  font-size: 36px;
+  padding: 8px 10px;
+  font-size: 24px;
   text-align: left;
   vertical-align: middle;
-  line-height: 1.4;
+  line-height: 1.3;
   white-space: nowrap;
 }
 
 .pdf-summary td strong {
   display: inline;
-  font-size: 40px;
+  font-size: 26px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 30%;
-  padding-right: 10px;
+  width: 40%;
+  padding-right: 8px;
   white-space: nowrap;
-  font-size: 36px;
+  font-size: 24px;
   text-align: left;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  width: 70%;
+  width: 60%;
   white-space: nowrap;
-  font-size: 40px;
-  padding-left: 20px;
+  font-size: 26px;
+  padding-left: 10px;
 }
 
 .pdf-footer-row td {
