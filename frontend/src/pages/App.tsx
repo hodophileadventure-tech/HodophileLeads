@@ -20,7 +20,7 @@ import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel';
@@ -684,15 +684,7 @@ export const App: React.FC = () => {
                             <label className="text-xs text-slate-400 block">Lead Status</label>
                             <select
                               className="input-field text-sm"
-                              value={selectedLead.status === 'canceled'
-                                ? 'canceled'
-                                : selectedLead.pipelineStage === 'confirmed' || selectedLead.status === 'booked'
-                                  ? 'confirmed'
-                                  : selectedLead.status === 'completed'
-                                    ? 'dead'
-                                    : selectedLead.potential
-                                      ? 'potential'
-                                      : 'new'}
+                              value={getLeadLifecycleState(selectedLead)}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === 'canceled') {
