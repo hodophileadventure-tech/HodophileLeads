@@ -244,12 +244,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     if (!confirm(`Delete agent ${agent.name || agent.email}? This cannot be undone.`)) return;
     try {
       await (adminAPI as any).deleteAgent(agent.id);
-      setAgents((prev) => prev.filter((a) => a.id !== agent.id));
       if (selectedAgent?.id === agent.id) {
         setSelectedAgent(null);
         setAgentLeads([]);
       }
       alert('Agent deleted successfully.');
+      // Refresh all agents and stats
+      await refreshAgentsAndStats();
     } catch (e) {
       console.error('Failed to delete agent', e);
       alert('Failed to delete agent');

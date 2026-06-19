@@ -417,6 +417,7 @@ export const query = async (text: string, params?: any[]) => {
       if (normalized.includes('select * from leads where id = $1')) {
         const id = params?.[0];
         const row = mockDb.leads.find((lead: any) => lead.id === id);
+        console.log('[MOCK DB] SELECT lead by id:', id, '-> found:', !!row, 'status:', row?.status);
         return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
       }
 
@@ -425,18 +426,30 @@ export const query = async (text: string, params?: any[]) => {
         const id = params?.[params.length - 1];
         const index = mockDb.leads.findIndex((lead: any) => lead.id === id);
         if (index < 0) {
+          console.log('[MOCK DB] Lead update: Lead not found with id', id);
           return { rows: [], rowCount: 0 };
         }
 
+        const oldStatus = mockDb.leads[index].status;
+        const oldPotential = mockDb.leads[index].potential;
+        
         const setStart = text.toLowerCase().indexOf('set') + 3;
         const setEnd = text.toLowerCase().lastIndexOf(', updated_at = now()');
         const setClause = text.slice(setStart, setEnd).trim();
         const assignments = setClause.split(',').map((item) => item.trim());
 
+        console.log('[MOCK DB] Lead update SQL:', text.substring(0, Math.min(text.length, 100)));
+        console.log('[MOCK DB] Lead update assignments:', assignments);
+        console.log('[MOCK DB] Lead update params:', params);
+
         const updatedLead = { ...mockDb.leads[index] };
+        let updateCount = 0;
         for (const assignment of assignments) {
           const match = assignment.match(/^([a-zA-Z0-9_]+)\s*=\s*\$(\d+)$/);
-          if (!match) continue;
+          if (!match) {
+            console.log('[MOCK DB] Lead update: Assignment did not match regex:', assignment);
+            continue;
+          }
 
           const dbKey = match[1];
           const paramIndex = Number(match[2]) - 1;
@@ -447,9 +460,11 @@ export const query = async (text: string, params?: any[]) => {
               ? JSON.parse(rawValue)
               : rawValue;
 
+          console.log(`[MOCK DB] Lead update: Setting ${dbKey} = ${JSON.stringify(value)} (was ${JSON.stringify(updatedLead[dbKey])})`);
           updatedLead[dbKey] = value;
           const camelKey = dbKey.replace(/_([a-z])/g, (_, ch) => ch.toUpperCase());
           updatedLead[camelKey] = value;
+          updateCount++;
         }
 
         const now = new Date().toISOString();
@@ -457,6 +472,16 @@ export const query = async (text: string, params?: any[]) => {
         updatedLead.updatedAt = now;
 
         mockDb.leads[index] = updatedLead;
+        
+        console.log('[MOCK DB] Lead update completed:', {
+          id,
+          updated: updateCount,
+          oldStatus,
+          newStatus: updatedLead.status,
+          oldPotential,
+          newPotential: updatedLead.potential
+        });
+        
         return { rows: [updatedLead], rowCount: 1 };
       }
 

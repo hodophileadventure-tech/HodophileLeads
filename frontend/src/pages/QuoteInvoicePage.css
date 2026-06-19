@@ -21,54 +21,21 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  overflow-x: auto;
 }
 
 .quote-invoice-shell {
   width: 100%;
   max-width: 1600px;
   display: grid;
-  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  grid-template-columns: 460px 40px 794px;
   gap: 24px;
   align-items: start;
-  min-width: 0;
-  overflow: visible;
-}
-
-.quote-invoice-shell,
-.quote-invoice-shell > * {
-  min-width: 0;
-}
-
-.quote-invoice-sidebar,
-.quote-invoice-preview,
-.quote-invoice-panel {
-  min-width: 0;
-}
-
-
-.quote-invoice-panel .field-value {
-  min-height: 40px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #f8fafc;
-  color: #111827;
-  display: flex;
-  align-items: center;
-  white-space: pre-wrap;
 }
 
 .quote-invoice-sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-@media (max-width: 900px) {
-  .quote-invoice-shell {
-    grid-template-columns: 1fr;
-  }
 }
 
 .quote-invoice-panel {
@@ -132,12 +99,9 @@ html, body {
 }
 
 .quote-invoice-panel .btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
+  width: 100%;
   margin-top: 16px;
-  padding: 10px 16px;
+  padding: 14px 20px;
   border: none;
   border-radius: 16px;
   background: #fcc000;
@@ -151,23 +115,6 @@ html, body {
   filter: brightness(0.98);
 }
 
-.quote-invoice-panel .download-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-  align-items: center;
-}
-
-.quote-invoice-panel .download-actions .full-span {
-  grid-column: 1 / -1;
-}
-
-.btn-secondary {
-  background: #111827;
-  color: #ffffff;
-}
-
 .quote-invoice-panel small {
   display: block;
   margin-top: 12px;
@@ -176,28 +123,21 @@ html, body {
 }
 
 .quote-invoice-preview {
-  width: 100%;
-  max-width: 100%;
+  width: 2550px;
+  min-height: 3300px;
   position: relative;
-  /* keep preview visible and scrollable while form stays in place */
-  align-self: start;
-  position: sticky;
-  top: 88px;
-  max-height: calc(100vh - 120px);
   overflow: auto;
 }
 
 .pdf-page {
-  width: 100%;
-  min-height: auto;
+  width: 2550px;
+  min-height: 3300px;
   background: #f2f2f2;
   border: 1px solid #d1d5db;
   box-shadow: 0 24px 64px rgba(15, 23, 36, 0.16);
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 24px 0;
-  overflow: visible;
+  align-items: center;
 }
 
 .pdf-canvas {
@@ -205,66 +145,45 @@ html, body {
   min-height: 3300px;
   background: #ffffff;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   padding: 0;
-  transform-origin: top left;
-  transform: scale(0.34);
-}
-
-@media (max-width: 1280px) {
-  .pdf-canvas {
-    transform: scale(0.30);
-  }
-}
-
-@media (max-width: 1024px) {
-  .pdf-canvas {
-    transform: scale(0.26);
-  }
 }
 
 .pdf-background {
   position: relative;
   width: 2550px;
   min-height: 3300px;
-  overflow: visible;
-  padding-top: 860px;
+  overflow: hidden;
+  padding-top: 620px;
 }
 
 .pdf-header-image {
   position: absolute;
-  top: 150px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 92%;
-  max-width: 2100px;
-  height: auto;
-  max-height: 280px;
+  width: 1280.5px;
+  height: 300px;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .pdf-header-image img {
   width: 100%;
-  height: auto;
-  max-height: 280px;
+  height: 100%;
   object-fit: contain;
-  display: block;
 }
 
 .pdf-header-info-box {
   position: absolute;
-  top: 520px;
+  top: 320px;
   left: 180px;
   right: 180px;
-  min-height: 340px;
+  min-height: 260px;
   background: #f3f3f3;
   border-radius: 24px;
-  padding: 42px 48px 36px;
+  padding: 32px 44px;
   display: grid;
-  gap: 32px;
+  gap: 24px;
   z-index: 3;
 }
 
@@ -272,19 +191,18 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 32px;
+  gap: 24px;
 }
 
 .pdf-quote-meta-block,
 .pdf-customer-box {
   display: grid;
-  gap: 24px;
+  gap: 14px;
 }
 
 .pdf-customer-box {
-  width: 750px;
-  min-height: 380px;
-  padding: 36px 34px;
+  width: 420px;
+  padding: 24px;
   border: 2px solid #111827;
   background: #ffffff;
   border-radius: 20px;
@@ -298,30 +216,19 @@ html, body {
 }
 
 .pdf-header-info-label {
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 800;
   color: #1f2937;
 }
 
 .pdf-header-info-value {
-  font-size: 48pt;
+  font-size: 28px;
   font-weight: 700;
   color: #111827;
 }
 
-.pdf-customer-box .pdf-header-info-value {
-  font-size: 30pt;
-  font-weight: 800;
-  line-height: 1.3;
-  color: #111827;
-}
-
-.pdf-customer-box .pdf-header-info-value:first-of-type {
-  white-space: nowrap;
-}
-
 .pdf-quotation-title {
-  font-size: 50pt;
+  font-size: 72px;
   font-weight: 800;
   color: #fcc000;
   letter-spacing: 0.08em;
@@ -332,19 +239,18 @@ html, body {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-size: 48px;
+  font-size: 28px;
   color: #111827;
 }
 
 .pdf-quote-meta-row span {
-  opacity: 1;
-  font-weight: 800;
-  color: #111827;
+  opacity: 0.75;
+  font-weight: 600;
+  font-size: 24px;
 }
 
 .pdf-quote-meta-row strong {
-  font-weight: 900;
-  color: #111827;
+  font-weight: 800;
 }
 
 .pdf-content-inner {
@@ -369,77 +275,24 @@ html, body {
 }
 
 .pdf-package-info-line {
-  display: grid;
-  grid-template-columns: 40% 1fr;
-  gap: 16px;
-  font-size: 44px;
-  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 24px;
 }
 
 .pdf-package-info-line span {
-  opacity: 1;
-  font-weight: 400;
-  color: #111827;
-  flex: 1;
+  opacity: 0.75;
+  font-weight: 600;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
-  color: #111827;
-  font-size: 44px;
 }
 
 .pdf-package-info-group {
   display: grid;
   gap: 12px;
-}
-
-.pdf-package-includes-block {
-  display: grid;
-  gap: 14px;
-  padding-top: 8px;
-}
-
-.pdf-package-includes-title {
-  margin: 0;
-  font-size: 56px;
-  font-weight: 800;
-  color: #111827;
-}
-
-.pdf-package-includes-title {
-  font-size: 30px;
-  font-weight: 800;
-  text-decoration: underline;
-  margin-bottom: 14px;
-  color: #111827;
-}
-
-.pdf-package-includes-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: inline-flex;
-  flex-wrap: nowrap;
-  gap: 16px;
-  align-items: center;
-}
-
-.pdf-package-includes-list li {
-  font-size: 28px;
-  line-height: 1.4;
-  color: #111827;
-  font-weight: 600;
-  margin: 0;
-  display: inline;
-  position: relative;
-  padding-left: 8px;
-}
-
-.pdf-package-includes-list li::before {
-  content: "•";
-  margin-right: 8px;
-  font-weight: 800;
 }
 
 .pdf-main-table thead th:last-child {
@@ -455,10 +308,28 @@ html, body {
   margin-top: 10px;
 }
 
+.pdf-quote-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 28px;
+  color: #111827;
+}
+
+.pdf-quote-meta-row span {
+  opacity: 0.75;
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.pdf-quote-meta-row strong {
+  font-weight: 800;
+}
+
 .pdf-table-wrapper {
   width: 90%;
   max-width: 2190px;
-  margin: 340px auto 0;
+  margin: 220px auto 0;
   z-index: 3;
   display: flex;
   justify-content: center;
@@ -474,7 +345,7 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 45%;
+  width: 55%;
 }
 
 .pdf-main-table col.col-price {
@@ -486,7 +357,7 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 25%;
+  width: 15%;
 }
 
 .pdf-main-table thead th {
@@ -502,6 +373,10 @@ html, body {
 .pdf-main-table tbody tr.pdf-empty-row td {
   min-height: 80px;
   border-top: none;
+}
+
+.pdf-main-table tbody tr:first-child td {
+  min-height: 1000px;
 }
 
 .pdf-main-table tbody tr td {
@@ -532,26 +407,14 @@ html, body {
   text-align: left;
 }
 
-.pdf-price-cell {
-  text-align: right;
-}
-
-.pdf-person-cell {
-  text-align: center;
-}
-
-.pdf-amount-cell {
-  text-align: right;
-}
-
 .pdf-package-title {
-  font-size: 48px;
+  font-size: 28px;
   font-weight: 800;
   margin-bottom: 10px;
 }
 
 .pdf-package-description {
-  font-size: 32px;
+  font-size: 22px;
   line-height: 1.7;
   color: #111827;
   margin-bottom: 12px;
@@ -571,7 +434,7 @@ html, body {
 }
 
 .pdf-package-name {
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 800;
   color: #111827;
 }
@@ -611,8 +474,6 @@ html, body {
   line-height: 1.8;
   color: #111827;
   font-weight: 600;
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 .pdf-notes .notes-title {
@@ -633,45 +494,24 @@ html, body {
   table-layout: fixed;
 }
 
-.pdf-summary colgroup col:first-child {
-  width: 35% !important;
-}
-
-.pdf-summary colgroup col:last-child {
-  width: 65% !important;
-}
-
 .pdf-summary td {
   border: none;
-  padding: 10px 12px;
-  font-size: 28px;
+  padding: 26px 22px;
+  font-size: 32px;
   text-align: left;
-  vertical-align: middle;
-  line-height: 1.4;
-  white-space: nowrap;
 }
 
 .pdf-summary td strong {
-  display: inline;
-  font-size: 30px;
+  font-size: 34px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 35%;
-  padding-right: 10px;
-  white-space: nowrap;
-  font-size: 28px;
-  text-align: left;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  width: 65%;
-  white-space: nowrap;
-  font-size: 30px;
-  padding-left: 12px;
 }
 
 .pdf-footer-row td {
@@ -755,6 +595,28 @@ html, body {
 .pdf-note-line span {
   font-weight: 800;
   margin-right: 8px;
+}
+
+.pdf-package-includes-title {
+  margin: 22px 0 12px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.pdf-package-includes-list {
+  margin: 0;
+  padding-left: 22px;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.pdf-package-includes-list li::before {
+  content: '•';
+  margin-right: 8px;
+  color: #111827;
+  font-weight: 800;
 }
 
 .pdf-package-validity {
@@ -890,35 +752,5 @@ html, body {
   .quote-invoice-preview {
     margin-top: 24px;
     justify-self: center;
-  }
-}
-
-@media (max-width: 1120px) {
-  .quote-invoice-panel .field-row,
-  .quote-invoice-panel .field-row-sm,
-  .download-actions {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 760px) {
-  .quote-invoice-root {
-    padding: 16px;
-  }
-
-  .quote-invoice-panel {
-    padding: 18px;
-  }
-
-  .quote-invoice-panel h2 {
-    font-size: 20px;
-  }
-
-  .quote-tabs {
-    flex-wrap: wrap;
-  }
-
-  .download-actions {
-    gap: 10px;
   }
 }
