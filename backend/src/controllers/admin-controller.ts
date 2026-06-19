@@ -158,64 +158,133 @@ export const adminController = {
       // Check if agent exists first
       const agentCheck = await query("SELECT id, role FROM users WHERE id = $1", [agentId]);
       if (!agentCheck.rows.length) {
+        console.log(`[DELETE AGENT] Agent ${agentId} not found`);
         return res.status(404).json({ message: 'Agent not found' });
       }
       
       if (agentCheck.rows[0].role !== 'agent') {
+        console.log(`[DELETE AGENT] User ${agentId} is not an agent, role: ${agentCheck.rows[0].role}`);
         return res.status(403).json({ message: 'Can only delete agent users' });
       }
 
       // Delete in order of dependencies (without using transactions for better reliability)
-      console.log(`[DELETE AGENT] Deleting quote_requests for agent ${agentId}`);
-      await query('DELETE FROM quote_requests WHERE requested_by = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Deleting quote_requests for agent ${agentId}`);
+        await query('DELETE FROM quote_requests WHERE requested_by = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to delete quote_requests:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Updating quote_requests resolved_by for agent ${agentId}`);
-      await query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Updating quote_requests resolved_by for agent ${agentId}`);
+        await query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to update quote_requests resolved_by:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Deleting follow_ups for agent ${agentId}`);
-      await query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Deleting follow_ups for agent ${agentId}`);
+        await query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to delete follow_ups:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Updating follow_ups canceled_by for agent ${agentId}`);
-      await query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Updating follow_ups canceled_by for agent ${agentId}`);
+        await query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to update follow_ups canceled_by:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Deleting screen_captures for agent ${agentId}`);
-      await query('DELETE FROM screen_captures WHERE agent_id = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Deleting screen_captures for agent ${agentId}`);
+        await query('DELETE FROM screen_captures WHERE agent_id = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to delete screen_captures:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Updating screen_captures requested_by for agent ${agentId}`);
-      await query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Updating screen_captures requested_by for agent ${agentId}`);
+        await query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to update screen_captures requested_by:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Updating notifications for agent ${agentId}`);
-      await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Updating notifications for agent ${agentId}`);
+        await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to update notifications:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Deleting notifications for leads of agent ${agentId}`);
-      await query('DELETE FROM notifications WHERE lead_id IN (SELECT id FROM leads WHERE agent_id = $1)', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Deleting notifications for leads of agent ${agentId}`);
+        await query('DELETE FROM notifications WHERE lead_id IN (SELECT id FROM leads WHERE agent_id = $1)', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to delete notifications:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Updating leads canceled_by for agent ${agentId}`);
-      await query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Updating leads canceled_by for agent ${agentId}`);
+        await query('UPDATE leads SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to update leads canceled_by:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Deleting leads for agent ${agentId}`);
-      await query('DELETE FROM leads WHERE agent_id = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Deleting leads for agent ${agentId}`);
+        await query('DELETE FROM leads WHERE agent_id = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to delete leads:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Updating attachments uploaded_by for agent ${agentId}`);
-      await query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Updating attachments uploaded_by for agent ${agentId}`);
+        await query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to update attachments:`, e);
+        throw e;
+      }
       
-      console.log(`[DELETE AGENT] Updating audit_logs user_id for agent ${agentId}`);
-      await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [agentId]);
+      try {
+        console.log(`[DELETE AGENT] Updating audit_logs user_id for agent ${agentId}`);
+        await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [agentId]);
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to update audit_logs:`, e);
+        throw e;
+      }
 
-      console.log(`[DELETE AGENT] Deleting user record for agent ${agentId}`);
-      const result = await query("DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id", [agentId]);
-      
-      if (!result.rows.length) {
-        return res.status(500).json({ message: 'Failed to delete agent user record' });
+      try {
+        console.log(`[DELETE AGENT] Deleting user record for agent ${agentId}`);
+        const result = await query("DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id", [agentId]);
+        
+        if (!result.rows.length) {
+          console.error(`[DELETE AGENT] Failed to delete user record for ${agentId}`);
+          return res.status(500).json({ message: 'Failed to delete agent user record' });
+        }
+      } catch (e) {
+        console.error(`[DELETE AGENT] Failed to delete user:`, e);
+        throw e;
       }
       
       console.log(`[DELETE AGENT] Successfully deleted agent ${agentId}`);
-      res.json({ success: true, message: 'Agent deleted successfully' });
+      return res.json({ success: true, message: 'Agent deleted successfully' });
     } catch (err) {
-      console.error(`[DELETE AGENT ERROR] Failed to delete agent ${agentId}:`, err);
-      res.status(500).json({ 
-        message: 'Failed to delete agent',
-        error: (err as Error).message 
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error(`[DELETE AGENT ERROR] Failed to delete agent ${agentId}: ${errorMsg}`, err);
+      return res.status(500).json({ 
+        message: 'Failed to delete agent: ' + errorMsg,
+        error: errorMsg 
       });
     }
   },
