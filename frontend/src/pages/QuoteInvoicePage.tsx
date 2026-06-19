@@ -16,6 +16,16 @@ type TableRow = {
   amount: string;
 };
 
+type QuoteInvoicePageProps = {
+  leadId?: string;
+  requestId?: string;
+  viewOnly?: boolean;
+  generatePreviewOnMount?: boolean;
+  onPreviewGenerated?: (dataUrl: string) => void;
+  onSaved?: () => void;
+  onClose?: () => void;
+};
+
 type DocumentData = {
   customerName: string;
   phone: string;
@@ -123,7 +133,15 @@ const previewQuoteNumber = (dateString: string) => {
   return formatQuoteNumber(dateString, existing + 1);
 };
 
-export const QuoteInvoicePage: React.FC = () => {
+export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
+  leadId: _leadId,
+  requestId: _requestId,
+  viewOnly = false,
+  generatePreviewOnMount = false,
+  onPreviewGenerated,
+  onSaved: _onSaved,
+  onClose: _onClose,
+}) => {
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
@@ -138,6 +156,48 @@ export const QuoteInvoicePage: React.FC = () => {
       setData((current) => ({ ...current, quoteNumber: generated }));
     }
   }, [data.date, documentType, data.quoteNumber]);
+
+  useEffect(() => {
+    if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
+      const generatePreview = async () => {
+        try {
+          const canvas = await html2canvas(previewRef.current!, {
+            scale: 1,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            allowTaint: false,
+          });
+          const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+          onPreviewGenerated(jpegData);
+        } catch (error) {
+          console.error('Failed to generate preview:', error);
+        }
+      };
+      const timer = setTimeout(generatePreview, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [generatePreviewOnMount, onPreviewGenerated, data, tableRows]);
+
+  useEffect(() => {
+    const handleGenerateQuotePreview = async () => {
+      if (previewRef.current && onPreviewGenerated) {
+        try {
+          const canvas = await html2canvas(previewRef.current, {
+            scale: 1,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            allowTaint: false,
+          });
+          const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+          onPreviewGenerated(jpegData);
+        } catch (error) {
+          console.error('Failed to generate preview:', error);
+        }
+      }
+    };
+    window.addEventListener('generate-quote-preview', handleGenerateQuotePreview);
+    return () => window.removeEventListener('generate-quote-preview', handleGenerateQuotePreview);
+  }, [onPreviewGenerated]);
 
   const subtotalValue = useMemo(() => {
     const total = tableRows.reduce((sum, row) => {
@@ -157,10 +217,12 @@ export const QuoteInvoicePage: React.FC = () => {
   const balanceValue = useMemo(() => Math.max(totalDueValue - advanceValue, 0), [totalDueValue, advanceValue]);
 
   const updateField = (field: keyof DocumentData, value: string | string[]) => {
+    if (viewOnly) return;
     setData((current) => ({ ...current, [field]: value }));
   };
 
   const updateRow = (id: string, field: keyof Omit<TableRow, 'id'>, value: string) => {
+    if (viewOnly) return;
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
@@ -204,94 +266,94 @@ export const QuoteInvoicePage: React.FC = () => {
           <div className="quote-invoice-panel">
             <h2>Invoice & Quotation Generator</h2>
             <div className="quote-tabs">
-              <button type="button" className={`quote-tab ${documentType === 'quotation' ? 'active' : ''}`} onClick={() => setDocumentType('quotation')}>
+              <button type="button" className={`quote-tab ${documentType === 'quotation' ? 'active' : ''}`} onClick={() => !viewOnly && setDocumentType('quotation')} disabled={viewOnly}>
                 Quotation
               </button>
-              <button type="button" className={`quote-tab ${documentType === 'invoice' ? 'active' : ''}`} onClick={() => setDocumentType('invoice')}>
+              <button type="button" className={`quote-tab ${documentType === 'invoice' ? 'active' : ''}`} onClick={() => !viewOnly && setDocumentType('invoice')} disabled={viewOnly}>
                 Invoice
               </button>
             </div>
             <div className="field-row">
               <div>
                 <label>Customer Name</label>
-                <input value={data.customerName} onChange={(event) => updateField('customerName', event.target.value)} />
+                <input disabled={viewOnly} value={data.customerName} onChange={(event) => updateField('customerName', event.target.value)} />
               </div>
               <div>
                 <label>Phone Number</label>
-                <input value={data.phone} onChange={(event) => updateField('phone', event.target.value)} />
+                <input disabled={viewOnly} value={data.phone} onChange={(event) => updateField('phone', event.target.value)} />
               </div>
             </div>
             <div className="field-row">
               <div>
                 <label>City</label>
-                <input value={data.city} onChange={(event) => updateField('city', event.target.value)} />
+                <input disabled={viewOnly} value={data.city} onChange={(event) => updateField('city', event.target.value)} />
               </div>
               <div>
                 <label>Destination</label>
-                <input value={data.destination} onChange={(event) => updateField('destination', event.target.value)} />
+                <input disabled={viewOnly} value={data.destination} onChange={(event) => updateField('destination', event.target.value)} />
               </div>
             </div>
             <div className="field-row-sm">
               <div>
                 <label>{documentType === 'quotation' ? 'Quote #' : 'Invoice #'}</label>
-                <input value={documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber} onChange={(event) => updateField(documentType === 'quotation' ? 'quoteNumber' : 'invoiceNumber', event.target.value)} />
+                <input disabled={viewOnly} value={documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber} onChange={(event) => updateField(documentType === 'quotation' ? 'quoteNumber' : 'invoiceNumber', event.target.value)} />
               </div>
               <div>
                 <label>{documentType === 'quotation' ? 'Quote Date' : 'Date'}</label>
-                <input type="date" value={data.date} onChange={(event) => updateField('date', event.target.value)} />
+                <input disabled={viewOnly} type="date" value={data.date} onChange={(event) => updateField('date', event.target.value)} />
               </div>
               <div>
                 <label>Travel Date</label>
-                <input type="date" value={data.travelDate} onChange={(event) => updateField('travelDate', event.target.value)} />
+                <input disabled={viewOnly} type="date" value={data.travelDate} onChange={(event) => updateField('travelDate', event.target.value)} />
               </div>
             </div>
             <div className="field-row">
               <div>
                 <label>Package Name</label>
-                <input value={data.packageName} onChange={(event) => updateField('packageName', event.target.value)} />
+                <input disabled={viewOnly} value={data.packageName} onChange={(event) => updateField('packageName', event.target.value)} />
               </div>
               <div>
                 <label>No. of Person(s)</label>
-                <input value={data.persons} onChange={(event) => updateField('persons', event.target.value)} />
+                <input disabled={viewOnly} value={data.persons} onChange={(event) => updateField('persons', event.target.value)} />
               </div>
             </div>
             <div>
               <label>Package Description</label>
-              <textarea value={data.packageDescription} onChange={(event) => updateField('packageDescription', event.target.value)} />
+              <textarea disabled={viewOnly} value={data.packageDescription} onChange={(event) => updateField('packageDescription', event.target.value)} />
             </div>
             <div className="field-row">
               <div>
                 <label>Accommodation Type</label>
-                <input value={data.accommodationType} onChange={(event) => updateField('accommodationType', event.target.value)} />
+                <input disabled={viewOnly} value={data.accommodationType} onChange={(event) => updateField('accommodationType', event.target.value)} />
               </div>
               <div>
                 <label>Transportation Type</label>
-                <input value={data.transportationType} onChange={(event) => updateField('transportationType', event.target.value)} />
+                <input disabled={viewOnly} value={data.transportationType} onChange={(event) => updateField('transportationType', event.target.value)} />
               </div>
             </div>
             <div className="field-row">
               <div>
                 <label>Departure Location</label>
-                <input value={data.departureLocation} onChange={(event) => updateField('departureLocation', event.target.value)} />
+                <input disabled={viewOnly} value={data.departureLocation} onChange={(event) => updateField('departureLocation', event.target.value)} />
               </div>
             </div>
             <div className="field-row-sm">
               <div>
                 <label>Price</label>
-                <input value={data.price} onChange={(event) => updateField('price', event.target.value)} />
+                <input disabled={viewOnly} value={data.price} onChange={(event) => updateField('price', event.target.value)} />
               </div>
               <div>
                 <label>Discount %</label>
-                <input value={data.discount} onChange={(event) => updateField('discount', event.target.value)} />
+                <input disabled={viewOnly} value={data.discount} onChange={(event) => updateField('discount', event.target.value)} />
               </div>
               <div>
                 <label>Advance Amount</label>
-                <input value={data.advanceAmount} onChange={(event) => updateField('advanceAmount', event.target.value)} />
+                <input disabled={viewOnly} value={data.advanceAmount} onChange={(event) => updateField('advanceAmount', event.target.value)} />
               </div>
             </div>
             <div>
               <label>Package Includes</label>
-              <textarea value={data.packageIncludes.join('\n')} onChange={(event) => updateField('packageIncludes', event.target.value.split('\n'))} />
+              <textarea disabled={viewOnly} value={data.packageIncludes.join('\n')} onChange={(event) => updateField('packageIncludes', event.target.value.split('\n'))} />
               <small>Enter each item on a new line.</small>
             </div>
             <div>
@@ -299,7 +361,7 @@ export const QuoteInvoicePage: React.FC = () => {
               <textarea value={data.notes.join('\n')} onChange={(event) => updateField('notes', event.target.value.split('\n'))} />
               <small>Enter each note on a new line.</small>
             </div>
-            <button type="button" className="btn-primary" onClick={downloadJPEG}>
+            <button type="button" className="btn-primary" onClick={downloadJPEG} disabled={viewOnly}>
               Download JPEG
             </button>
             {message && <small>{message}</small>}
@@ -309,10 +371,10 @@ export const QuoteInvoicePage: React.FC = () => {
             <div style={{ display: 'grid', gap: '14px' }}>
               {visibleRows.map((row, index) => (
                 <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '10px' }}>
-                  <input value={row.particulars} placeholder={index === 0 ? 'Package title' : ''} onChange={(event) => updateRow(row.id, 'particulars', event.target.value)} />
-                  <input value={row.persons} placeholder="Pax" onChange={(event) => updateRow(row.id, 'persons', event.target.value)} />
-                  <input value={row.price} placeholder="Price" onChange={(event) => updateRow(row.id, 'price', event.target.value)} />
-                  <input value={row.amount} placeholder="Amount" onChange={(event) => updateRow(row.id, 'amount', event.target.value)} />
+                  <input disabled={viewOnly} value={row.particulars} placeholder={index === 0 ? 'Package title' : ''} onChange={(event) => updateRow(row.id, 'particulars', event.target.value)} />
+                  <input disabled={viewOnly} value={row.persons} placeholder="Pax" onChange={(event) => updateRow(row.id, 'persons', event.target.value)} />
+                  <input disabled={viewOnly} value={row.price} placeholder="Price" onChange={(event) => updateRow(row.id, 'price', event.target.value)} />
+                  <input disabled={viewOnly} value={row.amount} placeholder="Amount" onChange={(event) => updateRow(row.id, 'amount', event.target.value)} />
                 </div>
               ))}
             </div>
