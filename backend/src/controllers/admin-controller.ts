@@ -146,14 +146,33 @@ export const adminController = {
 
   async deleteAgent(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     const agentId = req.params.id;
+    
+    // Validate agentId
+    if (!agentId || typeof agentId !== 'string') {
+      return res.status(400).json({ message: 'Invalid agent ID' });
+    }
+
     const client = await getClient();
 
     try {
       await client.query('BEGIN');
       // Clean up or detach references that do not cascade automatically
-      await client.query('DELETE FROM quote_requests WHERE requested_by = $1', [agentId]);
+      try {
+        await client.query('DELETE FROM quote_requests WHERE requested_by = $1', [agentId]);
+      } catch (e) {
+        console.error('Error deleting quote_requests:', e);
+        throw new Error(`Failed to delete quote requests: ${(e as Error).message}`);
+      }
+      
       await client.query('UPDATE quote_requests SET resolved_by = NULL WHERE resolved_by = $1', [agentId]);
-      await client.query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
+      
+      try {
+        await client.query('DELETE FROM follow_ups WHERE assigned_to = $1', [agentId]);
+      } catch (e) {
+        console.error('Error deleting follow_ups:', e);
+        throw new Error(`Failed to delete follow-ups: ${(e as Error).message}`);
+      }
+      
       await client.query('UPDATE follow_ups SET canceled_by = NULL WHERE canceled_by = $1', [agentId]);
       await client.query('DELETE FROM screen_captures WHERE agent_id = $1', [agentId]);
       await client.query('UPDATE screen_captures SET requested_by = NULL WHERE requested_by = $1', [agentId]);
@@ -177,6 +196,7 @@ export const adminController = {
       } catch (rollbackErr) {
         console.error('Rollback failed while deleting agent:', rollbackErr);
       }
+      console.error('Error deleting agent:', err);
       next(err);
     } finally {
       client.release();
