@@ -22,7 +22,9 @@ const mapQuoteRequestRow = (row: any) => {
     requestedByName: row.requested_by_name || row.requestedByName || null,
     leadClientName: row.lead_client_name || row.leadClientName || null,
     leadPhone: row.lead_phone || row.leadPhone || null,
-    leadDestination: row.lead_destination || row.leadDestination || null
+    leadDestination: row.lead_destination || row.leadDestination || null,
+    leadAgentRemarks: row.lead_agent_remarks || row.leadAgentRemarks || null,
+    leadIslamabadStay: row.lead_islamabad_stay || row.leadIslamabadStay || null
   } as QuoteRequest;
 };
 
@@ -64,13 +66,21 @@ export const quoteRequestsModel = {
   },
 
   async findById(id: string) {
-    const res = await query('SELECT * FROM quote_requests WHERE id = $1', [id]);
+    const res = await query(`
+      SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination,
+             l.agent_remarks AS lead_agent_remarks, l.islamabad_stay AS lead_islamabad_stay
+      FROM quote_requests qr
+      LEFT JOIN users u ON u.id = qr.requested_by
+      LEFT JOIN leads l ON l.id = qr.lead_id
+      WHERE qr.id = $1
+    `, [id]);
     return mapQuoteRequestRow(res.rows[0]);
   },
 
   async findPending() {
     const res = await query(`
-      SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination
+      SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination,
+             l.agent_remarks AS lead_agent_remarks, l.islamabad_stay AS lead_islamabad_stay
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
@@ -88,7 +98,8 @@ export const quoteRequestsModel = {
   async findAccessibleByUser(userId: string, role: string) {
     if (role === 'admin' || role === 'manager') {
       const res = await query(`
-        SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination
+        SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination,
+               l.agent_remarks AS lead_agent_remarks, l.islamabad_stay AS lead_islamabad_stay
         FROM quote_requests qr
         LEFT JOIN users u ON u.id = qr.requested_by
         LEFT JOIN leads l ON l.id = qr.lead_id

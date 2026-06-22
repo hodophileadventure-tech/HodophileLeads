@@ -1094,12 +1094,24 @@ export const App: React.FC = () => {
                         <h3 className="text-lg font-semibold mb-4">Agent / Lead Info</h3>
                         <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Client</p>
-                            <p className="font-medium">{selectedQuoteRequest.leadClientName || selectedQuoteRequest.leadPhone || 'Unknown'}</p>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Customer Name</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadClientName || 'Unknown'}</p>
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Request Type</p>
-                            <p className="font-medium capitalize">{selectedQuoteRequest.requestType}</p>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Phone</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadPhone || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Destination</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadDestination || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Islamabad Stay</p>
+                            <p className="font-medium capitalize">{selectedQuoteRequest.leadIslamabadStay || 'Unknown'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Agent Remarks</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadAgentRemarks || 'None'}</p>
                           </div>
                           <div>
                             <p className="text-xs uppercase tracking-wide text-slate-500">Requested By</p>

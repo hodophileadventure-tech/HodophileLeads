@@ -164,4 +164,6 @@ export interface QuoteRequest {
   leadClientName?: string | null;
   leadPhone?: string | null;
   leadDestination?: string | null;
+  leadAgentRemarks?: string | null;
+  leadIslamabadStay?: string | null;
 }
