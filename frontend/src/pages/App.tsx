@@ -1299,7 +1299,17 @@ export const App: React.FC = () => {
                           requestId={selectedQuoteRequest.id}
                           requestType={selectedQuoteRequest.requestType}
                           requestStatus={selectedQuoteRequest.status}
-                          initialDocumentData={selectedQuoteRequest.documentData}
+                          initialDocumentData={selectedQuoteRequest.documentData || {
+                            customerName: selectedQuoteRequest.leadClientName || '',
+                            phone: selectedQuoteRequest.leadPhone || '',
+                            email: selectedQuoteRequest.leadEmail || '',
+                            city: Array.isArray(selectedQuoteRequest.leadDestinations) 
+                              ? selectedQuoteRequest.leadDestinations[0] || '' 
+                              : selectedQuoteRequest.leadDestination || '',
+                            destination: Array.isArray(selectedQuoteRequest.leadDestinations) 
+                              ? selectedQuoteRequest.leadDestinations.join(', ')
+                              : selectedQuoteRequest.leadDestination || ''
+                          }}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('pending-quotes');
@@ -1501,7 +1511,17 @@ export const App: React.FC = () => {
                           requestId={selectedQuoteRequest.id}
                           requestType={selectedQuoteRequest.requestType}
                           requestStatus={selectedQuoteRequest.status}
-                          initialDocumentData={selectedQuoteRequest.documentData}
+                          initialDocumentData={selectedQuoteRequest.documentData || {
+                            customerName: selectedQuoteRequest.leadClientName || '',
+                            phone: selectedQuoteRequest.leadPhone || '',
+                            email: selectedQuoteRequest.leadEmail || '',
+                            city: Array.isArray(selectedQuoteRequest.leadDestinations) 
+                              ? selectedQuoteRequest.leadDestinations[0] || '' 
+                              : selectedQuoteRequest.leadDestination || '',
+                            destination: Array.isArray(selectedQuoteRequest.leadDestinations) 
+                              ? selectedQuoteRequest.leadDestinations.join(', ')
+                              : selectedQuoteRequest.leadDestination || ''
+                          }}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('manager-quotations');
