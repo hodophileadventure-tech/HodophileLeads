@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { quoteRequestsAPI } from '../utils/api-service';
 import type { QuoteRequest } from '../types';
-import { Button } from './common';
 
 interface ManagerQuotationsPanelProps {
   onSelectRequest: (request: QuoteRequest) => void;
-  onQuotationCreated: () => void;
 }
 
-export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ onSelectRequest, onQuotationCreated }) => {
+export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ onSelectRequest }) => {
   const [pendingRequests, setPendingRequests] = useState<QuoteRequest[]>([]);
   const [submittedRequests, setSubmittedRequests] = useState<QuoteRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');

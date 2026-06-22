@@ -1556,7 +1556,6 @@ export const App: React.FC = () => {
                 ) : (
                   <ManagerQuotationsPanel 
                     onSelectRequest={(request) => setSelectedQuoteRequest(request)}
-                    onQuotationCreated={() => {}}
                   />
                 )}
               </div>
