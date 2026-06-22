@@ -31,11 +31,13 @@ async function migrate() {
         last_logout_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT valid_role CHECK (role IN ('admin', 'agent'))
+        CONSTRAINT valid_role CHECK (role IN ('admin', 'agent', 'manager'))
       )
     `);
     console.log('✅ Users table created');
 
+    await client.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS valid_role');
+    await client.query("ALTER TABLE users ADD CONSTRAINT valid_role CHECK (role IN ('admin', 'agent', 'manager'))");
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP');
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_logout_at TIMESTAMP');
     console.log('✅ Users login audit columns ensured');

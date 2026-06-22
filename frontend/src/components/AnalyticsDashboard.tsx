@@ -534,9 +534,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
 
       {isAdmin && (
         <Card>
-          <h2 className="text-xl font-bold mb-4">Agents</h2>
+          <h2 className="text-xl font-bold mb-4">Users</h2>
           <div className="flex justify-end mb-3">
-            <Button size="sm" onClick={() => setNewAgentOpen(true)}>New Agent</Button>
+            <Button size="sm" onClick={() => setNewAgentOpen(true)}>New User</Button>
           </div>
           <div className="space-y-2">
             {agents.length === 0 && <p className="text-sm text-slate-600">No agents yet.</p>}
@@ -545,6 +545,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                 <div>
                   <p className="font-medium">{a.name || '—'}</p>
                   <p className="text-sm text-slate-500">{a.email}</p>
+                  <p className="text-xs text-slate-400">Role: {a.role || 'agent'}</p>
                   {overviewAgentsById[a.id] && (
                     <p className="text-xs text-slate-400">
                       Today: {Number(overviewAgentsById[a.id].today_leads || 0)} ·
@@ -627,7 +628,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">Create New Agent</h3>
+                <h3 className="text-lg font-bold">Create New User</h3>
                 <Button size="sm" onClick={() => setNewAgentOpen(false)}>Close</Button>
               </div>
               <div className="space-y-3">
@@ -647,6 +648,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                   <label className="block text-sm font-medium mb-1">Role</label>
                   <select value={newAgentRole} onChange={e => setNewAgentRole(e.target.value)} className="input-field w-full">
                     <option value="agent">Agent</option>
+                    <option value="manager">Manager</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
@@ -656,7 +658,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                     if (!newAgentEmail || !newAgentPassword) { alert('Email and password required'); return; }
                     try {
                       await (adminAPI as any).createAgent({ email: newAgentEmail.trim(), name: newAgentName.trim(), password: newAgentPassword, role: newAgentRole });
-                      alert('Agent created');
+                      alert('User created');
                       setNewAgentOpen(false);
                       setNewAgentEmail(''); setNewAgentName(''); setNewAgentPassword(''); setNewAgentRole('agent');
                       // refresh list

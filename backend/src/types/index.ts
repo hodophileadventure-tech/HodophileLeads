@@ -162,8 +162,22 @@ export interface QuoteRequest {
   updatedAt: string;
   requestedByName?: string | null;
   leadClientName?: string | null;
+  leadEmail?: string | null;
   leadPhone?: string | null;
   leadDestination?: string | null;
+  leadDestinations?: string[] | null;
+  leadTravelDates?: { from: string; to: string } | null;
+  leadPersons?: number | null;
+  leadAdults?: number | null;
+  leadKids?: number | null;
+  leadSeniors?: number | null;
+  leadBudget?: number | null;
+  leadTourType?: string | null;
+  leadSource?: string | null;
+  leadStatus?: string | null;
+  leadRemarks?: string | null;
+  leadSpecialRequests?: string | null;
+  leadLeadOutcome?: string | null;
   leadAgentRemarks?: string | null;
   leadIslamabadStay?: string | null;
 }

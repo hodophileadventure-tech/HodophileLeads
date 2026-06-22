@@ -137,7 +137,7 @@ export const adminController = {
 
   async listAgents(req: any, res: any, next: any) {
     try {
-      const result = await query("SELECT id, email, name, role, last_login_at, last_logout_at FROM users WHERE role = 'agent' ORDER BY created_at DESC");
+      const result = await query("SELECT id, email, name, role, last_login_at, last_logout_at FROM users WHERE role IN ('agent', 'manager') ORDER BY created_at DESC");
       res.json({ agents: result.rows });
     } catch (err) {
       next(err);
@@ -174,9 +174,9 @@ export const adminController = {
       const agent = agentCheckResult.rows[0];
       console.log(`FOUND: Agent - ID: ${agent.id}, Role: ${agent.role}`);
       
-      if (agent.role !== 'agent') {
-        console.log(`VALIDATION FAILED: User is ${agent.role}, not agent`);
-        return res.status(403).json({ message: 'Can only delete agent users' });
+      if (agent.role !== 'agent' && agent.role !== 'manager') {
+        console.log(`VALIDATION FAILED: User is ${agent.role}, not agent or manager`);
+        return res.status(403).json({ message: 'Can only delete agent or manager users' });
       }
 
       // Step 2: Perform deletions
@@ -213,7 +213,7 @@ export const adminController = {
       // Step 3: Delete the user
       console.log(`STEP 3: Deleting user record...`);
       const deleteResult = await query(
-        "DELETE FROM users WHERE id = $1 AND role = 'agent' RETURNING id",
+        "DELETE FROM users WHERE id = $1 AND role IN ('agent', 'manager') RETURNING id",
         [agentId]
       );
       console.log(`Delete result:`, JSON.stringify(deleteResult, null, 2));
