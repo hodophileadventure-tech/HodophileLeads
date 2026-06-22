@@ -17,13 +17,14 @@ import { LeadForm } from '../components/LeadForm';
 import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
+import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, parseKarachiDateTimeToISOString } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'manager-quotations' | 'report-issue' | 'daily-reports' | 'dev-panel';
 
  
 
@@ -484,6 +485,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
+    ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📋' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
@@ -1349,6 +1351,213 @@ export const App: React.FC = () => {
                   </div>
                 ) : (
                   <PendingQuotesPanel onSelectRequest={(request) => setSelectedQuoteRequest(request)} />
+                )}
+              </div>
+            )}
+
+            {currentPage === 'manager-quotations' && user?.role === 'manager' && (
+              <div className="space-y-6">
+                {selectedQuoteRequest ? (
+                  <div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }}
+                      className="mb-4"
+                    >
+                      ← Back to Quotations
+                    </Button>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 max-h-[75vh]">
+                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 p-4">
+                        <h3 className="text-lg font-semibold mb-4">Lead Info</h3>
+                        <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Customer Name</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadClientName || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Email</label>
+                            <input
+                              type="email"
+                              value={selectedQuoteRequest.leadEmail || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Phone</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadPhone || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Destination</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadDestinations && selectedQuoteRequest.leadDestinations.length > 0 ? selectedQuoteRequest.leadDestinations.join(', ') : selectedQuoteRequest.leadDestination || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Travel Dates</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadTravelDates ? `${selectedQuoteRequest.leadTravelDates.from} → ${selectedQuoteRequest.leadTravelDates.to}` : ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 gap-4">
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Persons</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadPersons != null ? String(selectedQuoteRequest.leadPersons) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Adults</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadAdults != null ? String(selectedQuoteRequest.leadAdults) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Kids</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadKids != null ? String(selectedQuoteRequest.leadKids) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Seniors</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadSeniors != null ? String(selectedQuoteRequest.leadSeniors) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Tour Type</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadTourType || ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Source</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadSource || ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Budget</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadBudget != null ? `PKR ${selectedQuoteRequest.leadBudget.toLocaleString()}` : ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Special Requests</label>
+                            <textarea
+                              value={selectedQuoteRequest.leadSpecialRequests || ''}
+                              disabled
+                              rows={2}
+                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                        </div>
+                      </aside>
+
+                      <main className="col-span-1 xl:col-span-6 overflow-y-auto">
+                        <QuoteInvoicePage
+                          leadId={selectedQuoteRequest.leadId}
+                          requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
+                          requestStatus={selectedQuoteRequest.status}
+                          initialDocumentData={selectedQuoteRequest.documentData}
+                          onSaved={() => {
+                            setSelectedQuoteRequest(null);
+                            setCurrentPage('manager-quotations');
+                          }}
+                          onClose={() => setSelectedQuoteRequest(null)}
+                          viewOnly={selectedQuoteRequest.status !== 'requested'}
+                          generatePreviewOnMount
+                          onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                        />
+                      </main>
+
+                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 overflow-hidden">
+                        <div className="border-b px-4 py-4">
+                          <h3 className="font-semibold text-lg">Preview</h3>
+                        </div>
+                        <div className="flex-1 overflow-auto p-4">
+                          {previewDataUrl ? (
+                            <img src={previewDataUrl} alt="Quotation preview" className="w-full rounded-lg object-contain" />
+                          ) : (
+                            <div className="text-sm text-slate-500">Generating preview…</div>
+                          )}
+                        </div>
+                        <div className="border-t px-4 py-4 space-y-2">
+                          <button className="btn-secondary w-full text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          {previewDataUrl && (
+                            <a className="btn-primary block text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                          )}
+                          {selectedQuoteRequest.status === 'requested' && (
+                            <button
+                              type="button"
+                              className="btn-primary w-full text-sm py-2 px-3 rounded"
+                              onClick={async () => {
+                                try {
+                                  const managerNotes = prompt('Add notes for admin (optional):');
+                                  await quoteRequestsAPI.createQuotationByManager(selectedQuoteRequest.id, selectedQuoteRequest.documentData, managerNotes || '');
+                                  alert('Quotation submitted to admin for approval.');
+                                  setSelectedQuoteRequest(null);
+                                  setCurrentPage('manager-quotations');
+                                } catch (error) {
+                                  console.error('Failed to submit quotation:', error);
+                                  alert('Unable to submit quotation. Please try again.');
+                                }
+                              }}
+                            >
+                              Submit for Admin Approval
+                            </button>
+                          )}
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                ) : (
+                  <ManagerQuotationsPanel 
+                    onSelectRequest={(request) => setSelectedQuoteRequest(request)}
+                    onQuotationCreated={() => {}}
+                  />
                 )}
               </div>
             )}

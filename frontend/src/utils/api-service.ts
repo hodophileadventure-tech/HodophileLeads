@@ -117,8 +117,15 @@ export const reportsAPI = {
 export const quoteRequestsAPI = {
   list: () => apiClient.get<QuoteRequest[]>('/quote-requests'),
   listPending: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending'),
+  listPendingForManager: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending-for-manager'),
+  listPendingForAdmin: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending-for-admin'),
   getById: (id: string) => apiClient.get<QuoteRequest>(`/quote-requests/${id}`),
   save: (requestId: string, documentData: any) => apiClient.post(`/quote-requests/${requestId}/save`, { documentData }),
+  createQuotationByManager: (requestId: string, documentData: any, managerNotes: string) => 
+    apiClient.post(`/quote-requests/${requestId}/create-quotation`, { documentData, managerNotes }),
+  approveQuotation: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/approve-quotation`, {}),
+  rejectQuotation: (requestId: string, rejectionReason: string) => 
+    apiClient.post(`/quote-requests/${requestId}/reject-quotation`, { rejectionReason }),
   approve: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/approve`, {}),
   delete: (id: string) => apiClient.delete(`/quote-requests/${id}`),
   reRequest: (id: string, notes: string) => apiClient.post(`/quote-requests/${id}/re-request`, { notes }),
