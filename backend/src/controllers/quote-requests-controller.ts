@@ -406,5 +406,182 @@ export const quoteRequestsController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  // Manager approval workflow methods
+  async getPendingForManager(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only managers can view pending requests' });
+      }
+
+      const requests = await quoteRequestsModel.findPendingForManager();
+      res.json(requests);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async createQuotationByManager(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only managers can create quotations' });
+      }
+
+      const { id } = req.params;
+      const { documentData, managerNotes } = req.body;
+
+      const quoteRequest = await quoteRequestsModel.findById(id);
+      if (!quoteRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (quoteRequest.status !== 'requested') {
+        return res.status(400).json({ message: 'This quote request is not pending manager action' });
+      }
+
+      const updatedRequest = await quoteRequestsModel.updateByManager(id, req.user.id, {
+        documentData,
+        managerNotes
+      });
+
+      // Notify admins about pending approval
+      const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
+      for (const admin of admins.rows) {
+        const notification = await notificationsModel.create({
+          userId: admin.id,
+          leadId: quoteRequest.leadId,
+          type: 'quotation_pending_approval',
+          message: `Manager ${req.user.name || req.user.email} created a quotation for ${quoteRequest.leadClientName} awaiting approval`,
+          link: `/admin/approvals/${updatedRequest.id}`
+        });
+        sendToUser(admin.id, 'notification', notification);
+      }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: id,
+          action: 'create_quotation',
+          changes: { status: 'admin_pending', createdByManager: req.user.id }
+        });
+      } catch (_) {}
+
+      res.json(updatedRequest);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Admin approval workflow methods
+  async getPendingForAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can view pending approvals' });
+      }
+
+      const requests = await quoteRequestsModel.findPendingForAdmin();
+      res.json(requests);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async approveQuotation(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can approve quotations' });
+      }
+
+      const { id } = req.params;
+
+      const quoteRequest = await quoteRequestsModel.findById(id);
+      if (!quoteRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (quoteRequest.status !== 'admin_pending') {
+        return res.status(400).json({ message: 'This quote request is not pending admin approval' });
+      }
+
+      const approvedRequest = await quoteRequestsModel.approveByAdmin(id, req.user.id);
+
+      // Notify the requesting agent
+      const notification = await notificationsModel.create({
+        userId: quoteRequest.requestedBy,
+        leadId: quoteRequest.leadId,
+        type: 'quotation_approved',
+        message: `Your ${quoteRequest.requestType} for ${quoteRequest.leadClientName} has been approved`,
+        link: `/agent/quotations/${approvedRequest.id}`
+      });
+      sendToUser(quoteRequest.requestedBy, 'notification', notification);
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: id,
+          action: 'approve_quotation',
+          changes: { status: 'approved', approvedBy: req.user.id }
+        });
+      } catch (_) {}
+
+      res.json(approvedRequest);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async rejectQuotation(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can reject quotations' });
+      }
+
+      const { id } = req.params;
+      const { rejectionReason } = req.body;
+
+      if (!rejectionReason) {
+        return res.status(400).json({ message: 'Rejection reason is required' });
+      }
+
+      const quoteRequest = await quoteRequestsModel.findById(id);
+      if (!quoteRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (quoteRequest.status !== 'admin_pending') {
+        return res.status(400).json({ message: 'This quote request is not pending admin approval' });
+      }
+
+      const rejectedRequest = await quoteRequestsModel.rejectByAdmin(id, req.user.id, rejectionReason);
+
+      // Notify the manager to revise
+      if (quoteRequest.createdByManager) {
+        const notification = await notificationsModel.create({
+          userId: quoteRequest.createdByManager,
+          leadId: quoteRequest.leadId,
+          type: 'quotation_rejected',
+          message: `Your quotation for ${quoteRequest.leadClientName} was rejected: ${rejectionReason}`,
+          link: `/manager/quotations/${rejectedRequest.id}`
+        });
+        sendToUser(quoteRequest.createdByManager, 'notification', notification);
+      }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: id,
+          action: 'reject_quotation',
+          changes: { status: 'rejected', rejectedBy: req.user.id, rejectionReason }
+        });
+      } catch (_) {}
+
+      res.json(rejectedRequest);
+    } catch (error) {
+      next(error);
+    }
   }
 };

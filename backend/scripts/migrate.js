@@ -288,12 +288,18 @@ async function migrate() {
         lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
         requested_by UUID NOT NULL REFERENCES users(id),
         request_type VARCHAR(50) NOT NULL CHECK (request_type IN ('quotation', 'invoice')),
-        status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'saved', 'approved')),
+        status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'manager_pending', 'admin_pending', 'approved', 'rejected', 'saved')),
         document_data JSONB,
+        created_by_manager UUID REFERENCES users(id),
+        created_by_manager_at TIMESTAMP,
+        manager_notes TEXT,
         resolved_by UUID REFERENCES users(id),
         resolved_at TIMESTAMP,
         approved_by UUID REFERENCES users(id),
         approved_at TIMESTAMP,
+        rejected_by UUID REFERENCES users(id),
+        rejected_at TIMESTAMP,
+        rejection_reason TEXT,
         re_request_notes TEXT,
         parent_request_id UUID REFERENCES quote_requests(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -325,6 +331,37 @@ async function migrate() {
     await client.query(`
       ALTER TABLE quote_requests 
       ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE
+    `);
+
+    // Add approval workflow columns
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS created_by_manager UUID REFERENCES users(id)
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS created_by_manager_at TIMESTAMP
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS manager_notes TEXT
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS rejected_by UUID REFERENCES users(id)
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS rejection_reason TEXT
     `);
     
     // Create quotation counter table for thread-safe number generation

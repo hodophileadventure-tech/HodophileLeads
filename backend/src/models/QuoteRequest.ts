@@ -11,10 +11,16 @@ const mapQuoteRequestRow = (row: any) => {
     requestType: row.request_type || row.requestType,
     status: row.status,
     documentData: row.document_data || row.documentData || null,
+    createdByManager: row.created_by_manager || row.createdByManager || null,
+    createdByManagerAt: row.created_by_manager_at || row.createdByManagerAt || null,
+    managerNotes: row.manager_notes || row.managerNotes || null,
     resolvedBy: row.resolved_by || row.resolvedBy || null,
     resolvedAt: row.resolved_at || row.resolvedAt || null,
     approvedBy: row.approved_by || row.approvedBy || null,
     approvedAt: row.approved_at || row.approvedAt || null,
+    rejectedBy: row.rejected_by || row.rejectedBy || null,
+    rejectedAt: row.rejected_at || row.rejectedAt || null,
+    rejectionReason: row.rejection_reason || row.rejectionReason || null,
     reRequestNotes: row.re_request_notes || row.reRequestNotes || null,
     parentRequestId: row.parent_request_id || row.parentRequestId || null,
     createdAt: row.created_at || row.createdAt,
@@ -51,15 +57,21 @@ export const quoteRequestsModel = {
         request_type,
         status,
         document_data,
+        created_by_manager,
+        created_by_manager_at,
+        manager_notes,
         resolved_by,
         resolved_at,
         approved_by,
         approved_at,
+        rejected_by,
+        rejected_at,
+        rejection_reason,
         re_request_notes,
         parent_request_id,
         created_at,
         updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW())
       RETURNING *
     `;
     const params = [
@@ -68,10 +80,16 @@ export const quoteRequestsModel = {
       data.requestType,
       data.status || 'requested',
       data.documentData || null,
+      data.createdByManager || null,
+      data.createdByManagerAt || null,
+      data.managerNotes || null,
       data.resolvedBy || null,
       data.resolvedAt || null,
       data.approvedBy || null,
       data.approvedAt || null,
+      data.rejectedBy || null,
+      data.rejectedAt || null,
+      data.rejectionReason || null,
       data.reRequestNotes || null,
       data.parentRequestId || null
     ];
@@ -240,6 +258,119 @@ export const quoteRequestsModel = {
 
   async delete(id: string) {
     const res = await query('DELETE FROM quote_requests WHERE id = $1 RETURNING *', [id]);
+    return mapQuoteRequestRow(res.rows[0]);
+  },
+
+  // Manager workflow methods
+  async findPendingForManager() {
+    const res = await query(`
+      SELECT qr.*, u.name AS requested_by_name,
+             l.client_name AS lead_client_name,
+             l.email AS lead_email,
+             l.phone AS lead_phone,
+             l.destination AS lead_destination,
+             l.destinations AS lead_destinations,
+             l.travel_dates AS lead_travel_dates,
+             l.persons AS lead_persons,
+             l.adults AS lead_adults,
+             l.kids AS lead_kids,
+             l.seniors AS lead_seniors,
+             l.budget AS lead_budget,
+             l.tour_type AS lead_tour_type,
+             l.source AS lead_source,
+             l.status AS lead_status,
+             l.remarks AS lead_remarks,
+             l.special_requests AS lead_special_requests,
+             l.lead_outcome AS lead_lead_outcome,
+             l.agent_remarks AS lead_agent_remarks,
+             l.islamabad_stay AS lead_islamabad_stay
+      FROM quote_requests qr
+      LEFT JOIN users u ON u.id = qr.requested_by
+      LEFT JOIN leads l ON l.id = qr.lead_id
+      WHERE qr.status = 'requested'
+      ORDER BY qr.created_at ASC
+    `);
+    return res.rows.map(mapQuoteRequestRow);
+  },
+
+  async findPendingForAdmin() {
+    const res = await query(`
+      SELECT qr.*, u.name AS requested_by_name,
+             m.name AS manager_name,
+             l.client_name AS lead_client_name,
+             l.email AS lead_email,
+             l.phone AS lead_phone,
+             l.destination AS lead_destination,
+             l.destinations AS lead_destinations,
+             l.travel_dates AS lead_travel_dates,
+             l.persons AS lead_persons,
+             l.adults AS lead_adults,
+             l.kids AS lead_kids,
+             l.seniors AS lead_seniors,
+             l.budget AS lead_budget,
+             l.tour_type AS lead_tour_type,
+             l.source AS lead_source,
+             l.status AS lead_status,
+             l.remarks AS lead_remarks,
+             l.special_requests AS lead_special_requests,
+             l.lead_outcome AS lead_lead_outcome,
+             l.agent_remarks AS lead_agent_remarks,
+             l.islamabad_stay AS lead_islamabad_stay
+      FROM quote_requests qr
+      LEFT JOIN users u ON u.id = qr.requested_by
+      LEFT JOIN users m ON m.id = qr.created_by_manager
+      LEFT JOIN leads l ON l.id = qr.lead_id
+      WHERE qr.status = 'admin_pending'
+      ORDER BY qr.created_by_manager_at ASC
+    `);
+    return res.rows.map(mapQuoteRequestRow);
+  },
+
+  async updateByManager(id: string, managerId: string, data: Partial<QuoteRequest>) {
+    const res = await query(`
+      UPDATE quote_requests 
+      SET 
+        created_by_manager = $1,
+        created_by_manager_at = NOW(),
+        manager_notes = $2,
+        document_data = COALESCE($3, document_data),
+        status = 'admin_pending',
+        updated_at = NOW()
+      WHERE id = $4
+      RETURNING *
+    `, [managerId, data.managerNotes || null, data.documentData || null, id]);
+    
+    return mapQuoteRequestRow(res.rows[0]);
+  },
+
+  async approveByAdmin(id: string, adminId: string) {
+    const res = await query(`
+      UPDATE quote_requests 
+      SET 
+        approved_by = $1,
+        approved_at = NOW(),
+        status = 'approved',
+        updated_at = NOW()
+      WHERE id = $2
+      RETURNING *
+    `, [adminId, id]);
+    
+    return mapQuoteRequestRow(res.rows[0]);
+  },
+
+  async rejectByAdmin(id: string, adminId: string, rejectionReason: string) {
+    const res = await query(`
+      UPDATE quote_requests 
+      SET 
+        rejected_by = $1,
+        rejected_at = NOW(),
+        rejection_reason = $2,
+        status = 'rejected',
+        updated_at = NOW()
+      WHERE id = $3
+      RETURNING *
+    `, [adminId, rejectionReason, id]);
+    
     return mapQuoteRequestRow(res.rows[0]);
   }
 };
