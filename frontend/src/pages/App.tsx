@@ -1103,6 +1103,15 @@ export const App: React.FC = () => {
                             />
                           </div>
                           <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Email</label>
+                            <input
+                              type="email"
+                              value={selectedQuoteRequest.leadEmail || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
                             <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Phone</label>
                             <input
                               type="text"
@@ -1115,7 +1124,101 @@ export const App: React.FC = () => {
                             <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Destination</label>
                             <input
                               type="text"
-                              value={selectedQuoteRequest.leadDestination || ''}
+                              value={selectedQuoteRequest.leadDestinations && selectedQuoteRequest.leadDestinations.length > 0 ? selectedQuoteRequest.leadDestinations.join(', ') : selectedQuoteRequest.leadDestination || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Travel Dates</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadTravelDates ? `${selectedQuoteRequest.leadTravelDates.from} → ${selectedQuoteRequest.leadTravelDates.to}` : ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 gap-4">
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Persons</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadPersons != null ? String(selectedQuoteRequest.leadPersons) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Adults</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadAdults != null ? String(selectedQuoteRequest.leadAdults) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Kids</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadKids != null ? String(selectedQuoteRequest.leadKids) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Seniors</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadSeniors != null ? String(selectedQuoteRequest.leadSeniors) : ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Tour Type</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadTourType || ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Source</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.leadSource || ''}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Budget</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadBudget != null ? `PKR ${selectedQuoteRequest.leadBudget.toLocaleString()}` : ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Lead Status</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadStatus || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Lead Outcome</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadLeadOutcome || ''}
                               disabled
                               className="input-field w-full bg-slate-100 dark:bg-slate-800"
                             />
@@ -1139,6 +1242,24 @@ export const App: React.FC = () => {
                             />
                           </div>
                           <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Remarks</label>
+                            <textarea
+                              value={selectedQuoteRequest.leadRemarks || ''}
+                              disabled
+                              rows={3}
+                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Special Requests</label>
+                            <textarea
+                              value={selectedQuoteRequest.leadSpecialRequests || ''}
+                              disabled
+                              rows={2}
+                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
+                            />
+                          </div>
+                          <div>
                             <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Requested By</label>
                             <input
                               type="text"
@@ -1149,7 +1270,7 @@ export const App: React.FC = () => {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Status</label>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Request Status</label>
                               <input
                                 type="text"
                                 value={selectedQuoteRequest.status}

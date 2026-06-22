@@ -21,8 +21,22 @@ const mapQuoteRequestRow = (row: any) => {
     updatedAt: row.updated_at || row.updatedAt,
     requestedByName: row.requested_by_name || row.requestedByName || null,
     leadClientName: row.lead_client_name || row.leadClientName || null,
+    leadEmail: row.lead_email || row.leadEmail || null,
     leadPhone: row.lead_phone || row.leadPhone || null,
     leadDestination: row.lead_destination || row.leadDestination || null,
+    leadDestinations: row.lead_destinations || row.leadDestinations || null,
+    leadTravelDates: row.lead_travel_dates || row.leadTravelDates || null,
+    leadPersons: row.lead_persons || row.leadPersons || null,
+    leadAdults: row.lead_adults || row.leadAdults || null,
+    leadKids: row.lead_kids || row.leadKids || null,
+    leadSeniors: row.lead_seniors || row.leadSeniors || null,
+    leadBudget: row.lead_budget || row.leadBudget || null,
+    leadTourType: row.lead_tour_type || row.leadTourType || null,
+    leadSource: row.lead_source || row.leadSource || null,
+    leadStatus: row.lead_status || row.leadStatus || null,
+    leadRemarks: row.lead_remarks || row.leadRemarks || null,
+    leadSpecialRequests: row.lead_special_requests || row.leadSpecialRequests || null,
+    leadLeadOutcome: row.lead_lead_outcome || row.leadLeadOutcome || null,
     leadAgentRemarks: row.lead_agent_remarks || row.leadAgentRemarks || null,
     leadIslamabadStay: row.lead_islamabad_stay || row.leadIslamabadStay || null
   } as QuoteRequest;
@@ -67,8 +81,26 @@ export const quoteRequestsModel = {
 
   async findById(id: string) {
     const res = await query(`
-      SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination,
-             l.agent_remarks AS lead_agent_remarks, l.islamabad_stay AS lead_islamabad_stay
+      SELECT qr.*, u.name AS requested_by_name,
+             l.client_name AS lead_client_name,
+             l.email AS lead_email,
+             l.phone AS lead_phone,
+             l.destination AS lead_destination,
+             l.destinations AS lead_destinations,
+             l.travel_dates AS lead_travel_dates,
+             l.persons AS lead_persons,
+             l.adults AS lead_adults,
+             l.kids AS lead_kids,
+             l.seniors AS lead_seniors,
+             l.budget AS lead_budget,
+             l.tour_type AS lead_tour_type,
+             l.source AS lead_source,
+             l.status AS lead_status,
+             l.remarks AS lead_remarks,
+             l.special_requests AS lead_special_requests,
+             l.lead_outcome AS lead_lead_outcome,
+             l.agent_remarks AS lead_agent_remarks,
+             l.islamabad_stay AS lead_islamabad_stay
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
@@ -79,8 +111,26 @@ export const quoteRequestsModel = {
 
   async findPending() {
     const res = await query(`
-      SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination,
-             l.agent_remarks AS lead_agent_remarks, l.islamabad_stay AS lead_islamabad_stay
+      SELECT qr.*, u.name AS requested_by_name,
+             l.client_name AS lead_client_name,
+             l.email AS lead_email,
+             l.phone AS lead_phone,
+             l.destination AS lead_destination,
+             l.destinations AS lead_destinations,
+             l.travel_dates AS lead_travel_dates,
+             l.persons AS lead_persons,
+             l.adults AS lead_adults,
+             l.kids AS lead_kids,
+             l.seniors AS lead_seniors,
+             l.budget AS lead_budget,
+             l.tour_type AS lead_tour_type,
+             l.source AS lead_source,
+             l.status AS lead_status,
+             l.remarks AS lead_remarks,
+             l.special_requests AS lead_special_requests,
+             l.lead_outcome AS lead_lead_outcome,
+             l.agent_remarks AS lead_agent_remarks,
+             l.islamabad_stay AS lead_islamabad_stay
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
@@ -98,8 +148,26 @@ export const quoteRequestsModel = {
   async findAccessibleByUser(userId: string, role: string) {
     if (role === 'admin' || role === 'manager') {
       const res = await query(`
-        SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination,
-               l.agent_remarks AS lead_agent_remarks, l.islamabad_stay AS lead_islamabad_stay
+        SELECT qr.*, u.name AS requested_by_name,
+               l.client_name AS lead_client_name,
+               l.email AS lead_email,
+               l.phone AS lead_phone,
+               l.destination AS lead_destination,
+               l.destinations AS lead_destinations,
+               l.travel_dates AS lead_travel_dates,
+               l.persons AS lead_persons,
+               l.adults AS lead_adults,
+               l.kids AS lead_kids,
+               l.seniors AS lead_seniors,
+               l.budget AS lead_budget,
+               l.tour_type AS lead_tour_type,
+               l.source AS lead_source,
+               l.status AS lead_status,
+               l.remarks AS lead_remarks,
+               l.special_requests AS lead_special_requests,
+               l.lead_outcome AS lead_lead_outcome,
+               l.agent_remarks AS lead_agent_remarks,
+               l.islamabad_stay AS lead_islamabad_stay
         FROM quote_requests qr
         LEFT JOIN users u ON u.id = qr.requested_by
         LEFT JOIN leads l ON l.id = qr.lead_id
