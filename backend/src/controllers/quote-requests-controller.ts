@@ -562,7 +562,7 @@ export const quoteRequestsController = {
           leadId: quoteRequest.leadId,
           type: 'quotation_rejected',
           message: `Your quotation for ${quoteRequest.leadClientName} was rejected: ${rejectionReason}`
-        });}
+        });
         sendToUser(quoteRequest.createdByManager, 'notification', notification);
       }
 
