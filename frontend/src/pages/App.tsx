@@ -1094,36 +1094,78 @@ export const App: React.FC = () => {
                         <h3 className="text-lg font-semibold mb-4">Agent / Lead Info</h3>
                         <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Customer Name</p>
-                            <p className="font-medium">{selectedQuoteRequest.leadClientName || 'Unknown'}</p>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Customer Name</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadClientName || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Phone</p>
-                            <p className="font-medium">{selectedQuoteRequest.leadPhone || 'N/A'}</p>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Phone</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadPhone || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Destination</p>
-                            <p className="font-medium">{selectedQuoteRequest.leadDestination || 'N/A'}</p>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Destination</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadDestination || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Islamabad Stay</p>
-                            <p className="font-medium capitalize">{selectedQuoteRequest.leadIslamabadStay || 'Unknown'}</p>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Islamabad Stay</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.leadIslamabadStay || ''}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Agent Remarks</p>
-                            <p className="font-medium">{selectedQuoteRequest.leadAgentRemarks || 'None'}</p>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Agent Remarks</label>
+                            <textarea
+                              value={selectedQuoteRequest.leadAgentRemarks || ''}
+                              disabled
+                              rows={3}
+                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
+                            />
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Requested By</p>
-                            <p className="font-medium">{selectedQuoteRequest.requestedByName || 'Agent'}</p>
+                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Requested By</label>
+                            <input
+                              type="text"
+                              value={selectedQuoteRequest.requestedByName || 'Agent'}
+                              disabled
+                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                            />
                           </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
-                            <p className="font-medium capitalize">{selectedQuoteRequest.status}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-wide text-slate-500">Requested On</p>
-                            <p className="font-medium">{new Date(selectedQuoteRequest.createdAt).toLocaleString()}</p>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Status</label>
+                              <input
+                                type="text"
+                                value={selectedQuoteRequest.status}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Requested On</label>
+                              <input
+                                type="text"
+                                value={new Date(selectedQuoteRequest.createdAt).toLocaleString()}
+                                disabled
+                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
+                              />
+                            </div>
                           </div>
                         </div>
                       </aside>
