@@ -84,7 +84,12 @@ export const authController = {
           role: user.role
         }
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[AUTH REGISTER ERROR]', { message: error?.message, code: error?.code });
+      // Handle duplicate email constraint violation
+      if (error?.code === '23505' || error?.message?.includes('duplicate') || error?.message?.includes('unique')) {
+        return res.status(400).json({ message: 'Email already registered' });
+      }
       next(error);
     }
   },
