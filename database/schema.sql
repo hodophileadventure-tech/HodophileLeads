@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_logout_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT valid_role CHECK (role IN ('admin', 'agent'))
+  CONSTRAINT valid_role CHECK (role IN ('admin', 'agent', 'manager'))
 );
 
 -- Leads Table
@@ -167,10 +167,12 @@ CREATE TABLE IF NOT EXISTS quote_requests (
   lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
   requested_by UUID NOT NULL REFERENCES users(id),
   request_type VARCHAR(50) NOT NULL CHECK (request_type IN ('quotation', 'invoice')),
-  status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'saved')),
+  status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'saved', 'approved')),
   document_data JSONB,
   resolved_by UUID REFERENCES users(id),
   resolved_at TIMESTAMP,
+  approved_by UUID REFERENCES users(id),
+  approved_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

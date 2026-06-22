@@ -38,13 +38,14 @@ export const quoteRequestsController = {
         status: 'requested'
       });
 
-      const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
+      const managers = await query('SELECT id, name, email FROM users WHERE role = $1', ['manager']);
+      const recipients = managers.rows.length ? managers.rows : (await query('SELECT id, name, email FROM users WHERE role = $1', ['admin'])).rows;
       const actorLabel = req.user.email || 'Agent';
       const notificationMessage = `Quote request: ${actorLabel} requested a ${requestType} for ${lead.clientName || lead.phone}`;
 
-      for (const admin of admins.rows) {
+      for (const recipient of recipients) {
         const notification = await notificationsModel.create({
-          userId: admin.id,
+          userId: recipient.id,
           leadId: lead.id,
           type: 'quote_request',
           message: notificationMessage,
@@ -60,7 +61,7 @@ export const quoteRequestsController = {
           is_read: false
         });
 
-        sendToUser(admin.id, 'notification', notification);
+        sendToUser(recipient.id, 'notification', notification);
       }
 
       try {
@@ -97,7 +98,7 @@ export const quoteRequestsController = {
         return res.status(404).json({ message: 'Quote request not found' });
       }
 
-      if (req.user.role === 'admin') {
+      if (req.user.role === 'admin' || req.user.role === 'manager') {
         return res.json(request);
       }
 
@@ -130,8 +131,8 @@ export const quoteRequestsController = {
         return res.status(400).json({ message: 'Missing document data' });
       }
 
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Only admins can save quote requests' });
+      if (req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only managers can save quote requests' });
       }
 
       const existingRequest = await quoteRequestsModel.findById(requestId);
@@ -158,20 +159,27 @@ export const quoteRequestsController = {
 
       const lead = await leadsModel.findById(existingRequest.leadId);
       if (lead) {
-        const notification = await notificationsModel.create({
-          userId: existingRequest.requestedBy,
-          leadId: lead.id,
-          type: 'quote_saved',
-          message: `Your ${existingRequest.requestType} has been saved by admin for ${lead.clientName || lead.phone}`,
-          payload: {
-            requestId: updatedRequest.id,
+        const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
+        const notificationMessage = `Saved quote ready for approval: ${req.user.email || 'Manager'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
+
+        for (const admin of admins.rows) {
+          const notification = await notificationsModel.create({
+            userId: admin.id,
             leadId: lead.id,
-            requestType: updatedRequest.requestType,
-            quotationNumber
-          },
-          is_read: false
-        });
-        sendToUser(existingRequest.requestedBy, 'notification', notification);
+            type: 'quote_saved_for_approval',
+            message: notificationMessage,
+            payload: {
+              requestId: updatedRequest.id,
+              leadId: lead.id,
+              requestType: updatedRequest.requestType,
+              savedBy: req.user.id,
+              savedByEmail: req.user.email,
+              quotationNumber
+            },
+            is_read: false
+          });
+          sendToUser(admin.id, 'notification', notification);
+        }
       }
       try {
         await logActivity({
@@ -203,8 +211,8 @@ export const quoteRequestsController = {
         return res.status(403).json({ message: 'You can only delete your own quote requests' });
       }
 
-      // Admin can delete any request
-      if (req.user.role !== 'agent' && req.user.role !== 'admin') {
+      // Manager or admin can delete any request
+      if (req.user.role !== 'agent' && req.user.role !== 'manager' && req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Unauthorized' });
       }
 
@@ -318,6 +326,62 @@ export const quoteRequestsController = {
         } catch (_) {}
 
       res.status(201).json(newRequest);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async approveRequest(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const requestId = req.params.id;
+      const existingRequest = await quoteRequestsModel.findById(requestId);
+      if (!existingRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins can approve quote requests' });
+      }
+
+      if (existingRequest.status !== 'saved') {
+        return res.status(400).json({ message: 'Only saved quote requests can be approved' });
+      }
+
+      const updatedRequest = await quoteRequestsModel.update(requestId, {
+        status: 'approved',
+        approvedBy: req.user.id,
+        approvedAt: new Date().toISOString()
+      });
+
+      const lead = await leadsModel.findById(existingRequest.leadId);
+      if (lead) {
+        const notification = await notificationsModel.create({
+          userId: existingRequest.requestedBy,
+          leadId: lead.id,
+          type: 'quote_saved',
+          message: `Your ${existingRequest.requestType} has been approved by admin for ${lead.clientName || lead.phone}`,
+          payload: {
+            requestId: updatedRequest.id,
+            leadId: lead.id,
+            requestType: updatedRequest.requestType,
+            quotationNumber: updatedRequest.documentData?.quoteNumber
+          },
+          is_read: false
+        });
+        sendToUser(existingRequest.requestedBy, 'notification', notification);
+      }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: updatedRequest.id,
+          action: 'approve',
+          changes: { approvedBy: req.user.id }
+        });
+      } catch (_) {}
+
+      res.json(updatedRequest);
     } catch (error) {
       next(error);
     }

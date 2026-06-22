@@ -74,7 +74,6 @@ export const adminAPI = {
   getOverview: () => apiClient.get('/admin/overview'),
   exportLeadsSpreadsheet: () => apiClient.get('/admin/leads/export', { responseType: 'blob' }),
   listQuoteRequests: () => apiClient.get<QuoteRequest[]>('/admin/quote-requests'),
-  saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData }),
   transferLead: (leadId: string, targetAgentId: string) => 
     apiClient.post(`/admin/leads/${leadId}/transfer`, { targetAgentId })
 };
@@ -120,6 +119,7 @@ export const quoteRequestsAPI = {
   listPending: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending'),
   getById: (id: string) => apiClient.get<QuoteRequest>(`/quote-requests/${id}`),
   save: (requestId: string, documentData: any) => apiClient.post(`/quote-requests/${requestId}/save`, { documentData }),
+  approve: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/approve`, {}),
   delete: (id: string) => apiClient.delete(`/quote-requests/${id}`),
   reRequest: (id: string, notes: string) => apiClient.post(`/quote-requests/${id}/re-request`, { notes }),
   getNextQuotationNumber: (date: string) => apiClient.get<{ quotationNumber: string }>('/quote-requests/next-number', { params: { date } })

@@ -1,4 +1,6 @@
 ﻿import React, { useMemo, useRef, useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { quoteRequestsAPI } from '../utils/api-service';
 import html2canvas from 'html2canvas';
 import quoteHeaderImage from '../assets/quote-header.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
@@ -19,6 +21,9 @@ type TableRow = {
 type QuoteInvoicePageProps = {
   leadId?: string;
   requestId?: string;
+  requestType?: 'quotation' | 'invoice';
+  requestStatus?: 'requested' | 'saved' | 'approved';
+  initialDocumentData?: any;
   viewOnly?: boolean;
   generatePreviewOnMount?: boolean;
   onPreviewGenerated?: (dataUrl: string) => void;
@@ -136,19 +141,43 @@ const previewQuoteNumber = (dateString: string) => {
 export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   leadId: _leadId,
   requestId: _requestId,
+  requestType: _requestType,
+  requestStatus,
+  initialDocumentData,
   viewOnly = false,
   generatePreviewOnMount = false,
   onPreviewGenerated,
   onSaved: _onSaved,
   onClose: _onClose,
 }) => {
-  const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
+  const { user } = useAuth();
+  const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>(_requestType || 'quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const displayQuoteNumber = data.quoteNumber || previewQuoteNumber(data.date);
+
+  useEffect(() => {
+    if (_requestType) {
+      setDocumentType(_requestType);
+    }
+  }, [_requestType]);
+
+  useEffect(() => {
+    if (initialDocumentData) {
+      setData((current) => ({
+        ...current,
+        ...initialDocumentData,
+        quoteNumber: initialDocumentData.quoteNumber || current.quoteNumber,
+        invoiceNumber: initialDocumentData.invoiceNumber || current.invoiceNumber
+      }));
+      if (Array.isArray(initialDocumentData.tableRows) && initialDocumentData.tableRows.length > 0) {
+        setTableRows(initialDocumentData.tableRows);
+      }
+    }
+  }, [initialDocumentData]);
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {
@@ -233,6 +262,30 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     }
     return rows.slice(0, 5);
   }, [tableRows]);
+
+  const canSaveRequest = !!_requestId && requestStatus === 'requested' && user?.role === 'manager' && !viewOnly;
+
+  const saveQuoteRequest = async () => {
+    if (!_requestId) {
+      return;
+    }
+
+    try {
+      setMessage('Saving quotation...');
+      await quoteRequestsAPI.save(_requestId, {
+        documentData: {
+          ...data,
+          tableRows
+        }
+      });
+      setMessage('Quotation saved successfully.');
+      window.dispatchEvent(new Event('quote-request-saved'));
+      _onSaved?.();
+    } catch (error) {
+      console.error('Failed to save quote request:', error);
+      setMessage('Failed to save quotation.');
+    }
+  };
 
   const downloadJPEG = async () => {
     if (!previewRef.current) return;
@@ -361,9 +414,16 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
               <textarea value={data.notes.join('\n')} onChange={(event) => updateField('notes', event.target.value.split('\n'))} />
               <small>Enter each note on a new line.</small>
             </div>
-            <button type="button" className="btn-primary" onClick={downloadJPEG} disabled={viewOnly}>
-              Download JPEG
-            </button>
+            <div className="space-y-2">
+              <button type="button" className="btn-primary" onClick={downloadJPEG} disabled={viewOnly}>
+                Download JPEG
+              </button>
+              {canSaveRequest && (
+                <button type="button" className="btn-primary" onClick={saveQuoteRequest}>
+                  Save Quotation
+                </button>
+              )}
+            </div>
             {message && <small>{message}</small>}
           </div>
           <div className="quote-invoice-panel">

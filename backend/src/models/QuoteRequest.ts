@@ -13,6 +13,8 @@ const mapQuoteRequestRow = (row: any) => {
     documentData: row.document_data || row.documentData || null,
     resolvedBy: row.resolved_by || row.resolvedBy || null,
     resolvedAt: row.resolved_at || row.resolvedAt || null,
+    approvedBy: row.approved_by || row.approvedBy || null,
+    approvedAt: row.approved_at || row.approvedAt || null,
     reRequestNotes: row.re_request_notes || row.reRequestNotes || null,
     parentRequestId: row.parent_request_id || row.parentRequestId || null,
     createdAt: row.created_at || row.createdAt,
@@ -35,11 +37,13 @@ export const quoteRequestsModel = {
         document_data,
         resolved_by,
         resolved_at,
+        approved_by,
+        approved_at,
         re_request_notes,
         parent_request_id,
         created_at,
         updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
       RETURNING *
     `;
     const params = [
@@ -50,6 +54,8 @@ export const quoteRequestsModel = {
       data.documentData || null,
       data.resolvedBy || null,
       data.resolvedAt || null,
+      data.approvedBy || null,
+      data.approvedAt || null,
       data.reRequestNotes || null,
       data.parentRequestId || null
     ];
@@ -68,7 +74,7 @@ export const quoteRequestsModel = {
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
-      WHERE qr.status = 'requested'
+      WHERE qr.status IN ('requested', 'saved')
       ORDER BY qr.created_at DESC
     `);
     return res.rows.map(mapQuoteRequestRow);
@@ -80,7 +86,7 @@ export const quoteRequestsModel = {
   },
 
   async findAccessibleByUser(userId: string, role: string) {
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'manager') {
       const res = await query(`
         SELECT qr.*, u.name AS requested_by_name, l.client_name AS lead_client_name, l.phone AS lead_phone, l.destination AS lead_destination
         FROM quote_requests qr
@@ -96,7 +102,7 @@ export const quoteRequestsModel = {
       FROM quote_requests qr
       INNER JOIN leads l ON l.id = qr.lead_id
       LEFT JOIN users u ON u.id = qr.requested_by
-      WHERE l.agent_id = $1 AND qr.status IN ('requested', 'saved')
+      WHERE l.agent_id = $1 AND qr.status IN ('requested', 'saved', 'approved')
       ORDER BY qr.created_at DESC
     `, [userId]);
     return res.rows.map(mapQuoteRequestRow);
@@ -122,6 +128,14 @@ export const quoteRequestsModel = {
     if (data.resolvedAt !== undefined) {
       fields.push(`resolved_at = $${paramIndex++}`);
       params.push(data.resolvedAt);
+    }
+    if (data.approvedBy !== undefined) {
+      fields.push(`approved_by = $${paramIndex++}`);
+      params.push(data.approvedBy);
+    }
+    if (data.approvedAt !== undefined) {
+      fields.push(`approved_at = $${paramIndex++}`);
+      params.push(data.approvedAt);
     }
     if (data.reRequestNotes !== undefined) {
       fields.push(`re_request_notes = $${paramIndex++}`);

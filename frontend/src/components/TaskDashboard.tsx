@@ -108,17 +108,6 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
     return followUps;
   }, [activeFilter, activeFollowUps, canceledFollowUps, followUps]);
 
-  // Create a map of leads for quick lookup by leadId
-  const leadsMap = useMemo(() => {
-    const map = new Map<string, Lead>();
-    if (Array.isArray(leads)) {
-      leads.forEach((lead) => {
-        map.set(String(lead.id), lead);
-      });
-    }
-    return map;
-  }, [leads]);
-
   const summary = useMemo(() => {
     return {
       overdue: tasks.filter((task) => task.status === 'overdue').length,
@@ -207,16 +196,11 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                 whatsappLink: item.whatsappLink
               };
 
-              const customer = leadsMap.get(String(item.leadId));
-              const customerName = customer?.clientName || 'Unknown Customer';
-              const customerPhone = customer?.phone || 'No phone';
-
               return (
               <div key={task.id} className="p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                 <div className="flex flex-wrap gap-2 justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{task.title}</h3>
-                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mt-1">👤 {customerName} • 📱 {customerPhone}</p>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{task.description}</p>
                     <p className="text-xs text-slate-500 mt-2">{task.dueLabel}</p>
                     {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (

@@ -285,10 +285,12 @@ async function migrate() {
         lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
         requested_by UUID NOT NULL REFERENCES users(id),
         request_type VARCHAR(50) NOT NULL CHECK (request_type IN ('quotation', 'invoice')),
-        status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'saved')),
+        status VARCHAR(50) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'saved', 'approved')),
         document_data JSONB,
         resolved_by UUID REFERENCES users(id),
         resolved_at TIMESTAMP,
+        approved_by UUID REFERENCES users(id),
+        approved_at TIMESTAMP,
         re_request_notes TEXT,
         parent_request_id UUID REFERENCES quote_requests(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -305,6 +307,16 @@ async function migrate() {
     await client.query(`
       ALTER TABLE quote_requests 
       ADD COLUMN IF NOT EXISTS parent_request_id UUID REFERENCES quote_requests(id) ON DELETE SET NULL
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS approved_by UUID REFERENCES users(id)
+    `);
+    
+    await client.query(`
+      ALTER TABLE quote_requests 
+      ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP
     `);
     
     await client.query(`

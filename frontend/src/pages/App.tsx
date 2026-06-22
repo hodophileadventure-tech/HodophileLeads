@@ -1077,58 +1077,103 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'pending-quotes' && user?.role === 'admin' && (
+            {currentPage === 'pending-quotes' && (user?.role === 'admin' || user?.role === 'manager') && (
               <div className="space-y-6">
                 {selectedQuoteRequest ? (
                   <div>
-                    <Button 
-                      variant="secondary" 
+                    <Button
+                      variant="secondary"
                       onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }}
                       className="mb-4"
                     >
                       ← Back to Pending Requests
                     </Button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
-                        <main className="col-span-1 md:col-span-9 overflow-y-auto">
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 max-h-[75vh]">
+                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 p-4">
+                        <h3 className="text-lg font-semibold mb-4">Agent / Lead Info</h3>
+                        <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Client</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadClientName || selectedQuoteRequest.leadPhone || 'Unknown'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Request Type</p>
+                            <p className="font-medium capitalize">{selectedQuoteRequest.requestType}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Requested By</p>
+                            <p className="font-medium">{selectedQuoteRequest.requestedByName || 'Agent'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
+                            <p className="font-medium capitalize">{selectedQuoteRequest.status}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">Requested On</p>
+                            <p className="font-medium">{new Date(selectedQuoteRequest.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </aside>
+
+                      <main className="col-span-1 xl:col-span-6 overflow-y-auto">
                         <QuoteInvoicePage
                           leadId={selectedQuoteRequest.leadId}
                           requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
+                          requestStatus={selectedQuoteRequest.status}
+                          initialDocumentData={selectedQuoteRequest.documentData}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('pending-quotes');
                           }}
                           onClose={() => setSelectedQuoteRequest(null)}
-                          viewOnly={false}
+                          viewOnly={selectedQuoteRequest.status !== 'requested' || user?.role !== 'manager'}
                           generatePreviewOnMount
                           onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
                         />
                       </main>
 
-                      <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
-                        <div className="border rounded p-4 flex flex-col h-full">
-                          <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                          <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
-                            {previewDataUrl ? (
-                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
-                            ) : (
-                              <div className="text-sm text-slate-500">Generating preview…</div>
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
-                            {previewDataUrl && (
-                              <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
-                            )}
-                          </div>
+                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 overflow-hidden">
+                        <div className="border-b px-4 py-4">
+                          <h3 className="font-semibold text-lg">Preview</h3>
+                        </div>
+                        <div className="flex-1 overflow-auto p-4">
+                          {previewDataUrl ? (
+                            <img src={previewDataUrl} alt="Quotation preview" className="w-full rounded-lg object-contain" />
+                          ) : (
+                            <div className="text-sm text-slate-500">Generating preview…</div>
+                          )}
+                        </div>
+                        <div className="border-t px-4 py-4 space-y-2">
+                          <button className="btn-secondary w-full text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          {previewDataUrl && (
+                            <a className="btn-primary block text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                          )}
+                          {user?.role === 'admin' && selectedQuoteRequest.status === 'saved' && (
+                            <button
+                              type="button"
+                              className="btn-primary w-full text-sm py-2 px-3 rounded"
+                              onClick={async () => {
+                                try {
+                                  await quoteRequestsAPI.approve(selectedQuoteRequest.id);
+                                  alert('Quote request approved successfully.');
+                                  setSelectedQuoteRequest((prev) => prev ? { ...prev, status: 'approved' } : prev);
+                                } catch (error) {
+                                  console.error('Failed to approve quote request:', error);
+                                  alert('Unable to approve quote request.');
+                                }
+                              }}
+                            >
+                              Approve Quote
+                            </button>
+                          )}
                         </div>
                       </aside>
                     </div>
                   </div>
                 ) : (
-                  <PendingQuotesPanel onSelectRequest={(request) => {
-                    setSelectedQuoteRequest(request);
-                  }} />
+                  <PendingQuotesPanel onSelectRequest={(request) => setSelectedQuoteRequest(request)} />
                 )}
               </div>
             )}

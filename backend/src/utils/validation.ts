@@ -15,7 +15,7 @@ export const authRegisterSchema = Joi.object({
   email: Joi.string().min(1).required(),
   name: Joi.string().min(2).required(),
   password: Joi.string().min(6).required(),
-  role: Joi.string().valid('admin', 'agent').optional()
+  role: Joi.string().valid('admin', 'agent', 'manager').optional()
 });
 
 export const leadSchema = Joi.object({

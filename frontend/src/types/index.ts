@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'agent';
+export type UserRole = 'admin' | 'agent' | 'manager';
 export type LeadTemperature = 'hot' | 'warm' | 'cold' | 'dead';
 export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed' | 'canceled';
 export type LeadOutcome = 'confirmed' | 'budget_issue' | 'no_reply';
@@ -190,10 +190,12 @@ export interface QuoteRequest {
   leadId: string;
   requestedBy: string;
   requestType: 'quotation' | 'invoice';
-  status: 'requested' | 'saved';
+  status: 'requested' | 'saved' | 'approved';
   documentData?: any;
   resolvedBy?: string | null;
   resolvedAt?: string | null;
+  approvedBy?: string | null;
+  approvedAt?: string | null;
   reRequestNotes?: string | null;
   parentRequestId?: string | null;
   createdAt: string;

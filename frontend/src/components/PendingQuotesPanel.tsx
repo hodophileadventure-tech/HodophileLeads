@@ -62,7 +62,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
   const loadRequests = async () => {
     try {
       setLoading(true);
-      const response = await quoteRequestsAPI.list();
+      const response = await quoteRequestsAPI.listPending();
       const allRequests = response.data || [];
       setPendingRequests(allRequests.filter((request) => request.status === 'requested'));
       setSavedRequests(allRequests.filter((request) => request.status === 'saved'));
