@@ -18,13 +18,12 @@ import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
-import LeadTransferPanel from '../components/LeadTransferPanel';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
+import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, parseKarachiDateTimeToISOString } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'lead-transfer';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel';
 
  
 
@@ -485,7 +484,6 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
-    ...(user?.role === 'admin' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
@@ -555,8 +553,9 @@ export const App: React.FC = () => {
                       if (e.key === 'Enter') {
                         const q = (e.target as HTMLInputElement).value.trim();
                         if (!q) return;
-                        setCurrentPage('pending-quotes');
-                        // let pending page render, then focus search
+                        const targetPage = user?.role === 'agent' ? 'agent' : 'pending-quotes';
+                        setCurrentPage(targetPage);
+                        // let the target page render, then focus search
                         setTimeout(() => window.dispatchEvent(new CustomEvent('focus-quote-search', { detail: { query: q } })), 150);
                       }
                     }}
@@ -564,8 +563,9 @@ export const App: React.FC = () => {
                   <button
                     className="btn-secondary px-3 py-2"
                     onClick={() => {
-                      setCurrentPage('pending-quotes');
-                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'pending' })), 100);
+                      const targetPage = user?.role === 'agent' ? 'agent' : 'pending-quotes';
+                      setCurrentPage(targetPage);
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'pending' })), 150);
                     }}
                   >
                     Pending
@@ -573,8 +573,9 @@ export const App: React.FC = () => {
                   <button
                     className="btn-secondary px-3 py-2"
                     onClick={() => {
-                      setCurrentPage('pending-quotes');
-                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'saved' })), 100);
+                      const targetPage = user?.role === 'agent' ? 'agent' : 'pending-quotes';
+                      setCurrentPage(targetPage);
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'saved' })), 150);
                     }}
                   >
                     Saved
@@ -633,12 +634,6 @@ export const App: React.FC = () => {
               <DeveloperPanel />
             )}
 
-            {currentPage === 'lead-transfer' && user?.role === 'admin' && (
-              <div className="space-y-6">
-                <LeadTransferPanel />
-              </div>
-            )}
-
             {currentPage === 'leads' && (
               <div className="space-y-6">
                 <section className="card">
@@ -683,16 +678,33 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2 items-center">
-                          {selectedLead.potential && (
-                            <Badge color="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                              Potential
-                            </Badge>
-                          )}
+                          {(() => {
+                            const lifecycle = getLeadLifecycleState(selectedLead);
+                            if (lifecycle === 'potential') {
+                              return (
+                                <Badge color="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                  Potential
+                                </Badge>
+                              );
+                            }
+                            if (lifecycle === 'in_progress') {
+                              return (
+                                <Badge color="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                                  In Progress
+                                </Badge>
+                              );
+                            }
+                            return null;
+                          })()}
                           <div>
                             <label className="text-xs text-slate-400 block">Lead Status</label>
                             <select
                               className="input-field text-sm"
-                              value={getLeadLifecycleState(selectedLead)}
+                              value={selectedLead.status === 'canceled'
+                                ? 'canceled'
+                                : selectedLead.status === 'completed'
+                                  ? 'dead'
+                                  : getLeadLifecycleState(selectedLead)}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === 'canceled') {
@@ -710,16 +722,12 @@ export const App: React.FC = () => {
                                   if (value === 'dead') payload.status = 'completed';
                                   else if (value === 'in_progress') payload.status = 'contacted';
                                   else if (value === 'new' || value === 'potential') payload.status = 'new';
-                                  console.log('[App] Status change:', { selectedValue: value, payload });
                                   try {
-                                    console.log('[App] Calling leadsAPI.update with:', { leadId: String(selectedLead.id), payload });
                                     const resp = await leadsAPI.update(String(selectedLead.id), payload);
-                                    console.log('[App] Update response:', { status: resp.status, data: resp.data });
                                     setSelectedLead(resp.data);
                                     await refreshLeads();
-                                    console.log('[App] Status update completed successfully');
                                   } catch (err: any) {
-                                    console.error('[App] Failed to update lead status', err);
+                                    console.error('Failed to update lead status', err);
                                     const message = err?.response?.data?.message || err?.message || 'Unknown error';
                                     alert(`Failed to update lead status: ${message}`);
                                   }

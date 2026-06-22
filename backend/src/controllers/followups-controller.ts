@@ -30,7 +30,9 @@ export const followUpsController = {
         return res.json(rows);
       }
 
-      const rows = await followUpsModel.findAllByAssignee(req.user.id, status ? String(status) : undefined);
+      const rows = req.user.role === 'admin'
+        ? await followUpsModel.findAll(status ? String(status) : undefined)
+        : await followUpsModel.findAllByAssignee(req.user.id, status ? String(status) : undefined);
       res.json(rows);
     } catch (error) {
       next(error);

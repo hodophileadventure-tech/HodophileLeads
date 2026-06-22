@@ -16,6 +16,20 @@ export const followUpsModel = {
     return result.rows;
   },
 
+  async findAll(status?: string) {
+    let sql = 'SELECT * FROM follow_ups';
+    const params: any[] = [];
+
+    if (status) {
+      sql += ' WHERE status = $1';
+      params.push(status);
+    }
+
+    sql += ' ORDER BY due_date ASC';
+    const result = await query(sql, params);
+    return result.rows;
+  },
+
   async findByLead(leadId: string) {
     const result = await query('SELECT * FROM follow_ups WHERE lead_id = $1 ORDER BY due_date ASC', [leadId]);
     return result.rows;

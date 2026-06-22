@@ -84,7 +84,7 @@ export const dashboardController = {
           COUNT(*) FILTER (WHERE temperature = 'hot') as hot_leads,
           COUNT(*) FILTER (WHERE temperature = 'warm') as warm_leads,
           COUNT(*) FILTER (WHERE temperature = 'cold') as cold_leads,
-          COUNT(*) FILTER (WHERE temperature = 'dead') as dead_leads,
+          COUNT(*) FILTER (WHERE temperature = 'dead' OR status IN ('completed', 'canceled')) as dead_leads,
           AVG(budget) as avg_budget,
           COUNT(DISTINCT agent_id) as total_agents
         FROM leads
