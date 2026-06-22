@@ -22,7 +22,7 @@ type QuoteInvoicePageProps = {
   leadId?: string;
   requestId?: string;
   requestType?: 'quotation' | 'invoice';
-  requestStatus?: 'requested' | 'saved' | 'approved';
+  requestStatus?: 'requested' | 'saved' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected';
   initialDocumentData?: any;
   viewOnly?: boolean;
   generatePreviewOnMount?: boolean;
