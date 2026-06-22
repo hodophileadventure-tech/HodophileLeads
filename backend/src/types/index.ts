@@ -154,6 +154,8 @@ export interface QuoteRequest {
   documentData?: any;
   resolvedBy?: string | null;
   resolvedAt?: string | null;
+  approvedBy?: string | null;
+  approvedAt?: string | null;
   reRequestNotes?: string | null;
   parentRequestId?: string | null;
   createdAt: string;
