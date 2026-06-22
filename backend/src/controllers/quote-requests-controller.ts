@@ -452,8 +452,7 @@ export const quoteRequestsController = {
           userId: admin.id,
           leadId: quoteRequest.leadId,
           type: 'quotation_pending_approval',
-          message: `Manager ${req.user.name || req.user.email} created a quotation for ${quoteRequest.leadClientName} awaiting approval`,
-          link: `/admin/approvals/${updatedRequest.id}`
+          message: `Manager ${req.user.name || req.user.email} created a quotation for ${quoteRequest.leadClientName} awaiting approval`
         });
         sendToUser(admin.id, 'notification', notification);
       }
@@ -512,8 +511,7 @@ export const quoteRequestsController = {
         userId: quoteRequest.requestedBy,
         leadId: quoteRequest.leadId,
         type: 'quotation_approved',
-        message: `Your ${quoteRequest.requestType} for ${quoteRequest.leadClientName} has been approved`,
-        link: `/agent/quotations/${approvedRequest.id}`
+        message: `Your ${quoteRequest.requestType} for ${quoteRequest.leadClientName} has been approved`
       });
       sendToUser(quoteRequest.requestedBy, 'notification', notification);
 
@@ -563,9 +561,8 @@ export const quoteRequestsController = {
           userId: quoteRequest.createdByManager,
           leadId: quoteRequest.leadId,
           type: 'quotation_rejected',
-          message: `Your quotation for ${quoteRequest.leadClientName} was rejected: ${rejectionReason}`,
-          link: `/manager/quotations/${rejectedRequest.id}`
-        });
+          message: `Your quotation for ${quoteRequest.leadClientName} was rejected: ${rejectionReason}`
+        });}
         sendToUser(quoteRequest.createdByManager, 'notification', notification);
       }
 
