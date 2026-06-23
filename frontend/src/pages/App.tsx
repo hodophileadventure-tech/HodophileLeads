@@ -17,13 +17,14 @@ import { LeadForm } from '../components/LeadForm';
 import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
+import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations';
 
  
 
@@ -488,6 +489,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
+    ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
@@ -1133,6 +1135,63 @@ export const App: React.FC = () => {
                   <h1 className="text-3xl font-bold">Access Denied</h1>
                   <p className="text-sm text-slate-600 dark:text-slate-400">You do not have permission to view quotes and invoices.</p>
                 </section>
+              </div>
+            )}
+
+            {currentPage === 'manager-quotations' && user?.role === 'manager' && (
+              <div className="space-y-6">
+                {selectedQuoteRequest ? (
+                  <div>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }}
+                      className="mb-4"
+                    >
+                      ← Back to Quotations
+                    </Button>
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
+                      <main className="col-span-1 md:col-span-9 overflow-y-auto">
+                        <QuoteInvoicePage
+                          leadId={selectedQuoteRequest.leadId}
+                          requestId={selectedQuoteRequest.id}
+                          onSaved={() => {
+                            setSelectedQuoteRequest(null);
+                            setCurrentPage('manager-quotations');
+                          }}
+                          onClose={() => setSelectedQuoteRequest(null)}
+                          viewOnly={false}
+                          generatePreviewOnMount
+                          onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                          hidePreview={true}
+                        />
+                      </main>
+
+                      <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
+                        <div className="border rounded p-4 flex flex-col h-full">
+                          <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
+                          <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
+                            {previewDataUrl ? (
+                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                            ) : (
+                              <div className="text-sm text-slate-500">Generating preview…</div>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2 flex-shrink-0">
+                            <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                            {previewDataUrl && (
+                              <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                            )}
+                          </div>
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                ) : (
+                  <ManagerQuotationsPanel onSelectRequest={(request) => {
+                    setSelectedQuoteRequest(request);
+                  }} />
+                )}
               </div>
             )}
 
