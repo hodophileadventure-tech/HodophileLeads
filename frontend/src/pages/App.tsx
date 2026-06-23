@@ -1138,7 +1138,7 @@ export const App: React.FC = () => {
             {currentPage === 'quotation-approvals' && user?.role === 'admin' && (
               <AdminQuotationApprovalsPage 
                 selectedRequest={selectedQuoteRequest}
-                onSelectRequest={(request) => setSelectedQuoteRequest(request)}
+                onSelectRequest={(request: QuoteRequest | null) => setSelectedQuoteRequest(request)}
                 onRequestUpdated={() => {
                   setSelectedQuoteRequest(null);
                   // Refresh the list by reloading
