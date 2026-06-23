@@ -389,8 +389,8 @@ export const quoteRequestsController = {
 
   async getNextQuotationNumber(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Only admins can generate quotation numbers' });
+      if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only admins and managers can generate quotation numbers' });
       }
 
       const { date } = req.query;
