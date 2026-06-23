@@ -1152,7 +1152,53 @@ export const App: React.FC = () => {
                     </Button>
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
-                      <main className="col-span-1 md:col-span-9 overflow-y-auto">
+                      {/* Left: Lead Details */}
+                      <aside className="col-span-1 md:col-span-3 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto">
+                        <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
+                        <div className="space-y-3 text-sm">
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Client Name</p>
+                            <p className="font-medium truncate">{selectedQuoteRequest.leadClientName || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Phone</p>
+                            <p className="font-medium truncate">{selectedQuoteRequest.leadPhone || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Email</p>
+                            <p className="font-medium truncate text-blue-600">{selectedQuoteRequest.leadEmail || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Destination</p>
+                            <p className="font-medium">
+                              {Array.isArray(selectedQuoteRequest.leadDestinations)
+                                ? selectedQuoteRequest.leadDestinations.join(', ')
+                                : selectedQuoteRequest.leadDestination || 'N/A'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Budget</p>
+                            <p className="font-medium">Rs. {selectedQuoteRequest.leadBudget?.toLocaleString() || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Persons</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadPersons || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Travel Date</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadTravelDate || 'N/A'}</p>
+                          </div>
+                          {selectedQuoteRequest.leadRemarks && (
+                            <div className="pt-3 border-t">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Remarks</p>
+                              <p className="text-xs bg-slate-50 dark:bg-slate-900 p-2 rounded">{selectedQuoteRequest.leadRemarks}</p>
+                            </div>
+                          )}
+                        </div>
+                      </aside>
+
+                      {/* Middle: Quotation Form */}
+                      <main className="col-span-1 md:col-span-6 overflow-y-auto">
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
@@ -1169,22 +1215,21 @@ export const App: React.FC = () => {
                         />
                       </main>
 
-                      <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
-                        <div className="border rounded p-4 flex flex-col h-full">
-                          <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                          <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
-                            {previewDataUrl ? (
-                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
-                            ) : (
-                              <div className="text-sm text-slate-500">Generating preview…</div>
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
-                            {previewDataUrl && (
-                              <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
-                            )}
-                          </div>
+                      {/* Right: Preview */}
+                      <aside className="col-span-1 md:col-span-3 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden">
+                        <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
+                        <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
+                          {previewDataUrl ? (
+                            <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                          ) : (
+                            <div className="text-sm text-slate-500">Generating preview…</div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          {previewDataUrl && (
+                            <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                          )}
                         </div>
                       </aside>
                     </div>
