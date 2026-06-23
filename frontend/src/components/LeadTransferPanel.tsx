@@ -116,7 +116,7 @@ const LeadTransferPanel: React.FC = () => {
     try {
       // Transfer each lead
       const transferPromises = selectedLeadIds.map(leadId =>
-        adminAPI.transferLead(leadId, targetAgentId)
+        (adminAPI as any).transferLead(leadId, targetAgentId)
       );
       
       await Promise.all(transferPromises);
