@@ -21,11 +21,11 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
     try {
       setLoading(true);
       const response = await quoteRequestsAPI.listPendingForManager();
-      const allRequests = response.data || [];
+      const allRequests: QuoteRequest[] = response.data || [];
       
       // Separate pending (agent requested) and submitted (manager submitted to admin)
-      setPendingRequests(allRequests.filter((request) => request.status === 'requested'));
-      setSubmittedRequests(allRequests.filter((request) => request.status === 'admin_pending'));
+      setPendingRequests(allRequests.filter((request: QuoteRequest) => request.status === 'requested'));
+      setSubmittedRequests(allRequests.filter((request: QuoteRequest) => request.status === 'admin_pending'));
       setError(null);
     } catch (err) {
       console.error('Failed to load pending quotations:', err);
