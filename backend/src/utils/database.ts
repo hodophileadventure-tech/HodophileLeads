@@ -88,6 +88,24 @@ const initializeSchema = async () => {
     
     if (tableExists) {
       console.log('[SCHEMA INIT] Database schema already exists - skipping initialization');
+      
+      // Check data integrity - warn if database looks suspiciously empty
+      try {
+        const leadCount = await query('SELECT COUNT(*) as count FROM leads');
+        const leadsTotal = leadCount.rows?.[0]?.count || 0;
+        
+        if (leadsTotal === 0) {
+          console.warn('[⚠️ DATA WARNING] Database connected but contains NO leads!');
+          console.warn('[⚠️ DATA WARNING] This may indicate a fresh database instance.');
+          console.warn('[⚠️ DATA WARNING] If you had leads before, your DATABASE_URL may have changed.');
+          console.warn('[⚠️ DATA WARNING] Check Railway PostgreSQL plugin settings.');
+        } else {
+          console.log(`[✅ DATA OK] Database contains ${leadsTotal} leads - data appears intact`);
+        }
+      } catch (e) {
+        // Ignore error checking lead count
+      }
+      
       return;
     }
     

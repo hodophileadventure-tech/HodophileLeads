@@ -11,7 +11,8 @@
     "test": "jest",
     "smoke:test": "node scripts/smokeTest.js",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed.js"
+    "db:seed": "node scripts/seed.js",
+    "db:reassign-leads": "node scripts/reassign-leads.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
