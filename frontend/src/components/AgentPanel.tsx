@@ -40,6 +40,9 @@ export const AgentPanel: React.FC = () => {
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpLead, setFollowUpLead] = useState<Lead | null>(null);
+  const [showCompletionRemarkModal, setShowCompletionRemarkModal] = useState(false);
+  const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
+  const [completionRemarks, setCompletionRemarks] = useState('');
   const quotePanelRef = useRef<HTMLDivElement | null>(null);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
@@ -127,13 +130,23 @@ export const AgentPanel: React.FC = () => {
 
   const completeActiveFollowUp = async (item: FollowUp | null) => {
     if (!item) return;
+    stopAlarmAudio();
+    setCompletionFollowUp(item);
+    setCompletionRemarks('');
+    setShowCompletionRemarkModal(true);
+  };
+
+  const confirmCompleteFollowUp = async () => {
+    if (!completionFollowUp) return;
     try {
-      stopAlarmAudio();
-      await followUpsAPI.complete(item.id);
-      const next = { ...readDismissedFollowUps(), [item.id]: Date.now() + 24 * 60 * 60 * 1000 };
+      await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
+      const next = { ...readDismissedFollowUps(), [completionFollowUp.id]: Date.now() + 24 * 60 * 60 * 1000 };
       setDismissedFollowUps(next);
       writeDismissedFollowUps(next);
       setActiveAlarm(null);
+      setShowCompletionRemarkModal(false);
+      setCompletionFollowUp(null);
+      setCompletionRemarks('');
       window.dispatchEvent(new Event('followups-updated'));
     } catch (error) {
       console.error('Failed to complete follow-up:', error);
@@ -833,6 +846,45 @@ export const AgentPanel: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCompletionRemarkModal && completionFollowUp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-1">Mark Follow-up Complete</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Add remarks about this follow-up (optional). These will be saved to the lead.</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Remarks / Notes</label>
+                <textarea
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 dark:bg-slate-800 dark:text-white"
+                  rows={5}
+                  placeholder="e.g., Client confirmed dates, requires hotel confirmation, waiting for payment..."
+                  value={completionRemarks}
+                  onChange={(e) => setCompletionRemarks(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button 
+                variant="secondary" 
+                onClick={() => {
+                  setShowCompletionRemarkModal(false);
+                  setCompletionFollowUp(null);
+                  setCompletionRemarks('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={confirmCompleteFollowUp}
+              >
+                Mark Complete
+              </Button>
             </div>
           </div>
         </div>
