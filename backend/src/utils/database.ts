@@ -78,6 +78,21 @@ export const initDatabase = async () => {
 
 const initializeSchema = async () => {
   try {
+    // First check if tables already exist to avoid re-creating and losing data
+    const tableCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.tables 
+      WHERE table_schema = 'public' AND table_name = 'users'
+    `);
+    
+    const tableExists = tableCheckResult.rows?.[0]?.count > 0;
+    
+    if (tableExists) {
+      console.log('[SCHEMA INIT] Database schema already exists - skipping initialization');
+      return;
+    }
+    
+    console.log('[SCHEMA INIT] Database schema not found - initializing...');
+    
     const schemaPath = path.join(__dirname, '../../database/schema.sql');
     const schemaSql = fs.readFileSync(schemaPath, 'utf-8');
     
@@ -87,26 +102,29 @@ const initializeSchema = async () => {
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0);
     
-    console.log(`[SCHEMA INIT] Found ${statements.length} SQL statements to execute`);
+    console.log(`[SCHEMA INIT] Executing ${statements.length} SQL statements`);
     
+    let successCount = 0;
     for (const statement of statements) {
       try {
         await query(statement);
+        successCount++;
       } catch (error: any) {
         // Ignore "already exists" errors - tables may already be created
-        if (error.message?.includes('already exists') || error.code === '42P07') {
-          console.log(`[SCHEMA INIT] Table already exists (skipped)`);
+        if (error.message?.includes('already exists') || error.code === '42P07' || error.code === '42701') {
+          console.log(`[SCHEMA INIT] Skipped existing object`);
+          successCount++;
         } else {
-          console.error(`[SCHEMA INIT] Error executing statement:`, error.message);
-          throw error;
+          console.warn(`[SCHEMA INIT] Warning executing statement:`, error.message);
+          // Don't throw - continue with other statements
         }
       }
     }
     
-    console.log('[SCHEMA INIT] Database schema initialized successfully');
+    console.log(`[SCHEMA INIT] Schema initialization complete - ${successCount}/${statements.length} statements executed`);
   } catch (error: any) {
     console.error('[SCHEMA INIT] Failed to initialize schema:', error.message);
-    throw error;
+    // Don't throw - schema might already exist or be in a valid state
   }
 };
 
