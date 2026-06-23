@@ -331,8 +331,8 @@ export const App: React.FC = () => {
   };
 
   const refreshLeads = async () => {
-    // For admins, request all leads; for agents, use default limit
-    const limit = user?.role === 'admin' ? 10000 : 50;
+    // Request up to 10,000 leads for all users
+    const limit = 10000;
     const response = await leadsAPI.list(limit);
     setLeads(response.data);
     await loadFollowUps();
@@ -359,8 +359,8 @@ export const App: React.FC = () => {
 
     const fetchLeads = async () => {
       try {
-        // For admins, request all leads; for agents, use default limit
-        const limit = user?.role === 'admin' ? 10000 : 50;
+        // Request up to 10,000 leads for all users
+        const limit = 10000;
         const response = await leadsAPI.list(limit);
         setLeads(response.data);
         await loadFollowUps();
