@@ -32,6 +32,12 @@ html, body {
   align-items: start;
 }
 
+/* When preview is hidden, show only the sidebar */
+.quote-invoice-shell.hide-preview {
+  grid-template-columns: 1fr;
+  max-width: 100%;
+}
+
 .quote-invoice-sidebar {
   display: flex;
   flex-direction: column;

@@ -1090,6 +1090,7 @@ export const App: React.FC = () => {
                           viewOnly={false}
                           generatePreviewOnMount
                           onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                          hidePreview={true}
                         />
                       </main>
 

@@ -29,6 +29,7 @@ type QuoteInvoicePageProps = {
   onPreviewGenerated?: (dataUrl: string) => void;
   onSaved?: () => void;
   onClose?: () => void;
+  hidePreview?: boolean;
 };
 
 type DocumentData = {
@@ -139,6 +140,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   onPreviewGenerated,
   onSaved: _onSaved,
   onClose: _onClose,
+  hidePreview = false,
 }) => {
   const { user } = useAuth();
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>(_requestType || 'quotation');
@@ -336,7 +338,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   return (
     <div className="quote-invoice-root">
-      <div className="quote-invoice-shell">
+      <div className={`quote-invoice-shell ${hidePreview ? 'hide-preview' : ''}`}>
         <div className="quote-invoice-sidebar">
           <div className="quote-invoice-panel">
             <h2>Invoice & Quotation Generator</h2>
@@ -463,6 +465,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           </div>
         </div>
 
+        {!hidePreview && (
         <div className="quote-invoice-preview">
           <div className="pdf-page">
             <div className="pdf-canvas" ref={previewRef}>
@@ -595,6 +598,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
