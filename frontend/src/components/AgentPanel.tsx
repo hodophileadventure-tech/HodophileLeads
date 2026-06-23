@@ -139,7 +139,10 @@ export const AgentPanel: React.FC = () => {
   const confirmCompleteFollowUp = async () => {
     if (!completionFollowUp) return;
     try {
-      await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
+      console.log('Completing follow-up:', completionFollowUp.id, 'with remarks:', completionRemarks);
+      const response = await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
+      console.log('Follow-up completed successfully:', response);
+      
       const next = { ...readDismissedFollowUps(), [completionFollowUp.id]: Date.now() + 24 * 60 * 60 * 1000 };
       setDismissedFollowUps(next);
       writeDismissedFollowUps(next);
@@ -147,10 +150,14 @@ export const AgentPanel: React.FC = () => {
       setShowCompletionRemarkModal(false);
       setCompletionFollowUp(null);
       setCompletionRemarks('');
+      
+      // Reload leads to show updated remarks
+      await loadLeads();
+      
       window.dispatchEvent(new Event('followups-updated'));
     } catch (error) {
       console.error('Failed to complete follow-up:', error);
-      alert('Failed to mark follow-up complete.');
+      alert('Failed to mark follow-up complete: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 

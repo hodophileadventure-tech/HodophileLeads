@@ -127,18 +127,24 @@ export const followUpsController = {
   async complete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { remarks } = req.body as { remarks?: string };
+      console.log('Complete follow-up request:', req.params.id, 'remarks:', remarks);
+      
       const item = await followUpsModel.markDone(req.params.id);
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
+      
+      console.log('Follow-up marked done:', item.id);
 
       // If remarks provided, update the associated lead's agent_remarks
       if (remarks && item.lead_id) {
         try {
+          console.log('Updating lead:', item.lead_id, 'with remarks:', remarks);
           const leadsModel = require('../models/Lead');
-          await leadsModel.update(item.lead_id, {
+          const updatedLead = await leadsModel.update(item.lead_id, {
             agentRemarks: remarks
           });
+          console.log('Lead updated with remarks:', updatedLead?.id, 'agentRemarks:', updatedLead?.agentRemarks);
         } catch (err) {
           console.error('Failed to update lead remarks:', err);
         }
