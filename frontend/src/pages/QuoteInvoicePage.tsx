@@ -175,19 +175,33 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   // Auto-populate form with lead details
   useEffect(() => {
     if (_leadId && !initialDocumentData) {
+      // First, reset to empty state
+      setData((current) => ({
+        ...current,
+        customerName: '',
+        phone: '',
+        city: '',
+        destination: '',
+        persons: '',
+        accommodationType: '',
+        transportationType: '',
+        travelDate: new Date().toISOString().split('T')[0],
+      }));
+
+      // Then fetch and populate with lead data
       leadsAPI.getById(_leadId)
         .then((response) => {
           const lead = response.data;
           setData((current) => ({
             ...current,
-            customerName: lead.clientName || current.customerName,
-            phone: lead.phone || current.phone,
-            city: lead.address || current.city,
-            destination: lead.destination || current.destination,
-            persons: lead.persons ? String(lead.persons) : current.persons,
-            accommodationType: lead.hotelPreference || current.accommodationType,
-            transportationType: lead.transportPreference || current.transportationType,
-            travelDate: lead.travelDates?.from || (lead.travel_date ? lead.travel_date.split('T')[0] : current.travelDate),
+            customerName: lead.clientName || '',
+            phone: lead.phone || '',
+            city: lead.address || '',
+            destination: lead.destination || '',
+            persons: lead.persons ? String(lead.persons) : '',
+            accommodationType: lead.hotelPreference || '',
+            transportationType: lead.transportPreference || '',
+            travelDate: lead.travelDates?.from || (lead.travel_date ? lead.travel_date.split('T')[0] : new Date().toISOString().split('T')[0]),
           }));
         })
         .catch((error) => {
