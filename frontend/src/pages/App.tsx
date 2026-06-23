@@ -1154,50 +1154,62 @@ export const App: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
                       {/* Left: Lead Details */}
                       <aside className="col-span-1 md:col-span-3 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto">
-                        <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
+                        <h3 className="font-semibold mb-4 text-sm">Agent Lead Details</h3>
                         <div className="space-y-3 text-sm">
-                          <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Client Name</p>
-                            <p className="font-medium truncate">{selectedQuoteRequest.leadClientName || 'N/A'}</p>
+                          <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">CLIENT INFO</p>
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <p className="text-xs text-slate-500">Name</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadClientName || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Phone</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadPhone || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Email</p>
+                                <p className="font-medium text-blue-600 break-all">{selectedQuoteRequest.leadEmail || '—'}</p>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Phone</p>
-                            <p className="font-medium truncate">{selectedQuoteRequest.leadPhone || 'N/A'}</p>
+
+                          <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">TRIP DETAILS</p>
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <p className="text-xs text-slate-500">Destination</p>
+                                <p className="font-medium">
+                                  {Array.isArray(selectedQuoteRequest.leadDestinations)
+                                    ? selectedQuoteRequest.leadDestinations.join(', ')
+                                    : selectedQuoteRequest.leadDestination || '—'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Travel Date</p>
+                                <p className="font-medium text-xs">
+                                  {typeof selectedQuoteRequest.leadTravelDates === 'string'
+                                    ? selectedQuoteRequest.leadTravelDates
+                                    : selectedQuoteRequest.leadTravelDates?.from && selectedQuoteRequest.leadTravelDates?.to
+                                    ? `${selectedQuoteRequest.leadTravelDates.from} - ${selectedQuoteRequest.leadTravelDates.to}`
+                                    : '—'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Persons</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadPersons || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Budget</p>
+                                <p className="font-medium">Rs. {selectedQuoteRequest.leadBudget?.toLocaleString() || '—'}</p>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Email</p>
-                            <p className="font-medium truncate text-blue-600">{selectedQuoteRequest.leadEmail || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Destination</p>
-                            <p className="font-medium">
-                              {Array.isArray(selectedQuoteRequest.leadDestinations)
-                                ? selectedQuoteRequest.leadDestinations.join(', ')
-                                : selectedQuoteRequest.leadDestination || 'N/A'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Budget</p>
-                            <p className="font-medium">Rs. {selectedQuoteRequest.leadBudget?.toLocaleString() || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Persons</p>
-                            <p className="font-medium">{selectedQuoteRequest.leadPersons || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Travel Date</p>
-                            <p className="font-medium">
-                              {typeof selectedQuoteRequest.leadTravelDates === 'string'
-                                ? selectedQuoteRequest.leadTravelDates
-                                : selectedQuoteRequest.leadTravelDates?.from && selectedQuoteRequest.leadTravelDates?.to
-                                ? `${selectedQuoteRequest.leadTravelDates.from} - ${selectedQuoteRequest.leadTravelDates.to}`
-                                : 'N/A'}
-                            </p>
-                          </div>
+
                           {selectedQuoteRequest.leadRemarks && (
-                            <div className="pt-3 border-t">
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Remarks</p>
-                              <p className="text-xs bg-slate-50 dark:bg-slate-900 p-2 rounded">{selectedQuoteRequest.leadRemarks}</p>
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 p-2 rounded">
+                              <p className="text-xs text-yellow-800 dark:text-yellow-300 font-semibold mb-1">Agent Remarks</p>
+                              <p className="text-xs text-yellow-900 dark:text-yellow-200">{selectedQuoteRequest.leadRemarks}</p>
                             </div>
                           )}
                         </div>

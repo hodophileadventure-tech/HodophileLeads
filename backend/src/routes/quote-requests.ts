@@ -6,7 +6,7 @@ export const quoteRequestsRouter = Router();
 
 quoteRequestsRouter.use(authMiddleware);
 quoteRequestsRouter.get('/', quoteRequestsController.listByUser);
-quoteRequestsRouter.get('/next-number', roleMiddleware(['admin']), quoteRequestsController.getNextQuotationNumber);
+quoteRequestsRouter.get('/next-number', roleMiddleware(['admin', 'manager']), quoteRequestsController.getNextQuotationNumber);
 quoteRequestsRouter.get('/pending', roleMiddleware(['manager', 'admin']), quoteRequestsController.listPending);
 quoteRequestsRouter.get('/pending-for-manager', roleMiddleware(['manager']), quoteRequestsController.getPendingForManager);
 quoteRequestsRouter.get('/pending-for-admin', roleMiddleware(['admin']), quoteRequestsController.getPendingForAdmin);
