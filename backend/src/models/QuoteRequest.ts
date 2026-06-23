@@ -287,7 +287,7 @@ export const quoteRequestsModel = {
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
-      WHERE qr.status = 'requested'
+      WHERE qr.status IN ('requested', 'saved', 'manager_pending', 'admin_pending', 'rejected')
       ORDER BY qr.created_at ASC
     `);
     return res.rows.map(mapQuoteRequestRow);
