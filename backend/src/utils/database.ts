@@ -89,6 +89,9 @@ const initializeSchema = async () => {
     if (tableExists) {
       console.log('[SCHEMA INIT] Database schema already exists - skipping initialization');
       
+      // Run any pending migrations
+      await runPendingMigrations();
+      
       // Check data integrity - warn if database looks suspiciously empty
       try {
         const leadCount = await query('SELECT COUNT(*) as count FROM leads');
@@ -143,6 +146,41 @@ const initializeSchema = async () => {
   } catch (error: any) {
     console.error('[SCHEMA INIT] Failed to initialize schema:', error.message);
     // Don't throw - schema might already exist or be in a valid state
+  }
+};
+
+const runPendingMigrations = async () => {
+  try {
+    // Check and add proof_url column to payments table if it doesn't exist
+    const columnCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'payments' AND column_name = 'proof_url'
+    `);
+    
+    const columnExists = columnCheckResult.rows?.[0]?.count > 0;
+    
+    if (!columnExists) {
+      console.log('[MIGRATION] Adding proof_url column to payments table...');
+      await query(`ALTER TABLE payments ADD COLUMN proof_url VARCHAR(500)`);
+      console.log('[MIGRATION] ✅ proof_url column added successfully');
+    }
+    
+    // Check and add trip_budget column to leads table if it doesn't exist
+    const tripBudgetCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'trip_budget'
+    `);
+    
+    const tripBudgetExists = tripBudgetCheckResult.rows?.[0]?.count > 0;
+    
+    if (!tripBudgetExists) {
+      console.log('[MIGRATION] Adding trip_budget column to leads table...');
+      await query(`ALTER TABLE leads ADD COLUMN trip_budget DECIMAL(12, 2)`);
+      console.log('[MIGRATION] ✅ trip_budget column added successfully');
+    }
+  } catch (error: any) {
+    console.warn('[MIGRATION] Warning during migration:', error.message);
+    // Don't throw - column might already exist or migration may have already run
   }
 };
 
