@@ -1,0 +1,69 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "services": {
+    "database": {
+      "type": "postgres",
+      "icon": "postgres",
+      "description": "PostgreSQL database for TRIPNEXUS"
+    },
+    "backend": {
+      "type": "nodejs",
+      "icon": "nodejs",
+      "description": "TRIPNEXUS Express.js API Server",
+      "source": {
+        "type": "github",
+        "path": "backend"
+      },
+      "rootDirectory": "backend",
+      "buildCommand": "npm run build",
+      "startCommand": "npm start",
+      "buildPacks": ["nodejs"],
+      "envVariables": {
+        "PORT": {
+          "description": "Server port",
+          "default": "5000"
+        },
+        "NODE_ENV": {
+          "description": "Environment type",
+          "default": "production"
+        },
+        "DATABASE_URL": {
+          "description": "PostgreSQL connection string from database service"
+        },
+        "JWT_SECRET": {
+          "description": "Secret key for JWT signing (generate a strong random string)"
+        },
+        "JWT_EXPIRY": {
+          "description": "JWT token expiry time",
+          "default": "7d"
+        },
+        "FRONTEND_URL": {
+          "description": "Frontend application URL (set after deploying frontend)"
+        },
+        "OFFICE_ALLOWED_IPS": {
+          "description": "Comma-separated IP addresses allowed for office access (optional)",
+          "default": ""
+        }
+      },
+      "postDeployHook": "npm run db:migrate"
+    },
+    "frontend": {
+      "type": "nodejs",
+      "icon": "react",
+      "description": "TRIPNEXUS React Frontend",
+      "source": {
+        "type": "github",
+        "path": "frontend"
+      },
+      "rootDirectory": "frontend",
+      "buildCommand": "npm run build",
+      "startCommand": "npm preview",
+      "buildPacks": ["nodejs"],
+      "envVariables": {
+        "VITE_API_BASE_URL": {
+          "description": "Backend API base URL (use /api for same-domain, or full URL for cross-domain)"
+        }
+      }
+    }
+  }
+}

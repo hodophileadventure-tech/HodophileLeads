@@ -9,7 +9,8 @@
     "start": "npm run start --workspace=backend",
     "test": "npm run test --workspace=frontend & npm run test --workspace=backend",
     "db:setup": "cd database && node scripts/seed.js",
-    "db:migrate": "cd database && node scripts/migrate.js"
+    "db:migrate": "cd database && node scripts/migrate.js",
+    "railway:validate": "node scripts/validate-railway-deployment.js"
   },
   "workspaces": [
     "frontend",

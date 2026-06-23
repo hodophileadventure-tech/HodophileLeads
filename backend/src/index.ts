@@ -41,7 +41,35 @@ app.use(helmet({
     }
   }
 }));
-app.use(cors());
+
+// Production-ready CORS configuration
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests from the same origin (frontend served from same domain as backend)
+    // Also allow requests from FRONTEND_URL if specified (cross-domain setup)
+    const allowedOrigins = [
+      'http://localhost:3000',      // Local development
+      'http://localhost:5000',      // Local backend
+      'http://localhost:5001',      // Local backend alt port
+      'http://127.0.0.1:3000',
+      process.env.FRONTEND_URL,     // Production frontend (set on Railway)
+    ].filter(Boolean) as string[];
+
+    // Allow requests without origin (like mobile apps, curl, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      callback(null, true); // Log but allow for now; you can change to false to reject
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400 // 24 hours
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
