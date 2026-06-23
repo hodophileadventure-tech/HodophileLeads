@@ -77,6 +77,9 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
                 <p className="font-medium">PKR {payment.amount}</p>
                 <p className="text-xs text-slate-500">{payment.method} · Due {payment.dueDate || (payment as any).due_date}</p>
                 <p className="text-xs text-slate-500">Status: {payment.status}</p>
+                {(payment.proofUrl || (payment as any).proof_url) && (
+                  <a href={payment.proofUrl || (payment as any).proof_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block">📎 View Proof</a>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="secondary" onClick={() => setConfirmingPayment(payment)}>Confirm</Button>

@@ -14,8 +14,7 @@ interface LeadCardProps {
 export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
   const [tab, setTab] = React.useState<'overview' | 'availability'>('overview');
   const [availability, setAvailability] = React.useState<any>(null);
-  // Health feature disabled
-  // const [health, setHealth] = React.useState<{ score: number; health: 'red' | 'yellow' | 'green' } | null>(null);
+  const [health, setHealth] = React.useState<{ score: number; health: 'red' | 'yellow' | 'green' } | null>(null);
   const [now, setNow] = React.useState(Date.now());
   const [showReminderModal, setShowReminderModal] = React.useState(false);
   const [reminderTitle, setReminderTitle] = React.useState('');
@@ -37,11 +36,10 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
     const loadMeta = async () => {
       try {
         const availabilityResponse = await availabilityAPI.getByLeadId(lead.id);
-        // Health API call disabled
-        // const healthResponse = await leadsAPI.getHealth(lead.id);
+        const healthResponse = await leadsAPI.getHealth(lead.id);
         
         setAvailability(availabilityResponse.data);
-        // setHealth(healthResponse.data);
+        setHealth(healthResponse.data);
       } catch {
         setAvailability(null);
       }
@@ -58,12 +56,11 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
     return `${hours}h ${minutes}m left`;
   }, [availability?.hold_expiry, now]);
 
-  // Health color disabled - feature hidden
-  /* const healthColor = health?.health === 'green'
+  const healthColor = health?.health === 'green'
     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
     : health?.health === 'yellow'
       ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'; */
+      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
 
   const createdAtDate = React.useMemo(() => {
     const value = lead.createdAt;
@@ -111,8 +108,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           <Badge color={lifecycle.badge}>
             {lifecycle.label.toUpperCase()}
           </Badge>
-          {/* Health badge hidden - feature disabled */}
-          {/* {health && <Badge color={healthColor}>Health {health.score}%</Badge>} */}
+          {health && <Badge color={healthColor}>Health {health.score}%</Badge>}
         </div>
       </div>
 
