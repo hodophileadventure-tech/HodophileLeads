@@ -1186,7 +1186,7 @@ export const App: React.FC = () => {
                           </div>
                           <div>
                             <p className="text-xs text-slate-500 dark:text-slate-400">Travel Date</p>
-                            <p className="font-medium">{selectedQuoteRequest.leadTravelDate || 'N/A'}</p>
+                            <p className="font-medium">{selectedQuoteRequest.leadTravelDates || 'N/A'}</p>
                           </div>
                           {selectedQuoteRequest.leadRemarks && (
                             <div className="pt-3 border-t">
