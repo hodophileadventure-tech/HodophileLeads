@@ -2,6 +2,7 @@ import React from 'react';
 import { followUpsAPI } from '../utils/api-service';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { Button } from './common';
 
 export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [items, setItems] = React.useState<any[]>([]);
@@ -9,6 +10,9 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
   const [filter, setFilter] = React.useState<'all' | 'today' | 'upcoming' | 'overdue'>('all');
   const [editing, setEditing] = React.useState<any | null>(null);
   const [form, setForm] = React.useState({ title: '', dueDate: '', priority: 'medium', status: 'upcoming', description: '' });
+  const [showCompletionModal, setShowCompletionModal] = React.useState(false);
+  const [completionFollowUp, setCompletionFollowUp] = React.useState<any | null>(null);
+  const [completionRemarks, setCompletionRemarks] = React.useState('');
 
   const load = async () => {
     setLoading(true);
@@ -65,11 +69,10 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
               </div>
               <div className="flex flex-col gap-2">
                 <button className="text-xs px-2 py-1 rounded bg-slate-200" onClick={() => openEdit(r)}>Edit</button>
-                <button className="text-xs px-2 py-1 rounded bg-primary-500 text-white" onClick={async () => {
-                  try {
-                    await followUpsAPI.complete(r.id);
-                    await load();
-                  } catch (e) {}
+                <button className="text-xs px-2 py-1 rounded bg-primary-500 text-white" onClick={() => {
+                  setCompletionFollowUp(r);
+                  setCompletionRemarks('');
+                  setShowCompletionModal(true);
                 }}>Mark Done</button>
                 <button className="text-xs px-2 py-1 rounded bg-slate-200" onClick={async () => {
                   if (!confirm('Delete reminder?')) return;
@@ -110,6 +113,55 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
                     alert('Failed to save reminder');
                   }
                 }}>Save</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showCompletionModal && completionFollowUp && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+              <h3 className="text-xl font-bold mb-1">Mark Follow-up Complete</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Add remarks about this follow-up (optional). These will be saved to the lead.</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Remarks / Notes</label>
+                  <textarea
+                    className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 dark:bg-slate-800 dark:text-white"
+                    rows={5}
+                    placeholder="e.g., Client confirmed dates, requires hotel confirmation, waiting for payment..."
+                    value={completionRemarks}
+                    onChange={(e) => setCompletionRemarks(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-2">
+                <Button 
+                  variant="secondary" 
+                  onClick={() => {
+                    setShowCompletionModal(false);
+                    setCompletionFollowUp(null);
+                    setCompletionRemarks('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={async () => {
+                    try {
+                      await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
+                      await load();
+                      setShowCompletionModal(false);
+                      setCompletionFollowUp(null);
+                      setCompletionRemarks('');
+                    } catch (e) {
+                      alert('Failed to complete follow-up');
+                    }
+                  }}
+                >
+                  Mark Complete
+                </Button>
               </div>
             </div>
           </div>

@@ -36,6 +36,9 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'canceled'>('all');
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
+  const [completionRemarks, setCompletionRemarks] = useState('');
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -117,10 +120,20 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
     };
   }, [tasks]);
 
-  const completeTask = async (id: string) => {
+  const completeTask = (followUp: FollowUp) => {
+    setCompletionFollowUp(followUp);
+    setCompletionRemarks('');
+    setShowCompletionModal(true);
+  };
+
+  const confirmCompleteTask = async () => {
+    if (!completionFollowUp) return;
     try {
-      await followUpsAPI.complete(id);
-      setFollowUps((prev) => prev.map((item) => (item.id === id ? { ...item, status: 'completed' } : item)));
+      await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
+      setFollowUps((prev) => prev.map((item) => (item.id === completionFollowUp.id ? { ...item, status: 'completed' } : item)));
+      setShowCompletionModal(false);
+      setCompletionFollowUp(null);
+      setCompletionRemarks('');
     } catch (err) {
       setError('Could not complete task.');
     }
@@ -225,7 +238,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                     </Button>
                   )}
                   {item.status !== 'canceled' && (
-                    <Button variant="primary" size="sm" onClick={() => completeTask(task.id)}>
+                    <Button variant="primary" size="sm" onClick={() => completeTask(item)}>
                       Mark Done
                     </Button>
                   )}
@@ -236,6 +249,45 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
           </div>
         )}
       </Card>
+
+      {showCompletionModal && completionFollowUp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-1">Mark Follow-up Complete</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Add remarks about this follow-up (optional). These will be saved to the lead.</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Remarks / Notes</label>
+                <textarea
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 dark:bg-slate-800 dark:text-white"
+                  rows={5}
+                  placeholder="e.g., Client confirmed dates, requires hotel confirmation, waiting for payment..."
+                  value={completionRemarks}
+                  onChange={(e) => setCompletionRemarks(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button 
+                variant="secondary" 
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  setCompletionFollowUp(null);
+                  setCompletionRemarks('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={confirmCompleteTask}
+              >
+                Mark Complete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
