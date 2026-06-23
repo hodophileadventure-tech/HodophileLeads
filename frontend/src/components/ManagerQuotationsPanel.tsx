@@ -15,6 +15,19 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
 
   useEffect(() => {
     loadRequests();
+    
+    // Listen for save and send-for-approval events
+    const handleQuoteUpdate = () => {
+      loadRequests();
+    };
+    
+    window.addEventListener('quote-request-saved', handleQuoteUpdate);
+    window.addEventListener('quote-request-sent-approval', handleQuoteUpdate);
+    
+    return () => {
+      window.removeEventListener('quote-request-saved', handleQuoteUpdate);
+      window.removeEventListener('quote-request-sent-approval', handleQuoteUpdate);
+    };
   }, []);
 
   const loadRequests = async () => {
@@ -25,7 +38,7 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
       
       // Separate pending (agent requested) and submitted (manager submitted to admin)
       setPendingRequests(allRequests.filter((request: QuoteRequest) => request.status === 'requested'));
-      setSubmittedRequests(allRequests.filter((request: QuoteRequest) => request.status === 'admin_pending'));
+      setSubmittedRequests(allRequests.filter((request: QuoteRequest) => ['saved', 'manager_pending', 'admin_pending', 'rejected'].includes(request.status)));
       setError(null);
     } catch (err) {
       console.error('Failed to load pending quotations:', err);
@@ -41,7 +54,7 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
     loadRequests();
   };
 
-  const renderRequestCard = (request: QuoteRequest, isSubmitted: boolean = false) => (
+  const renderRequestCard = (request: QuoteRequest) => (
     <div key={request.id} className="bg-white p-4 rounded-lg border border-gray-200 hover:border-blue-400 transition">
       <div className="flex justify-between items-start mb-3">
         <div>
@@ -50,11 +63,17 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
           <p className="text-xs text-gray-500">Lead: {request.leadEmail}</p>
         </div>
         <span className={`px-2 py-1 rounded text-xs font-semibold ${
-          isSubmitted 
-            ? 'bg-yellow-100 text-yellow-800' 
-            : 'bg-blue-100 text-blue-800'
+          request.status === 'requested' ? 'bg-blue-100 text-blue-800' :
+          request.status === 'saved' ? 'bg-amber-100 text-amber-800' :
+          request.status === 'admin_pending' ? 'bg-yellow-100 text-yellow-800' :
+          request.status === 'rejected' ? 'bg-red-100 text-red-800' :
+          'bg-gray-100 text-gray-800'
         }`}>
-          {isSubmitted ? 'Awaiting Approval' : 'Pending'}
+          {request.status === 'requested' ? 'Pending' :
+           request.status === 'saved' ? 'Ready to Send' :
+           request.status === 'admin_pending' ? 'Awaiting Approval' :
+           request.status === 'rejected' ? 'Needs Revision' :
+           request.status.charAt(0).toUpperCase() + request.status.slice(1)}
         </span>
       </div>
 
@@ -91,16 +110,8 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
           onClick={() => onSelectRequest(request)}
           className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium"
         >
-          {isSubmitted ? 'View' : 'Create Quotation'}
+          {request.status === 'requested' ? 'Create Quotation' : 'View/Edit'}
         </button>
-        {isSubmitted && (
-          <button
-            onClick={() => onSelectRequest(request)}
-            className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition text-sm"
-          >
-            Edit
-          </button>
-        )}
       </div>
     </div>
   );
@@ -162,7 +173,7 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
                 <p className="text-sm text-blue-800">Agents have requested quotations. Create and submit for admin approval.</p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-                {filteredPending.map(request => renderRequestCard(request, false))}
+                {filteredPending.map(request => renderRequestCard(request))}
               </div>
             </section>
           )}
@@ -170,14 +181,14 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
           {/* Submitted Requests - Awaiting Admin Approval */}
           {filteredSubmitted.length > 0 && (
             <section id="submitted-section">
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-                <h3 className="text-lg font-semibold text-yellow-900">
-                  Submitted for Approval ({filteredSubmitted.length})
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-4">
+                <h3 className="text-lg font-semibold text-amber-900">
+                  My Quotations ({filteredSubmitted.length})
                 </h3>
-                <p className="text-sm text-yellow-800">Waiting for admin to approve or reject.</p>
+                <p className="text-sm text-amber-800">Quotations you've saved or submitted for admin approval. Review before sending or make revisions.</p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {filteredSubmitted.map(request => renderRequestCard(request, true))}
+                {filteredSubmitted.map(request => renderRequestCard(request))}
               </div>
             </section>
           )}
