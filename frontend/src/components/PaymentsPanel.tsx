@@ -13,6 +13,9 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({ amount: 0, method: 'cash', dueDate: '', notes: '' });
+  const [confirmingPayment, setConfirmingPayment] = React.useState<Payment | null>(null);
+  const [proofFile, setProofFile] = React.useState<File | null>(null);
+  const [confirmingLoading, setConfirmingLoading] = React.useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -76,7 +79,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
                 <p className="text-xs text-slate-500">Status: {payment.status}</p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={async () => { await paymentsAPI.confirm(payment.id); await load(); window.dispatchEvent(new Event('dashboard-refresh')); }}>Confirm</Button>
+                <Button size="sm" variant="secondary" onClick={() => setConfirmingPayment(payment)}>Confirm</Button>
                 <Button size="sm" variant="danger" onClick={async () => { if (!confirm('Delete payment?')) return; await paymentsAPI.delete(payment.id); await load(); window.dispatchEvent(new Event('dashboard-refresh')); }}>Delete</Button>
               </div>
             </div>
@@ -136,6 +139,90 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
             <textarea className="input-field" value={form.notes} onChange={(e) => setForm((s) => ({ ...s, notes: e.target.value }))} />
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!confirmingPayment}
+        onClose={() => { setConfirmingPayment(null); setProofFile(null); }}
+        title="Confirm Payment & Upload Proof"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => { setConfirmingPayment(null); setProofFile(null); }} disabled={confirmingLoading}>Cancel</Button>
+            <Button variant="primary" onClick={async () => {
+              if (!confirmingPayment) return;
+              try {
+                setConfirmingLoading(true);
+                const formData = new FormData();
+                if (proofFile) {
+                  formData.append('proof', proofFile);
+                }
+                console.log('Confirming payment:', confirmingPayment.id, 'with proof file:', proofFile?.name);
+                
+                // Use fetch for file upload
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api'}/payments/${confirmingPayment.id}/confirm`, {
+                  method: 'PATCH',
+                  body: formData,
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  }
+                });
+                
+                if (!response.ok) {
+                  throw new Error(await response.text());
+                }
+                
+                console.log('Payment confirmed successfully');
+                setConfirmingPayment(null);
+                setProofFile(null);
+                await load();
+                window.dispatchEvent(new Event('dashboard-refresh'));
+                alert('Payment confirmed successfully!');
+              } catch (error) {
+                console.error('Failed to confirm payment:', error);
+                alert('Failed to confirm payment: ' + (error instanceof Error ? error.message : String(error)));
+              } finally {
+                setConfirmingLoading(false);
+              }
+            }} disabled={confirmingLoading || !proofFile}>Confirm Payment</Button>
+          </>
+        }
+      >
+        {confirmingPayment && (
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
+              <p className="text-sm text-slate-600 dark:text-slate-400">Amount to Confirm:</p>
+              <p className="text-xl font-bold">PKR {confirmingPayment.amount.toLocaleString()}</p>
+              <p className="text-xs text-slate-500 mt-1">Method: {confirmingPayment.method}</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Upload Proof of Payment</label>
+              <p className="text-xs text-slate-500 mb-2">Accepted: JPG, PNG, GIF, PDF (Max 5MB)</p>
+              <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,application/pdf"
+                  onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="proof-input"
+                />
+                <label htmlFor="proof-input" className="cursor-pointer">
+                  {proofFile ? (
+                    <>
+                      <p className="font-medium text-green-600">✓ {proofFile.name}</p>
+                      <p className="text-xs text-slate-500 mt-1">{(proofFile.size / 1024).toFixed(2)} KB</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-slate-600 dark:text-slate-400">Click to upload screenshot/receipt</p>
+                      <p className="text-xs text-slate-500 mt-1">or drag and drop</p>
+                    </>
+                  )}
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS payments (
   due_date TIMESTAMP NOT NULL,
   paid_date TIMESTAMP,
   notes TEXT,
+  proof_url VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_status CHECK (status IN ('pending', 'approved', 'confirmed', 'failed')),

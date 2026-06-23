@@ -51,7 +51,9 @@ export const paymentsController = {
 
   async confirm(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const item = await paymentsModel.confirm(req.params.id, req.body?.paidDate);
+      const proofUrl = (req as any).file ? `/uploads/payment-proofs/${(req as any).file.filename}` : req.body?.proofUrl;
+      console.log('Confirming payment:', req.params.id, 'with proof:', proofUrl);
+      const item = await paymentsModel.confirm(req.params.id, req.body?.paidDate, proofUrl);
       if (!item) {
         return res.status(404).json({ message: 'Payment not found' });
       }
@@ -60,7 +62,8 @@ export const paymentsController = {
           userId: req.user.id,
           entityType: 'payment',
           entityId: req.params.id,
-          action: 'confirm'
+          action: 'confirm',
+          changes: { proofUrl }
         });
       } catch (_) {}
       res.json(item);

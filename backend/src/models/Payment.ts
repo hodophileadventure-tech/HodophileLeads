@@ -8,6 +8,7 @@ const mapPaymentRow = (row: any) => {
     leadId: row.leadId || row.lead_id,
     dueDate: row.dueDate || row.due_date,
     paidDate: row.paidDate || row.paid_date,
+    proofUrl: row.proofUrl || row.proof_url,
     createdAt: row.createdAt || row.created_at,
     updatedAt: row.updatedAt || row.updated_at
   };
@@ -38,10 +39,18 @@ export const paymentsModel = {
     return mapPaymentRow(result.rows[0]);
   },
 
-  async confirm(id: string, paidDate?: string) {
+  async confirm(id: string, paidDate?: string, proofUrl?: string) {
+    const fields = ['status = $2', 'paid_date = $3', 'updated_at = NOW()'];
+    const params: any[] = [id, 'confirmed', paidDate || new Date().toISOString()];
+    
+    if (proofUrl) {
+      fields.push(`proof_url = $${params.length + 1}`);
+      params.push(proofUrl);
+    }
+    
     const result = await query(
-      'UPDATE payments SET status = $2, paid_date = $3, updated_at = NOW() WHERE id = $1 RETURNING *',
-      [id, 'confirmed', paidDate || new Date().toISOString()]
+      `UPDATE payments SET ${fields.join(', ')} WHERE id = $1 RETURNING *`,
+      params
     );
     return mapPaymentRow(result.rows[0]);
   },
@@ -55,10 +64,11 @@ export const paymentsModel = {
            due_date = COALESCE($5, due_date),
            paid_date = COALESCE($6, paid_date),
            notes = COALESCE($7, notes),
+           proof_url = COALESCE($8, proof_url),
            updated_at = NOW()
        WHERE id = $1
        RETURNING *`,
-      [id, data.amount, data.status, data.method, data.dueDate, data.paidDate, data.notes]
+      [id, data.amount, data.status, data.method, data.dueDate, data.paidDate, data.notes, data.proofUrl || (data as any).proof_url]
     );
     return mapPaymentRow(result.rows[0]);
   },

@@ -131,6 +131,8 @@ export interface Payment {
   dueDate: string;
   paidDate?: string;
   notes?: string;
+  proofUrl?: string;
+  proof_url?: string;
   createdAt: string;
 }
 
