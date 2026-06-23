@@ -129,9 +129,9 @@ const ensureLeadAccess = (lead: any, user: any) => {
 export const leadsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      // For admins, default to fetching all leads (very high limit). For agents, default to 50.
+      // Allow both agents and admins to fetch many leads (up to 10k)
       const isAgent = req.user.role !== 'admin';
-      const defaultLimit = isAgent ? 50 : 10000; // 10k leads max for admins (covers most cases)
+      const defaultLimit = 10000; // 10k leads max (covers most cases)
       const { limit = defaultLimit, offset = 0 } = req.query;
       const leads = await leadsModel.findAll(isAgent ? String(req.user.id) : undefined, Number(limit), Number(offset));
       res.json(leads);
