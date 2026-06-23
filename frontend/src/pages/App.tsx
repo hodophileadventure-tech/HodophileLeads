@@ -18,13 +18,14 @@ import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
 import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
+import AdminQuotationApprovalsPage from './AdminQuotationApprovalsPage';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations';
 
  
 
@@ -489,6 +490,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
+    ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
     ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
@@ -1131,6 +1133,18 @@ export const App: React.FC = () => {
                   }} />
                 )}
               </div>
+            )}
+
+            {currentPage === 'quotation-approvals' && user?.role === 'admin' && (
+              <AdminQuotationApprovalsPage 
+                selectedRequest={selectedQuoteRequest}
+                onSelectRequest={(request) => setSelectedQuoteRequest(request)}
+                onRequestUpdated={() => {
+                  setSelectedQuoteRequest(null);
+                  // Refresh the list by reloading
+                  window.dispatchEvent(new Event('quotation-approvals-updated'));
+                }}
+              />
             )}
 
             {currentPage === 'quoteinvoice' && user?.role === 'admin' && (

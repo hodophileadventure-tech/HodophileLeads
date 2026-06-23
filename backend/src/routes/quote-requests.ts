@@ -12,9 +12,11 @@ quoteRequestsRouter.get('/pending-for-manager', roleMiddleware(['manager']), quo
 quoteRequestsRouter.get('/pending-for-admin', roleMiddleware(['admin']), quoteRequestsController.getPendingForAdmin);
 quoteRequestsRouter.get('/:id', quoteRequestsController.getById);
 quoteRequestsRouter.post('/:id/save', roleMiddleware(['manager']), quoteRequestsController.saveRequest);
+quoteRequestsRouter.post('/:id/send-for-approval', roleMiddleware(['manager']), quoteRequestsController.sendForApproval);
 quoteRequestsRouter.post('/:id/create-quotation', roleMiddleware(['manager']), quoteRequestsController.createQuotationByManager);
 quoteRequestsRouter.post('/:id/approve', roleMiddleware(['admin']), quoteRequestsController.approveRequest);
 quoteRequestsRouter.post('/:id/approve-quotation', roleMiddleware(['admin']), quoteRequestsController.approveQuotation);
+quoteRequestsRouter.post('/:id/reject', roleMiddleware(['admin']), quoteRequestsController.rejectQuotation);
 quoteRequestsRouter.post('/:id/reject-quotation', roleMiddleware(['admin']), quoteRequestsController.rejectQuotation);
 quoteRequestsRouter.delete('/:id', quoteRequestsController.deleteRequest);
 quoteRequestsRouter.post('/:id/re-request', roleMiddleware(['agent']), quoteRequestsController.reRequestQuote);

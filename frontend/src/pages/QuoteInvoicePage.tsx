@@ -150,6 +150,8 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
   const [isLoadingQuoteNumber, setIsLoadingQuoteNumber] = useState(false);
+  const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'approved' || requestStatus === 'rejected');
+  const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const displayQuoteNumber = data.quoteNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
@@ -331,6 +333,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   }, [tableRows]);
 
   const canSaveRequest = !!_requestId && requestStatus === 'requested' && user?.role === 'manager' && !viewOnly;
+  const canSendForApproval = !!_requestId && isSaved && (requestStatus === 'manager_pending' || requestStatus === 'saved') && user?.role === 'manager' && !viewOnly;
 
   const saveQuoteRequest = async () => {
     if (!_requestId) {
@@ -345,12 +348,36 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           tableRows
         }
       });
+      setIsSaved(true);
       setMessage('Quotation saved successfully.');
       window.dispatchEvent(new Event('quote-request-saved'));
       _onSaved?.();
     } catch (error) {
       console.error('Failed to save quote request:', error);
       setMessage('Failed to save quotation.');
+    }
+  };
+
+  const sendForApproval = async () => {
+    if (!_requestId) {
+      return;
+    }
+
+    try {
+      setIsSubmittingApproval(true);
+      setMessage('Sending for approval...');
+      await quoteRequestsAPI.sendForApproval(_requestId);
+      setMessage('✅ Quotation sent to admin for approval. Awaiting admin review...');
+      window.dispatchEvent(new Event('quote-request-sent-approval'));
+      _onSaved?.();
+      setTimeout(() => {
+        _onClose?.();
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to send for approval:', error);
+      setMessage('Failed to send quotation for approval.');
+    } finally {
+      setIsSubmittingApproval(false);
     }
   };
 
@@ -488,6 +515,16 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
               {canSaveRequest && (
                 <button type="button" className="btn-primary" onClick={saveQuoteRequest}>
                   Save Quotation
+                </button>
+              )}
+              {canSendForApproval && (
+                <button 
+                  type="button" 
+                  className="btn-success" 
+                  onClick={sendForApproval}
+                  disabled={isSubmittingApproval}
+                >
+                  {isSubmittingApproval ? 'Sending...' : '📤 Send for Approval'}
                 </button>
               )}
             </div>

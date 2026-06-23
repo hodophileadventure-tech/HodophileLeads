@@ -256,6 +256,66 @@ export const quoteRequestsController = {
     }
   },
 
+  async sendForApproval(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const requestId = req.params.id;
+      const { notes } = req.body;
+
+      if (req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only managers can send quotations for approval' });
+      }
+
+      const quoteRequest = await quoteRequestsModel.findById(requestId);
+      if (!quoteRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (quoteRequest.status !== 'manager_pending' && quoteRequest.status !== 'saved') {
+        return res.status(400).json({ message: 'This quotation cannot be sent for approval in its current status' });
+      }
+
+      // Update status to admin_pending
+      const updatedRequest = await quoteRequestsModel.update(requestId, {
+        status: 'admin_pending',
+        managerNotes: notes || quoteRequest.managerNotes
+      });
+
+      // Notify admins about pending approval
+      const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
+      const lead = await leadsModel.findById(quoteRequest.leadId);
+      
+      for (const admin of admins.rows) {
+        const notification = await notificationsModel.create({
+          userId: admin.id,
+          leadId: quoteRequest.leadId,
+          type: 'quotation_pending_approval',
+          message: `Manager sent a ${quoteRequest.requestType} for approval - ${lead?.clientName || 'Client'}`,
+          payload: {
+            requestId: updatedRequest.id,
+            leadId: quoteRequest.leadId,
+            requestType: updatedRequest.requestType
+          },
+          is_read: false
+        });
+        sendToUser(admin.id, 'notification', notification);
+      }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: updatedRequest.id,
+          action: 'send_for_approval',
+          changes: { status: 'admin_pending' }
+        });
+      } catch (_) {}
+
+      res.json(updatedRequest);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async reRequestQuote(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const requestId = req.params.id;
