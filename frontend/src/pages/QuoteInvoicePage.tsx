@@ -20,6 +20,7 @@ type TableRow = {
 
 type QuoteInvoicePageProps = {
   leadId?: string;
+  leadData?: any; // If provided, use this instead of fetching
   requestId?: string;
   requestType?: 'quotation' | 'invoice';
   requestStatus?: 'requested' | 'saved' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected';
@@ -131,6 +132,7 @@ const fetchNextQuotationNumber = async (dateString: string): Promise<string> => 
 
 export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   leadId: _leadId,
+  leadData: _leadData,
   requestId: _requestId,
   requestType: _requestType,
   requestStatus,
@@ -174,7 +176,27 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   // Auto-populate form with lead details
   useEffect(() => {
+    // If leadData is provided directly (from parent), use it
+    if (_leadData) {
+      console.log('✅ Using provided lead data:', _leadData);
+      setData((current) => ({
+        ...current,
+        customerName: _leadData.clientName || '',
+        phone: _leadData.phone || '',
+        city: _leadData.address || '',
+        destination: _leadData.destination || '',
+        persons: _leadData.persons ? String(_leadData.persons) : '',
+        accommodationType: _leadData.hotelPreference || '',
+        transportationType: _leadData.transportPreference || '',
+        travelDate: _leadData.travelDates?.from || new Date().toISOString().split('T')[0],
+      }));
+      return;
+    }
+
+    // Otherwise, fetch using leadId
     if (_leadId && !initialDocumentData) {
+      console.log('🔍 Fetching lead details for leadId:', _leadId);
+      
       // First, reset to empty state
       setData((current) => ({
         ...current,
@@ -192,23 +214,30 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       leadsAPI.getById(_leadId)
         .then((response) => {
           const lead = response.data;
-          setData((current) => ({
-            ...current,
-            customerName: lead.clientName || '',
-            phone: lead.phone || '',
-            city: lead.address || '',
-            destination: lead.destination || '',
-            persons: lead.persons ? String(lead.persons) : '',
-            accommodationType: lead.hotelPreference || '',
-            transportationType: lead.transportPreference || '',
-            travelDate: lead.travelDates?.from || (lead.travel_date ? lead.travel_date.split('T')[0] : new Date().toISOString().split('T')[0]),
-          }));
+          console.log('✅ Lead data fetched:', lead);
+          
+          setData((current) => {
+            const updated = {
+              ...current,
+              customerName: lead.clientName || '',
+              phone: lead.phone || '',
+              city: lead.address || '',
+              destination: lead.destination || '',
+              persons: lead.persons ? String(lead.persons) : '',
+              accommodationType: lead.hotelPreference || '',
+              transportationType: lead.transportPreference || '',
+              travelDate: lead.travelDates?.from || new Date().toISOString().split('T')[0],
+            };
+            console.log('📝 Updated form data:', updated);
+            return updated;
+          });
         })
         .catch((error) => {
-          console.error('Failed to load lead details:', error);
+          console.error('❌ Failed to load lead details:', error);
+          setMessage(`Error loading lead details: ${error?.response?.data?.message || error.message}`);
         });
     }
-  }, [_leadId, initialDocumentData]);
+  }, [_leadId, _leadData, initialDocumentData]);
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {

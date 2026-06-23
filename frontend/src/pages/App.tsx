@@ -1084,6 +1084,14 @@ export const App: React.FC = () => {
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
+                          leadData={{
+                            clientName: selectedQuoteRequest.leadClientName,
+                            phone: selectedQuoteRequest.leadPhone,
+                            destination: selectedQuoteRequest.leadDestination,
+                            travelDates: selectedQuoteRequest.leadTravelDates,
+                            persons: selectedQuoteRequest.leadPersons,
+                            address: '',
+                          }}
                           requestId={selectedQuoteRequest.id}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
@@ -1220,6 +1228,14 @@ export const App: React.FC = () => {
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
+                          leadData={{
+                            clientName: selectedQuoteRequest.leadClientName,
+                            phone: selectedQuoteRequest.leadPhone,
+                            destination: selectedQuoteRequest.leadDestination,
+                            travelDates: selectedQuoteRequest.leadTravelDates,
+                            persons: selectedQuoteRequest.leadPersons,
+                            address: '',
+                          }}
                           requestId={selectedQuoteRequest.id}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);

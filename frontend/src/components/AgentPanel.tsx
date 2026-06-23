@@ -674,6 +674,14 @@ export const AgentPanel: React.FC = () => {
               <main className="col-span-1 md:col-span-9 overflow-y-auto">
                 <QuoteInvoicePage
                   leadId={selectedRequest.leadId}
+                  leadData={{
+                    clientName: selectedRequest.leadClientName,
+                    phone: selectedRequest.leadPhone,
+                    destination: selectedRequest.leadDestination,
+                    travelDates: selectedRequest.leadTravelDates,
+                    persons: selectedRequest.leadPersons,
+                    address: '',
+                  }}
                   requestId={selectedRequest.id}
                   viewOnly={true}
                   generatePreviewOnMount
