@@ -1095,6 +1095,7 @@ export const App: React.FC = () => {
                             address: '',
                           }}
                           requestId={selectedQuoteRequest.id}
+                          requestStatus={selectedQuoteRequest.status as any}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('pending-quotes');
@@ -1251,6 +1252,7 @@ export const App: React.FC = () => {
                             address: '',
                           }}
                           requestId={selectedQuoteRequest.id}
+                          requestStatus={selectedQuoteRequest.status as any}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('manager-quotations');
