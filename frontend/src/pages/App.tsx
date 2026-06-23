@@ -1082,6 +1082,7 @@ export const App: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
                         <main className="col-span-1 md:col-span-9 overflow-y-auto">
                         <QuoteInvoicePage
+                          key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
                           requestId={selectedQuoteRequest.id}
                           onSaved={() => {
@@ -1153,6 +1154,7 @@ export const App: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
                       <main className="col-span-1 md:col-span-9 overflow-y-auto">
                         <QuoteInvoicePage
+                          key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
                           requestId={selectedQuoteRequest.id}
                           onSaved={() => {
