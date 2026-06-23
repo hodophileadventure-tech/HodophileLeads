@@ -174,24 +174,24 @@ export const leadsModel = {
         // prefill missing personal details from profile
         params[0] = params[0] || existingProfile.name || params[0];
         params[1] = params[1] || existingProfile.email || params[1];
-        params[16] = params[16] || existingProfile.address || params[16];
-        params[17] = params[17] || existingProfile.gender || params[17];
-        params[18] = params[18] || existingProfile.age || params[18];
+        params[18] = params[18] || existingProfile.address || params[18];
+        params[19] = params[19] || existingProfile.gender || params[19];
+        params[20] = params[20] || existingProfile.age || params[20];
       } else {
         const created = await profileModel.create({
           phone: (data as any).phone,
           name: params[0],
           email: params[1],
-          address: params[17],
-          gender: params[18],
-          age: params[19]
+          address: params[18],
+          gender: params[19],
+          age: params[20]
         });
         profileId = created.id;
       }
     }
 
-    // place profileId into params (position 17 since array is 0-based and corresponds to $17 in SQL)
-    params[16] = profileId;
+    // place profileId into params (position 17 since array is 0-based and corresponds to $18 in SQL)
+    params[17] = profileId;
 
     const result = await query(sql, params);
     return mapLeadRow(result.rows[0]);
