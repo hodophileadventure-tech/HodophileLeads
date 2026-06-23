@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { authAPI } from '../utils/api-service';
-import { Button } from './common';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
