@@ -58,7 +58,9 @@ export const itinerariesAPI = {
 export const paymentsAPI = {
   list: (leadId?: string) => apiClient.get<Payment[]>('/payments', { params: { leadId } }),
   create: (data: Partial<Payment>) => apiClient.post<Payment>('/payments', data),
-  confirm: (id: string) => apiClient.patch(`/payments/${id}/confirm`, {}),
+  confirm: (id: string, formData?: FormData) => formData 
+    ? apiClient.patch<Payment>(`/payments/${id}/confirm`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    : apiClient.patch<Payment>(`/payments/${id}/confirm`, {}),
   delete: (id: string) => apiClient.delete(`/payments/${id}`)
 };
 

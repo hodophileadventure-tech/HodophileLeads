@@ -158,20 +158,9 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
                 }
                 console.log('Confirming payment:', confirmingPayment.id, 'with proof file:', proofFile?.name);
                 
-                // Use fetch for file upload
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api'}/payments/${confirmingPayment.id}/confirm`, {
-                  method: 'PATCH',
-                  body: formData,
-                  headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                  }
-                });
+                const response = await paymentsAPI.confirm(confirmingPayment.id, formData);
+                console.log('Payment confirmed successfully:', response);
                 
-                if (!response.ok) {
-                  throw new Error(await response.text());
-                }
-                
-                console.log('Payment confirmed successfully');
                 setConfirmingPayment(null);
                 setProofFile(null);
                 await load();
