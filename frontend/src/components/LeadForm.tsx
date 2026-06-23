@@ -29,6 +29,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
     kids: '',
     agentRemarks: '',
     remarks: '',
+    tripBudget: '',
     potential: false,
     leadStatus: 'new'
   });
@@ -56,6 +57,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         tourType: (initialData as any).tourType || '',
         agentRemarks: (initialData as any).agentRemarks || '',
         remarks: (initialData as any).remarks || '',
+        tripBudget: (initialData as any).tripBudget ?? '',
         potential: (initialData as any).potential || false,
         leadStatus: (initialData as any).potential ? 'potential' : (initialData as any).pipelineStage === 'confirmed' || (initialData as any).status === 'booked' ? 'confirmed' : (initialData as any).status === 'completed' ? 'dead' : 'new'
       });
@@ -121,6 +123,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         adults: (formData as any).adults === '' ? undefined : Number((formData as any).adults),
         kids: (formData as any).kids === '' ? undefined : Number((formData as any).kids),
         tourType: (formData as any).tourType || undefined,
+        tripBudget: (formData as any).tripBudget === '' ? undefined : Number((formData as any).tripBudget),
         agentRemarks: (formData as any).agentRemarks,
         remarks: (formData as any).remarks,
         potential: (formData as any).potential
@@ -187,6 +190,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         kids: '',
         agentRemarks: '',
         remarks: '',
+        tripBudget: '',
         potential: false
       });
     } catch (error: any) {
@@ -384,6 +388,18 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
                 <option value="confirmed">Confirmed</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Trip Budget (PKR) - Optional</label>
+            <input
+              type="number"
+              placeholder="e.g., 400000"
+              value={(formData as any).tripBudget ?? ''}
+              onChange={(e) => handleChange('tripBudget', e.target.value === '' ? '' : parseInt(e.target.value, 10))}
+              className="input-field"
+              min="0"
+            />
           </div>
 
           <div>

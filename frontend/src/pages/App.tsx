@@ -919,7 +919,7 @@ export const App: React.FC = () => {
                 )}
 
                 {selectedLead && (
-                  <PaymentsPanel leadId={String(selectedLead.id)} />
+                  <PaymentsPanel leadId={String(selectedLead.id)} lead={selectedLead} />
                 )}
 
                 {showFollowUpModal && selectedLead && (

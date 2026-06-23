@@ -113,8 +113,8 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          client_name, email, phone, destination, destinations, source, temperature, status, budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, tour_type, agent_remarks, remarks, potential, lead_outcome, islamabad_stay
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
+          client_name, email, phone, destination, destinations, source, temperature, status, budget, trip_budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, tour_type, agent_remarks, remarks, potential, lead_outcome, islamabad_stay
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)
       RETURNING *
     `;
 
@@ -143,6 +143,7 @@ export const leadsModel = {
       temperature,
       'new',
       data.budget ?? 0,
+      ((data as any).tripBudget || (data as any).trip_budget) ?? null,
       data.travelDates ? JSON.stringify(data.travelDates) : null,
       data.hotelInfo ? JSON.stringify(data.hotelInfo) : null,
       hotelOptions.length > 0 ? JSON.stringify(hotelOptions) : null,
@@ -210,6 +211,7 @@ export const leadsModel = {
       'temperature',
       'status',
       'budget',
+      'trip_budget',
       'travel_dates',
       'hotel_info',
       'destinations',

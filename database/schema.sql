@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS leads (
   gender VARCHAR(20),
   age INTEGER,
   budget DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  trip_budget DECIMAL(12, 2),
   source VARCHAR(100) NOT NULL,
   temperature VARCHAR(50) NOT NULL DEFAULT 'cold',
   status VARCHAR(50) NOT NULL DEFAULT 'new',

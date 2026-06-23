@@ -41,6 +41,7 @@ export interface Lead {
   persons?: number;
   tourType?: string;
   budget: number;
+  tripBudget?: number;
   source: string;
   leadSource?: 'whatsapp' | 'call' | 'insta' | 'form';
   budgetRange?: 'economy' | 'standard' | 'premium';
