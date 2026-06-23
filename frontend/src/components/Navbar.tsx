@@ -3,11 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { notificationsAPI } from '../utils/api-service';
 import { useDataStore } from '../context/store';
 import RemindersPanel from './RemindersPanel';
+import { ChangePasswordModal } from './ChangePasswordModal';
 
 export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => void }> = ({ onNotificationClick }) => {
   const { user, logout } = useAuth();
   const [notifOpen, setNotifOpen] = React.useState(false);
   const [userOpen, setUserOpen] = React.useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = React.useState(false);
   const notifications = useDataStore((s) => s.notifications);
   const setNotifications = useDataStore((s) => s.setNotifications);
 
@@ -147,6 +149,15 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
                 </div>
                 <button
                   onClick={() => {
+                    setChangePasswordOpen(true);
+                    setUserOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600"
+                >
+                  Change Password
+                </button>
+                <button
+                  onClick={() => {
                     logout();
                     window.location.href = '/login';
                   }}
@@ -161,6 +172,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
       </div>
     </nav>
     {remindersOpen && <RemindersPanel onClose={() => setRemindersOpen(false)} />}
+    <ChangePasswordModal isOpen={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
     </>
   );
 };

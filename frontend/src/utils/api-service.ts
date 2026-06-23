@@ -134,3 +134,8 @@ export const notificationsAPI = {
   list: () => apiClient.get('/notifications'),
   markRead: (id: string) => apiClient.patch(`/notifications/${id}/read`)
 };
+
+export const authAPI = {
+  changePassword: (currentPassword: string, newPassword: string) => 
+    apiClient.post('/auth/change-password', { currentPassword, newPassword })
+};

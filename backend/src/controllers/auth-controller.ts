@@ -126,5 +126,51 @@ export const authController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async changePassword(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const authReq = req as AuthenticatedRequest;
+
+      if (!authReq.user?.id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Current password and new password are required' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'New password must be at least 6 characters' });
+      }
+
+      if (currentPassword === newPassword) {
+        return res.status(400).json({ message: 'New password must be different from current password' });
+      }
+
+      // Get current user password
+      const userResult = await query('SELECT password FROM users WHERE id = $1', [authReq.user.id]);
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const user = userResult.rows[0];
+      const validPassword = await comparePassword(currentPassword, user.password);
+      if (!validPassword) {
+        console.warn('[AUTH] Password change failed: incorrect current password', { userId: authReq.user.id });
+        return res.status(401).json({ message: 'Current password is incorrect' });
+      }
+
+      // Hash new password and update
+      const hashedPassword = await hashPassword(newPassword);
+      await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [hashedPassword, authReq.user.id]);
+
+      console.log('[AUTH] Password changed successfully', { userId: authReq.user.id, email: authReq.user.email });
+
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      next(error);
+    }
   }
 };
