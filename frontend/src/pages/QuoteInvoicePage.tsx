@@ -112,30 +112,20 @@ const parseNumber = (value: string) => {
 
 const formatAmount = (value: number) => value.toLocaleString('en-US');
 
-const formatQuoteNumber = (dateString: string, count: number) => {
-  const date = new Date(dateString);
-  const normalizedDate = Number.isNaN(date.getTime()) ? new Date() : date;
-  const year = String(normalizedDate.getFullYear()).slice(-2);
-  const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
-  const day = String(normalizedDate.getDate()).padStart(2, '0');
-  const sequence = 1100 + count;
-  return `${year}${month}${day}${sequence}`;
-};
-
-const getQuoteCounterKey = (dateString: string) => {
-  const date = new Date(dateString);
-  const normalizedDate = Number.isNaN(date.getTime()) ? new Date() : date;
-  const year = normalizedDate.getFullYear();
-  const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
-  const day = String(normalizedDate.getDate()).padStart(2, '0');
-  return `quote-counter-${year}${month}${day}`;
-};
-
-const previewQuoteNumber = (dateString: string) => {
-  if (typeof window === 'undefined') return formatQuoteNumber(dateString, 1);
-  const counterKey = getQuoteCounterKey(dateString);
-  const existing = Number(window.localStorage.getItem(counterKey) || '0');
-  return formatQuoteNumber(dateString, existing + 1);
+// Fetch next quotation number from server (server handles atomic incrementing)
+const fetchNextQuotationNumber = async (dateString: string): Promise<string> => {
+  try {
+    const response = await quoteRequestsAPI.getNextQuotationNumber(dateString);
+    return response.data.quotationNumber;
+  } catch (error) {
+    console.error('Failed to fetch quotation number:', error);
+    // Fallback: generate locally based on date (but this won't be persisted)
+    const date = new Date(dateString);
+    const year = String(date.getFullYear()).slice(-2);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}1101`;
+  }
 };
 
 export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
@@ -155,9 +145,10 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const [data, setData] = useState<DocumentData>(defaultData);
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
+  const [isLoadingQuoteNumber, setIsLoadingQuoteNumber] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
-  const displayQuoteNumber = data.quoteNumber || previewQuoteNumber(data.date);
+  const displayQuoteNumber = data.quoteNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
 
   useEffect(() => {
     if (_requestType) {
@@ -181,8 +172,15 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {
-      const generated = previewQuoteNumber(data.date);
-      setData((current) => ({ ...current, quoteNumber: generated }));
+      setIsLoadingQuoteNumber(true);
+      fetchNextQuotationNumber(data.date)
+        .then((generated) => {
+          setData((current) => ({ ...current, quoteNumber: generated }));
+          setIsLoadingQuoteNumber(false);
+        })
+        .catch(() => {
+          setIsLoadingQuoteNumber(false);
+        });
     }
   }, [data.date, documentType, data.quoteNumber]);
 

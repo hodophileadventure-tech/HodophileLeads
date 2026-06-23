@@ -195,17 +195,30 @@ export const leadsController = {
 
   async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      console.log('[LeadsController] Update request received for lead:', req.params.id);
+      console.log('[LeadsController] Raw request body:', req.body);
+      
       let payload;
       try {
-        payload = validatePayload(leadSchema.fork(['clientName','email','phone','destination','travelDates','persons','budget'], (s) => s.optional()), normalizeLeadPayload(req.body, req.user.id));
-      } catch (e) {
-        // If schema fork fails (missing paths), fall back to permissive validation to avoid 500s
-        payload = validatePayload(Joi.object().unknown(true), normalizeLeadPayload(req.body, req.user.id));
+        const normalized = normalizeLeadPayload(req.body, req.user.id);
+        console.log('[LeadsController] After normalizeLeadPayload:', normalized);
+        payload = validatePayload(leadSchema.fork(['clientName','email','phone','destination','travelDates','persons','budget'], (s) => s.optional()), normalized);
+        console.log('[LeadsController] After schema validation:', payload);
+      } catch (e: any) {
+        console.log('[LeadsController] Schema validation error:', e.message);
+        console.log('[LeadsController] Falling back to permissive validation');
+        const normalized = normalizeLeadPayload(req.body, req.user.id);
+        payload = validatePayload(Joi.object().unknown(true), normalized);
+        console.log('[LeadsController] After permissive validation:', payload);
       }
+      console.log('[LeadsController] Calling leadsModel.update with:', { leadId: req.params.id, payload });
       const lead = await leadsModel.update(req.params.id, payload);
+      
       if (!lead) {
+        console.log('[LeadsController] Lead not found:', req.params.id);
         return res.status(404).json({ message: 'Lead not found' });
       }
+      console.log('[LeadsController] Lead updated successfully. Response status:', lead.status, 'potential:', lead.potential);
       try {
         await logActivity({
           userId: req.user.id,
@@ -216,7 +229,9 @@ export const leadsController = {
         });
       } catch (_) {}
       res.json(lead);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[LeadsController] Update error:', error.message);
+      console.error('[LeadsController] Error stack:', error.stack);
       next(error);
     }
   },

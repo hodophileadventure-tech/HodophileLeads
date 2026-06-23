@@ -230,3 +230,13 @@ CREATE TABLE IF NOT EXISTS screen_captures (
 
 CREATE INDEX idx_screen_captures_agent_id ON screen_captures(agent_id);
 CREATE INDEX idx_screen_captures_expires_at ON screen_captures(expires_at);
+
+-- Quotation Counters Table (for atomic, thread-safe quotation number generation)
+CREATE TABLE IF NOT EXISTS quotation_counters (
+  date_key VARCHAR(6) PRIMARY KEY,
+  last_sequence INTEGER NOT NULL DEFAULT 1100,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add quotation_number column to quote_requests table
+ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE;

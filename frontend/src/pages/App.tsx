@@ -17,14 +17,13 @@ import { LeadForm } from '../components/LeadForm';
 import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import PaymentsPanel from '../components/PaymentsPanel';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
-import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'manager-quotations' | 'report-issue' | 'daily-reports' | 'dev-panel';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'report-issue' | 'daily-reports' | 'dev-panel';
 
  
 
@@ -485,7 +484,6 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
-    ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📋' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
@@ -555,9 +553,8 @@ export const App: React.FC = () => {
                       if (e.key === 'Enter') {
                         const q = (e.target as HTMLInputElement).value.trim();
                         if (!q) return;
-                        const targetPage = user?.role === 'agent' ? 'agent' : 'pending-quotes';
-                        setCurrentPage(targetPage);
-                        // let the target page render, then focus search
+                        setCurrentPage('pending-quotes');
+                        // let pending page render, then focus search
                         setTimeout(() => window.dispatchEvent(new CustomEvent('focus-quote-search', { detail: { query: q } })), 150);
                       }
                     }}
@@ -565,9 +562,8 @@ export const App: React.FC = () => {
                   <button
                     className="btn-secondary px-3 py-2"
                     onClick={() => {
-                      const targetPage = user?.role === 'agent' ? 'agent' : 'pending-quotes';
-                      setCurrentPage(targetPage);
-                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'pending' })), 150);
+                      setCurrentPage('pending-quotes');
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'pending' })), 100);
                     }}
                   >
                     Pending
@@ -575,9 +571,8 @@ export const App: React.FC = () => {
                   <button
                     className="btn-secondary px-3 py-2"
                     onClick={() => {
-                      const targetPage = user?.role === 'agent' ? 'agent' : 'pending-quotes';
-                      setCurrentPage(targetPage);
-                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'saved' })), 150);
+                      setCurrentPage('pending-quotes');
+                      setTimeout(() => window.dispatchEvent(new CustomEvent('jump-to-quote-section', { detail: 'saved' })), 100);
                     }}
                   >
                     Saved
@@ -680,33 +675,16 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2 items-center">
-                          {(() => {
-                            const lifecycle = getLeadLifecycleState(selectedLead);
-                            if (lifecycle === 'potential') {
-                              return (
-                                <Badge color="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                  Potential
-                                </Badge>
-                              );
-                            }
-                            if (lifecycle === 'in_progress') {
-                              return (
-                                <Badge color="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                                  In Progress
-                                </Badge>
-                              );
-                            }
-                            return null;
-                          })()}
+                          {selectedLead.potential && (
+                            <Badge color="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Potential
+                            </Badge>
+                          )}
                           <div>
                             <label className="text-xs text-slate-400 block">Lead Status</label>
                             <select
                               className="input-field text-sm"
-                              value={selectedLead.status === 'canceled'
-                                ? 'canceled'
-                                : selectedLead.status === 'completed'
-                                  ? 'dead'
-                                  : getLeadLifecycleState(selectedLead)}
+                              value={getLeadLifecycleState(selectedLead)}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === 'canceled') {
@@ -724,12 +702,16 @@ export const App: React.FC = () => {
                                   if (value === 'dead') payload.status = 'completed';
                                   else if (value === 'in_progress') payload.status = 'contacted';
                                   else if (value === 'new' || value === 'potential') payload.status = 'new';
+                                  console.log('[App] Status change:', { selectedValue: value, payload });
                                   try {
+                                    console.log('[App] Calling leadsAPI.update with:', { leadId: String(selectedLead.id), payload });
                                     const resp = await leadsAPI.update(String(selectedLead.id), payload);
+                                    console.log('[App] Update response:', { status: resp.status, data: resp.data });
                                     setSelectedLead(resp.data);
                                     await refreshLeads();
+                                    console.log('[App] Status update completed successfully');
                                   } catch (err: any) {
-                                    console.error('Failed to update lead status', err);
+                                    console.error('[App] Failed to update lead status', err);
                                     const message = err?.response?.data?.message || err?.message || 'Unknown error';
                                     alert(`Failed to update lead status: ${message}`);
                                   }
@@ -1079,504 +1061,58 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'pending-quotes' && (user?.role === 'admin' || user?.role === 'manager') && (
+            {currentPage === 'pending-quotes' && user?.role === 'admin' && (
               <div className="space-y-6">
                 {selectedQuoteRequest ? (
                   <div>
-                    <Button
-                      variant="secondary"
+                    <Button 
+                      variant="secondary" 
                       onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }}
                       className="mb-4"
                     >
                       ← Back to Pending Requests
                     </Button>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 max-h-[75vh]">
-                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 p-4">
-                        <h3 className="text-lg font-semibold mb-4">Agent / Lead Info</h3>
-                        <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Customer Name</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadClientName || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Email</label>
-                            <input
-                              type="email"
-                              value={selectedQuoteRequest.leadEmail || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Phone</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadPhone || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Destination</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadDestinations && selectedQuoteRequest.leadDestinations.length > 0 ? selectedQuoteRequest.leadDestinations.join(', ') : selectedQuoteRequest.leadDestination || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Travel Dates</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadTravelDates ? `${selectedQuoteRequest.leadTravelDates.from} → ${selectedQuoteRequest.leadTravelDates.to}` : ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div className="grid grid-cols-4 gap-4">
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Persons</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadPersons != null ? String(selectedQuoteRequest.leadPersons) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Adults</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadAdults != null ? String(selectedQuoteRequest.leadAdults) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Kids</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadKids != null ? String(selectedQuoteRequest.leadKids) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Seniors</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadSeniors != null ? String(selectedQuoteRequest.leadSeniors) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Tour Type</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadTourType || ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Source</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadSource || ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Budget</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadBudget != null ? `PKR ${selectedQuoteRequest.leadBudget.toLocaleString()}` : ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Lead Status</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadStatus || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Lead Outcome</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadLeadOutcome || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Islamabad Stay</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadIslamabadStay || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Agent Remarks</label>
-                            <textarea
-                              value={selectedQuoteRequest.leadAgentRemarks || ''}
-                              disabled
-                              rows={3}
-                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Remarks</label>
-                            <textarea
-                              value={selectedQuoteRequest.leadRemarks || ''}
-                              disabled
-                              rows={3}
-                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Special Requests</label>
-                            <textarea
-                              value={selectedQuoteRequest.leadSpecialRequests || ''}
-                              disabled
-                              rows={2}
-                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Requested By</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.requestedByName || 'Agent'}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Request Status</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.status}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Requested On</label>
-                              <input
-                                type="text"
-                                value={new Date(selectedQuoteRequest.createdAt).toLocaleString()}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </aside>
-
-                      <main className="col-span-1 xl:col-span-6 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
+                        <main className="col-span-1 md:col-span-9 overflow-y-auto">
                         <QuoteInvoicePage
                           leadId={selectedQuoteRequest.leadId}
                           requestId={selectedQuoteRequest.id}
-                          requestType={selectedQuoteRequest.requestType}
-                          requestStatus={selectedQuoteRequest.status}
-                          initialDocumentData={selectedQuoteRequest.documentData || {
-                            customerName: selectedQuoteRequest.leadClientName || '',
-                            phone: selectedQuoteRequest.leadPhone || '',
-                            email: selectedQuoteRequest.leadEmail || '',
-                            city: Array.isArray(selectedQuoteRequest.leadDestinations) 
-                              ? selectedQuoteRequest.leadDestinations[0] || '' 
-                              : selectedQuoteRequest.leadDestination || '',
-                            destination: Array.isArray(selectedQuoteRequest.leadDestinations) 
-                              ? selectedQuoteRequest.leadDestinations.join(', ')
-                              : selectedQuoteRequest.leadDestination || ''
-                          }}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('pending-quotes');
                           }}
                           onClose={() => setSelectedQuoteRequest(null)}
-                          viewOnly={selectedQuoteRequest.status !== 'requested' || user?.role !== 'manager'}
+                          viewOnly={false}
                           generatePreviewOnMount
                           onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
                         />
                       </main>
 
-                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 overflow-hidden">
-                        <div className="border-b px-4 py-4">
-                          <h3 className="font-semibold text-lg">Preview</h3>
-                        </div>
-                        <div className="flex-1 overflow-auto p-4">
-                          {previewDataUrl ? (
-                            <img src={previewDataUrl} alt="Quotation preview" className="w-full rounded-lg object-contain" />
-                          ) : (
-                            <div className="text-sm text-slate-500">Generating preview…</div>
-                          )}
-                        </div>
-                        <div className="border-t px-4 py-4 space-y-2">
-                          <button className="btn-secondary w-full text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
-                          {previewDataUrl && (
-                            <a className="btn-primary block text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
-                          )}
-                          {user?.role === 'admin' && selectedQuoteRequest.status === 'saved' && (
-                            <button
-                              type="button"
-                              className="btn-primary w-full text-sm py-2 px-3 rounded"
-                              onClick={async () => {
-                                try {
-                                  await quoteRequestsAPI.approve(selectedQuoteRequest.id);
-                                  alert('Quote request approved successfully.');
-                                  setSelectedQuoteRequest((prev) => prev ? { ...prev, status: 'approved' } : prev);
-                                } catch (error) {
-                                  console.error('Failed to approve quote request:', error);
-                                  alert('Unable to approve quote request.');
-                                }
-                              }}
-                            >
-                              Approve Quote
-                            </button>
-                          )}
+                      <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
+                        <div className="border rounded p-4 flex flex-col h-full">
+                          <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
+                          <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
+                            {previewDataUrl ? (
+                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                            ) : (
+                              <div className="text-sm text-slate-500">Generating preview…</div>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2 flex-shrink-0">
+                            <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                            {previewDataUrl && (
+                              <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                            )}
+                          </div>
                         </div>
                       </aside>
                     </div>
                   </div>
                 ) : (
-                  <PendingQuotesPanel onSelectRequest={(request) => setSelectedQuoteRequest(request)} />
-                )}
-              </div>
-            )}
-
-            {currentPage === 'manager-quotations' && user?.role === 'manager' && (
-              <div className="space-y-6">
-                {selectedQuoteRequest ? (
-                  <div>
-                    <Button
-                      variant="secondary"
-                      onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }}
-                      className="mb-4"
-                    >
-                      ← Back to Quotations
-                    </Button>
-
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 max-h-[75vh]">
-                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 p-4">
-                        <h3 className="text-lg font-semibold mb-4">Lead Info</h3>
-                        <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Customer Name</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadClientName || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Email</label>
-                            <input
-                              type="email"
-                              value={selectedQuoteRequest.leadEmail || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Phone</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadPhone || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Destination</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadDestinations && selectedQuoteRequest.leadDestinations.length > 0 ? selectedQuoteRequest.leadDestinations.join(', ') : selectedQuoteRequest.leadDestination || ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Travel Dates</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadTravelDates ? `${selectedQuoteRequest.leadTravelDates.from} → ${selectedQuoteRequest.leadTravelDates.to}` : ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div className="grid grid-cols-4 gap-4">
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Persons</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadPersons != null ? String(selectedQuoteRequest.leadPersons) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Adults</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadAdults != null ? String(selectedQuoteRequest.leadAdults) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Kids</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadKids != null ? String(selectedQuoteRequest.leadKids) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Seniors</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadSeniors != null ? String(selectedQuoteRequest.leadSeniors) : ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Tour Type</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadTourType || ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Source</label>
-                              <input
-                                type="text"
-                                value={selectedQuoteRequest.leadSource || ''}
-                                disabled
-                                className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Budget</label>
-                            <input
-                              type="text"
-                              value={selectedQuoteRequest.leadBudget != null ? `PKR ${selectedQuoteRequest.leadBudget.toLocaleString()}` : ''}
-                              disabled
-                              className="input-field w-full bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">Special Requests</label>
-                            <textarea
-                              value={selectedQuoteRequest.leadSpecialRequests || ''}
-                              disabled
-                              rows={2}
-                              className="input-field w-full resize-none bg-slate-100 dark:bg-slate-800"
-                            />
-                          </div>
-                        </div>
-                      </aside>
-
-                      <main className="col-span-1 xl:col-span-6 overflow-y-auto">
-                        <QuoteInvoicePage
-                          leadId={selectedQuoteRequest.leadId}
-                          requestId={selectedQuoteRequest.id}
-                          requestType={selectedQuoteRequest.requestType}
-                          requestStatus={selectedQuoteRequest.status}
-                          initialDocumentData={selectedQuoteRequest.documentData || {
-                            customerName: selectedQuoteRequest.leadClientName || '',
-                            phone: selectedQuoteRequest.leadPhone || '',
-                            email: selectedQuoteRequest.leadEmail || '',
-                            city: Array.isArray(selectedQuoteRequest.leadDestinations) 
-                              ? selectedQuoteRequest.leadDestinations[0] || '' 
-                              : selectedQuoteRequest.leadDestination || '',
-                            destination: Array.isArray(selectedQuoteRequest.leadDestinations) 
-                              ? selectedQuoteRequest.leadDestinations.join(', ')
-                              : selectedQuoteRequest.leadDestination || ''
-                          }}
-                          onSaved={() => {
-                            setSelectedQuoteRequest(null);
-                            setCurrentPage('manager-quotations');
-                          }}
-                          onClose={() => setSelectedQuoteRequest(null)}
-                          viewOnly={selectedQuoteRequest.status !== 'requested'}
-                          generatePreviewOnMount
-                          onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
-                        />
-                      </main>
-
-                      <aside className="col-span-1 xl:col-span-3 rounded border bg-slate-50 dark:bg-slate-900 overflow-hidden">
-                        <div className="border-b px-4 py-4">
-                          <h3 className="font-semibold text-lg">Preview</h3>
-                        </div>
-                        <div className="flex-1 overflow-auto p-4">
-                          {previewDataUrl ? (
-                            <img src={previewDataUrl} alt="Quotation preview" className="w-full rounded-lg object-contain" />
-                          ) : (
-                            <div className="text-sm text-slate-500">Generating preview…</div>
-                          )}
-                        </div>
-                        <div className="border-t px-4 py-4 space-y-2">
-                          <button className="btn-secondary w-full text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
-                          {previewDataUrl && (
-                            <a className="btn-primary block text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
-                          )}
-                          {selectedQuoteRequest.status === 'requested' && (
-                            <button
-                              type="button"
-                              className="btn-primary w-full text-sm py-2 px-3 rounded"
-                              onClick={async () => {
-                                try {
-                                  const managerNotes = prompt('Add notes for admin (optional):');
-                                  await quoteRequestsAPI.createQuotationByManager(selectedQuoteRequest.id, selectedQuoteRequest.documentData, managerNotes || '');
-                                  alert('Quotation submitted to admin for approval.');
-                                  setSelectedQuoteRequest(null);
-                                  setCurrentPage('manager-quotations');
-                                } catch (error) {
-                                  console.error('Failed to submit quotation:', error);
-                                  alert('Unable to submit quotation. Please try again.');
-                                }
-                              }}
-                            >
-                              Submit for Admin Approval
-                            </button>
-                          )}
-                        </div>
-                      </aside>
-                    </div>
-                  </div>
-                ) : (
-                  <ManagerQuotationsPanel 
-                    onSelectRequest={(request) => setSelectedQuoteRequest(request)}
-                  />
+                  <PendingQuotesPanel onSelectRequest={(request) => {
+                    setSelectedQuoteRequest(request);
+                  }} />
                 )}
               </div>
             )}

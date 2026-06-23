@@ -2,7 +2,7 @@ import apiClient from './api';
 import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix, QuoteRequest } from '../types';
 
 export const leadsAPI = {
-  list: (limit = 10000, offset = 0) => apiClient.get<Lead[]>('/leads', { params: { limit, offset } }),
+  list: () => apiClient.get<Lead[]>('/leads'),
   getById: (id: string) => apiClient.get<Lead>(`/leads/${id}`),
   getHealth: (id: string) => apiClient.get(`/leads/${id}/health`),
   create: (data: Partial<Lead>) => apiClient.post<Lead>('/leads', data),
@@ -74,8 +74,7 @@ export const adminAPI = {
   getOverview: () => apiClient.get('/admin/overview'),
   exportLeadsSpreadsheet: () => apiClient.get('/admin/leads/export', { responseType: 'blob' }),
   listQuoteRequests: () => apiClient.get<QuoteRequest[]>('/admin/quote-requests'),
-  transferLead: (leadId: string, targetAgentId: string) => 
-    apiClient.post(`/admin/leads/${leadId}/transfer`, { targetAgentId })
+  saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
 };
 
 export const reportsAPI = {
@@ -117,16 +116,8 @@ export const reportsAPI = {
 export const quoteRequestsAPI = {
   list: () => apiClient.get<QuoteRequest[]>('/quote-requests'),
   listPending: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending'),
-  listPendingForManager: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending-for-manager'),
-  listPendingForAdmin: () => apiClient.get<QuoteRequest[]>('/quote-requests/pending-for-admin'),
   getById: (id: string) => apiClient.get<QuoteRequest>(`/quote-requests/${id}`),
   save: (requestId: string, documentData: any) => apiClient.post(`/quote-requests/${requestId}/save`, { documentData }),
-  createQuotationByManager: (requestId: string, documentData: any, managerNotes: string) => 
-    apiClient.post(`/quote-requests/${requestId}/create-quotation`, { documentData, managerNotes }),
-  approveQuotation: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/approve-quotation`, {}),
-  rejectQuotation: (requestId: string, rejectionReason: string) => 
-    apiClient.post(`/quote-requests/${requestId}/reject-quotation`, { rejectionReason }),
-  approve: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/approve`, {}),
   delete: (id: string) => apiClient.delete(`/quote-requests/${id}`),
   reRequest: (id: string, notes: string) => apiClient.post(`/quote-requests/${id}/re-request`, { notes }),
   getNextQuotationNumber: (date: string) => apiClient.get<{ quotationNumber: string }>('/quote-requests/next-number', { params: { date } })

@@ -1,6 +1,8 @@
 import { Pool, PoolClient } from 'pg';
 import bcryptjs from 'bcryptjs';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import { logDatabaseSchema } from './logDatabaseSchema';
 
 dotenv.config();
@@ -63,10 +65,48 @@ export const initDatabase = async () => {
     await p.query('SELECT 1');
     useMockDb = false;
     console.log('[DB INIT] Connected to Postgres — real DB enabled.');
+    
+    // Automatically initialize database schema
+    await initializeSchema();
+    
     await logDatabaseSchema(query);
   } catch (err: any) {
     console.error('[DB INIT] Failed to connect to Postgres, continuing in mock mode.', err?.message || err);
     useMockDb = true;
+  }
+};
+
+const initializeSchema = async () => {
+  try {
+    const schemaPath = path.join(__dirname, '../../database/schema.sql');
+    const schemaSql = fs.readFileSync(schemaPath, 'utf-8');
+    
+    // Split by semicolons and filter out empty statements
+    const statements = schemaSql
+      .split(';')
+      .map(stmt => stmt.trim())
+      .filter(stmt => stmt.length > 0);
+    
+    console.log(`[SCHEMA INIT] Found ${statements.length} SQL statements to execute`);
+    
+    for (const statement of statements) {
+      try {
+        await query(statement);
+      } catch (error: any) {
+        // Ignore "already exists" errors - tables may already be created
+        if (error.message?.includes('already exists') || error.code === '42P07') {
+          console.log(`[SCHEMA INIT] Table already exists (skipped)`);
+        } else {
+          console.error(`[SCHEMA INIT] Error executing statement:`, error.message);
+          throw error;
+        }
+      }
+    }
+    
+    console.log('[SCHEMA INIT] Database schema initialized successfully');
+  } catch (error: any) {
+    console.error('[SCHEMA INIT] Failed to initialize schema:', error.message);
+    throw error;
   }
 };
 
