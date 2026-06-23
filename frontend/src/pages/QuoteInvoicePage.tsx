@@ -332,8 +332,8 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     return rows.slice(0, 5);
   }, [tableRows]);
 
-  const canSaveRequest = !!_requestId && requestStatus === 'requested' && user?.role === 'manager' && !viewOnly;
-  const canSendForApproval = !!_requestId && isSaved && (requestStatus === 'manager_pending' || requestStatus === 'saved') && user?.role === 'manager' && !viewOnly;
+  const canSaveRequest = !!_requestId && requestStatus && ['requested', 'manager_pending', 'saved', 'rejected'].includes(requestStatus) && user?.role === 'manager' && !viewOnly;
+  const canSendForApproval = !!_requestId && isSaved && requestStatus && (requestStatus === 'manager_pending' || requestStatus === 'saved') && user?.role === 'manager' && !viewOnly;
 
   const saveQuoteRequest = async () => {
     if (!_requestId) {
