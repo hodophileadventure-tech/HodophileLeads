@@ -337,7 +337,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   };
 
   return (
-    <div className="quote-invoice-root">
+    <div className={`quote-invoice-root ${hidePreview ? 'embedded' : ''}`}>
       <div className={`quote-invoice-shell ${hidePreview ? 'hide-preview' : ''}`}>
         <div className="quote-invoice-sidebar">
           <div className="quote-invoice-panel">

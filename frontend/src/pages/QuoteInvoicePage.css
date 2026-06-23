@@ -23,6 +23,13 @@ html, body {
   align-items: flex-start;
 }
 
+/* When embedded in manager panel, adjust sizing */
+.quote-invoice-root.embedded {
+  min-height: auto;
+  background: transparent;
+  padding: 0;
+}
+
 .quote-invoice-shell {
   width: 100%;
   max-width: 1600px;
@@ -42,6 +49,11 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* When embedded, limit height to prevent overflow */
+.quote-invoice-root.embedded .quote-invoice-sidebar {
+  max-height: 100%;
 }
 
 .quote-invoice-panel {
