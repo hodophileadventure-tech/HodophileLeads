@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { quoteRequestsAPI } from '../utils/api-service';
+import { quoteRequestsAPI, leadsAPI } from '../utils/api-service';
 import html2canvas from 'html2canvas';
 import quoteHeaderImage from '../assets/quote-header.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
@@ -169,6 +169,30 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       }
     }
   }, [initialDocumentData]);
+
+  // Auto-populate form with lead details
+  useEffect(() => {
+    if (_leadId && !initialDocumentData) {
+      leadsAPI.getById(_leadId)
+        .then((response) => {
+          const lead = response.data;
+          setData((current) => ({
+            ...current,
+            customerName: lead.clientName || current.customerName,
+            phone: lead.phone || current.phone,
+            city: lead.address || current.city,
+            destination: lead.destination || current.destination,
+            persons: lead.persons ? String(lead.persons) : current.persons,
+            accommodationType: lead.hotelPreference || current.accommodationType,
+            transportationType: lead.transportPreference || current.transportationType,
+            travelDate: lead.travelDates?.from || (lead.travel_date ? lead.travel_date.split('T')[0] : current.travelDate),
+          }));
+        })
+        .catch((error) => {
+          console.error('Failed to load lead details:', error);
+        });
+    }
+  }, [_leadId, initialDocumentData]);
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {
