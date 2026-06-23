@@ -150,7 +150,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
   const [isLoadingQuoteNumber, setIsLoadingQuoteNumber] = useState(false);
-  const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'approved' || requestStatus === 'rejected');
+  const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'saved' || requestStatus === 'approved' || requestStatus === 'rejected');
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
