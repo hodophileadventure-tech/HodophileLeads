@@ -102,6 +102,9 @@ const normalizeLeadPayload = (body: any, agentId: string) => {
   if (body.persons === '' || body.persons == null) {
     delete payload.persons;
   }
+  if (body.tripBudget === '' || body.tripBudget == null) {
+    delete payload.tripBudget;
+  }
 
   if (!payload.hotelInfo) {
     delete payload.hotelInfo;
