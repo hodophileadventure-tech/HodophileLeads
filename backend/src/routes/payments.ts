@@ -1,14 +1,23 @@
 import { Router } from 'express';
 import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import { authMiddleware } from '../middleware/auth';
 import { paymentsController } from '../controllers/payments-controller';
 
 // Configure multer for payment proof uploads
+const proofDir = path.join(__dirname, '..', '..', 'uploads', 'payment-proofs');
+try {
+  fs.mkdirSync(proofDir, { recursive: true });
+} catch (e) {
+  // ignore
+}
+
 const proofStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/payment-proofs/');
+  destination: (_req, _file, cb) => {
+    cb(null, proofDir);
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     const ext = file.originalname.split('.').pop();
     cb(null, `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`);
   }
