@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { dashboardAPI } from '../utils/api-service';
-import { formatCurrency, getHealthScoreColor } from '../utils/helpers';
+import { formatCurrency } from '../utils/helpers';
 import { Card, Spinner } from './common';
 
 interface StatCard {
@@ -89,6 +89,8 @@ export const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pipeline Health section hidden - feature disabled */}
+        {/* 
         <Card>
           <h2 className="text-xl font-bold mb-4">Pipeline Health</h2>
           <div className="space-y-2">
@@ -104,6 +106,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </Card>
+        */}
 
         <Card>
           <h2 className="text-xl font-bold mb-4">Quick Stats</h2>
