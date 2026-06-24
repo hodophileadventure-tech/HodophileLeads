@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { hotelsAPI } from '../utils/api-service';
-import { Spinner, Badge } from './common';
+import { Spinner } from './common';
 import './HotelsPanel.css';
 
 interface Hotel {
