@@ -1071,7 +1071,7 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'pending-quotes' && user?.role === 'admin' && (
+            {currentPage === 'pending-quotes' && ['admin', 'manager'].includes(user?.role || '') && (
               <div className="space-y-6">
                 {selectedQuoteRequest ? (
                   <div>
