@@ -33,6 +33,8 @@ const mapLeadRow = (row: any) => {
   return {
     ...row,
     clientName: row.clientName || row.client_name || row.name,
+    email: row.email || row.email || null,
+    phone: row.phone || row.phone_number || null,
     profileId: row.profile_id || null,
     address: row.address || null,
     gender: row.gender || null,
