@@ -4,16 +4,18 @@
  * Usage: node scripts/import-complete-hotels.js
  */
 
-// Try to load from compiled dist first (production), then fallback to src (development)
-let query;
-try {
-  const database = require('../dist/utils/database');
-  query = database.query;
-} catch (e) {
-  const database = require('../src/utils/database');
-  query = database.query;
-}
 require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+// Helper function to execute queries
+async function query(text, params) {
+  const result = await pool.query(text, params);
+  return result;
+}
 
 // Complete hotels data from the provided document
 const hotelsData = [
@@ -1170,8 +1172,12 @@ async function importAllHotels() {
     console.log(`   • Room types created: ${totalRooms}`);
     console.log(`   • Pricing entries created: ${totalPricing}`);
     console.log('='.repeat(60) + '\n');
+    
+    // Close pool connection
+    await pool.end();
   } catch (error) {
     console.error('❌ Error importing hotels:', error);
+    await pool.end();
     process.exit(1);
   }
 }
