@@ -1083,11 +1083,66 @@ export const App: React.FC = () => {
                       ← Back to Pending Requests
                     </Button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
-                        <main className="col-span-1 md:col-span-9 overflow-y-auto">
+                    <div className="grid grid-cols-3 gap-6 min-h-[80vh] w-full" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
+                      {/* Left: Lead Details */}
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0" style={{ minWidth: 0 }}>
+                        <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
+                        <div className="space-y-3 text-sm">
+                          <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">CLIENT INFO</p>
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <p className="text-xs text-slate-500">Name</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadClientName || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Phone</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadPhone || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Email</p>
+                                <p className="font-medium text-blue-600 break-all">{selectedQuoteRequest.leadEmail || '—'}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">TRIP DETAILS</p>
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <p className="text-xs text-slate-500">Destination</p>
+                                <p className="font-medium">{Array.isArray(selectedQuoteRequest.leadDestinations) ? selectedQuoteRequest.leadDestinations.join(', ') : selectedQuoteRequest.leadDestination || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Travel Date</p>
+                                <p className="font-medium text-xs">{typeof selectedQuoteRequest.leadTravelDates === 'string' ? selectedQuoteRequest.leadTravelDates : selectedQuoteRequest.leadTravelDates?.from && selectedQuoteRequest.leadTravelDates?.to ? `${selectedQuoteRequest.leadTravelDates.from} - ${selectedQuoteRequest.leadTravelDates.to}` : '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Persons</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadPersons || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Budget</p>
+                                <p className="font-medium">Rs. {selectedQuoteRequest.leadBudget?.toLocaleString() || '—'}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {selectedQuoteRequest.leadRemarks && (
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 p-2 rounded">
+                              <p className="text-xs text-yellow-800 dark:text-yellow-300 font-semibold mb-1">Agent Remarks</p>
+                              <p className="text-xs text-yellow-900 dark:text-yellow-200">{selectedQuoteRequest.leadRemarks}</p>
+                            </div>
+                          )}
+                        </div>
+                      </aside>
+
+                      {/* Middle: Quotation Form */}
+                      <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
+                          embedded={true}
                           leadData={{
                             clientName: selectedQuoteRequest.leadClientName,
                             phone: selectedQuoteRequest.leadPhone,
@@ -1110,22 +1165,21 @@ export const App: React.FC = () => {
                         />
                       </main>
 
-                      <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
-                        <div className="border rounded p-4 flex flex-col h-full">
-                          <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                          <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
-                            {previewDataUrl ? (
-                              <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
-                            ) : (
-                              <div className="text-sm text-slate-500">Generating preview…</div>
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
-                            {previewDataUrl && (
-                              <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
-                            )}
-                          </div>
+                      {/* Right: Preview */}
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0" style={{ minWidth: 0 }}>
+                        <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
+                        <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
+                          {previewDataUrl ? (
+                            <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                          ) : (
+                            <div className="text-sm text-slate-500">Generating preview…</div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          {previewDataUrl && (
+                            <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                          )}
                         </div>
                       </aside>
                     </div>
