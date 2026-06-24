@@ -28,11 +28,6 @@ interface HotelDetail extends Hotel {
   room_types: RoomType[];
 }
 
-interface CityGroup {
-  city: string;
-  hotels: HotelDetail[];
-}
-
 export const HotelsPanel: React.FC = () => {
   const [hotels, setHotels] = useState<HotelDetail[]>([]);
   const [loading, setLoading] = useState(true);
@@ -310,7 +305,9 @@ export const HotelsPanel: React.FC = () => {
                     {hotel.name}
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" size="sm">{hotel.city}</Badge>
+                    <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400">
+                      {hotel.city}
+                    </span>
                     {hotel.location && (
                       <span className="text-sm text-gray-600 dark:text-gray-400">{hotel.location}</span>
                     )}
@@ -377,9 +374,9 @@ export const HotelsPanel: React.FC = () => {
                               )}
                             </div>
                             {roomType.capacity && (
-                              <Badge variant="outline" size="sm">
+                              <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
                                 👥 {roomType.capacity} {roomType.capacity === 1 ? 'person' : 'persons'}
-                              </Badge>
+                              </span>
                             )}
                           </div>
 
