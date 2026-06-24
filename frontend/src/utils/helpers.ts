@@ -108,20 +108,6 @@ export const calculateLeadDataHealth = (lead: any): number => {
     return !!value;
   };
 
-  // STRONG DEBUG: Log entire lead object
-  if (lead.clientName === 'skardu' || lead.client_name === 'skardu' || lead.clientName === 'arzaan malik' || lead.client_name === 'arzaan malik') {
-    console.error('DEBUG LEAD:', {
-      name: lead.clientName || lead.client_name,
-      phone_field: lead.phone,
-      phone_type: typeof lead.phone,
-      phone_length: lead.phone ? String(lead.phone).length : 'N/A',
-      phone_trim: lead.phone ? String(lead.phone).trim() : 'N/A',
-      email: lead.email,
-      destination: lead.destination,
-      all_keys: Object.keys(lead)
-    });
-  }
-
   // Essential fields - these are the minimum
   if (hasField('clientName', 'client_name')) filledFields += 1;
   if (hasField('email', 'email')) filledFields += 1;
@@ -174,18 +160,19 @@ export const calculateLeadDataHealth = (lead: any): number => {
 
   // Calculate percentage with minimum of 10% if phone exists
   const healthScore = Math.round((filledFields / totalWeightedFields) * 100);
-  const hasPhone = hasField('phone', 'phone');
+  const phoneValue = lead.phone ?? lead.phone_number ?? lead.contact_number;
+  const hasPhone = !!phoneValue && String(phoneValue).trim().length > 0;
   
-  // Debug log for specific leads
-  if (lead.clientName === 'skardu' || lead.client_name === 'skardu' || lead.clientName === 'arzaan malik' || lead.client_name === 'arzaan malik') {
-    console.log(`Health calc for ${lead.clientName || lead.client_name}:`, {
-      filledFields,
-      healthScore,
-      hasPhone,
-      phone: lead.phone,
-      result: hasPhone ? Math.max(healthScore, 10) : Math.min(healthScore, 100)
-    });
-  }
+  // ALWAYS log to window object for manual inspection
+  (window as any).__lastHealthCalc = {
+    leadName: lead.clientName || lead.client_name || 'Unknown',
+    filledFields,
+    totalFields: totalWeightedFields,
+    healthScore,
+    hasPhone,
+    phoneValue,
+    finalResult: hasPhone ? Math.max(healthScore, 10) : healthScore
+  };
   
   // If lead has a phone (which is required), minimum health is 10%
   // If no phone, health is 0%
