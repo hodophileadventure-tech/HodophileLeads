@@ -108,15 +108,11 @@ export const calculateLeadDataHealth = (lead: any): number => {
     return !!value;
   };
 
-  // Debug log
-  if (!lead.id || lead.id.length < 10) {
-    console.debug('calculateLeadDataHealth debug:', {
-      phone: lead.phone,
-      clientName: lead.clientName,
-      client_name: lead.client_name,
-      destination: lead.destination,
-      keys: Object.keys(lead).slice(0, 20)
-    });
+  // STRONG DEBUG: Log entire lead object
+  if (lead.clientName === 'skardu' || lead.client_name === 'skardu') {
+    console.error('SKARDU LEAD DEBUG - Full object:', JSON.stringify(lead, null, 2));
+    console.error('Phone value:', lead.phone);
+    console.error('Client name:', lead.clientName || lead.client_name);
   }
 
   // Essential fields - these are the minimum
