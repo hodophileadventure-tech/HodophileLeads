@@ -6,7 +6,7 @@ import { followUpsModel } from '../models/FollowUp';
 import { availabilityModel } from '../models/Availability';
 import { notificationsModel } from '../models/Notification';
 import { query } from '../utils/database';
-import { calculateBookingHealthScore, generateFollowUpTasks } from '../services/lead-service';
+import { calculateBookingHealthScore, calculateLeadDataHealth, generateFollowUpTasks } from '../services/lead-service';
 import Joi from 'joi';
 import { validatePayload, leadSchema } from '../utils/validation';
 import { logActivity } from '../utils/activity-log';
@@ -419,6 +419,15 @@ export const leadsController = {
         return res.status(404).json({ message: 'Lead not found' });
       }
 
+      // Calculate lead data health (field completeness)
+      const dataHealthScore = calculateLeadDataHealth(lead);
+      
+      // Determine health color based on data completeness
+      let health: 'red' | 'yellow' | 'green' = 'red';
+      if (dataHealthScore >= 70) health = 'green';
+      else if (dataHealthScore >= 40) health = 'yellow';
+
+      // Also calculate booking health for reference
       const availability = await availabilityModel.getByLeadId(leadId);
       const paymentsResult = await query('SELECT * FROM payments WHERE lead_id = $1', [leadId]);
       const followUps = await followUpsModel.findByLead(leadId);
@@ -438,7 +447,7 @@ export const leadsController = {
       );
       const preDepartureTasksDone = preDepartureTasks.length > 0 && preDepartureTasks.every((item: any) => item.status === 'completed');
 
-      const health = calculateBookingHealthScore({
+      const bookingHealth = calculateBookingHealthScore({
         tripleLockComplete,
         clientApproved,
         paymentReceived,
@@ -447,19 +456,21 @@ export const leadsController = {
 
       res.json({
         leadId,
-        score: health.score,
-        health: health.health,
-        factors: {
-          tripleLockComplete,
-          clientApproved,
-          paymentReceived,
-          preDepartureTasksDone
+        score: dataHealthScore,
+        health,
+        dataHealth: {
+          score: dataHealthScore,
+          color: health
         },
-        weights: {
-          tripleLockComplete: 40,
-          clientApproved: 20,
-          paymentReceived: 25,
-          preDepartureTasksDone: 15
+        bookingHealth: {
+          score: bookingHealth.score,
+          health: bookingHealth.health,
+          factors: {
+            tripleLockComplete,
+            clientApproved,
+            paymentReceived,
+            preDepartureTasksDone
+          }
         }
       });
     } catch (error) {
