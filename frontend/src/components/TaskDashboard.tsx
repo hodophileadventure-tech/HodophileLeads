@@ -35,7 +35,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'canceled'>('all');
+  const [activeFilter, setActiveFilter] = useState<'due' | 'pastdue' | 'active' | 'completed'>('due');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
   const [completionRemarks, setCompletionRemarks] = useState('');
@@ -102,14 +102,45 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
       }));
   }, [fallbackTasks, followUps]);
 
-  const activeFollowUps = useMemo(() => followUps.filter((item) => item.status !== 'completed' && item.status !== 'canceled'), [followUps]);
-  const canceledFollowUps = useMemo(() => followUps.filter((item) => item.status === 'canceled'), [followUps]);
+  const now = new Date();
+  
+  const dueFollowUps = useMemo(() => {
+    return followUps.filter((item) => {
+      if (item.status === 'completed' || item.status === 'canceled') return false;
+      const due = new Date(item.dueDate || '');
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return due < tomorrow && due >= now;
+    });
+  }, [followUps, now]);
+  
+  const pastDueFollowUps = useMemo(() => {
+    return followUps.filter((item) => {
+      if (item.status === 'completed' || item.status === 'canceled') return false;
+      const due = new Date(item.dueDate || '');
+      return due < now;
+    });
+  }, [followUps, now]);
+  
+  const activeFollowUps = useMemo(() => {
+    return followUps.filter((item) => {
+      if (item.status === 'completed' || item.status === 'canceled') return false;
+      const due = new Date(item.dueDate || '');
+      return due >= now;
+    });
+  }, [followUps, now]);
+  
+  const completedFollowUps = useMemo(() => {
+    return followUps.filter((item) => item.status === 'completed');
+  }, [followUps]);
 
   const visibleFollowUps = useMemo(() => {
+    if (activeFilter === 'due') return dueFollowUps;
+    if (activeFilter === 'pastdue') return pastDueFollowUps;
     if (activeFilter === 'active') return activeFollowUps;
-    if (activeFilter === 'canceled') return canceledFollowUps;
+    if (activeFilter === 'completed') return completedFollowUps;
     return followUps;
-  }, [activeFilter, activeFollowUps, canceledFollowUps, followUps]);
+  }, [activeFilter, dueFollowUps, pastDueFollowUps, activeFollowUps, completedFollowUps, followUps]);
 
   const summary = useMemo(() => {
     return {
@@ -176,9 +207,10 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
 
       <div className="flex flex-wrap gap-2">
         {[
-          { key: 'all', label: `All (${followUps.length})`, color: 'bg-slate-200 dark:bg-slate-700' },
-          { key: 'active', label: `Active (${activeFollowUps.length})`, color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' },
-          { key: 'canceled', label: `Canceled (${canceledFollowUps.length})`, color: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200' }
+          { key: 'due', label: `Due (${dueFollowUps.length})`, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+          { key: 'pastdue', label: `Past Due (${pastDueFollowUps.length})`, color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+          { key: 'active', label: `Active (${activeFollowUps.length})`, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+          { key: 'completed', label: `Completed (${completedFollowUps.length})`, color: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200' }
         ].map((item) => (
           <button
             key={item.key}

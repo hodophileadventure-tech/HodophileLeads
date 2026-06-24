@@ -82,8 +82,22 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
 
             {notifOpen && (
               <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-700 rounded-lg shadow-lg z-20">
-                <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">
+                <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-600 flex justify-between items-center">
                   <p className="text-sm font-medium">Notifications</p>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await Promise.all(notifications.filter((n: any) => !n.is_read).map((n: any) => notificationsAPI.markRead(n.id)));
+                          const res = await notificationsAPI.list();
+                          setNotifications(res.data || []);
+                        } catch (err) {}
+                      }}
+                      className="text-xs px-2 py-1 rounded bg-primary-500 text-white hover:bg-primary-600"
+                    >
+                      Mark All
+                    </button>
+                  )}
                 </div>
                 <div className="max-h-64 overflow-auto">
                   {notifications.length === 0 && (
