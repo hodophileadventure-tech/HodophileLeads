@@ -72,15 +72,16 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
   const loadRequests = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await quoteRequestsAPI.listPending();
       const allRequests = response.data || [];
       setPendingRequests(allRequests.filter((request) => request.status === 'requested'));
       setSavedRequests(allRequests.filter((request) => request.status === 'saved'));
-      setError(null);
       return allRequests;
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load quote requests:', err);
-      setError('Failed to load quote requests.');
+      const errorMsg = err?.response?.data?.message || err?.message || 'Failed to load quote requests.';
+      setError(errorMsg);
       setPendingRequests([]);
       setSavedRequests([]);
       return [];
@@ -227,10 +228,34 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
 
   if (loading) {
     return (
-      <div className="card">
-        <h2 className="text-2xl font-semibold mb-4">Pending Quote Requests</h2>
-        <div className="text-center py-8 text-slate-500">
-          <p>Loading quote data...</p>
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <input
+            aria-label="Search quotations"
+            placeholder="Search by client, phone, or quote #"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border rounded p-2 flex-1"
+            disabled
+          />
+          <button
+            className="btn-secondary px-3 py-2 opacity-50 cursor-not-allowed"
+            disabled
+          >
+            Jump to Pending
+          </button>
+          <button
+            className="btn-secondary px-3 py-2 opacity-50 cursor-not-allowed"
+            disabled
+          >
+            Jump to Saved
+          </button>
+        </div>
+        <div className="card">
+          <h2 className="text-2xl font-semibold mb-4">Pending Quote Requests</h2>
+          <div className="text-center py-8 text-slate-500">
+            <p>Loading quote data...</p>
+          </div>
         </div>
       </div>
     );
@@ -238,13 +263,40 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
 
   if (error) {
     return (
-      <div className="card">
-        <h2 className="text-2xl font-semibold mb-4">Pending Quote Requests</h2>
-        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg">
-          <p>{error}</p>
-          <Button variant="primary" onClick={loadRequests} className="mt-4">
-            Retry
-          </Button>
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <input
+            aria-label="Search quotations"
+            placeholder="Search by client, phone, or quote #"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border rounded p-2 flex-1"
+          />
+          <button
+            className="btn-secondary px-3 py-2"
+            onClick={() => {
+              document.getElementById('pending-section')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Jump to Pending
+          </button>
+          <button
+            className="btn-secondary px-3 py-2"
+            onClick={() => {
+              document.getElementById('saved-section')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Jump to Saved
+          </button>
+        </div>
+        <div className="card">
+          <h2 className="text-2xl font-semibold mb-4">Pending Quote Requests</h2>
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg">
+            <p>{error}</p>
+            <Button variant="primary" onClick={loadRequests} className="mt-4">
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -263,8 +315,14 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         <button
           className="btn-secondary px-3 py-2"
           onClick={() => {
-            // navigate to pending section
-            document.getElementById('pending-section')?.scrollIntoView({ behavior: 'smooth' });
+            try {
+              const el = document.getElementById('pending-section');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              }
+            } catch (e) {
+              console.error('Failed to scroll to pending section:', e);
+            }
           }}
         >
           Jump to Pending
@@ -272,7 +330,14 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         <button
           className="btn-secondary px-3 py-2"
           onClick={() => {
-            document.getElementById('saved-section')?.scrollIntoView({ behavior: 'smooth' });
+            try {
+              const el = document.getElementById('saved-section');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              }
+            } catch (e) {
+              console.error('Failed to scroll to saved section:', e);
+            }
           }}
         >
           Jump to Saved
