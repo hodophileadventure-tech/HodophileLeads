@@ -297,6 +297,19 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     }
   }, [generatePreviewOnMount, onPreviewGenerated, data, tableRows]);
 
+  // Debug: Log data state changes
+  useEffect(() => {
+    console.log('📝 Form data state updated:', {
+      packageName: data.packageName,
+      accommodationType: data.accommodationType,
+      transportationType: data.transportationType,
+      customerName: data.customerName,
+      price: data.price,
+      discount: data.discount,
+      advanceAmount: data.advanceAmount
+    });
+  }, [data]);
+
   useEffect(() => {
     const handleGenerateQuotePreview = async () => {
       if (previewRef.current && onPreviewGenerated) {
@@ -380,12 +393,14 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
     try {
       setMessage('Saving quotation...');
-      await quoteRequestsAPI.save(_requestId, {
+      const saveData = {
         documentData: {
           ...data,
           tableRows
         }
-      });
+      };
+      console.log('💾 Saving quotation with data:', saveData);
+      await quoteRequestsAPI.save(_requestId, saveData);
       setIsSaved(true);
       setMessage('Quotation saved successfully.');
       window.dispatchEvent(new Event('quote-request-saved'));
