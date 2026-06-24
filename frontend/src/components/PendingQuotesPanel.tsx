@@ -303,7 +303,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="pending-quotes-panel" style={{ display: 'block' }}>
       <div className="flex items-center gap-3">
         <input
           aria-label="Search quotations"
@@ -343,7 +343,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
           Jump to Saved
         </button>
       </div>
-      <section id="pending-section" className="card">
+      <section id="pending-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-semibold">Pending Quote Requests</h2>
@@ -373,7 +373,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         )}
       </section>
 
-      <section id="saved-section" className="card">
+      <section id="saved-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-semibold">Created Quotations</h2>
