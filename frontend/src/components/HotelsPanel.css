@@ -1,0 +1,102 @@
+/* Hotels Panel Styles */
+.hotels-panel {
+  max-width: 100%;
+}
+
+.hotels-panel .hotel-header {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.hotels-panel .hotel-header:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.hotels-panel .room-type {
+  transition: all 0.2s ease;
+}
+
+.hotels-panel .room-type:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.hotels-panel .price-badge {
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.hotels-panel .season-indicator {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.hotels-panel .season-peak {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.hotels-panel .season-high {
+  background-color: #fef08a;
+  color: #713f12;
+}
+
+.hotels-panel .season-blossom {
+  background-color: #dbeafe;
+  color: #0c4a6e;
+}
+
+.hotels-panel .season-low {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.hotels-panel .season-off {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.dark .hotels-panel .season-peak {
+  background-color: #7f1d1d;
+  color: #fecaca;
+}
+
+.dark .hotels-panel .season-high {
+  background-color: #713f12;
+  color: #fef08a;
+}
+
+.dark .hotels-panel .season-blossom {
+  background-color: #082f49;
+  color: #bfdbfe;
+}
+
+.dark .hotels-panel .season-low {
+  background-color: #064e3b;
+  color: #dcfce7;
+}
+
+.dark .hotels-panel .season-off {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+@media (max-width: 768px) {
+  .hotels-panel {
+    padding: 1rem;
+  }
+
+  .hotels-panel .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hotels-panel .flex-wrap {
+    flex-wrap: wrap;
+  }
+}

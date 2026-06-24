@@ -144,3 +144,16 @@ export const authAPI = {
   changePassword: (currentPassword: string, newPassword: string) => 
     apiClient.post('/auth/change-password', { currentPassword, newPassword })
 };
+
+export const hotelsAPI = {
+  getAll: () => apiClient.get('/hotels'),
+  getByCity: (city: string) => apiClient.get(`/hotels/city/${city}`),
+  getDetails: (hotelId: string) => apiClient.get(`/hotels/${hotelId}`),
+  getCities: () => apiClient.get('/hotels/cities'),
+  getPaginated: (city?: string, limit?: number, offset?: number) => 
+    apiClient.get('/hotels/paginated', { params: { city, limit, offset } }),
+  getStats: () => apiClient.get('/hotels/stats'),
+  create: (data: any) => apiClient.post('/hotels', data),
+  createRoomType: (hotelId: string, data: any) => apiClient.post(`/hotels/${hotelId}/rooms`, data),
+  createRoomPricing: (roomTypeId: string, data: any) => apiClient.post(`/hotels/rooms/${roomTypeId}/pricing`, data)
+};

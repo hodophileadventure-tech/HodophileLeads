@@ -16,6 +16,7 @@ import { notificationsRouter } from './routes/notifications';
 import { paymentsRouter } from './routes/payments';
 import { quoteRequestsRouter } from './routes/quote-requests';
 import { reportsRouter } from './routes/reports';
+import hotelsRouter from './routes/hotels';
 import { errorHandler } from './middleware/auth';
 import { initDatabase } from './utils/database';
 import { startFollowUpWorker } from './workers/followUpWorker';
@@ -98,6 +99,7 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/itineraries', itinerariesRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/payments', paymentsRouter);
+app.use('/api', hotelsRouter);
 
 // Health check
 app.get('/health', (req, res) => {
