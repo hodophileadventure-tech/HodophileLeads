@@ -109,10 +109,17 @@ export const calculateLeadDataHealth = (lead: any): number => {
   };
 
   // STRONG DEBUG: Log entire lead object
-  if (lead.clientName === 'skardu' || lead.client_name === 'skardu') {
-    console.error('SKARDU LEAD DEBUG - Full object:', JSON.stringify(lead, null, 2));
-    console.error('Phone value:', lead.phone);
-    console.error('Client name:', lead.clientName || lead.client_name);
+  if (lead.clientName === 'skardu' || lead.client_name === 'skardu' || lead.clientName === 'arzaan malik' || lead.client_name === 'arzaan malik') {
+    console.error('DEBUG LEAD:', {
+      name: lead.clientName || lead.client_name,
+      phone_field: lead.phone,
+      phone_type: typeof lead.phone,
+      phone_length: lead.phone ? String(lead.phone).length : 'N/A',
+      phone_trim: lead.phone ? String(lead.phone).trim() : 'N/A',
+      email: lead.email,
+      destination: lead.destination,
+      all_keys: Object.keys(lead)
+    });
   }
 
   // Essential fields - these are the minimum
