@@ -1135,7 +1135,7 @@ export const App: React.FC = () => {
                             </div>
                           </div>
 
-                          {(selectedQuoteRequest.leadRemarks || selectedQuoteRequest.leadSpecialRequests || selectedQuoteRequest.leadTourType || selectedQuoteRequest.leadSource) && (
+                          {(selectedQuoteRequest.leadRemarks || selectedQuoteRequest.leadAgentRemarks || selectedQuoteRequest.leadSpecialRequests || selectedQuoteRequest.leadTourType || selectedQuoteRequest.leadSource || selectedQuoteRequest.leadStatus || selectedQuoteRequest.leadLeadOutcome || selectedQuoteRequest.leadIslamabadStay || selectedQuoteRequest.leadAdults != null || selectedQuoteRequest.leadKids != null || selectedQuoteRequest.leadSeniors != null) && (
                             <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
                               <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">PREFERENCES & DETAILS</p>
                               <div className="mt-2 space-y-2">
@@ -1151,16 +1151,50 @@ export const App: React.FC = () => {
                                     <p className="font-medium text-xs">{selectedQuoteRequest.leadSource}</p>
                                   </div>
                                 )}
+                                {selectedQuoteRequest.leadStatus && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Lead Status</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadStatus}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadLeadOutcome && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Lead Outcome</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadLeadOutcome}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadIslamabadStay && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Islamabad Stay</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadIslamabadStay}</p>
+                                  </div>
+                                )}
+                                {(selectedQuoteRequest.leadAdults != null || selectedQuoteRequest.leadKids != null || selectedQuoteRequest.leadSeniors != null) && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Party Composition</p>
+                                    <p className="font-medium text-xs">
+                                      {selectedQuoteRequest.leadAdults ?? 0} adults
+                                      {selectedQuoteRequest.leadKids != null ? `, ${selectedQuoteRequest.leadKids} kids` : ''}
+                                      {selectedQuoteRequest.leadSeniors != null ? `, ${selectedQuoteRequest.leadSeniors} seniors` : ''}
+                                    </p>
+                                  </div>
+                                )}
                                 {selectedQuoteRequest.leadSpecialRequests && (
                                   <div>
                                     <p className="text-xs text-slate-500">Special Requests</p>
                                     <p className="font-medium text-xs">{selectedQuoteRequest.leadSpecialRequests}</p>
                                   </div>
                                 )}
-                                {selectedQuoteRequest.leadRemarks && (
+                                {selectedQuoteRequest.leadAgentRemarks && (
                                   <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
                                     <p className="text-xs text-yellow-700 dark:text-yellow-300 font-semibold">Agent Remarks</p>
-                                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedQuoteRequest.leadRemarks}</p>
+                                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedQuoteRequest.leadAgentRemarks}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadRemarks && (
+                                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Lead Notes</p>
+                                    <p className="text-xs text-slate-800 dark:text-slate-200 mt-1">{selectedQuoteRequest.leadRemarks}</p>
                                   </div>
                                 )}
                               </div>
@@ -1324,7 +1358,7 @@ export const App: React.FC = () => {
                             </div>
                           </div>
 
-                          {(selectedQuoteRequest.leadRemarks || selectedQuoteRequest.leadSpecialRequests || selectedQuoteRequest.leadTourType || selectedQuoteRequest.leadSource) && (
+                          {(selectedQuoteRequest.leadRemarks || selectedQuoteRequest.leadAgentRemarks || selectedQuoteRequest.leadSpecialRequests || selectedQuoteRequest.leadTourType || selectedQuoteRequest.leadSource || selectedQuoteRequest.leadStatus || selectedQuoteRequest.leadLeadOutcome || selectedQuoteRequest.leadIslamabadStay || selectedQuoteRequest.leadAdults != null || selectedQuoteRequest.leadKids != null || selectedQuoteRequest.leadSeniors != null) && (
                             <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
                               <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">PREFERENCES & DETAILS</p>
                               <div className="mt-2 space-y-2">
@@ -1340,16 +1374,50 @@ export const App: React.FC = () => {
                                     <p className="font-medium text-xs">{selectedQuoteRequest.leadSource}</p>
                                   </div>
                                 )}
+                                {selectedQuoteRequest.leadStatus && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Lead Status</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadStatus}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadLeadOutcome && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Lead Outcome</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadLeadOutcome}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadIslamabadStay && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Islamabad Stay</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadIslamabadStay}</p>
+                                  </div>
+                                )}
+                                {(selectedQuoteRequest.leadAdults != null || selectedQuoteRequest.leadKids != null || selectedQuoteRequest.leadSeniors != null) && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Party Composition</p>
+                                    <p className="font-medium text-xs">
+                                      {selectedQuoteRequest.leadAdults ?? 0} adults
+                                      {selectedQuoteRequest.leadKids != null ? `, ${selectedQuoteRequest.leadKids} kids` : ''}
+                                      {selectedQuoteRequest.leadSeniors != null ? `, ${selectedQuoteRequest.leadSeniors} seniors` : ''}
+                                    </p>
+                                  </div>
+                                )}
                                 {selectedQuoteRequest.leadSpecialRequests && (
                                   <div>
                                     <p className="text-xs text-slate-500">Special Requests</p>
                                     <p className="font-medium text-xs">{selectedQuoteRequest.leadSpecialRequests}</p>
                                   </div>
                                 )}
-                                {selectedQuoteRequest.leadRemarks && (
+                                {selectedQuoteRequest.leadAgentRemarks && (
                                   <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
                                     <p className="text-xs text-yellow-700 dark:text-yellow-300 font-semibold">Agent Remarks</p>
-                                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedQuoteRequest.leadRemarks}</p>
+                                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedQuoteRequest.leadAgentRemarks}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadRemarks && (
+                                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Lead Notes</p>
+                                    <p className="text-xs text-slate-800 dark:text-slate-200 mt-1">{selectedQuoteRequest.leadRemarks}</p>
                                   </div>
                                 )}
                               </div>
@@ -1363,6 +1431,7 @@ export const App: React.FC = () => {
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
+                          embedded={true}
                           leadData={{
                             clientName: selectedQuoteRequest.leadClientName,
                             phone: selectedQuoteRequest.leadPhone,

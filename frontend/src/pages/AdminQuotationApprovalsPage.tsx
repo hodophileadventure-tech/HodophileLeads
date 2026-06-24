@@ -205,6 +205,71 @@ export default function AdminQuotationApprovalsPage({
               <p className="text-xs text-blue-900 dark:text-blue-200">{selectedRequest.managerNotes}</p>
             </div>
           )}
+          {(selectedRequest.leadAgentRemarks || selectedRequest.leadRemarks || selectedRequest.leadSpecialRequests || selectedRequest.leadTourType || selectedRequest.leadSource || selectedRequest.leadStatus || selectedRequest.leadLeadOutcome || selectedRequest.leadIslamabadStay || selectedRequest.leadAdults != null || selectedRequest.leadKids != null || selectedRequest.leadSeniors != null) && (
+            <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Lead Form Details</p>
+              <div className="mt-2 space-y-2">
+                {selectedRequest.leadTourType && (
+                  <div>
+                    <p className="text-xs text-slate-500">Tour Type</p>
+                    <p className="font-medium text-xs">{selectedRequest.leadTourType}</p>
+                  </div>
+                )}
+                {selectedRequest.leadSource && (
+                  <div>
+                    <p className="text-xs text-slate-500">Source</p>
+                    <p className="font-medium text-xs">{selectedRequest.leadSource}</p>
+                  </div>
+                )}
+                {selectedRequest.leadStatus && (
+                  <div>
+                    <p className="text-xs text-slate-500">Lead Status</p>
+                    <p className="font-medium text-xs">{selectedRequest.leadStatus}</p>
+                  </div>
+                )}
+                {selectedRequest.leadLeadOutcome && (
+                  <div>
+                    <p className="text-xs text-slate-500">Lead Outcome</p>
+                    <p className="font-medium text-xs">{selectedRequest.leadLeadOutcome}</p>
+                  </div>
+                )}
+                {selectedRequest.leadIslamabadStay && (
+                  <div>
+                    <p className="text-xs text-slate-500">Islamabad Stay</p>
+                    <p className="font-medium text-xs">{selectedRequest.leadIslamabadStay}</p>
+                  </div>
+                )}
+                {(selectedRequest.leadAdults != null || selectedRequest.leadKids != null || selectedRequest.leadSeniors != null) && (
+                  <div>
+                    <p className="text-xs text-slate-500">Party Composition</p>
+                    <p className="font-medium text-xs">
+                      {selectedRequest.leadAdults ?? 0} adults
+                      {selectedRequest.leadKids != null ? `, ${selectedRequest.leadKids} kids` : ''}
+                      {selectedRequest.leadSeniors != null ? `, ${selectedRequest.leadSeniors} seniors` : ''}
+                    </p>
+                  </div>
+                )}
+                {selectedRequest.leadSpecialRequests && (
+                  <div>
+                    <p className="text-xs text-slate-500">Special Requests</p>
+                    <p className="font-medium text-xs">{selectedRequest.leadSpecialRequests}</p>
+                  </div>
+                )}
+                {selectedRequest.leadAgentRemarks && (
+                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                    <p className="text-xs text-yellow-700 dark:text-yellow-300 font-semibold">Agent Remarks</p>
+                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedRequest.leadAgentRemarks}</p>
+                  </div>
+                )}
+                {selectedRequest.leadRemarks && (
+                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Lead Notes</p>
+                    <p className="text-xs text-slate-800 dark:text-slate-200 mt-1">{selectedRequest.leadRemarks}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
