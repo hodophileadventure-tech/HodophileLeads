@@ -166,61 +166,80 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (initialDocumentData) {
-      setData((current) => ({
-        ...current,
-        ...initialDocumentData,
-        quoteNumber: initialDocumentData.quoteNumber || current.quoteNumber,
-        invoiceNumber: initialDocumentData.invoiceNumber || current.invoiceNumber
-      }));
+      setData((current) => {
+        // Only update if form hasn't been modified yet
+        const isFormEmpty = current.customerName === defaultData.customerName &&
+                           current.packageName === defaultData.packageName;
+        
+        if (!isFormEmpty) {
+          return current; // Don't overwrite user-modified form
+        }
+
+        return {
+          ...current,
+          ...initialDocumentData,
+          quoteNumber: initialDocumentData.quoteNumber || current.quoteNumber,
+          invoiceNumber: initialDocumentData.invoiceNumber || current.invoiceNumber
+        };
+      });
       if (Array.isArray(initialDocumentData.tableRows) && initialDocumentData.tableRows.length > 0) {
         setTableRows(initialDocumentData.tableRows);
       }
     }
-  }, [initialDocumentData]);
+  }, []); // Only run once on mount
 
-  // Auto-populate form with lead details
+  // Auto-populate form with lead details (only on first mount or when request ID changes)
   useEffect(() => {
+    // If initialDocumentData exists, skip lead data initialization
+    if (initialDocumentData) {
+      return;
+    }
+
     // If leadData is provided directly (from parent), use it
     if (_leadData) {
       console.log('✅ Using provided lead data:', _leadData);
-      setData((current) => ({
-        ...current,
-        customerName: _leadData.clientName || '',
-        phone: _leadData.phone || '',
-        city: _leadData.address || '',
-        destination: _leadData.destination || '',
-        persons: _leadData.persons ? String(_leadData.persons) : '',
-        accommodationType: _leadData.hotelPreference || '',
-        transportationType: _leadData.transportPreference || '',
-        travelDate: _leadData.travelDates?.from || new Date().toISOString().split('T')[0],
-      }));
+      setData((current) => {
+        // Only update if form hasn't been modified yet (all fields are still default)
+        const isFormEmpty = current.customerName === defaultData.customerName &&
+                           current.packageName === defaultData.packageName;
+        
+        if (!isFormEmpty) {
+          return current; // Don't overwrite user-modified form
+        }
+
+        return {
+          ...current,
+          customerName: _leadData.clientName || '',
+          phone: _leadData.phone || '',
+          city: _leadData.address || '',
+          destination: _leadData.destination || '',
+          persons: _leadData.persons ? String(_leadData.persons) : '',
+          accommodationType: _leadData.hotelPreference || '',
+          transportationType: _leadData.transportPreference || '',
+          travelDate: _leadData.travelDates?.from || new Date().toISOString().split('T')[0],
+        };
+      });
       return;
     }
 
     // Otherwise, fetch using leadId
-    if (_leadId && !initialDocumentData) {
+    if (_leadId) {
       console.log('🔍 Fetching lead details for leadId:', _leadId);
       
-      // First, reset to empty state
-      setData((current) => ({
-        ...current,
-        customerName: '',
-        phone: '',
-        city: '',
-        destination: '',
-        persons: '',
-        accommodationType: '',
-        transportationType: '',
-        travelDate: new Date().toISOString().split('T')[0],
-      }));
-
-      // Then fetch and populate with lead data
       leadsAPI.getById(_leadId)
         .then((response) => {
           const lead = response.data;
           console.log('✅ Lead data fetched:', lead);
           
           setData((current) => {
+            // Only update if form hasn't been modified yet
+            const isFormEmpty = current.customerName === defaultData.customerName &&
+                               current.packageName === defaultData.packageName;
+            
+            if (!isFormEmpty) {
+              return current;
+            }
+
             const updated = {
               ...current,
               customerName: lead.clientName || '',
@@ -241,7 +260,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           setMessage(`Error loading lead details: ${error?.response?.data?.message || error.message}`);
         });
     }
-  }, [_leadId, _leadData, initialDocumentData]);
+  }, []); // Empty dependency array - only run once on mount
 
   useEffect(() => {
     if (documentType === 'quotation' && !data.quoteNumber) {

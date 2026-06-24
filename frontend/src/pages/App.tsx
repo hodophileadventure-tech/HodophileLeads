@@ -96,6 +96,25 @@ export const App: React.FC = () => {
 
   const nextPendingFollowUp = useMemo(() => selectedLeadFollowUps[0] || null, [selectedLeadFollowUps]);
 
+  // Memoize leadData for quotation forms to prevent unnecessary re-renders
+  const memoizedManagerQuotationLeadData = useMemo(() => {
+    if (!selectedQuoteRequest) return null;
+    return {
+      clientName: selectedQuoteRequest.leadClientName,
+      phone: selectedQuoteRequest.leadPhone,
+      destination: selectedQuoteRequest.leadDestination,
+      travelDates: selectedQuoteRequest.leadTravelDates,
+      persons: selectedQuoteRequest.leadPersons,
+      address: '',
+    };
+  }, [
+    selectedQuoteRequest?.leadClientName,
+    selectedQuoteRequest?.leadPhone,
+    selectedQuoteRequest?.leadDestination,
+    selectedQuoteRequest?.leadTravelDates,
+    selectedQuoteRequest?.leadPersons,
+  ]);
+
   const stopAlarmAudio = () => {
     try {
       alarmAudioRef.current?.pause();
@@ -1209,14 +1228,7 @@ export const App: React.FC = () => {
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
                           embedded={true}
-                          leadData={{
-                            clientName: selectedQuoteRequest.leadClientName,
-                            phone: selectedQuoteRequest.leadPhone,
-                            destination: selectedQuoteRequest.leadDestination,
-                            travelDates: selectedQuoteRequest.leadTravelDates,
-                            persons: selectedQuoteRequest.leadPersons,
-                            address: '',
-                          }}
+                          leadData={memoizedManagerQuotationLeadData}
                           requestId={selectedQuoteRequest.id}
                           requestStatus={selectedQuoteRequest.status as any}
                           onSaved={() => {
@@ -1432,14 +1444,7 @@ export const App: React.FC = () => {
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
                           embedded={true}
-                          leadData={{
-                            clientName: selectedQuoteRequest.leadClientName,
-                            phone: selectedQuoteRequest.leadPhone,
-                            destination: selectedQuoteRequest.leadDestination,
-                            travelDates: selectedQuoteRequest.leadTravelDates,
-                            persons: selectedQuoteRequest.leadPersons,
-                            address: '',
-                          }}
+                          leadData={memoizedManagerQuotationLeadData}
                           requestId={selectedQuoteRequest.id}
                           requestStatus={selectedQuoteRequest.status as any}
                           onSaved={() => {
