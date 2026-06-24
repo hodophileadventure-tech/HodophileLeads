@@ -28,5 +28,7 @@ export const normalizeFollowUp = (item: any): FollowUp => ({
   canceledReason: item.canceledReason || item.canceled_reason || null,
   canceledBy: item.canceledBy || item.canceled_by || null,
   canceledAt: item.canceledAt || item.canceled_at || null,
-  createdAt: item.createdAt || item.created_at || new Date().toISOString()
+  createdAt: item.createdAt || item.created_at || new Date().toISOString(),
+  clientName: item.clientName || item.client_name || null,
+  phone: item.phone || null
 });

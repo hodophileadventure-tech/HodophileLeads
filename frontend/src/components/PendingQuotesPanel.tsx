@@ -23,13 +23,23 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
     };
 
     const handleJump = (e: Event) => {
-      const ev = e as CustomEvent<string> | any;
-      const target = ev?.detail || ev?.type;
-      if (target === 'pending' && document.getElementById('pending-section')) {
-        document.getElementById('pending-section')!.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-      if (target === 'saved' && document.getElementById('saved-section')) {
-        document.getElementById('saved-section')!.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const ev = e as CustomEvent<any> | any;
+      const target = ev?.detail;
+      
+      if (target === 'pending') {
+        const el = document.getElementById('pending-section');
+        if (el) {
+          setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 50);
+        }
+      } else if (target === 'saved') {
+        const el = document.getElementById('saved-section');
+        if (el) {
+          setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 50);
+        }
       }
     };
 
@@ -57,7 +67,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       window.removeEventListener('jump-to-quote-section', handleJump as EventListener);
       window.removeEventListener('focus-quote-search', handleFocusSearch as EventListener);
     };
-  }, []);
+  }, [onSelectRequest]);
 
   const loadRequests = async () => {
     try {
