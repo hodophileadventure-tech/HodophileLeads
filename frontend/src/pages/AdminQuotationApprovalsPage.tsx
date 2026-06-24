@@ -217,6 +217,7 @@ export default function AdminQuotationApprovalsPage({
           requestStatus={selectedRequest.status as any}
           viewOnly={true}
           generatePreviewOnMount
+          embedded={true}
           leadData={{
             clientName: selectedRequest.leadClientName,
             phone: selectedRequest.leadPhone,

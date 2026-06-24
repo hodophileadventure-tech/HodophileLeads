@@ -31,6 +31,7 @@ type QuoteInvoicePageProps = {
   onSaved?: () => void;
   onClose?: () => void;
   hidePreview?: boolean;
+  embedded?: boolean;
 };
 
 type DocumentData = {
@@ -143,6 +144,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   onSaved: _onSaved,
   onClose: _onClose,
   hidePreview = false,
+  embedded = false,
 }) => {
   const { user } = useAuth();
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>(_requestType || 'quotation');
@@ -424,7 +426,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   };
 
   return (
-    <div className={`quote-invoice-root ${hidePreview ? 'embedded' : ''}`}>
+    <div className={`quote-invoice-root ${hidePreview || embedded ? 'embedded' : ''}`}>
       <div className={`quote-invoice-shell ${hidePreview ? 'hide-preview' : ''}`}>
         <div className="quote-invoice-sidebar">
           <div className="quote-invoice-panel">
