@@ -100,6 +100,8 @@ export interface FollowUp {
   canceledReason?: string | null;
   canceledBy?: string | null;
   canceledAt?: string | null;
+  clientName?: string;
+  phone?: string;
 }
 
 export interface AvailabilityMatrix {

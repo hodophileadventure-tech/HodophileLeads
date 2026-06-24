@@ -3,35 +3,50 @@ import type { FollowUp } from '../types';
 
 export const followUpsModel = {
   async findAllByAssignee(assignedTo: string, status?: string) {
-    let sql = 'SELECT * FROM follow_ups WHERE assigned_to = $1';
+    let sql = `
+      SELECT fu.*, l.client_name, l.phone
+      FROM follow_ups fu
+      LEFT JOIN leads l ON l.id = fu.lead_id
+      WHERE fu.assigned_to = $1
+    `;
     const params: any[] = [assignedTo];
 
     if (status) {
-      sql += ' AND status = $2';
+      sql += ' AND fu.status = $2';
       params.push(status);
     }
 
-    sql += ' ORDER BY due_date ASC';
+    sql += ' ORDER BY fu.due_date ASC';
     const result = await query(sql, params);
     return result.rows;
   },
 
   async findAll(status?: string) {
-    let sql = 'SELECT * FROM follow_ups';
+    let sql = `
+      SELECT fu.*, l.client_name, l.phone
+      FROM follow_ups fu
+      LEFT JOIN leads l ON l.id = fu.lead_id
+    `;
     const params: any[] = [];
 
     if (status) {
-      sql += ' WHERE status = $1';
+      sql += ' WHERE fu.status = $1';
       params.push(status);
     }
 
-    sql += ' ORDER BY due_date ASC';
+    sql += ' ORDER BY fu.due_date ASC';
     const result = await query(sql, params);
     return result.rows;
   },
 
   async findByLead(leadId: string) {
-    const result = await query('SELECT * FROM follow_ups WHERE lead_id = $1 ORDER BY due_date ASC', [leadId]);
+    const result = await query(`
+      SELECT fu.*, l.client_name, l.phone
+      FROM follow_ups fu
+      LEFT JOIN leads l ON l.id = fu.lead_id
+      WHERE fu.lead_id = $1 
+      ORDER BY fu.due_date ASC
+    `, [leadId]);
     return result.rows;
   },
 
@@ -119,9 +134,13 @@ export const followUpsModel = {
   },
 
   async findOverdue() {
-    const result = await query(
-      "SELECT * FROM follow_ups WHERE status != 'completed' AND due_date < NOW() ORDER BY due_date ASC"
-    );
+    const result = await query(`
+      SELECT fu.*, l.client_name, l.phone
+      FROM follow_ups fu
+      LEFT JOIN leads l ON l.id = fu.lead_id
+      WHERE fu.status != 'completed' AND fu.due_date < NOW() 
+      ORDER BY fu.due_date ASC
+    `);
     return result.rows;
   }
 };

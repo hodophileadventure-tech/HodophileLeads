@@ -246,6 +246,12 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                 <div className="flex flex-wrap gap-2 justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{task.title}</h3>
+                    {item.clientName && (
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Client: <span className="font-medium">{item.clientName}</span>
+                        {item.phone && <span className="text-slate-500"> · {item.phone}</span>}
+                      </p>
+                    )}
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{task.description}</p>
                     <p className="text-xs text-slate-500 mt-2">{task.dueLabel}</p>
                     {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (

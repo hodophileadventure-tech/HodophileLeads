@@ -158,6 +158,37 @@ export const quoteRequestsModel = {
     return res.rows.map(mapQuoteRequestRow);
   },
 
+  async findPendingByAgent(agentId: string) {
+    const res = await query(`
+      SELECT qr.*, u.name AS requested_by_name,
+             l.client_name AS lead_client_name,
+             l.email AS lead_email,
+             l.phone AS lead_phone,
+             l.destination AS lead_destination,
+             l.destinations AS lead_destinations,
+             l.travel_dates AS lead_travel_dates,
+             l.persons AS lead_persons,
+             l.adults AS lead_adults,
+             l.kids AS lead_kids,
+             l.seniors AS lead_seniors,
+             l.budget AS lead_budget,
+             l.tour_type AS lead_tour_type,
+             l.source AS lead_source,
+             l.status AS lead_status,
+             l.remarks AS lead_remarks,
+             l.special_requests AS lead_special_requests,
+             l.lead_outcome AS lead_lead_outcome,
+             l.agent_remarks AS lead_agent_remarks,
+             l.islamabad_stay AS lead_islamabad_stay
+      FROM quote_requests qr
+      LEFT JOIN users u ON u.id = qr.requested_by
+      LEFT JOIN leads l ON l.id = qr.lead_id
+      WHERE l.agent_id = $1 AND qr.status IN ('requested', 'saved')
+      ORDER BY qr.created_at DESC
+    `, [agentId]);
+    return res.rows.map(mapQuoteRequestRow);
+  },
+
   async findByLead(leadId: string) {
     const res = await query('SELECT * FROM quote_requests WHERE lead_id = $1 ORDER BY created_at DESC', [leadId]);
     return res.rows.map(mapQuoteRequestRow);

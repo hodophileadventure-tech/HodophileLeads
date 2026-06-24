@@ -115,7 +115,16 @@ export const quoteRequestsController = {
 
   async listPending(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const pendingRequests = await quoteRequestsModel.findPending();
+      let pendingRequests;
+
+      if (req.user.role === 'agent') {
+        // Agents see only quote requests for their own leads
+        pendingRequests = await quoteRequestsModel.findPendingByAgent(req.user.id);
+      } else {
+        // Managers and admins see all pending requests
+        pendingRequests = await quoteRequestsModel.findPending();
+      }
+
       res.json(pendingRequests);
     } catch (error) {
       next(error);
