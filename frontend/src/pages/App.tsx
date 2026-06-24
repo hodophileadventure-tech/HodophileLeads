@@ -1101,10 +1101,17 @@ export const App: React.FC = () => {
                               </div>
                               <div>
                                 <p className="text-xs text-slate-500">Email</p>
-                                <p className="font-medium text-blue-600 break-all">{selectedQuoteRequest.leadEmail || '—'}</p>
+                                <p className="font-medium text-blue-600 break-all text-xs">{selectedQuoteRequest.leadEmail || '—'}</p>
                               </div>
                             </div>
                           </div>
+
+                          {(selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy) && (
+                            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 p-2 rounded">
+                              <p className="text-xs text-blue-800 dark:text-blue-300 font-semibold">Requested By Agent</p>
+                              <p className="text-xs text-blue-900 dark:text-blue-200 mt-1">{selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy || '—'}</p>
+                            </div>
+                          )}
 
                           <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
                             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">TRIP DETAILS</p>
@@ -1128,10 +1135,35 @@ export const App: React.FC = () => {
                             </div>
                           </div>
 
-                          {selectedQuoteRequest.leadRemarks && (
-                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 p-2 rounded">
-                              <p className="text-xs text-yellow-800 dark:text-yellow-300 font-semibold mb-1">Agent Remarks</p>
-                              <p className="text-xs text-yellow-900 dark:text-yellow-200">{selectedQuoteRequest.leadRemarks}</p>
+                          {(selectedQuoteRequest.leadRemarks || selectedQuoteRequest.leadSpecialRequests || selectedQuoteRequest.leadTourType || selectedQuoteRequest.leadSource) && (
+                            <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">PREFERENCES & DETAILS</p>
+                              <div className="mt-2 space-y-2">
+                                {selectedQuoteRequest.leadTourType && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Tour Type</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadTourType}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadSource && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Source</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadSource}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadSpecialRequests && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Special Requests</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadSpecialRequests}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadRemarks && (
+                                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                                    <p className="text-xs text-yellow-700 dark:text-yellow-300 font-semibold">Agent Remarks</p>
+                                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedQuoteRequest.leadRemarks}</p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -1248,10 +1280,17 @@ export const App: React.FC = () => {
                               </div>
                               <div>
                                 <p className="text-xs text-slate-500">Email</p>
-                                <p className="font-medium text-blue-600 break-all">{selectedQuoteRequest.leadEmail || '—'}</p>
+                                <p className="font-medium text-blue-600 break-all text-xs">{selectedQuoteRequest.leadEmail || '—'}</p>
                               </div>
                             </div>
                           </div>
+
+                          {(selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy) && (
+                            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 p-2 rounded">
+                              <p className="text-xs text-blue-800 dark:text-blue-300 font-semibold">Requested By Agent</p>
+                              <p className="text-xs text-blue-900 dark:text-blue-200 mt-1">{selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy || '—'}</p>
+                            </div>
+                          )}
 
                           <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
                             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">TRIP DETAILS</p>
@@ -1285,10 +1324,35 @@ export const App: React.FC = () => {
                             </div>
                           </div>
 
-                          {selectedQuoteRequest.leadRemarks && (
-                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 p-2 rounded">
-                              <p className="text-xs text-yellow-800 dark:text-yellow-300 font-semibold mb-1">Agent Remarks</p>
-                              <p className="text-xs text-yellow-900 dark:text-yellow-200">{selectedQuoteRequest.leadRemarks}</p>
+                          {(selectedQuoteRequest.leadRemarks || selectedQuoteRequest.leadSpecialRequests || selectedQuoteRequest.leadTourType || selectedQuoteRequest.leadSource) && (
+                            <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">PREFERENCES & DETAILS</p>
+                              <div className="mt-2 space-y-2">
+                                {selectedQuoteRequest.leadTourType && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Tour Type</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadTourType}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadSource && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Source</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadSource}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadSpecialRequests && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Special Requests</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadSpecialRequests}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadRemarks && (
+                                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                                    <p className="text-xs text-yellow-700 dark:text-yellow-300 font-semibold">Agent Remarks</p>
+                                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedQuoteRequest.leadRemarks}</p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
