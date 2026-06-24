@@ -128,8 +128,8 @@ export const calculateLeadDataHealth = (lead: any): number => {
   
   // If lead has a phone (which is required), minimum health is 10%
   // If no phone, health is 0%
-  if (healthScore === 0 && hasPhone) {
-    return 10;
+  if (hasPhone) {
+    return Math.max(healthScore, 10);
   }
   
   return Math.min(healthScore, 100);

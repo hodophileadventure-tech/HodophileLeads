@@ -108,6 +108,17 @@ export const calculateLeadDataHealth = (lead: any): number => {
     return !!value;
   };
 
+  // Debug log
+  if (!lead.id || lead.id.length < 10) {
+    console.debug('calculateLeadDataHealth debug:', {
+      phone: lead.phone,
+      clientName: lead.clientName,
+      client_name: lead.client_name,
+      destination: lead.destination,
+      keys: Object.keys(lead).slice(0, 20)
+    });
+  }
+
   // Essential fields - these are the minimum
   if (hasField('clientName', 'client_name')) filledFields += 1;
   if (hasField('email', 'email')) filledFields += 1;
@@ -164,8 +175,8 @@ export const calculateLeadDataHealth = (lead: any): number => {
   
   // If lead has a phone (which is required), minimum health is 10%
   // If no phone, health is 0%
-  if (healthScore === 0 && hasPhone) {
-    return 10;
+  if (hasPhone) {
+    return Math.max(healthScore, 10);
   }
   
   return Math.min(healthScore, 100);
