@@ -1,5 +1,4 @@
 import { query } from '../utils/database';
-import { calculateLeadTemperature } from '../services/lead-service';
 import type { Lead } from '../types';
 import { profileModel } from './Profile';
 
@@ -105,11 +104,9 @@ export const leadsModel = {
   },
 
   async create(data: Partial<Lead>) {
-    const temperature = calculateLeadTemperature({
-      sourceType: data.source,
-      followUpCount: 0,
-      daysInPipeline: 0
-    });
+    // New leads always start as 'warm' (active)
+    // They can only become 'dead' when explicitly marked
+    const temperature = 'warm';
 
     const sql = `
       INSERT INTO leads (

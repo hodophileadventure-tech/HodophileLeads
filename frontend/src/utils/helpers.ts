@@ -96,7 +96,8 @@ export const getLeadLifecycleState = (lead: {
 }): LeadLifecycleState => {
   if (lead.potential) return 'potential';
   if (lead.leadOutcome === 'confirmed') return 'confirmed';
-  if (lead.status === 'completed' || lead.status === 'canceled') return 'dead';
+  // Only use temperature value if explicitly set to 'dead' - don't auto-set from status
+  if (lead.temperature === 'dead') return 'dead';
   if (lead.pipelineStage === 'confirmed' || lead.status === 'booked') return 'confirmed';
 
   const inProgressStages = new Set([
