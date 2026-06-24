@@ -14,24 +14,12 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'pending' | 'saved'>('pending');
 
   useEffect(() => {
     loadRequests();
 
     const handleQuoteSaved = () => {
       loadRequests();
-    };
-
-    const handleJump = (e: Event) => {
-      const ev = e as CustomEvent<any> | any;
-      const target = ev?.detail;
-      
-      if (target === 'pending') {
-        scrollToSection('pending');
-      } else if (target === 'saved') {
-        scrollToSection('saved');
-      }
     };
 
     const handleFocusSearch = async (e: Event) => {
@@ -50,36 +38,12 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       }
     };
 
-    const handleScroll = () => {
-      const pendingEl = document.getElementById('pending-section');
-      const savedEl = document.getElementById('saved-section');
-      
-      if (!pendingEl || !savedEl) return;
-      
-      const pendingRect = pendingEl.getBoundingClientRect();
-      const savedRect = savedEl.getBoundingClientRect();
-      
-      // Check which section is closer to the top of the viewport
-      const pendingDist = Math.abs(pendingRect.top);
-      const savedDist = Math.abs(savedRect.top);
-      
-      if (pendingDist < savedDist) {
-        setActiveTab('pending');
-      } else {
-        setActiveTab('saved');
-      }
-    };
-
     window.addEventListener('quote-request-saved', handleQuoteSaved as EventListener);
-    window.addEventListener('jump-to-quote-section', handleJump as EventListener);
     window.addEventListener('focus-quote-search', handleFocusSearch as EventListener);
-    window.addEventListener('scroll', handleScroll, { passive: true });
     
     return () => {
       window.removeEventListener('quote-request-saved', handleQuoteSaved as EventListener);
-      window.removeEventListener('jump-to-quote-section', handleJump as EventListener);
       window.removeEventListener('focus-quote-search', handleFocusSearch as EventListener);
-      window.removeEventListener('scroll', handleScroll);
     };
   }, [onSelectRequest]);
 
@@ -101,16 +65,6 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       return [];
     } finally {
       setLoading(false);
-    }
-  };
-
-  const scrollToSection = (section: 'pending' | 'saved') => {
-    const el = document.getElementById(section === 'pending' ? 'pending-section' : 'saved-section');
-    if (el) {
-      setTimeout(() => {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        setActiveTab(section);
-      }, 50);
     }
   };
 
@@ -253,33 +207,6 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Sticky Navigation Tabs */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
-          <div className="flex items-center gap-2 p-4">
-            <button
-              disabled
-              className="px-4 py-2 rounded-lg font-medium opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-            >
-              ↓ Pending
-            </button>
-            <button
-              disabled
-              className="px-4 py-2 rounded-lg font-medium opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-            >
-              ↓ Saved
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            aria-label="Search quotations"
-            placeholder="Search by client, phone, or quote #"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border rounded p-2 flex-1"
-            disabled
-          />
-        </div>
         <div className="card">
           <h2 className="text-2xl font-semibold mb-4">Pending Quote Requests</h2>
           <div className="text-center py-8 text-slate-500">
@@ -293,32 +220,6 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
   if (error) {
     return (
       <div className="space-y-6">
-        {/* Sticky Navigation Tabs */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
-          <div className="flex items-center gap-2 p-4">
-            <button
-              disabled
-              className="px-4 py-2 rounded-lg font-medium opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-            >
-              ↓ Pending
-            </button>
-            <button
-              disabled
-              className="px-4 py-2 rounded-lg font-medium opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-            >
-              ↓ Saved
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            aria-label="Search quotations"
-            placeholder="Search by client, phone, or quote #"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border rounded p-2 flex-1"
-          />
-        </div>
         <div className="card">
           <h2 className="text-2xl font-semibold mb-4">Pending Quote Requests</h2>
           <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg">
@@ -334,40 +235,6 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
 
   return (
     <div className="space-y-6" id="pending-quotes-panel" style={{ display: 'block' }}>
-      {/* Sticky Navigation Header - On Top */}
-      <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-md">
-        <div className="flex flex-col gap-3 p-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scrollToSection('pending')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'pending'
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              ↓ Pending ({pendingRequests.length})
-            </button>
-            <button
-              onClick={() => scrollToSection('saved')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'saved'
-                  ? 'bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              ↓ Saved ({savedRequests.length})
-            </button>
-          </div>
-          <input
-            aria-label="Search quotations"
-            placeholder="Search by client, phone, or quote #"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border rounded p-2 flex-1 w-full"
-          />
-        </div>
-      </div>
       <section id="pending-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
           <div>

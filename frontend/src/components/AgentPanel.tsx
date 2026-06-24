@@ -482,6 +482,38 @@ export const AgentPanel: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {/* Sticky Quote Navigation - On Top */}
+      <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-md rounded-lg">
+        <div className="flex items-center gap-2 p-4">
+          <button
+            onClick={() => {
+              const el = document.getElementById('pending-section');
+              if (el) {
+                setTimeout(() => {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+              }
+            }}
+            className="px-4 py-2 rounded-lg font-medium transition-colors bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-800"
+          >
+            ↓ Pending Quotes
+          </button>
+          <button
+            onClick={() => {
+              const el = document.getElementById('saved-section');
+              if (el) {
+                setTimeout(() => {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+              }
+            }}
+            className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-800"
+          >
+            ↓ Saved Quotes
+          </button>
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
