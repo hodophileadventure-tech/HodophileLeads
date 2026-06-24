@@ -87,6 +87,53 @@ export const getHealthScoreColor = (score: string): string => {
   return colors[score as keyof typeof colors] || 'bg-gray-500';
 };
 
+export const calculateLeadDataHealth = (lead: any): number => {
+  let filledFields = 0;
+  const totalWeightedFields = 15;
+
+  // Essential fields
+  if (lead.clientName && lead.clientName.trim()) filledFields += 1;
+  if (lead.email && lead.email.trim()) filledFields += 1;
+  if (lead.phone && lead.phone.trim()) filledFields += 1;
+
+  // Important fields
+  if (lead.destination && lead.destination.trim()) filledFields += 1;
+  if (lead.travelDates) {
+    const dates = typeof lead.travelDates === 'string' ? JSON.parse(lead.travelDates) : lead.travelDates;
+    if (dates.from && dates.to) filledFields += 1;
+  }
+  if (lead.persons && lead.persons > 0) filledFields += 1;
+  if (lead.budget && lead.budget > 0) filledFields += 1;
+
+  // Additional details
+  if (lead.adults && lead.adults > 0) filledFields += 1;
+  if (lead.kids && lead.kids >= 0) filledFields += 1;
+  if (lead.tourType && lead.tourType.trim()) filledFields += 1;
+  if (lead.specialRequests && lead.specialRequests.trim()) filledFields += 1;
+  if (lead.transportPreference && lead.transportPreference.trim()) filledFields += 1;
+  if (lead.hotelPreference && lead.hotelPreference.trim()) filledFields += 1;
+
+  // Hotel info
+  if (lead.hotelOptions && Array.isArray(lead.hotelOptions) && lead.hotelOptions.length > 0) {
+    filledFields += 2;
+  } else if (lead.hotelInfo) {
+    filledFields += 1;
+  }
+
+  if (lead.destinations && Array.isArray(lead.destinations) && lead.destinations.length > 1) {
+    filledFields += 1;
+  }
+
+  return Math.min(Math.round((filledFields / totalWeightedFields) * 100), 100);
+};
+
+export const getDataHealthColor = (healthScore: number): { bg: string; text: string; label: string } => {
+  if (healthScore === 0) return { bg: 'bg-red-100 dark:bg-red-900', text: 'text-red-800 dark:text-red-200', label: 'Empty' };
+  if (healthScore < 33) return { bg: 'bg-orange-100 dark:bg-orange-900', text: 'text-orange-800 dark:text-orange-200', label: 'Low' };
+  if (healthScore < 66) return { bg: 'bg-yellow-100 dark:bg-yellow-900', text: 'text-yellow-800 dark:text-yellow-200', label: 'Medium' };
+  return { bg: 'bg-green-100 dark:bg-green-900', text: 'text-green-800 dark:text-green-200', label: 'High' };
+};
+
 export const getLeadLifecycleState = (lead: {
   potential?: boolean;
   temperature?: string;

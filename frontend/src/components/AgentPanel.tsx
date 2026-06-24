@@ -6,7 +6,7 @@ import ConfirmedLeadForm from './ConfirmedLeadForm';
 import { PendingQuotesPanel } from './PendingQuotesPanel';
 import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
 
@@ -561,6 +561,8 @@ export const AgentPanel: React.FC = () => {
       <div className="space-y-2">
         {filteredLeads.map((lead) => {
           const lifecycle = getLeadLifecycleStyle(lead);
+          const dataHealth = calculateLeadDataHealth(lead);
+          const healthColor = getDataHealthColor(dataHealth);
           return (
             <div
               key={lead.id}
@@ -570,6 +572,9 @@ export const AgentPanel: React.FC = () => {
                 <div className="font-semibold flex items-center gap-2">
                   <span>{lead.clientName || 'Unnamed'}</span>
                   <Badge color={lifecycle.badge}>{lifecycle.label}</Badge>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${healthColor.bg} ${healthColor.text}`}>
+                    Data: {dataHealth}%
+                  </span>
                 </div>
                 <div className="text-sm text-slate-500">{lead.phone} • {lead.destination}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">

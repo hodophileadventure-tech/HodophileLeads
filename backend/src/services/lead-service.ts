@@ -57,6 +57,57 @@ export const calculateBookingHealthScore = (factors: {
   };
 };
 
+// Calculate lead data health based on how many fields are filled
+export const calculateLeadDataHealth = (lead: any): number => {
+  let filledFields = 0;
+  const totalWeightedFields = 15; // maximum points
+
+  // Essential fields (1 point each)
+  if (lead.clientName && lead.clientName.trim()) filledFields += 1;
+  if (lead.email && lead.email.trim()) filledFields += 1;
+  if (lead.phone && lead.phone.trim()) filledFields += 1;
+
+  // Important fields (1 point each)
+  if (lead.destination && lead.destination.trim()) filledFields += 1;
+  if (lead.travelDates) {
+    if (typeof lead.travelDates === 'string') {
+      try {
+        const parsed = JSON.parse(lead.travelDates);
+        if (parsed.from && parsed.to) filledFields += 1;
+      } catch {
+        if (lead.travelDates.from && lead.travelDates.to) filledFields += 1;
+      }
+    } else if (lead.travelDates.from && lead.travelDates.to) {
+      filledFields += 1;
+    }
+  }
+  if (lead.persons && lead.persons > 0) filledFields += 1;
+  if (lead.budget && lead.budget > 0) filledFields += 1;
+
+  // Additional details (1 point each)
+  if (lead.adults && lead.adults > 0) filledFields += 1;
+  if (lead.kids && lead.kids >= 0) filledFields += 1;
+  if (lead.tourType && lead.tourType.trim()) filledFields += 1;
+  if (lead.specialRequests && lead.specialRequests.trim()) filledFields += 1;
+  if (lead.transportPreference && lead.transportPreference.trim()) filledFields += 1;
+  if (lead.hotelPreference && lead.hotelPreference.trim()) filledFields += 1;
+
+  // Hotel options/info (2 points if filled)
+  if (lead.hotelOptions && Array.isArray(lead.hotelOptions) && lead.hotelOptions.length > 0) {
+    filledFields += 2;
+  } else if (lead.hotelInfo && (typeof lead.hotelInfo === 'string' ? lead.hotelInfo.trim() : true)) {
+    filledFields += 1;
+  }
+
+  // Destinations array (1 point if multiple destinations)
+  if (lead.destinations && Array.isArray(lead.destinations) && lead.destinations.length > 1) {
+    filledFields += 1;
+  }
+
+  // Cap at 100 (in case of extra fields)
+  return Math.min(Math.round((filledFields / totalWeightedFields) * 100), 100);
+};
+
 export const generateFollowUpTasks = async (leadId: string, eventType: string) => {
   const now = new Date();
 
