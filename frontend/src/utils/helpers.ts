@@ -97,14 +97,18 @@ export const calculateLeadDataHealth = (lead: any): number => {
     const snakeVal = lead[snakeCase];
     const value = camelVal ?? snakeVal;
     
-    if (!value) return false;
-    if (typeof value === 'string') return value.trim().length > 0;
+    if (value === null || value === undefined || value === '') return false;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed.length > 0;
+    }
     if (typeof value === 'number') return value > 0;
     if (typeof value === 'boolean') return value;
+    if (Array.isArray(value)) return value.length > 0;
     return !!value;
   };
 
-  // Essential fields
+  // Essential fields - these are the minimum
   if (hasField('clientName', 'client_name')) filledFields += 1;
   if (hasField('email', 'email')) filledFields += 1;
   if (hasField('phone', 'phone')) filledFields += 1;
@@ -154,7 +158,17 @@ export const calculateLeadDataHealth = (lead: any): number => {
     filledFields += 1;
   }
 
-  return Math.min(Math.round((filledFields / totalWeightedFields) * 100), 100);
+  // Calculate percentage with minimum of 10% if phone exists
+  const healthScore = Math.round((filledFields / totalWeightedFields) * 100);
+  const hasPhone = hasField('phone', 'phone');
+  
+  // If lead has a phone (which is required), minimum health is 10%
+  // If no phone, health is 0%
+  if (healthScore === 0 && hasPhone) {
+    return 10;
+  }
+  
+  return Math.min(healthScore, 100);
 };
 
 export const getDataHealthColor = (healthScore: number): { bg: string; text: string; label: string } => {

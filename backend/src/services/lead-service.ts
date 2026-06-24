@@ -64,10 +64,11 @@ export const calculateLeadDataHealth = (lead: any): number => {
 
   // Helper to safely check string/number fields
   const hasField = (value: any): boolean => {
-    if (!value) return false;
+    if (value === null || value === undefined || value === '') return false;
     if (typeof value === 'string') return value.trim().length > 0;
     if (typeof value === 'number') return value > 0;
     if (typeof value === 'boolean') return value;
+    if (Array.isArray(value)) return value.length > 0;
     return !!value;
   };
 
@@ -90,13 +91,13 @@ export const calculateLeadDataHealth = (lead: any): number => {
   }
   
   const persons = lead.persons || lead.person;
-  if (persons && persons > 0) filledFields += 1;
+  if (hasField(persons)) filledFields += 1;
   
-  if (lead.budget && lead.budget > 0) filledFields += 1;
+  if (hasField(lead.budget)) filledFields += 1;
 
   // Additional details (1 point each)
   const adults = lead.adults;
-  if (adults && adults > 0) filledFields += 1;
+  if (hasField(adults)) filledFields += 1;
   
   const kids = lead.kids;
   if (kids !== undefined && kids !== null && kids >= 0) filledFields += 1;
@@ -121,8 +122,17 @@ export const calculateLeadDataHealth = (lead: any): number => {
     filledFields += 1;
   }
 
-  // Cap at 100 (in case of extra fields)
-  return Math.min(Math.round((filledFields / totalWeightedFields) * 100), 100);
+  // Calculate percentage with minimum of 10% if phone exists
+  const healthScore = Math.round((filledFields / totalWeightedFields) * 100);
+  const hasPhone = hasField(lead.phone);
+  
+  // If lead has a phone (which is required), minimum health is 10%
+  // If no phone, health is 0%
+  if (healthScore === 0 && hasPhone) {
+    return 10;
+  }
+  
+  return Math.min(healthScore, 100);
 };
 
 export const generateFollowUpTasks = async (leadId: string, eventType: string) => {
