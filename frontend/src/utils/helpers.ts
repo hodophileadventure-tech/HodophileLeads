@@ -173,6 +173,15 @@ export const calculateLeadDataHealth = (lead: any): number => {
   const healthScore = Math.round((filledFields / totalWeightedFields) * 100);
   const hasPhone = hasField('phone', 'phone');
   
+  // Debug: Always log for any lead
+  console.log(`Health calc for ${lead.clientName || lead.client_name}:`, {
+    filledFields,
+    healthScore,
+    hasPhone,
+    phone: lead.phone,
+    result: hasPhone ? Math.max(healthScore, 10) : Math.min(healthScore, 100)
+  });
+  
   // If lead has a phone (which is required), minimum health is 10%
   // If no phone, health is 0%
   if (hasPhone) {
