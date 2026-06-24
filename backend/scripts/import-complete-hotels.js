@@ -1071,6 +1071,16 @@ async function importAllHotels() {
   try {
     console.log('🏨 Starting complete hotels import...\n');
 
+    // Check if hotels already exist to avoid duplicate import
+    const existingHotels = await query('SELECT COUNT(*) as count FROM hotels');
+    const hotelCount = parseInt(existingHotels.rows[0].count);
+    
+    if (hotelCount > 0) {
+      console.log(`⏭️  Skipping import: ${hotelCount} hotels already exist in database`);
+      console.log('   (If you need to reimport, delete existing hotels first)\n');
+      process.exit(0);
+    }
+
     let totalHotels = 0;
     let totalRooms = 0;
     let totalPricing = 0;

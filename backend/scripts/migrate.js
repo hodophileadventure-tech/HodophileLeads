@@ -423,7 +423,61 @@ async function migrate() {
     `);
     console.log('✅ Issues table created');
 
-    // 12. Create Indexes for performance
+    // 13. Hotels Tables (for Hotel Directory feature)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hotels (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) NOT NULL,
+        city VARCHAR(100) NOT NULL,
+        location VARCHAR(255),
+        contact_phone VARCHAR(50),
+        contact_email VARCHAR(255),
+        description TEXT,
+        rating DECIMAL(3,1),
+        amenities TEXT[],
+        image_url VARCHAR(500),
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Hotels table created');
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS room_types (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        hotel_id UUID NOT NULL REFERENCES hotels(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        capacity INTEGER NOT NULL DEFAULT 2,
+        amenities TEXT[],
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Room Types table created');
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS room_pricing (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        room_type_id UUID NOT NULL REFERENCES room_types(id) ON DELETE CASCADE,
+        occupancy_type VARCHAR(50),
+        season_name VARCHAR(50),
+        season_start_date DATE,
+        season_end_date DATE,
+        price_pkr DECIMAL(10,2),
+        price_range_min DECIMAL(10,2),
+        price_range_max DECIMAL(10,2),
+        extra_services JSONB,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Room Pricing table created');
+
+    // 14. Create Indexes for performance
     const indexQueries = [
       'CREATE INDEX IF NOT EXISTS idx_leads_agent_id ON leads(agent_id)',
       'CREATE INDEX IF NOT EXISTS idx_leads_temperature ON leads(temperature)',
@@ -444,7 +498,13 @@ async function migrate() {
       'CREATE INDEX IF NOT EXISTS idx_client_profiles_phone ON client_profiles(phone)',
       'CREATE INDEX IF NOT EXISTS idx_screen_captures_agent_id ON screen_captures(agent_id)',
       'CREATE INDEX IF NOT EXISTS idx_screen_captures_expires_at ON screen_captures(expires_at)',
-      'CREATE INDEX IF NOT EXISTS idx_issues_created_at ON issues(created_at DESC)'
+      'CREATE INDEX IF NOT EXISTS idx_issues_created_at ON issues(created_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_hotels_city ON hotels(city)',
+      'CREATE INDEX IF NOT EXISTS idx_hotels_is_active ON hotels(is_active)',
+      'CREATE INDEX IF NOT EXISTS idx_room_types_hotel_id ON room_types(hotel_id)',
+      'CREATE INDEX IF NOT EXISTS idx_room_types_is_active ON room_types(is_active)',
+      'CREATE INDEX IF NOT EXISTS idx_room_pricing_room_type_id ON room_pricing(room_type_id)',
+      'CREATE INDEX IF NOT EXISTS idx_room_pricing_is_active ON room_pricing(is_active)'
     ];
 
     for (const query of indexQueries) {
