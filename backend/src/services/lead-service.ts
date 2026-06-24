@@ -62,45 +62,62 @@ export const calculateLeadDataHealth = (lead: any): number => {
   let filledFields = 0;
   const totalWeightedFields = 15; // maximum points
 
+  // Helper to safely check string/number fields
+  const hasField = (value: any): boolean => {
+    if (!value) return false;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === 'number') return value > 0;
+    if (typeof value === 'boolean') return value;
+    return !!value;
+  };
+
   // Essential fields (1 point each)
-  if (lead.clientName && lead.clientName.trim()) filledFields += 1;
-  if (lead.email && lead.email.trim()) filledFields += 1;
-  if (lead.phone && lead.phone.trim()) filledFields += 1;
+  if (hasField(lead.clientName || lead.client_name)) filledFields += 1;
+  if (hasField(lead.email)) filledFields += 1;
+  if (hasField(lead.phone)) filledFields += 1;
 
   // Important fields (1 point each)
-  if (lead.destination && lead.destination.trim()) filledFields += 1;
-  if (lead.travelDates) {
-    if (typeof lead.travelDates === 'string') {
-      try {
-        const parsed = JSON.parse(lead.travelDates);
-        if (parsed.from && parsed.to) filledFields += 1;
-      } catch {
-        if (lead.travelDates.from && lead.travelDates.to) filledFields += 1;
-      }
-    } else if (lead.travelDates.from && lead.travelDates.to) {
-      filledFields += 1;
+  if (hasField(lead.destination)) filledFields += 1;
+  
+  const travelDates = lead.travelDates || lead.travel_dates;
+  if (travelDates) {
+    try {
+      const dates = typeof travelDates === 'string' ? JSON.parse(travelDates) : travelDates;
+      if (dates?.from && dates?.to) filledFields += 1;
+    } catch {
+      // ignore parse errors
     }
   }
-  if (lead.persons && lead.persons > 0) filledFields += 1;
+  
+  const persons = lead.persons || lead.person;
+  if (persons && persons > 0) filledFields += 1;
+  
   if (lead.budget && lead.budget > 0) filledFields += 1;
 
   // Additional details (1 point each)
-  if (lead.adults && lead.adults > 0) filledFields += 1;
-  if (lead.kids && lead.kids >= 0) filledFields += 1;
-  if (lead.tourType && lead.tourType.trim()) filledFields += 1;
-  if (lead.specialRequests && lead.specialRequests.trim()) filledFields += 1;
-  if (lead.transportPreference && lead.transportPreference.trim()) filledFields += 1;
-  if (lead.hotelPreference && lead.hotelPreference.trim()) filledFields += 1;
+  const adults = lead.adults;
+  if (adults && adults > 0) filledFields += 1;
+  
+  const kids = lead.kids;
+  if (kids !== undefined && kids !== null && kids >= 0) filledFields += 1;
+  
+  if (hasField(lead.tourType || lead.tour_type)) filledFields += 1;
+  if (hasField(lead.specialRequests || lead.special_requests)) filledFields += 1;
+  if (hasField(lead.transportPreference || lead.transport_preference)) filledFields += 1;
+  if (hasField(lead.hotelPreference || lead.hotel_preference)) filledFields += 1;
 
   // Hotel options/info (2 points if filled)
-  if (lead.hotelOptions && Array.isArray(lead.hotelOptions) && lead.hotelOptions.length > 0) {
+  const hotelOptions = lead.hotelOptions || lead.hotel_options;
+  if (hotelOptions && Array.isArray(hotelOptions) && hotelOptions.length > 0) {
     filledFields += 2;
-  } else if (lead.hotelInfo && (typeof lead.hotelInfo === 'string' ? lead.hotelInfo.trim() : true)) {
-    filledFields += 1;
+  } else {
+    const hotelInfo = lead.hotelInfo || lead.hotel_info;
+    if (hotelInfo) filledFields += 1;
   }
 
   // Destinations array (1 point if multiple destinations)
-  if (lead.destinations && Array.isArray(lead.destinations) && lead.destinations.length > 1) {
+  const destinations = lead.destinations;
+  if (destinations && Array.isArray(destinations) && destinations.length > 1) {
     filledFields += 1;
   }
 
