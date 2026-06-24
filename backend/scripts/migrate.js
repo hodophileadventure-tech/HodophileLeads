@@ -477,6 +477,15 @@ async function migrate() {
     `);
     console.log('✅ Room Pricing table created');
 
+    // 13a. Fix existing lead temperatures - update old auto-calculated 'dead' leads to 'warm'
+    await client.query(`
+      UPDATE leads
+      SET temperature = 'warm'
+      WHERE temperature = 'dead' 
+        AND status NOT IN ('completed', 'canceled')
+    `);
+    console.log('✅ Lead temperatures fixed - reverted auto-dead leads to warm');
+
     // 14. Create Indexes for performance
     const indexQueries = [
       'CREATE INDEX IF NOT EXISTS idx_leads_agent_id ON leads(agent_id)',
