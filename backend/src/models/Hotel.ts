@@ -202,13 +202,12 @@ export const hotelModel = {
       SELECT
         COUNT(DISTINCT h.id) as total_hotels,
         COUNT(DISTINCT h.city) as total_cities,
-        COUNT(DISTINCT rt.id) as total_room_types,
-        json_object_agg(h.city, COUNT(h.id)) as hotels_by_city
+        COUNT(DISTINCT rt.id) as total_room_types
       FROM hotels h
       LEFT JOIN room_types rt ON h.id = rt.hotel_id AND rt.is_active = true
       WHERE h.is_active = true
     `;
     const result = await query(sql);
-    return result.rows[0];
+    return result.rows[0] || { total_hotels: 0, total_cities: 0, total_room_types: 0 };
   }
 };
