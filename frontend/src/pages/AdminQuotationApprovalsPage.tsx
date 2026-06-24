@@ -148,7 +148,7 @@ export default function AdminQuotationApprovalsPage({
   }
 
   return (
-    <div className="grid grid-cols-3 gap-6">
+    <div className="grid grid-cols-3 gap-6 w-full">
       {/* Back Button */}
       <div className="col-span-3">
         <Button
@@ -160,7 +160,7 @@ export default function AdminQuotationApprovalsPage({
       </div>
 
       {/* Left: Lead Details */}
-      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4">
+      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0">
         <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
         <div className="space-y-3 text-sm">
           <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
@@ -209,7 +209,7 @@ export default function AdminQuotationApprovalsPage({
       </aside>
 
       {/* Middle: Quotation Preview */}
-      <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4">
+      <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0">
         <QuoteInvoicePage
           key={selectedRequest.id}
           leadId={selectedRequest.leadId}
@@ -229,7 +229,7 @@ export default function AdminQuotationApprovalsPage({
       </main>
 
       {/* Right: Approval Actions */}
-      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4">
+      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0">
         <h3 className="font-semibold mb-4">Admin Actions</h3>
 
         {message && (

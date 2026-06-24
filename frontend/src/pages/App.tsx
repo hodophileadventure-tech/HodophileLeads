@@ -1176,9 +1176,9 @@ export const App: React.FC = () => {
                       ← Back to Quotations
                     </Button>
 
-                    <div className="grid grid-cols-3 gap-6 min-h-[80vh]">
+                    <div className="grid grid-cols-3 gap-6 min-h-[80vh] w-full">
                       {/* Left: Lead Details */}
-                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto">
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0">
                         <h3 className="font-semibold mb-4 text-sm">Agent Lead Details</h3>
                         <div className="space-y-3 text-sm">
                           <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
@@ -1241,7 +1241,7 @@ export const App: React.FC = () => {
                       </aside>
 
                       {/* Middle: Quotation Form */}
-                      <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4">
+                      <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0">
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
@@ -1268,7 +1268,7 @@ export const App: React.FC = () => {
                       </main>
 
                       {/* Right: Preview */}
-                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden">
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0">
                         <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
                         <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
                           {previewDataUrl ? (
