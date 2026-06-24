@@ -1176,9 +1176,9 @@ export const App: React.FC = () => {
                       ← Back to Quotations
                     </Button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[80vh]">
                       {/* Left: Lead Details */}
-                      <aside className="col-span-1 md:col-span-3 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto">
+                      <aside className="col-span-1 lg:col-span-3 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto">
                         <h3 className="font-semibold mb-4 text-sm">Agent Lead Details</h3>
                         <div className="space-y-3 text-sm">
                           <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
@@ -1241,7 +1241,7 @@ export const App: React.FC = () => {
                       </aside>
 
                       {/* Middle: Quotation Form */}
-                      <main className="col-span-1 md:col-span-6 overflow-y-auto">
+                      <main className="col-span-1 lg:col-span-6 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4">
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
@@ -1268,7 +1268,7 @@ export const App: React.FC = () => {
                       </main>
 
                       {/* Right: Preview */}
-                      <aside className="col-span-1 md:col-span-3 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden">
+                      <aside className="col-span-1 lg:col-span-3 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden">
                         <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
                         <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
                           {previewDataUrl ? (
