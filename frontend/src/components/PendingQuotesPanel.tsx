@@ -334,40 +334,39 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
 
   return (
     <div className="space-y-6" id="pending-quotes-panel" style={{ display: 'block' }}>
-      {/* Sticky Navigation Tabs */}
-      <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
-        <div className="flex items-center gap-2 p-4">
-          <button
-            onClick={() => scrollToSection('pending')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'pending'
-                ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            ↓ Pending ({pendingRequests.length})
-          </button>
-          <button
-            onClick={() => scrollToSection('saved')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'saved'
-                ? 'bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            ↓ Saved ({savedRequests.length})
-          </button>
+      {/* Sticky Navigation Header - On Top */}
+      <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-md">
+        <div className="flex flex-col gap-3 p-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scrollToSection('pending')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'pending'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              ↓ Pending ({pendingRequests.length})
+            </button>
+            <button
+              onClick={() => scrollToSection('saved')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'saved'
+                  ? 'bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              ↓ Saved ({savedRequests.length})
+            </button>
+          </div>
+          <input
+            aria-label="Search quotations"
+            placeholder="Search by client, phone, or quote #"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border rounded p-2 flex-1 w-full"
+          />
         </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <input
-          aria-label="Search quotations"
-          placeholder="Search by client, phone, or quote #"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="border rounded p-2 flex-1"
-        />
       </div>
       <section id="pending-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
