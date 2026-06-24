@@ -4,7 +4,15 @@
  * Usage: node scripts/import-complete-hotels.js
  */
 
-const { query } = require('../src/utils/database');
+// Try to load from compiled dist first (production), then fallback to src (development)
+let query;
+try {
+  const database = require('../dist/utils/database');
+  query = database.query;
+} catch (e) {
+  const database = require('../src/utils/database');
+  query = database.query;
+}
 require('dotenv').config();
 
 // Complete hotels data from the provided document
