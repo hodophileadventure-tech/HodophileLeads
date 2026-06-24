@@ -1296,9 +1296,9 @@ export const App: React.FC = () => {
                       ← Back to Quotations
                     </Button>
 
-                    <div className="grid grid-cols-3 gap-6 min-h-[80vh] w-full" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
+                    <div className="grid grid-cols-3 gap-6 w-full" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', height: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
                       {/* Left: Lead Details */}
-                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0" style={{ minWidth: 0 }}>
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0" style={{ minWidth: 0, overflow: 'auto' }}>
                         <h3 className="font-semibold mb-4 text-sm">Agent Lead Details</h3>
                         <div className="space-y-3 text-sm">
                           <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
@@ -1427,7 +1427,7 @@ export const App: React.FC = () => {
                       </aside>
 
                       {/* Middle: Quotation Form */}
-                      <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
+                      <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0 overflow-hidden flex flex-col" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
                         <QuoteInvoicePage
                           key={selectedQuoteRequest.id}
                           leadId={selectedQuoteRequest.leadId}
