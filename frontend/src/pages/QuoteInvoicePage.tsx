@@ -165,6 +165,10 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   }, [_requestType]);
 
   useEffect(() => {
+    setIsSaved(['manager_pending', 'admin_pending', 'saved', 'approved', 'rejected'].includes(requestStatus || ''));
+  }, [requestStatus]);
+
+  useEffect(() => {
     if (initialDocumentData) {
       setData((current) => {
         // Only update if form hasn't been modified yet

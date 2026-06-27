@@ -279,7 +279,9 @@ export default function AdminQuotationApprovalsPage({
           key={selectedRequest.id}
           leadId={selectedRequest.leadId}
           requestId={selectedRequest.id}
+          requestType={selectedRequest.requestType}
           requestStatus={selectedRequest.status as any}
+          initialDocumentData={selectedRequest.documentData}
           viewOnly={true}
           generatePreviewOnMount
           embedded={true}

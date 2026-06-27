@@ -73,7 +73,8 @@ export const getStatusColor = (status: string): string => {
     negotiation: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900',
     booked: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900',
     completed: 'bg-gray-100 text-gray-800 dark:bg-gray-700',
-    canceled: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100'
+    canceled: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100',
+    spam: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100'
   };
   return colors[status] || colors.new;
 };

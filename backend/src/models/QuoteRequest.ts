@@ -265,6 +265,10 @@ export const quoteRequestsModel = {
       fields.push(`approved_at = $${paramIndex++}`);
       params.push(data.approvedAt);
     }
+    if (data.managerNotes !== undefined) {
+      fields.push(`manager_notes = $${paramIndex++}`);
+      params.push(data.managerNotes);
+    }
     if (data.reRequestNotes !== undefined) {
       fields.push(`re_request_notes = $${paramIndex++}`);
       params.push(data.reRequestNotes);

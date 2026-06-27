@@ -157,6 +157,10 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           <p className="text-slate-600 dark:text-slate-400">Tour Type</p>
           <p className="font-medium">{lead.tourType ? lead.tourType.charAt(0).toUpperCase() + lead.tourType.slice(1) : 'Not set'}</p>
         </div>
+        <div>
+          <p className="text-slate-600 dark:text-slate-400">Source</p>
+          <p className="font-medium capitalize">{lead.source || 'Direct'}</p>
+        </div>
         {lead.agentRemarks && (
           <div className="sm:col-span-2">
             <p className="text-slate-600 dark:text-slate-400">Agent Remarks</p>

@@ -731,6 +731,9 @@ export const AgentPanel: React.FC = () => {
               <main className="col-span-1 md:col-span-9 overflow-y-auto">
                 <QuoteInvoicePage
                   leadId={selectedRequest.leadId}
+                  requestId={selectedRequest.id}
+                  requestType={selectedRequest.requestType}
+                  requestStatus={selectedRequest.status as any}
                   leadData={{
                     clientName: selectedRequest.leadClientName,
                     phone: selectedRequest.leadPhone,
@@ -739,7 +742,7 @@ export const AgentPanel: React.FC = () => {
                     persons: selectedRequest.leadPersons,
                     address: '',
                   }}
-                  requestId={selectedRequest.id}
+                  initialDocumentData={selectedRequest.documentData}
                   viewOnly={true}
                   generatePreviewOnMount
                   onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
@@ -769,6 +772,9 @@ export const AgentPanel: React.FC = () => {
             <QuoteInvoicePage
               leadId={selectedRequest.leadId}
               requestId={selectedRequest.id}
+              requestType={selectedRequest.requestType}
+              requestStatus={selectedRequest.status as any}
+              initialDocumentData={selectedRequest.documentData}
               viewOnly={user?.role !== 'admin'}
             />
           )}

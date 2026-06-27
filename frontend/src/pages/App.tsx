@@ -768,7 +768,7 @@ export const App: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="grid gap-4 lg:grid-cols-2">
+                      <div className="grid gap-4 lg:grid-cols-3">
                         <div className="space-y-3">
                           <div>
                             <p className="text-sm text-slate-600 dark:text-slate-400">Email</p>
@@ -783,6 +783,12 @@ export const App: React.FC = () => {
                           <div>
                             <p className="text-sm text-slate-600 dark:text-slate-400">Status</p>
                             <p className="capitalize">{selectedLead.status}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Source</p>
+                            <p className="capitalize">{selectedLead.source || 'Direct'}</p>
                           </div>
                         </div>
                       </div>
@@ -1230,7 +1236,9 @@ export const App: React.FC = () => {
                           embedded={true}
                           leadData={memoizedManagerQuotationLeadData}
                           requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
                           requestStatus={selectedQuoteRequest.status as any}
+                          initialDocumentData={selectedQuoteRequest.documentData}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('pending-quotes');
@@ -1446,7 +1454,9 @@ export const App: React.FC = () => {
                           embedded={true}
                           leadData={memoizedManagerQuotationLeadData}
                           requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
                           requestStatus={selectedQuoteRequest.status as any}
+                          initialDocumentData={selectedQuoteRequest.documentData}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('manager-quotations');

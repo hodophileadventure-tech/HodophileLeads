@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'agent' | 'manager';
 export type LeadTemperature = 'hot' | 'warm' | 'cold' | 'dead';
-export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed' | 'canceled';
+export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed' | 'canceled' | 'spam';
 export type LeadOutcome = 'confirmed' | 'budget_issue' | 'no_reply';
 export type PipelineStage =
   | 'new_lead'

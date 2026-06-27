@@ -20,6 +20,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
     phone: '',
     address: '',
     gender: '',
+    source: '',
     islamabadStay: '',
     destination: '',
     travelDates: { from: '', to: '' },
@@ -48,6 +49,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: initialData.phone || '',
         address: initialData.address || '',
         gender: (initialData as any).gender || '',
+        source: initialData.source || '',
         islamabadStay: islamabadStayVal,
         destination: initialData.destination || '',
         travelDates: initialData.travelDates || { from: '', to: '' },
@@ -68,6 +70,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: '',
         address: '',
         gender: '',
+        source: '',
         age: '',
         islamabadStay: '',
         destination: '',
@@ -119,6 +122,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: formData.phone,
         address: (formData as any).address ? (formData as any).address : undefined,
         gender,
+        source: (formData as any).source || undefined,
         destination: formData.destination,
         adults: (formData as any).adults === '' ? undefined : Number((formData as any).adults),
         kids: (formData as any).kids === '' ? undefined : Number((formData as any).kids),
@@ -181,6 +185,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         phone: '',
         address: '',
         gender: '',
+        source: '',
         age: '',
         destination: '',
         travelDates: { from: '', to: '' },
@@ -191,7 +196,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         agentRemarks: '',
         remarks: '',
         tripBudget: '',
-        potential: false
+        potential: false,
+        leadStatus: 'new'
       });
     } catch (error: any) {
       console.error('Form submission error:', error);
@@ -283,6 +289,21 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               onChange={(e) => handleChange('address', e.target.value)}
               className="input-field"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Lead Source</label>
+            <select
+              className="input-field"
+              value={(formData as any).source || ''}
+              onChange={(e) => handleChange('source', e.target.value)}
+            >
+              <option value="">Select source</option>
+              <option value="facebook">Facebook</option>
+              <option value="instagram">Instagram</option>
+              <option value="whatsapp">Whatsapp</option>
+              <option value="direct">Direct</option>
+            </select>
           </div>
 
           <div>
