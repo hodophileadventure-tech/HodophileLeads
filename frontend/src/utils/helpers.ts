@@ -1,6 +1,6 @@
 import type { LeadTemperature } from '../types';
 
-export type LeadLifecycleState = 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'new';
+export type LeadLifecycleState = 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'new' | 'spam';
 
 /**
  * Calculate lead temperature based on engagement metrics
@@ -203,6 +203,7 @@ export const getLeadLifecycleState = (lead: {
 }): LeadLifecycleState => {
   if (lead.potential) return 'potential';
   if (lead.leadOutcome === 'confirmed') return 'confirmed';
+  if (lead.status === 'spam') return 'spam';
   // Only use temperature value if explicitly set to 'dead' - don't auto-set from status
   if (lead.temperature === 'dead') return 'dead';
   if (lead.pipelineStage === 'confirmed' || lead.status === 'booked') return 'confirmed';

@@ -280,6 +280,23 @@ export const App: React.FC = () => {
     }
   };
 
+  const markLeadAsSpam = async () => {
+    if (!selectedLead) return;
+    const confirmed = window.confirm(
+      `Mark lead ${selectedLead.clientName} as spam? This will preserve the lead record but change its status to spam.`
+    );
+    if (!confirmed) return;
+    try {
+      const resp = await leadsAPI.update(String(selectedLead.id), { status: 'spam', potential: false });
+      setSelectedLead(resp.data);
+      await refreshLeads();
+      alert('Lead marked as spam.');
+    } catch (error) {
+      console.error('Failed to mark lead as spam:', error);
+      alert('Failed to mark lead as spam.');
+    }
+  };
+
   const deleteLead = async () => {
     if (!selectedLead) return;
     const confirmed = window.confirm(
@@ -752,11 +769,15 @@ export const App: React.FC = () => {
                               <option value="in_progress">In Progress</option>
                               <option value="dead">Dead</option>
                               <option value="confirmed">Confirmed</option>
+                              <option value="spam">Spam</option>
                               <option value="canceled">Canceled</option>
                             </select>
                           </div>
                           <Button variant="danger" onClick={cancelLead}>
                             Cancel Lead
+                          </Button>
+                          <Button variant="danger" onClick={markLeadAsSpam} className="bg-rose-700 hover:bg-rose-800 dark:bg-rose-900 dark:hover:bg-red-950">
+                            Mark as Spam
                           </Button>
                           <Button 
                             variant="danger" 
