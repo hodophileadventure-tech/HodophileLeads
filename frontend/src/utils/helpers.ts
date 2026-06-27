@@ -290,6 +290,12 @@ export const getLeadLifecycleStyle = (lead: {
       row: 'border-blue-300 bg-blue-50/70 dark:border-blue-800 dark:bg-blue-950/20',
       label: 'Confirmed'
     },
+    spam: {
+      badge: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100',
+      ring: 'ring-rose-400/70 dark:ring-rose-500/50',
+      row: 'border-rose-300 bg-rose-50/70 dark:border-rose-800 dark:bg-rose-950/20',
+      label: 'Spam'
+    },
     new: {
       badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
       ring: 'ring-slate-300/70 dark:ring-slate-600/50',
