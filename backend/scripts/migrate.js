@@ -129,7 +129,9 @@ async function migrate() {
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS kids INTEGER',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS seniors INTEGER',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS tour_type VARCHAR(100)',
-      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS islamabad_stay VARCHAR(10)'
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS islamabad_stay VARCHAR(10)',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT \'new\'',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS potential BOOLEAN DEFAULT FALSE'
     ];
     
     for (const cmd of addColumnCommands) {
@@ -142,6 +144,10 @@ async function migrate() {
         }
       }
     }
+
+    await client.query('ALTER TABLE leads DROP CONSTRAINT IF EXISTS valid_status');
+    await client.query("ALTER TABLE leads ADD CONSTRAINT valid_status CHECK (status IN ('new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam'))");
+    console.log('✅ Leads status constraint ensured');
     console.log('✅ Lead cancel tracking columns ensured');
 
     // 4. Follow-ups Table (depends on leads, users)

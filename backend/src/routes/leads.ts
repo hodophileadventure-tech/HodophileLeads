@@ -30,8 +30,19 @@ const upload = multer({
 	}
 });
 
+import { validateUuid } from '../utils/validation';
+
 leadsRouter.use(authMiddleware);
 leadsRouter.use(validateUserExists);
+
+leadsRouter.param('id', (req, _res, next, id) => {
+  try {
+    validateUuid(String(id), 'Lead id');
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 leadsRouter.get('/', leadsController.list);
 leadsRouter.get('/search', leadsController.searchByPhone);

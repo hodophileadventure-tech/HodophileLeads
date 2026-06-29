@@ -178,6 +178,39 @@ const runPendingMigrations = async () => {
       await query(`ALTER TABLE leads ADD COLUMN trip_budget DECIMAL(12, 2)`);
       console.log('[MIGRATION] ✅ trip_budget column added successfully');
     }
+
+    // Ensure leads table supports spam status and potential flag
+    const statusColumnCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'status'
+    `);
+    const statusColumnExists = statusColumnCheckResult.rows?.[0]?.count > 0;
+
+    if (!statusColumnExists) {
+      console.log('[MIGRATION] Adding status column to leads table...');
+      await query(`ALTER TABLE leads ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'new'`);
+      console.log('[MIGRATION] ✅ status column added successfully');
+    }
+
+    const potentialColumnCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'potential'
+    `);
+    const potentialColumnExists = potentialColumnCheckResult.rows?.[0]?.count > 0;
+
+    if (!potentialColumnExists) {
+      console.log('[MIGRATION] Adding potential column to leads table...');
+      await query(`ALTER TABLE leads ADD COLUMN potential BOOLEAN DEFAULT FALSE`);
+      console.log('[MIGRATION] ✅ potential column added successfully');
+    }
+
+    await query('ALTER TABLE leads DROP CONSTRAINT IF EXISTS valid_status');
+    await query(`
+      ALTER TABLE leads ADD CONSTRAINT valid_status CHECK (
+        status IN ('new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam')
+      )
+    `);
+    console.log('[MIGRATION] ✅ valid_status constraint ensured');
   } catch (error: any) {
     console.warn('[MIGRATION] Warning during migration:', error.message);
     // Don't throw - column might already exist or migration may have already run

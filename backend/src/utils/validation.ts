@@ -89,3 +89,13 @@ export const validatePayload = <T>(schema: Joi.ObjectSchema, payload: T) => {
   return value;
 };
 
+export const validateUuid = (value: string, name = 'id') => {
+  const { error } = Joi.string().guid({ version: ['uuidv1', 'uuidv4', 'uuidv5'] }).validate(value);
+  if (error) {
+    const err: any = new Error(`${name} must be a valid UUID`);
+    err.status = 400;
+    throw err;
+  }
+  return value;
+};
+
