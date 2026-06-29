@@ -105,7 +105,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   const [exportStatus, setExportStatus] = useState<string>('all');
   const [exportLoading, setExportLoading] = useState(false);
   const [newAgentName, setNewAgentName] = useState('');
-  const [newAgentName, setNewAgentName] = useState('');
   const [newAgentPassword, setNewAgentPassword] = useState('');
   const [newAgentRole, setNewAgentRole] = useState('agent');
   const [selectedAgent, setSelectedAgent] = useState<any | null>(null);

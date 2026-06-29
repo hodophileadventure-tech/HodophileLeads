@@ -562,7 +562,8 @@ export const AgentPanel: React.FC = () => {
           <Button onClick={handleSearch}>Search</Button>
           <Button variant="secondary" onClick={() => {
             const lines = filteredLeads.map((lead) => {
-              const createdAtValue = lead.createdAt || lead.created_at || '';
+              const leadAny = lead as any;
+              const createdAtValue = leadAny.createdAt || leadAny.created_at || '';
               const createdAtText = createdAtValue ? new Date(createdAtValue).toISOString() : '';
               return [
                 lead.id,
