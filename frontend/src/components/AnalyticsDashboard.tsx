@@ -103,6 +103,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   const [newAgentOpen, setNewAgentOpen] = useState(false);
   const [newAgentEmail, setNewAgentEmail] = useState('');
   const [exportStatus, setExportStatus] = useState<string>('all');
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
   const [exportLoading, setExportLoading] = useState(false);
   const [newAgentName, setNewAgentName] = useState('');
   const [newAgentPassword, setNewAgentPassword] = useState('');
@@ -283,8 +285,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     try {
       setExportLoading(true);
       const resp = type === 'txt'
-        ? await (adminAPI as any).exportLeadsTxt(exportStatus)
-        : await (adminAPI as any).exportLeadsSpreadsheet(exportStatus);
+        ? await (adminAPI as any).exportLeadsTxt(exportStatus, exportStartDate, exportEndDate)
+        : await (adminAPI as any).exportLeadsSpreadsheet(exportStatus, exportStartDate, exportEndDate);
       const mime = type === 'txt' ? 'text/plain' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       const ext = type === 'txt' ? 'txt' : 'xlsx';
       const blob = new Blob([resp.data], { type: mime });
@@ -349,6 +351,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
           {isAdmin && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <label className="text-sm text-slate-600 dark:text-slate-400">Export leads:</label>
+              <input
+                type="date"
+                className="input-field w-auto"
+                value={exportStartDate}
+                onChange={(e) => setExportStartDate(e.target.value)}
+                placeholder="Start date"
+              />
+              <input
+                type="date"
+                className="input-field w-auto"
+                value={exportEndDate}
+                onChange={(e) => setExportEndDate(e.target.value)}
+                placeholder="End date"
+              />
               <select
                 className="input-field w-auto"
                 value={exportStatus}

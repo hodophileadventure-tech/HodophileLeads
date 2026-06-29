@@ -10,6 +10,7 @@ import { query, getClient } from '../utils/database';
 import { hashPassword } from '../utils/auth';
 import { logActivity } from '../utils/activity-log';
 import { consumeScreenCaptureRequest, createScreenCaptureRequest, getScreenCaptureRequest, sendToUser } from '../utils/wsServer';
+import { buildLeadExportFilters } from '../utils/export-date-range';
 
 type LeadOutcomeBucket = 'confirmed' | 'budget_issue' | 'no_reply';
 
@@ -29,19 +30,19 @@ export const adminController = {
   async exportLeadsSpreadsheet(req: any, res: any, next: any) {
     try {
       const statusParam = String(req.query.status || '').trim().toLowerCase();
+      const startDate = String(req.query.startDate || '').trim();
+      const endDate = String(req.query.endDate || '').trim();
       const exportType = String(req.query.type || 'xlsx').trim().toLowerCase();
-      const allowedStatuses = new Set(['new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam']);
 
-      let statusFilter: string | undefined;
-      if (statusParam && statusParam !== 'all') {
-        if (!allowedStatuses.has(statusParam)) {
-          return res.status(400).json({ message: 'Invalid status filter' });
-        }
-        statusFilter = statusParam;
+      let filterResult;
+      try {
+        filterResult = buildLeadExportFilters({ status: statusParam, startDate, endDate });
+      } catch (error) {
+        return res.status(400).json({ message: error instanceof Error ? error.message : 'Invalid export filter' });
       }
 
-      const whereClause = statusFilter ? 'WHERE l.status = $1' : '';
-      const params: any[] = statusFilter ? [statusFilter] : [];
+      const { whereClause, params } = filterResult;
+      const statusFilter = statusParam && statusParam !== 'all' ? statusParam : undefined;
 
       const result = await query(`
         SELECT
@@ -53,6 +54,7 @@ export const adminController = {
           l.status,
           l.temperature,
           l.created_at,
+          to_char(l.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_time,
           l.updated_at,
           l.agent_id,
           u.name AS agent_name,
@@ -63,7 +65,7 @@ export const adminController = {
           COALESCE(f.follow_up_count, 0) AS follow_up_count,
           COALESCE(f.canceled_followups, 0) AS canceled_followups
         FROM leads l
-        JOIN users u ON u.id = l.agent_id
+        LEFT JOIN users u ON u.id = l.agent_id
         LEFT JOIN (
           SELECT
             lead_id,
@@ -88,12 +90,15 @@ export const adminController = {
         'Agent Name',
         'Agent Email',
         'Created At',
+        'Created Time',
         'Updated At',
         'Canceled Reason',
         'Canceled At',
         'Follow Up Count',
         'Canceled Follow Ups'
       ];
+
+      const normalizedStatusLabel = statusFilter || 'all';
 
       if (exportType === 'txt') {
         const lines = rows.map((row: any) => [
@@ -107,6 +112,7 @@ export const adminController = {
           row.agent_name,
           row.agent_email,
           row.created_at,
+          row.created_time,
           row.updated_at,
           row.canceled_reason,
           row.canceled_at,
@@ -117,7 +123,7 @@ export const adminController = {
         const headerLine = headers.join('\t');
         const content = [headerLine, ...lines].join('\n');
         res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${statusFilter || 'all'}-${new Date().toISOString().slice(0, 10)}.txt"`);
+        res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${normalizedStatusLabel}-${new Date().toISOString().slice(0, 10)}.txt"`);
         return res.send(content);
       }
 
@@ -144,6 +150,7 @@ export const adminController = {
             'Agent Name': row.agent_name,
             'Agent Email': row.agent_email,
             'Created At': row.created_at,
+            'Created Time': row.created_time,
             'Updated At': row.updated_at,
             'Canceled Reason': row.canceled_reason,
             'Canceled At': row.canceled_at,
@@ -174,7 +181,7 @@ export const adminController = {
 
       const buffer = await workbook.xlsx.writeBuffer();
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${statusFilter || 'all'}-${new Date().toISOString().slice(0, 10)}.xlsx"`);
+      res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${normalizedStatusLabel}-${new Date().toISOString().slice(0, 10)}.xlsx"`);
       res.send(Buffer.from(buffer));
     } catch (err) {
       next(err);

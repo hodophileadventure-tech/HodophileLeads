@@ -74,8 +74,23 @@ export const dashboardAPI = {
 export const adminAPI = {
   getRedFlags: () => apiClient.get('/admin/red-flags'),
   getOverview: () => apiClient.get('/admin/overview'),
-  exportLeadsSpreadsheet: (status?: string) => apiClient.get('/admin/leads/export', { params: status && status !== 'all' ? { status } : {}, responseType: 'blob' }),
-  exportLeadsTxt: (status?: string) => apiClient.get('/admin/leads/export', { params: { type: 'txt', ...(status && status !== 'all' ? { status } : {}) }, responseType: 'blob' }),
+  exportLeadsSpreadsheet: (status?: string, startDate?: string, endDate?: string) => apiClient.get('/admin/leads/export', {
+    params: {
+      ...(status && status !== 'all' ? { status } : {}),
+      ...(startDate ? { startDate } : {}),
+      ...(endDate ? { endDate } : {})
+    },
+    responseType: 'blob'
+  }),
+  exportLeadsTxt: (status?: string, startDate?: string, endDate?: string) => apiClient.get('/admin/leads/export', {
+    params: {
+      type: 'txt',
+      ...(status && status !== 'all' ? { status } : {}),
+      ...(startDate ? { startDate } : {}),
+      ...(endDate ? { endDate } : {})
+    },
+    responseType: 'blob'
+  }),
   listQuoteRequests: () => apiClient.get<QuoteRequest[]>('/admin/quote-requests'),
   saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
 };
