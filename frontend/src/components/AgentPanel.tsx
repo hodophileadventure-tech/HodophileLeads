@@ -51,7 +51,7 @@ export const AgentPanel: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'phone' | 'agent'>('phone');
   const [openSearchLeadForm, setOpenSearchLeadForm] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled' | 'spam'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
@@ -455,6 +455,8 @@ export const AgentPanel: React.FC = () => {
     if (activeFilter !== 'all') {
       if (activeFilter === 'canceled') {
         if (String((lead as any).status || '').toLowerCase() !== 'canceled') return false;
+      } else if (activeFilter === 'spam') {
+        if (String((lead as any).status || '').toLowerCase() !== 'spam') return false;
       } else if (getLeadLifecycleState(lead) !== activeFilter) {
         return false;
       }
@@ -477,6 +479,7 @@ export const AgentPanel: React.FC = () => {
     in_progress: leads.filter((lead) => getLeadLifecycleState(lead) === 'in_progress').length,
     dead: leads.filter((lead) => getLeadLifecycleState(lead) === 'dead').length,
     confirmed: leads.filter((lead) => getLeadLifecycleState(lead) === 'confirmed').length,
+    spam: leads.filter((lead) => String((lead as any).status || '').toLowerCase() === 'spam').length,
     canceled: leads.filter((lead) => String((lead as any).status || '').toLowerCase() === 'canceled').length
   };
 
@@ -555,8 +558,40 @@ export const AgentPanel: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={handleSearch}>Search</Button>
+          <Button variant="secondary" onClick={() => {
+            const lines = filteredLeads.map((lead) => {
+              const createdAtValue = lead.createdAt || lead.created_at || '';
+              const createdAtText = createdAtValue ? new Date(createdAtValue).toISOString() : '';
+              return [
+                lead.id,
+                lead.clientName || '',
+                lead.email || '',
+                lead.phone || '',
+                lead.destination || '',
+                String((lead as any).status || ''),
+                String((lead as any).temperature || ''),
+                createdAtText,
+              ].map((value) => String(value).replace(/\t/g, ' ')).join('\t');
+            });
+            if (!lines.length) {
+              alert('No leads available to export.');
+              return;
+            }
+            const header = 'Lead ID\tClient Name\tEmail\tPhone\tDestination\tStatus\tTemperature\tCreated At';
+            const blob = new Blob([`${header}\n${lines.join('\n')}`], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `tripnexus-leads-${activeFilter}-${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }}>
+            Export TXT
+          </Button>
           <LeadForm
             onSuccess={handleNewLead}
             initialData={selectedLead || undefined}
@@ -575,9 +610,10 @@ export const AgentPanel: React.FC = () => {
           { key: 'all', label: `All (${counts.all})`, color: 'bg-slate-200 dark:bg-slate-700' },
           { key: 'potential', label: `Potential (${counts.potential})`, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
           { key: 'in_progress', label: `In Progress (${counts.in_progress})`, color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
-          { key: 'dead', label: `Dead (${counts.dead})`, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200' },
           { key: 'confirmed', label: `Confirmed (${counts.confirmed})`, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-          { key: 'canceled', label: `Canceled (${counts.canceled})`, color: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200' }
+          { key: 'spam', label: `Spam (${counts.spam})`, color: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200' },
+          { key: 'dead', label: `Dead (${counts.dead})`, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200' },
+          { key: 'canceled', label: `Canceled (${counts.canceled})`, color: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-200' }
         ].map((item) => (
           <button
             key={item.key}

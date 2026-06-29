@@ -28,6 +28,21 @@ const generateTempPassword = () => Math.random().toString(36).slice(-10);
 export const adminController = {
   async exportLeadsSpreadsheet(req: any, res: any, next: any) {
     try {
+      const statusParam = String(req.query.status || '').trim().toLowerCase();
+      const exportType = String(req.query.type || 'xlsx').trim().toLowerCase();
+      const allowedStatuses = new Set(['new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam']);
+
+      let statusFilter: string | undefined;
+      if (statusParam && statusParam !== 'all') {
+        if (!allowedStatuses.has(statusParam)) {
+          return res.status(400).json({ message: 'Invalid status filter' });
+        }
+        statusFilter = statusParam;
+      }
+
+      const whereClause = statusFilter ? 'WHERE l.status = $1' : '';
+      const params: any[] = statusFilter ? [statusFilter] : [];
+
       const result = await query(`
         SELECT
           l.id,
@@ -57,8 +72,9 @@ export const adminController = {
           FROM follow_ups
           GROUP BY lead_id
         ) f ON f.lead_id = l.id
+        ${whereClause}
         ORDER BY u.name ASC, l.status ASC, l.temperature ASC, l.created_at DESC
-      `);
+      `, params);
 
       const rows = Array.isArray(result.rows) ? result.rows : [];
       const headers = [
@@ -79,16 +95,36 @@ export const adminController = {
         'Canceled Follow Ups'
       ];
 
+      if (exportType === 'txt') {
+        const lines = rows.map((row: any) => [
+          row.id,
+          row.client_name,
+          row.email,
+          row.phone,
+          row.destination,
+          row.status,
+          row.temperature,
+          row.agent_name,
+          row.agent_email,
+          row.created_at,
+          row.updated_at,
+          row.canceled_reason,
+          row.canceled_at,
+          String(Number(row.follow_up_count || 0)),
+          String(Number(row.canceled_followups || 0))
+        ].map((value) => (value ?? '').toString().replace(/\t/g, ' ')).join('\t'));
+
+        const headerLine = headers.join('\t');
+        const content = [headerLine, ...lines].join('\n');
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${statusFilter || 'all'}-${new Date().toISOString().slice(0, 10)}.txt"`);
+        return res.send(content);
+      }
+
       const workbook = new ExcelJS.Workbook();
       workbook.creator = 'TRIPNEXUS';
       workbook.created = new Date();
       workbook.modified = new Date();
-
-      const categorizedRows = {
-        confirmed: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'confirmed'),
-        budget_issue: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'budget_issue'),
-        no_reply: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'no_reply')
-      };
 
       const createSheet = (sheetName: string, dataRows: any[]) => {
         const sheet = workbook.addWorksheet(sheetName);
@@ -122,13 +158,23 @@ export const adminController = {
         };
       };
 
-      createSheet('Confirmed Leads', categorizedRows.confirmed);
-      createSheet('Budget Issue', categorizedRows.budget_issue);
-      createSheet('No Reply', categorizedRows.no_reply);
+      if (statusFilter) {
+        createSheet(statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1) + ' Leads', rows);
+      } else {
+        const categorizedRows = {
+          confirmed: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'confirmed'),
+          budget_issue: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'budget_issue'),
+          no_reply: rows.filter((row: any) => getLeadOutcomeBucket(row) === 'no_reply')
+        };
+
+        createSheet('Confirmed Leads', categorizedRows.confirmed);
+        createSheet('Budget Issue', categorizedRows.budget_issue);
+        createSheet('No Reply', categorizedRows.no_reply);
+      }
 
       const buffer = await workbook.xlsx.writeBuffer();
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${new Date().toISOString().slice(0, 10)}.xlsx"`);
+      res.setHeader('Content-Disposition', `attachment; filename="tripnexus-leads-${statusFilter || 'all'}-${new Date().toISOString().slice(0, 10)}.xlsx"`);
       res.send(Buffer.from(buffer));
     } catch (err) {
       next(err);

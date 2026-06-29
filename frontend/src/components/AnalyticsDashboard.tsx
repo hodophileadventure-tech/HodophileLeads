@@ -102,6 +102,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   const [adminOverview, setAdminOverview] = useState<AdminOverview | null>(null);
   const [newAgentOpen, setNewAgentOpen] = useState(false);
   const [newAgentEmail, setNewAgentEmail] = useState('');
+  const [exportStatus, setExportStatus] = useState<string>('all');
+  const [exportLoading, setExportLoading] = useState(false);
+  const [newAgentName, setNewAgentName] = useState('');
   const [newAgentName, setNewAgentName] = useState('');
   const [newAgentPassword, setNewAgentPassword] = useState('');
   const [newAgentRole, setNewAgentRole] = useState('agent');
@@ -277,21 +280,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
     }
   };
 
-  const handleExportSpreadsheet = async () => {
+  const handleExportLeads = async (type: 'xlsx' | 'txt') => {
     try {
-      const resp = await (adminAPI as any).exportLeadsSpreadsheet();
-      const blob = new Blob([resp.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      setExportLoading(true);
+      const resp = type === 'txt'
+        ? await (adminAPI as any).exportLeadsTxt(exportStatus)
+        : await (adminAPI as any).exportLeadsSpreadsheet(exportStatus);
+      const mime = type === 'txt' ? 'text/plain' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const ext = type === 'txt' ? 'txt' : 'xlsx';
+      const blob = new Blob([resp.data], { type: mime });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `tripnexus-leads-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      link.download = `tripnexus-leads-${exportStatus}-${new Date().toISOString().slice(0, 10)}.${ext}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export leads spreadsheet', error);
-      alert('Failed to export leads spreadsheet');
+      console.error('Failed to export leads', error);
+      alert('Failed to export leads');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -335,12 +345,35 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold">Analytics</h1>
-        {isAdmin && (
-          <Button size="sm" variant="secondary" onClick={handleExportSpreadsheet}>
-            Download Leads Spreadsheet
-          </Button>
-        )}
+        <div>
+          <h1 className="text-3xl font-bold">Analytics</h1>
+          {isAdmin && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <label className="text-sm text-slate-600 dark:text-slate-400">Export leads:</label>
+              <select
+                className="input-field w-auto"
+                value={exportStatus}
+                onChange={(e) => setExportStatus(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="interested">Interested</option>
+                <option value="negotiation">Negotiation</option>
+                <option value="booked">Booked</option>
+                <option value="completed">Completed</option>
+                <option value="canceled">Canceled</option>
+                <option value="spam">Spam</option>
+              </select>
+              <Button size="sm" variant="secondary" onClick={() => handleExportLeads('xlsx')} loading={exportLoading}>
+                Excel
+              </Button>
+              <Button size="sm" onClick={() => handleExportLeads('txt')} loading={exportLoading}>
+                TXT
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
