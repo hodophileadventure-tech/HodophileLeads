@@ -845,7 +845,7 @@ export const App: React.FC = () => {
                         <div className="space-y-3">
                           <div>
                             <p className="text-sm text-slate-600 dark:text-slate-400">Status</p>
-                            <p className="capitalize">{selectedLead.status}</p>
+                            <p className="capitalize">{getLeadLifecycleState(selectedLead)}</p>
                           </div>
                         </div>
                         <div className="space-y-3">
