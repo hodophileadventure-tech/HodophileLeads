@@ -83,6 +83,10 @@ export const App: React.FC = () => {
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
+  const [leadSearchQuery, setLeadSearchQuery] = useState('');
+  const [dateRangeStart, setDateRangeStart] = useState('');
+  const [dateRangeEnd, setDateRangeEnd] = useState('');
+  const [appliedDateRange, setAppliedDateRange] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const alarmAudioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
@@ -370,7 +374,11 @@ export const App: React.FC = () => {
   const refreshLeads = async () => {
     // Request up to 10,000 leads for all users
     const limit = 10000;
-    const response = await leadsAPI.list(limit);
+    const response = await leadsAPI.list(limit, {
+      phone: leadSearchQuery.trim() || undefined,
+      startDate: appliedDateRange.startDate || undefined,
+      endDate: appliedDateRange.endDate || undefined
+    });
     setLeads(response.data);
     await loadFollowUps();
   };
@@ -396,7 +404,7 @@ export const App: React.FC = () => {
 
     const fetchLeads = async () => {
       try {
-        // Request up to 10,000 leads for all users
+        // Request up to 10,000 leads for all users (initial load without filters)
         const limit = 10000;
         const response = await leadsAPI.list(limit);
         setLeads(response.data);
@@ -410,6 +418,23 @@ export const App: React.FC = () => {
 
     fetchLeads();
   }, [user, setLeads]);
+
+  const handleApplyLeadFilters = async () => {
+    setAppliedDateRange({ startDate: dateRangeStart, endDate: dateRangeEnd });
+    await refreshLeads();
+  };
+
+  const handleClearLeadFilters = async () => {
+    setDateRangeStart('');
+    setDateRangeEnd('');
+    setAppliedDateRange({ startDate: '', endDate: '' });
+    setLeadSearchQuery('');
+    await refreshLeads();
+  };
+
+  const handleLeadSearch = async () => {
+    await refreshLeads();
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -686,6 +711,21 @@ export const App: React.FC = () => {
                       <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                         Manage your pipeline, schedule follow-ups, and review lead details in dedicated sections.
                       </p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <input
+                          className="input-field"
+                          placeholder="Search phone number"
+                          value={leadSearchQuery}
+                          onChange={(e) => setLeadSearchQuery(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') void handleLeadSearch(); }}
+                        />
+                        <label className="text-sm text-slate-600 dark:text-slate-400">From</label>
+                        <input type="date" className="input-field" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
+                        <label className="text-sm text-slate-600 dark:text-slate-400">To</label>
+                        <input type="date" className="input-field" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
+                        <Button onClick={() => void handleApplyLeadFilters()}>Apply</Button>
+                        <Button variant="secondary" onClick={() => void handleClearLeadFilters()}>Clear</Button>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Button
