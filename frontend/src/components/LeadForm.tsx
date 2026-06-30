@@ -161,6 +161,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
       if (status === 'dead') {
         // mark as completed/dead
         (payload as any).status = 'completed';
+        (payload as any).temperature = 'dead';
       } else if (status === 'confirmed') {
         (payload as any).leadOutcome = 'confirmed';
         (payload as any).status = 'booked';

@@ -783,13 +783,15 @@ export const App: React.FC = () => {
                                 }
                                 (async () => {
                                   const payload: any = {
-                                    potential: value === 'potential'
-                                  };
-                                  if (value === 'dead') payload.status = 'completed';
-                                  else if (value === 'in_progress') payload.status = 'contacted';
-                                  else if (value === 'new' || value === 'potential') payload.status = 'new';
-                                  console.log('[App] Status change:', { selectedValue: value, payload });
-                                  try {
+                                  potential: value === 'potential'
+                                };
+                                if (value === 'dead') {
+                                  payload.status = 'completed';
+                                  payload.temperature = 'dead';
+                                } else if (value === 'in_progress') payload.status = 'contacted';
+                                else if (value === 'new' || value === 'potential') payload.status = 'new';
+                                console.log('[App] Status change:', { selectedValue: value, payload });
+                                try {
                                     console.log('[App] Calling leadsAPI.update with:', { leadId: String(selectedLead.id), payload });
                                     const resp = await leadsAPI.update(String(selectedLead.id), payload);
                                     console.log('[App] Update response:', { status: resp.status, data: resp.data });
