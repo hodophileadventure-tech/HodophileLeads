@@ -2,7 +2,14 @@ import apiClient from './api';
 import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix, QuoteRequest } from '../types';
 
 export const leadsAPI = {
-  list: (limit?: number) => apiClient.get<Lead[]>('/leads', { params: limit ? { limit } : {} }),
+  list: (limit?: number, filters?: { phone?: string; startDate?: string; endDate?: string }) => apiClient.get<Lead[]>('/leads', {
+    params: {
+      ...(limit ? { limit } : {}),
+      ...(filters?.phone ? { phone: filters.phone } : {}),
+      ...(filters?.startDate ? { startDate: filters.startDate } : {}),
+      ...(filters?.endDate ? { endDate: filters.endDate } : {})
+    }
+  }),
   getById: (id: string) => apiClient.get<Lead>(`/leads/${id}`),
   getHealth: (id: string) => apiClient.get(`/leads/${id}/health`),
   create: (data: Partial<Lead>) => apiClient.post<Lead>('/leads', data),

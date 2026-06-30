@@ -50,6 +50,9 @@ export const AgentPanel: React.FC = () => {
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'phone' | 'agent'>('phone');
+  const [dateRangeStart, setDateRangeStart] = useState('');
+  const [dateRangeEnd, setDateRangeEnd] = useState('');
+  const [appliedDateRange, setAppliedDateRange] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
   const [openSearchLeadForm, setOpenSearchLeadForm] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled' | 'spam'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -161,9 +164,13 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
-  const loadLeads = async () => {
+  const loadLeads = async (filters?: { phone?: string; startDate?: string; endDate?: string }) => {
     try {
-      const res = await leadsAPI.list();
+      const res = await leadsAPI.list(undefined, {
+        phone: filters?.phone ?? (searchQuery.trim() || undefined),
+        startDate: filters?.startDate ?? (appliedDateRange.startDate || undefined),
+        endDate: filters?.endDate ?? (appliedDateRange.endDate || undefined)
+      });
       setLeads(res.data || []);
     } catch (err) {
       console.error(err);
@@ -387,6 +394,7 @@ export const AgentPanel: React.FC = () => {
         const results: Lead[] = res.data || [];
         if (results.length > 0) {
           setSelectedLead(results[0]);
+          setLeads(results);
         } else {
           setSelectedLead({ phone: searchQuery } as any);
         }
@@ -395,6 +403,19 @@ export const AgentPanel: React.FC = () => {
         console.error(err);
       }
     }
+  };
+
+  const handleApplyLeadFilters = async () => {
+    const nextRange = { startDate: dateRangeStart, endDate: dateRangeEnd };
+    setAppliedDateRange(nextRange);
+    await loadLeads({ phone: searchQuery.trim() || undefined, ...nextRange });
+  };
+
+  const handleClearLeadFilters = async () => {
+    setDateRangeStart('');
+    setDateRangeEnd('');
+    setAppliedDateRange({ startDate: '', endDate: '' });
+    await loadLeads({ phone: searchQuery.trim() || undefined });
   };
 
   const openFollowUp = (lead: Lead) => {
@@ -452,6 +473,19 @@ export const AgentPanel: React.FC = () => {
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const filteredLeads = leads.filter((lead) => {
+    const leadDateValue = (lead as any).createdAt || (lead as any).created_at || '';
+    const leadDateTime = leadDateValue ? new Date(leadDateValue).getTime() : 0;
+
+    if (appliedDateRange.startDate) {
+      const startBoundary = new Date(`${appliedDateRange.startDate}T00:00:00`).getTime();
+      if (leadDateTime && leadDateTime < startBoundary) return false;
+    }
+
+    if (appliedDateRange.endDate) {
+      const endBoundary = new Date(`${appliedDateRange.endDate}T23:59:59.999`).getTime();
+      if (leadDateTime && leadDateTime > endBoundary) return false;
+    }
+
     if (activeFilter !== 'all') {
       if (activeFilter === 'canceled') {
         if (String((lead as any).status || '').toLowerCase() !== 'canceled') return false;
@@ -546,17 +580,27 @@ export const AgentPanel: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2">
-          <select className="input-field" value={searchMode} onChange={(e) => setSearchMode(e.target.value as 'phone' | 'agent')}>
-            <option value="phone">Search by Number</option>
-            <option value="agent">Search by Agent</option>
-          </select>
-          <input
-            className="input-field flex-1"
-            placeholder={searchMode === 'phone' ? 'Search phone or enter to create' : 'Search by agent id or name'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex flex-col gap-2 md:flex-1">
+          <div className="flex items-center gap-2">
+            <select className="input-field" value={searchMode} onChange={(e) => setSearchMode(e.target.value as 'phone' | 'agent')}>
+              <option value="phone">Search by Number</option>
+              <option value="agent">Search by Agent</option>
+            </select>
+            <input
+              className="input-field flex-1"
+              placeholder={searchMode === 'phone' ? 'Search phone or enter to create' : 'Search by agent id or name'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="text-sm text-slate-600 dark:text-slate-400">From</label>
+            <input type="date" className="input-field" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
+            <label className="text-sm text-slate-600 dark:text-slate-400">To</label>
+            <input type="date" className="input-field" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
+            <Button onClick={() => void handleApplyLeadFilters()}>Apply</Button>
+            <Button variant="secondary" onClick={() => void handleClearLeadFilters()}>Clear</Button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={handleSearch}>Search</Button>

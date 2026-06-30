@@ -1,6 +1,7 @@
 import { query } from '../utils/database';
 import type { Lead } from '../types';
 import { profileModel } from './Profile';
+import { buildLeadQueryFilters } from '../utils/export-date-range';
 
 const mapLeadRow = (row: any) => {
   if (!row) return row;
@@ -70,16 +71,21 @@ const mapLeadRow = (row: any) => {
 };
 
 export const leadsModel = {
-  async findAll(agentId?: string | null, limit = 50, offset = 0) {
-    let sql = 'SELECT * FROM leads';
+  async findAll(agentId?: string | null, limit = 50, offset = 0, filters: { phone?: string; startDate?: string; endDate?: string } = {}) {
+    const clauses: string[] = [];
     const params: any[] = [];
 
     if (agentId) {
-      sql += ' WHERE agent_id = $1';
+      clauses.push(`l.agent_id = $${params.length + 1}`);
       params.push(agentId);
     }
 
-    sql += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+    const leadFilters = buildLeadQueryFilters(filters, params.length + 1);
+    clauses.push(...leadFilters.clauses);
+    params.push(...leadFilters.params);
+
+    const whereClause = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '';
+    const sql = `SELECT * FROM leads l${whereClause} ORDER BY l.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const result = await query(sql, params);

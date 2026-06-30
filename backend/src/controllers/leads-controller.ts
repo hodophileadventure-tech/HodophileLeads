@@ -135,8 +135,13 @@ export const leadsController = {
       // Allow both agents and admins to fetch many leads (up to 10k)
       const isAgent = req.user.role !== 'admin';
       const defaultLimit = 10000; // 10k leads max (covers most cases)
-      const { limit = defaultLimit, offset = 0 } = req.query;
-      const leads = await leadsModel.findAll(isAgent ? String(req.user.id) : undefined, Number(limit), Number(offset));
+      const { limit = defaultLimit, offset = 0, startDate, endDate, phone } = req.query as any;
+      const leads = await leadsModel.findAll(
+        isAgent ? String(req.user.id) : undefined,
+        Number(limit) || defaultLimit,
+        Number(offset) || 0,
+        { startDate, endDate, phone }
+      );
       res.json(leads);
     } catch (error) {
       next(error);
