@@ -36,6 +36,7 @@ export const leadSchema = Joi.object({
   budget: Joi.number().min(0).optional(),
   tripBudget: Joi.number().min(0).optional(),
   status: Joi.string().valid('new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam').optional(),
+  temperature: Joi.string().valid('hot', 'warm', 'cold', 'dead').optional(),
   pipelineStage: Joi.string().valid('new_lead', 'availability_check', 'quoted', 'payment_pending', 'confirmed', 'on_trip', 'completed').optional(),
   leadOutcome: Joi.string().valid('confirmed', 'budget_issue', 'no_reply').optional(),
   createdAt: Joi.string().isoDate().optional(),
