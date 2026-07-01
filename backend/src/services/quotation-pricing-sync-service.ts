@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg';
+import type { DbTransactionClient } from '../utils/database';
 import { getClient } from '../utils/database';
 
 const parseAmount = (value: unknown): number | null => {
@@ -52,7 +53,7 @@ export const resolveQuotationSubtotal = (documentData: any): { subtotal: number 
 export const extractQuotationSubtotal = (documentData: any): number | null => resolveQuotationSubtotal(documentData).subtotal;
 
 const updateLeadPricing = async (
-  client: PoolClient,
+  client: PoolClient | DbTransactionClient,
   leadId: string,
   subtotal: number,
   markAccepted: boolean
@@ -89,7 +90,7 @@ export const syncLeadQuotationPricing = async (
   leadId: string,
   documentData: any,
   options: { markAccepted?: boolean } = {},
-  client?: PoolClient
+  client?: PoolClient | DbTransactionClient
 ) => {
   const resolution = resolveQuotationSubtotal(documentData);
   if (resolution.subtotal === null) {
@@ -117,7 +118,11 @@ export const syncLeadQuotationPricing = async (
   }
 };
 
-export const setLeadActualPrice = async (leadId: string, actualPrice: number | null, client?: PoolClient) => {
+export const setLeadActualPrice = async (
+  leadId: string,
+  actualPrice: number | null,
+  client?: PoolClient | DbTransactionClient
+) => {
   if (client) {
     const updatedLeadResult = await client.query(
       `UPDATE leads

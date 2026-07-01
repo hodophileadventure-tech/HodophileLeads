@@ -9,6 +9,11 @@ dotenv.config();
 
 type MockRow = Record<string, any>;
 
+export type DbTransactionClient = {
+  query: (text: string, params?: any[]) => Promise<any>;
+  release: () => void;
+};
+
 // In-memory mock database for development
 const mockDb: {
   users: MockRow[];

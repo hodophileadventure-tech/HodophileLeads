@@ -1,5 +1,5 @@
-import type { PoolClient } from 'pg';
 import { query } from '../utils/database';
+import type { DbTransactionClient } from '../utils/database';
 import type { QuoteRequest } from '../types';
 
 const mapQuoteRequestRow = (row: any) => {
@@ -258,7 +258,7 @@ export const quoteRequestsModel = {
     return res.rows.map(mapQuoteRequestRow);
   },
 
-  async update(id: string, data: Partial<QuoteRequest>, client?: PoolClient) {
+  async update(id: string, data: Partial<QuoteRequest>, client?: DbTransactionClient) {
     const fields: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -394,7 +394,7 @@ export const quoteRequestsModel = {
     return res.rows.map(mapQuoteRequestRow);
   },
 
-  async updateByManager(id: string, managerId: string, data: Partial<QuoteRequest>, client?: PoolClient) {
+  async updateByManager(id: string, managerId: string, data: Partial<QuoteRequest>, client?: DbTransactionClient) {
     const sql = `
       UPDATE quote_requests 
       SET 
