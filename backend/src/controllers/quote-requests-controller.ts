@@ -182,7 +182,7 @@ export const quoteRequestsController = {
         isAdminCreatedQuotation = req.user.role === 'admin' && existingRequest.requestType === 'quotation';
 
         updatedRequest = await quoteRequestsModel.update(requestId, {
-          status: isAdminCreatedQuotation ? 'approved' : 'saved',
+          status: 'saved',
           documentData: {
             ...documentData,
             quoteNumber: quotationNumber
@@ -192,8 +192,6 @@ export const quoteRequestsController = {
           ...(isAdminCreatedQuotation
             ? {
                 acceptedAt: new Date().toISOString(),
-                approvedBy: req.user.id,
-                approvedAt: new Date().toISOString(),
                 invalidAcceptanceReason: null
               }
             : {})
