@@ -52,7 +52,7 @@ const writeDismissedFollowUps = (items: Record<string, number>) => {
 export const App: React.FC = () => {
   const { user } = useAuth();
   const { darkMode } = useUIStore();
-  const { leads, followUps, setLeads, setFollowUps } = useDataStore();
+  const { leads, followUps, setLeads, setFollowUps, updateLead } = useDataStore();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -80,6 +80,7 @@ export const App: React.FC = () => {
       try {
         const response = await leadsAPI.getById(String(leadId));
         setSelectedLead(response.data);
+        updateLead(response.data);
       } catch (error) {
         console.error('Failed to refresh lead after quotation save:', error);
       }
