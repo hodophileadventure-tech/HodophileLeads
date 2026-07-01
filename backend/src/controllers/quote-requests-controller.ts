@@ -179,7 +179,7 @@ export const quoteRequestsController = {
         }
 
         updatedRequest = await quoteRequestsModel.update(requestId, {
-          status: req.user.role === 'admin' ? existingRequest.status : 'saved',
+          status: 'saved',
           documentData: {
             ...documentData,
             quoteNumber: quotationNumber
