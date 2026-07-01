@@ -39,6 +39,19 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
   React.useEffect(() => { load(); }, [leadId]);
 
   React.useEffect(() => {
+    const loadLead = async () => {
+      try {
+        const response = await leadsAPI.getById(leadId);
+        setDisplayLead(response.data);
+      } catch (error) {
+        console.error('Failed to load lead pricing for payments panel:', error);
+      }
+    };
+
+    void loadLead();
+  }, [leadId]);
+
+  React.useEffect(() => {
     const handleLeadPricingUpdated = async (event: Event) => {
       const customEvent = event as CustomEvent<{ leadId?: string; lead?: Lead | null }>;
       const updatedLeadId = customEvent.detail?.leadId;
