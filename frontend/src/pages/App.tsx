@@ -72,12 +72,43 @@ export const App: React.FC = () => {
   }, [selectedLead]);
 
   React.useEffect(() => {
+    const leadId = selectedLead?.id;
+    if (!leadId) return;
+
+    let cancelled = false;
+
+    const refreshSelectedLead = async () => {
+      try {
+        const response = await leadsAPI.getById(String(leadId));
+        if (cancelled) return;
+        setSelectedLead(response.data);
+        updateLead(response.data);
+      } catch (error) {
+        console.error('Failed to hydrate selected lead from server:', error);
+      }
+    };
+
+    void refreshSelectedLead();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedLead?.id]);
+
+  React.useEffect(() => {
     const handleQuotationSaved = async (event: Event) => {
-      const customEvent = event as CustomEvent<{ leadId?: string }>;
-      const leadId = customEvent.detail?.leadId || selectedLead?.id;
-      if (!leadId) return;
+      const customEvent = event as CustomEvent<{ leadId?: string; lead?: Lead | null }>;
+      const leadId = customEvent.detail?.leadId || customEvent.detail?.lead?.id || selectedLead?.id;
+      const lead = customEvent.detail?.lead;
+      if (!leadId && !lead) return;
 
       try {
+        if (lead) {
+          setSelectedLead(lead);
+          updateLead(lead);
+          return;
+        }
+
         const response = await leadsAPI.getById(String(leadId));
         setSelectedLead(response.data);
         updateLead(response.data);
