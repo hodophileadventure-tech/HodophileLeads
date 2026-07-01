@@ -178,21 +178,31 @@ export const quoteRequestsController = {
           quotationNumber = await generateQuotationNumber(referenceDate, client);
         }
 
+        const isAdminCreatedQuotation = req.user.role === 'admin' && existingRequest.requestType === 'quotation';
+
         updatedRequest = await quoteRequestsModel.update(requestId, {
-          status: 'saved',
+          status: isAdminCreatedQuotation ? 'approved' : 'saved',
           documentData: {
             ...documentData,
             quoteNumber: quotationNumber
           },
           resolvedBy: req.user.id,
-          resolvedAt: new Date().toISOString()
+          resolvedAt: new Date().toISOString(),
+          ...(isAdminCreatedQuotation
+            ? {
+                acceptedAt: new Date().toISOString(),
+                approvedBy: req.user.id,
+                approvedAt: new Date().toISOString(),
+                invalidAcceptanceReason: null
+              }
+            : {})
         }, client);
 
         if (existingRequest.requestType === 'quotation' && !existingRequest.acceptedAt) {
           await syncLeadQuotationPricing(existingRequest.leadId, {
             ...documentData,
             quoteNumber: quotationNumber
-          }, { markAccepted: false }, client);
+          }, { markAccepted: isAdminCreatedQuotation }, client);
         }
 
         await client.query('COMMIT');
