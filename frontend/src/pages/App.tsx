@@ -70,6 +70,29 @@ export const App: React.FC = () => {
     }, 50);
     return () => clearTimeout(t);
   }, [selectedLead]);
+
+  React.useEffect(() => {
+    const handleQuotationSaved = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ leadId?: string }>;
+      const leadId = customEvent.detail?.leadId || selectedLead?.id;
+      if (!leadId) return;
+
+      try {
+        const response = await leadsAPI.getById(String(leadId));
+        setSelectedLead(response.data);
+      } catch (error) {
+        console.error('Failed to refresh lead after quotation save:', error);
+      }
+    };
+
+    window.addEventListener('quote-request-saved', handleQuotationSaved as EventListener);
+    window.addEventListener('lead-payment-pricing-updated', handleQuotationSaved as EventListener);
+
+    return () => {
+      window.removeEventListener('quote-request-saved', handleQuotationSaved as EventListener);
+      window.removeEventListener('lead-payment-pricing-updated', handleQuotationSaved as EventListener);
+    };
+  }, [selectedLead?.id]);
   const [leadView, setLeadView] = useState<'list' | 'kanban'>('kanban');
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);

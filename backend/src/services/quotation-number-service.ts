@@ -1,6 +1,10 @@
+import type { DbTransactionClient } from '../utils/database';
 import { query } from '../utils/database';
 
-export async function generateQuotationNumber(referenceDate: Date = new Date()): Promise<string> {
+export async function generateQuotationNumber(
+  referenceDate: Date = new Date(),
+  client?: DbTransactionClient
+): Promise<string> {
   try {
     // Format date as YYMMDD
     const year = String(referenceDate.getFullYear()).slice(-2);
@@ -10,24 +14,21 @@ export async function generateQuotationNumber(referenceDate: Date = new Date()):
 
     // Thread-safe atomic increment using UPSERT pattern
     // This ensures that even with concurrent requests, each gets a unique number
-    const result = await query(
-      `WITH upserted AS (
-        INSERT INTO quotation_counters (date_key, last_sequence, updated_at)
-        VALUES ($1, 1100, NOW())
-        ON CONFLICT (date_key) 
-        DO UPDATE SET last_sequence = quotation_counters.last_sequence + 1, updated_at = NOW()
-        RETURNING last_sequence
-      )
-      SELECT last_sequence FROM upserted`,
-      [datePrefix]
-    );
+    const sql = `WITH upserted AS (
+      INSERT INTO quotation_counters (date_key, last_sequence, updated_at)
+      VALUES ($1, 1101, NOW())
+      ON CONFLICT (date_key)
+      DO UPDATE SET last_sequence = quotation_counters.last_sequence + 1, updated_at = NOW()
+      RETURNING last_sequence
+    )
+    SELECT last_sequence FROM upserted`;
 
-    // The RETURNING gives us the updated value
-    // On first call: insert 1100, return 1100, add 1 → 1101 ✓
-    // On second call: update to 1101, return 1101, add 1 → 1102 ✓
+    const result = client
+      ? await client.query(sql, [datePrefix])
+      : await query(sql, [datePrefix]);
+
     const lastSequence = result.rows[0].last_sequence;
-    const nextSequence = lastSequence + 1;
-    const quotationNumber = `${datePrefix}${nextSequence}`;
+    const quotationNumber = `${datePrefix}${lastSequence}`;
     
     return quotationNumber;
   } catch (error) {

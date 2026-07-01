@@ -152,12 +152,7 @@ export const quoteRequestsController = {
         return res.status(404).json({ message: 'Quote request not found' });
       }
 
-      // Generate quotation number if this is a quotation
       let quotationNumber = documentData.quoteNumber || null;
-      if (existingRequest.requestType === 'quotation' && !quotationNumber) {
-        const referenceDate = documentData.date ? new Date(documentData.date) : new Date();
-        quotationNumber = await generateQuotationNumber(referenceDate);
-      }
 
       const existingAcceptedSubtotal = existingRequest.acceptedAt ? getExplicitSubtotal(existingRequest.documentData) : null;
       const proposedSubtotal = getExplicitSubtotal(documentData);
@@ -177,6 +172,12 @@ export const quoteRequestsController = {
       let updatedRequest;
       try {
         await client.query('BEGIN');
+
+        if (existingRequest.requestType === 'quotation' && !quotationNumber) {
+          const referenceDate = documentData.date ? new Date(documentData.date) : new Date();
+          quotationNumber = await generateQuotationNumber(referenceDate, client);
+        }
+
         updatedRequest = await quoteRequestsModel.update(requestId, {
           status: req.user.role === 'admin' ? existingRequest.status : 'saved',
           documentData: {

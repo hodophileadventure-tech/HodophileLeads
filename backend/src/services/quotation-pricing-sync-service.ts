@@ -32,7 +32,7 @@ export const resolveQuotationSubtotal = (documentData: any): { subtotal: number 
   }
 
   const candidateObjects = getObjectCandidates(documentData);
-  const directKeys = ['subtotal', 'totalDue', 'total_due', 'grandTotal', 'grand_total', 'netTotal', 'net_total', 'totalAmount', 'total_amount'];
+  const directKeys = ['subtotal', 'total', 'totalDue', 'total_due', 'grandTotal', 'grand_total', 'netTotal', 'net_total', 'totalAmount', 'total_amount', 'amount'];
 
   for (const candidateObject of candidateObjects) {
     for (const key of directKeys) {
@@ -97,16 +97,37 @@ export const syncLeadQuotationPricing = async (
     return { subtotal: null, lead: null };
   }
 
+  console.log('[Quotation Pricing] Resolved quotation subtotal', {
+    leadId,
+    subtotal: resolution.subtotal,
+    source: resolution.source,
+    markAccepted: Boolean(options.markAccepted)
+  });
+
   if (client) {
+    console.log('[Quotation Pricing] Lead update payload queued', {
+      leadId,
+      initialPriceMode: 'first quotation preserves existing value or sets subtotal',
+      latestRevisedPrice: resolution.subtotal,
+      actualPriceMode: Boolean(options.markAccepted) ? 'accepted subtotal' : 'preserve current actual price'
+    });
     const lead = await updateLeadPricing(client, leadId, resolution.subtotal, Boolean(options.markAccepted));
+    console.log('[Quotation Pricing] Lead update success response', { leadId, lead });
     return { subtotal: resolution.subtotal, lead };
   }
 
   const transactionClient = await getClient();
   try {
     await transactionClient.query('BEGIN');
+    console.log('[Quotation Pricing] Lead update payload queued', {
+      leadId,
+      initialPriceMode: 'first quotation preserves existing value or sets subtotal',
+      latestRevisedPrice: resolution.subtotal,
+      actualPriceMode: Boolean(options.markAccepted) ? 'accepted subtotal' : 'preserve current actual price'
+    });
     const lead = await updateLeadPricing(transactionClient, leadId, resolution.subtotal, Boolean(options.markAccepted));
     await transactionClient.query('COMMIT');
+    console.log('[Quotation Pricing] Lead update success response', { leadId, lead });
     return { subtotal: resolution.subtotal, lead };
   } catch (error) {
     try {
@@ -124,6 +145,7 @@ export const setLeadActualPrice = async (
   client?: PoolClient | DbTransactionClient
 ) => {
   if (client) {
+    console.log('[Quotation Pricing] Direct actual price update payload', { leadId, actualPrice });
     const updatedLeadResult = await client.query(
       `UPDATE leads
        SET actual_price = $2,
@@ -133,12 +155,16 @@ export const setLeadActualPrice = async (
       [leadId, actualPrice]
     );
 
+    console.log('[Quotation Pricing] Direct actual price update success response', { leadId, lead: updatedLeadResult.rows[0] });
+
     return updatedLeadResult.rows[0];
   }
 
   const transactionClient = await getClient();
   try {
     await transactionClient.query('BEGIN');
+
+    console.log('[Quotation Pricing] Direct actual price update payload', { leadId, actualPrice });
 
     const updatedLeadResult = await transactionClient.query(
       `UPDATE leads
@@ -150,6 +176,7 @@ export const setLeadActualPrice = async (
     );
 
     await transactionClient.query('COMMIT');
+    console.log('[Quotation Pricing] Direct actual price update success response', { leadId, lead: updatedLeadResult.rows[0] });
     return updatedLeadResult.rows[0];
   } catch (error) {
     try {

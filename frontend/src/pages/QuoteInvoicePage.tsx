@@ -420,6 +420,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       setIsSaved(true);
       setMessage('Quotation saved successfully.');
       window.dispatchEvent(new Event('quote-request-saved'));
+      window.dispatchEvent(new CustomEvent('lead-payment-pricing-updated', { detail: { leadId: _leadId || null, requestId: _requestId } }));
       _onSaved?.();
     } catch (error) {
       console.error('Failed to save quote request:', error);
