@@ -53,6 +53,7 @@ const corsOptions = {
       'http://localhost:5000',      // Local backend
       'http://localhost:5001',      // Local backend alt port
       'http://127.0.0.1:3000',
+      'https://www.leadmanagerhodophile.nl',
       process.env.FRONTEND_URL,     // Production frontend (set on Railway)
     ].filter(Boolean) as string[];
 
