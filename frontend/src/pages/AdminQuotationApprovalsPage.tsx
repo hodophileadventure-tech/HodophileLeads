@@ -377,7 +377,7 @@ export default function AdminQuotationApprovalsPage({
           requestType={selectedRequest.requestType}
           requestStatus={selectedRequest.status as any}
           initialDocumentData={selectedRequest.documentData}
-          viewOnly={true}
+          viewOnly={false}
           generatePreviewOnMount
           embedded={true}
           leadData={{

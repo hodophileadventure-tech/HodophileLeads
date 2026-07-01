@@ -143,8 +143,8 @@ export const quoteRequestsController = {
         return res.status(400).json({ message: 'Missing document data' });
       }
 
-      if (req.user.role !== 'manager') {
-        return res.status(403).json({ message: 'Only managers can save quote requests' });
+      if (req.user.role !== 'manager' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Only admins and managers can save quote requests' });
       }
 
       const existingRequest = await quoteRequestsModel.findById(requestId);
@@ -178,7 +178,7 @@ export const quoteRequestsController = {
       try {
         await client.query('BEGIN');
         updatedRequest = await quoteRequestsModel.update(requestId, {
-          status: 'saved',
+          status: req.user.role === 'admin' ? existingRequest.status : 'saved',
           documentData: {
             ...documentData,
             quoteNumber: quotationNumber
@@ -207,7 +207,9 @@ export const quoteRequestsController = {
       const lead = await leadsModel.findById(existingRequest.leadId);
       if (lead) {
         const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
-        const notificationMessage = `Saved quote ready for approval: ${req.user.email || 'Manager'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
+        const notificationMessage = req.user.role === 'admin'
+          ? `Admin updated quotation: ${req.user.email || 'Admin'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`
+          : `Saved quote ready for approval: ${req.user.email || 'Manager'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
 
         for (const admin of admins.rows) {
           const notification = await notificationsModel.create({
