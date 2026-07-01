@@ -157,6 +157,15 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const displayQuoteNumber = data.quoteNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
+  const previewHiddenStyle = hidePreview
+    ? {
+        position: 'absolute' as const,
+        left: '-10000px',
+        top: 0,
+        width: '900px',
+        pointerEvents: 'none' as const
+      }
+    : undefined;
 
   useEffect(() => {
     if (_requestType) {
@@ -605,8 +614,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           </div>
         </div>
 
-        {!hidePreview && (
-        <div className="quote-invoice-preview">
+        <div className="quote-invoice-preview" style={previewHiddenStyle} aria-hidden={hidePreview ? 'true' : undefined}>
           <div className="pdf-page">
             <div className="pdf-canvas" ref={previewRef}>
               <div className="pdf-background">
@@ -738,7 +746,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
             </div>
           </div>
         </div>
-        )}
       </div>
     </div>
   );
