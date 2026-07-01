@@ -169,6 +169,7 @@ export const quoteRequestsController = {
       }
 
       const client = await getClient();
+      let isAdminCreatedQuotation = false;
       let updatedRequest;
       try {
         await client.query('BEGIN');
@@ -178,7 +179,7 @@ export const quoteRequestsController = {
           quotationNumber = await generateQuotationNumber(referenceDate, client);
         }
 
-        const isAdminCreatedQuotation = req.user.role === 'admin' && existingRequest.requestType === 'quotation';
+        isAdminCreatedQuotation = req.user.role === 'admin' && existingRequest.requestType === 'quotation';
 
         updatedRequest = await quoteRequestsModel.update(requestId, {
           status: isAdminCreatedQuotation ? 'approved' : 'saved',
@@ -199,10 +200,14 @@ export const quoteRequestsController = {
         }, client);
 
         if (existingRequest.requestType === 'quotation' && !existingRequest.acceptedAt) {
-          await syncLeadQuotationPricing(existingRequest.leadId, {
-            ...documentData,
-            quoteNumber: quotationNumber
-          }, { markAccepted: isAdminCreatedQuotation }, client);
+          try {
+            await syncLeadQuotationPricing(existingRequest.leadId, {
+              ...documentData,
+              quoteNumber: quotationNumber
+            }, { markAccepted: isAdminCreatedQuotation }, client);
+          } catch (syncError) {
+            console.error('[Quotation Save] Failed to sync lead pricing after save, continuing with saved quotation:', syncError);
+          }
         }
 
         await client.query('COMMIT');
@@ -215,32 +220,43 @@ export const quoteRequestsController = {
         client.release();
       }
 
-      const lead = await leadsModel.findById(existingRequest.leadId);
-      if (lead) {
-        const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
-        const notificationMessage = req.user.role === 'admin'
-          ? `Admin updated quotation: ${req.user.email || 'Admin'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`
-          : `Saved quote ready for approval: ${req.user.email || 'Manager'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
+      let lead = null;
+      try {
+        lead = await leadsModel.findById(existingRequest.leadId);
+      } catch (leadError) {
+        console.error('[Quotation Save] Failed to refetch lead after save:', leadError);
+      }
 
-        for (const admin of admins.rows) {
-          const notification = await notificationsModel.create({
-            userId: admin.id,
-            leadId: lead.id,
-            type: 'quote_saved_for_approval',
-            message: notificationMessage,
-            payload: {
-              requestId: updatedRequest.id,
+      if (lead) {
+        try {
+          const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
+          const notificationMessage = req.user.role === 'admin'
+            ? `Admin updated quotation: ${req.user.email || 'Admin'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`
+            : `Saved quote ready for approval: ${req.user.email || 'Manager'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
+
+          for (const admin of admins.rows) {
+            const notification = await notificationsModel.create({
+              userId: admin.id,
               leadId: lead.id,
-              requestType: updatedRequest.requestType,
-              savedBy: req.user.id,
-              savedByEmail: req.user.email,
-              quotationNumber
-            },
-            is_read: false
-          });
-          sendToUser(admin.id, 'notification', notification);
+              type: 'quote_saved_for_approval',
+              message: notificationMessage,
+              payload: {
+                requestId: updatedRequest.id,
+                leadId: lead.id,
+                requestType: updatedRequest.requestType,
+                savedBy: req.user.id,
+                savedByEmail: req.user.email,
+                quotationNumber
+              },
+              is_read: false
+            });
+            sendToUser(admin.id, 'notification', notification);
+          }
+        } catch (notificationError) {
+          console.error('[Quotation Save] Failed to create notifications after save:', notificationError);
         }
       }
+
       try {
         await logActivity({
           userId: req.user.id,
@@ -251,7 +267,16 @@ export const quoteRequestsController = {
         });
       } catch (_) {}
 
-      res.json(updatedRequest);
+      const leadSnapshot = lead ? {
+        ...lead,
+        initialPrice: (lead as any).initialPrice ?? (lead as any).initial_price ?? getExplicitSubtotal(documentData),
+        latestRevisedPrice: (lead as any).latestRevisedPrice ?? (lead as any).latest_revised_price ?? getExplicitSubtotal(documentData),
+        actualPrice: isAdminCreatedQuotation
+          ? getExplicitSubtotal(documentData)
+          : ((lead as any).actualPrice ?? (lead as any).actual_price ?? null)
+      } : null;
+
+      res.json({ ...updatedRequest, lead: leadSnapshot });
     } catch (error) {
       next(error);
     }

@@ -2,6 +2,7 @@
 import { useAuth } from '../context/AuthContext';
 import { quoteRequestsAPI, leadsAPI } from '../utils/api-service';
 import html2canvas from 'html2canvas';
+import type { Lead } from '../types';
 import quoteHeaderImage from '../assets/quote-header.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
@@ -416,11 +417,18 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         }
       };
       console.log('💾 Saving quotation with data:', saveData);
-      await quoteRequestsAPI.save(_requestId, saveData);
+      const response = await quoteRequestsAPI.save(_requestId, saveData);
+      let refreshedLead: Lead | null = null;
+      if (response.data?.lead) {
+        refreshedLead = response.data.lead;
+      } else if (_leadId) {
+        const leadResponse = await leadsAPI.getById(_leadId);
+        refreshedLead = leadResponse.data;
+      }
       setIsSaved(true);
       setMessage('Quotation saved successfully.');
-      window.dispatchEvent(new Event('quote-request-saved'));
-      window.dispatchEvent(new CustomEvent('lead-payment-pricing-updated', { detail: { leadId: _leadId || null, requestId: _requestId } }));
+      window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { leadId: _leadId || null, lead: refreshedLead } }));
+      window.dispatchEvent(new CustomEvent('lead-payment-pricing-updated', { detail: { leadId: _leadId || null, requestId: _requestId, lead: refreshedLead } }));
       _onSaved?.();
     } catch (error) {
       console.error('Failed to save quote request:', error);
