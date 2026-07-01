@@ -417,7 +417,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         }
       };
       console.log('💾 Saving quotation with data:', saveData);
-      const response = await quoteRequestsAPI.save(_requestId, saveData);
+      const response = await quoteRequestsAPI.save(_requestId, saveData.documentData);
       let refreshedLead: Lead | null = null;
       if (response.data?.lead) {
         refreshedLead = response.data.lead;

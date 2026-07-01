@@ -17,6 +17,9 @@ const parseAmount = (value: unknown): number | null => {
 
 const getObjectCandidates = (documentData: any): any[] => {
   const candidates = [documentData];
+  if (documentData && typeof documentData.documentData === 'object' && documentData.documentData !== null) {
+    candidates.push(documentData.documentData);
+  }
   for (const key of ['quotation', 'quote', 'invoice', 'pdf', 'payload', 'data']) {
     if (documentData && typeof documentData[key] === 'object' && documentData[key] !== null) {
       candidates.push(documentData[key]);
