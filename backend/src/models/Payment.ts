@@ -15,6 +15,11 @@ const mapPaymentRow = (row: any) => {
 };
 
 export const paymentsModel = {
+  async findById(id: string) {
+    const result = await query('SELECT * FROM payments WHERE id = $1', [id]);
+    return mapPaymentRow(result.rows[0]);
+  },
+
   async findAllByLead(leadId: string) {
     const result = await query('SELECT * FROM payments WHERE lead_id = $1 ORDER BY due_date DESC', [leadId]);
     return result.rows.map(mapPaymentRow);

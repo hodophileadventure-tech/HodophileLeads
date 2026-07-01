@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg';
 import { query } from '../utils/database';
 import type { QuoteRequest } from '../types';
 
@@ -18,6 +19,8 @@ const mapQuoteRequestRow = (row: any) => {
     resolvedAt: row.resolved_at || row.resolvedAt || null,
     approvedBy: row.approved_by || row.approvedBy || null,
     approvedAt: row.approved_at || row.approvedAt || null,
+    acceptedAt: row.accepted_at || row.acceptedAt || null,
+    invalidAcceptanceReason: row.invalid_acceptance_reason || row.invalidAcceptanceReason || null,
     rejectedBy: row.rejected_by || row.rejectedBy || null,
     rejectedAt: row.rejected_at || row.rejectedAt || null,
     rejectionReason: row.rejection_reason || row.rejectionReason || null,
@@ -44,7 +47,10 @@ const mapQuoteRequestRow = (row: any) => {
     leadSpecialRequests: row.lead_special_requests || row.leadSpecialRequests || null,
     leadLeadOutcome: row.lead_lead_outcome || row.leadLeadOutcome || null,
     leadAgentRemarks: row.lead_agent_remarks || row.leadAgentRemarks || null,
-    leadIslamabadStay: row.lead_islamabad_stay || row.leadIslamabadStay || null
+    leadIslamabadStay: row.lead_islamabad_stay || row.leadIslamabadStay || null,
+    leadInitialPrice: row.lead_initial_price || row.leadInitialPrice || null,
+    leadLatestRevisedPrice: row.lead_latest_revised_price || row.leadLatestRevisedPrice || null,
+    leadActualPrice: row.lead_actual_price || row.leadActualPrice || null
   } as QuoteRequest;
 };
 
@@ -64,6 +70,8 @@ export const quoteRequestsModel = {
         resolved_at,
         approved_by,
         approved_at,
+        accepted_at,
+        invalid_acceptance_reason,
         rejected_by,
         rejected_at,
         rejection_reason,
@@ -87,6 +95,8 @@ export const quoteRequestsModel = {
       data.resolvedAt || null,
       data.approvedBy || null,
       data.approvedAt || null,
+      (data as any).acceptedAt || null,
+      (data as any).invalidAcceptanceReason || null,
       data.rejectedBy || null,
       data.rejectedAt || null,
       data.rejectionReason || null,
@@ -118,7 +128,10 @@ export const quoteRequestsModel = {
              l.special_requests AS lead_special_requests,
              l.lead_outcome AS lead_lead_outcome,
              l.agent_remarks AS lead_agent_remarks,
-             l.islamabad_stay AS lead_islamabad_stay
+                  l.islamabad_stay AS lead_islamabad_stay,
+                  l.initial_price AS lead_initial_price,
+                  l.latest_revised_price AS lead_latest_revised_price,
+                  l.actual_price AS lead_actual_price
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
@@ -148,7 +161,10 @@ export const quoteRequestsModel = {
              l.special_requests AS lead_special_requests,
              l.lead_outcome AS lead_lead_outcome,
              l.agent_remarks AS lead_agent_remarks,
-             l.islamabad_stay AS lead_islamabad_stay
+                  l.islamabad_stay AS lead_islamabad_stay,
+                  l.initial_price AS lead_initial_price,
+                  l.latest_revised_price AS lead_latest_revised_price,
+                  l.actual_price AS lead_actual_price
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
@@ -179,7 +195,10 @@ export const quoteRequestsModel = {
              l.special_requests AS lead_special_requests,
              l.lead_outcome AS lead_lead_outcome,
              l.agent_remarks AS lead_agent_remarks,
-             l.islamabad_stay AS lead_islamabad_stay
+                  l.islamabad_stay AS lead_islamabad_stay,
+                  l.initial_price AS lead_initial_price,
+                  l.latest_revised_price AS lead_latest_revised_price,
+                  l.actual_price AS lead_actual_price
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN leads l ON l.id = qr.lead_id
@@ -216,7 +235,10 @@ export const quoteRequestsModel = {
                l.special_requests AS lead_special_requests,
                l.lead_outcome AS lead_lead_outcome,
                l.agent_remarks AS lead_agent_remarks,
-               l.islamabad_stay AS lead_islamabad_stay
+               l.islamabad_stay AS lead_islamabad_stay,
+               l.initial_price AS lead_initial_price,
+               l.latest_revised_price AS lead_latest_revised_price,
+               l.actual_price AS lead_actual_price
         FROM quote_requests qr
         LEFT JOIN users u ON u.id = qr.requested_by
         LEFT JOIN leads l ON l.id = qr.lead_id
@@ -236,7 +258,7 @@ export const quoteRequestsModel = {
     return res.rows.map(mapQuoteRequestRow);
   },
 
-  async update(id: string, data: Partial<QuoteRequest>) {
+  async update(id: string, data: Partial<QuoteRequest>, client?: PoolClient) {
     const fields: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
@@ -265,6 +287,14 @@ export const quoteRequestsModel = {
       fields.push(`approved_at = $${paramIndex++}`);
       params.push(data.approvedAt);
     }
+    if ((data as any).acceptedAt !== undefined) {
+      fields.push(`accepted_at = $${paramIndex++}`);
+      params.push((data as any).acceptedAt);
+    }
+    if ((data as any).invalidAcceptanceReason !== undefined) {
+      fields.push(`invalid_acceptance_reason = $${paramIndex++}`);
+      params.push((data as any).invalidAcceptanceReason);
+    }
     if (data.managerNotes !== undefined) {
       fields.push(`manager_notes = $${paramIndex++}`);
       params.push(data.managerNotes);
@@ -287,7 +317,7 @@ export const quoteRequestsModel = {
     const sql = `UPDATE quote_requests SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`;
     params.push(id);
 
-    const res = await query(sql, params);
+    const res = await (client ? client.query(sql, params) : query(sql, params));
     return mapQuoteRequestRow(res.rows[0]);
   },
 
@@ -350,7 +380,10 @@ export const quoteRequestsModel = {
              l.special_requests AS lead_special_requests,
              l.lead_outcome AS lead_lead_outcome,
              l.agent_remarks AS lead_agent_remarks,
-             l.islamabad_stay AS lead_islamabad_stay
+                  l.islamabad_stay AS lead_islamabad_stay,
+                  l.initial_price AS lead_initial_price,
+                  l.latest_revised_price AS lead_latest_revised_price,
+                  l.actual_price AS lead_actual_price
       FROM quote_requests qr
       LEFT JOIN users u ON u.id = qr.requested_by
       LEFT JOIN users m ON m.id = qr.created_by_manager
@@ -361,8 +394,8 @@ export const quoteRequestsModel = {
     return res.rows.map(mapQuoteRequestRow);
   },
 
-  async updateByManager(id: string, managerId: string, data: Partial<QuoteRequest>) {
-    const res = await query(`
+  async updateByManager(id: string, managerId: string, data: Partial<QuoteRequest>, client?: PoolClient) {
+    const sql = `
       UPDATE quote_requests 
       SET 
         created_by_manager = $1,
@@ -373,7 +406,9 @@ export const quoteRequestsModel = {
         updated_at = NOW()
       WHERE id = $4
       RETURNING *
-    `, [managerId, data.managerNotes || null, data.documentData || null, id]);
+    `;
+    const params = [managerId, data.managerNotes || null, data.documentData || null, id];
+    const res = await (client ? client.query(sql, params) : query(sql, params));
     
     return mapQuoteRequestRow(res.rows[0]);
   },

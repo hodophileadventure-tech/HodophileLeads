@@ -400,6 +400,9 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       const saveData = {
         documentData: {
           ...data,
+          subtotal: String(subtotalValue),
+          totalDue: String(totalDueValue),
+          balanceDue: String(balanceValue),
           tableRows
         }
       };

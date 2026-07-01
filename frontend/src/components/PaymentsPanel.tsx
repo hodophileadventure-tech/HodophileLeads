@@ -13,6 +13,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({ amount: 0, method: 'cash', dueDate: '', notes: '' });
+  const [formError, setFormError] = React.useState('');
   const [confirmingPayment, setConfirmingPayment] = React.useState<Payment | null>(null);
   const [proofFile, setProofFile] = React.useState<File | null>(null);
   const [confirmingLoading, setConfirmingLoading] = React.useState(false);
@@ -32,38 +33,56 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
 
   React.useEffect(() => { load(); }, [leadId]);
 
-  // Calculate totals
-  const totalPayments = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-  const tripBudget = (lead as any)?.tripBudget || (lead as any)?.trip_budget;
-  const remainingBudget = tripBudget ? tripBudget - totalPayments : null;
+  const totalDeposits = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+  const initialPrice = (lead as any)?.initialPrice ?? (lead as any)?.initial_price ?? null;
+  const latestRevisedPrice = (lead as any)?.latestRevisedPrice ?? (lead as any)?.latest_revised_price ?? null;
+  const actualPrice = (lead as any)?.actualPrice ?? (lead as any)?.actual_price ?? null;
+  const remainingBalance = actualPrice != null ? Math.max((Number(actualPrice) || 0) - totalDeposits, 0) : null;
+  const paymentStatus = actualPrice == null
+    ? 'Unpaid'
+    : totalDeposits <= 0
+      ? 'Unpaid'
+      : remainingBalance !== null && remainingBalance > 0
+        ? 'Partially Paid'
+        : 'Paid';
 
   return (
     <div className="card mt-4">
       <div className="flex items-center justify-between gap-2 mb-3">
         <h3 className="font-semibold">Payments / Deposits</h3>
-        <Button size="sm" onClick={() => setOpen(true)}>Add Payment</Button>
+        <Button size="sm" onClick={() => { setFormError(''); setOpen(true); }}>Add Payment</Button>
       </div>
 
-      {tripBudget && (
-        <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-slate-600 dark:text-slate-400">Trip Budget</p>
-              <p className="font-semibold">PKR {tripBudget.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-slate-600 dark:text-slate-400">Total Payments</p>
-              <p className="font-semibold">PKR {totalPayments.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-slate-600 dark:text-slate-400">Remaining</p>
-              <p className={`font-semibold ${remainingBudget! >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                PKR {remainingBudget!.toLocaleString()}
-              </p>
-            </div>
+      <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+          <div>
+            <p className="text-slate-600 dark:text-slate-400">Initial Price</p>
+            <p className="font-semibold">{initialPrice != null ? `PKR ${Number(initialPrice).toLocaleString()}` : '—'}</p>
+          </div>
+          <div>
+            <p className="text-slate-600 dark:text-slate-400">Latest Revised Price</p>
+            <p className="font-semibold">{latestRevisedPrice != null ? `PKR ${Number(latestRevisedPrice).toLocaleString()}` : '—'}</p>
+          </div>
+          <div>
+            <p className="text-slate-600 dark:text-slate-400">Actual Price</p>
+            <p className="font-semibold">{actualPrice != null ? `PKR ${Number(actualPrice).toLocaleString()}` : '—'}</p>
+          </div>
+          <div>
+            <p className="text-slate-600 dark:text-slate-400">Total Deposits</p>
+            <p className="font-semibold">PKR {totalDeposits.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-slate-600 dark:text-slate-400">Remaining Balance</p>
+            <p className={`font-semibold ${remainingBalance == null ? 'text-slate-500' : remainingBalance <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {remainingBalance == null ? '—' : `PKR ${remainingBalance.toLocaleString()}`}
+            </p>
           </div>
         </div>
-      )}
+        <div className="mt-3 text-sm">
+          <span className="text-slate-600 dark:text-slate-400">Payment Status: </span>
+          <span className="font-semibold">{paymentStatus}</span>
+        </div>
+      </div>
 
       {loading ? (
         <p className="text-sm text-slate-500">Loading payments...</p>
@@ -99,10 +118,28 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
             <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
             <Button variant="primary" onClick={async () => {
               try {
+                setFormError('');
+                if (actualPrice == null || actualPrice <= 0) {
+                  setFormError('Accepted quotation is required before recording deposits.');
+                  return;
+                }
+
+                const proposedAmount = Number(form.amount);
+                if (proposedAmount <= 0) {
+                  setFormError('Deposit amount must be greater than zero.');
+                  return;
+                }
+
+                const nextTotal = totalDeposits + proposedAmount;
+                if (nextTotal > Number(actualPrice)) {
+                  setFormError(`Deposit cannot exceed the accepted quotation actual price of PKR ${Number(actualPrice).toLocaleString()}.`);
+                  return;
+                }
+
                 console.log('Creating payment:', { leadId, amount: form.amount, method: form.method });
                 await paymentsAPI.create({
                   leadId,
-                  amount: Number(form.amount),
+                  amount: proposedAmount,
                   method: form.method as any,
                   dueDate: new Date(form.dueDate).toISOString(),
                   notes: form.notes
@@ -110,6 +147,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
                 console.log('Payment created successfully');
                 setOpen(false);
                 setForm({ amount: 0, method: 'cash', dueDate: '', notes: '' });
+                setFormError('');
                 await load();
                 window.dispatchEvent(new Event('dashboard-refresh'));
               } catch (error) {
@@ -141,6 +179,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
             <label className="block text-sm mb-1">Notes</label>
             <textarea className="input-field" value={form.notes} onChange={(e) => setForm((s) => ({ ...s, notes: e.target.value }))} />
           </div>
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
         </div>
       </Modal>
 

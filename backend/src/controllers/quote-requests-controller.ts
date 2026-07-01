@@ -4,9 +4,12 @@ import { quoteRequestsModel } from '../models/QuoteRequest';
 import { leadsModel } from '../models/Lead';
 import { notificationsModel } from '../models/Notification';
 import { sendToUser } from '../utils/wsServer';
-import { query } from '../utils/database';
+import { query, getClient } from '../utils/database';
 import { logActivity } from '../utils/activity-log';
 import { generateQuotationNumber } from '../services/quotation-number-service';
+import { resolveQuotationSubtotal, setLeadActualPrice, syncLeadQuotationPricing } from '../services/quotation-pricing-sync-service';
+
+const getExplicitSubtotal = (documentData: any): number | null => resolveQuotationSubtotal(documentData).subtotal;
 
 export const quoteRequestsController = {
   async requestQuote(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -134,7 +137,7 @@ export const quoteRequestsController = {
   async saveRequest(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const requestId = req.params.id;
-      const { documentData } = req.body;
+      let { documentData } = req.body;
 
       if (!documentData) {
         return res.status(400).json({ message: 'Missing document data' });
@@ -156,15 +159,50 @@ export const quoteRequestsController = {
         quotationNumber = await generateQuotationNumber(referenceDate);
       }
 
-      const updatedRequest = await quoteRequestsModel.update(requestId, {
-        status: 'saved',
-        documentData: {
-          ...documentData,
-          quoteNumber: quotationNumber
-        },
-        resolvedBy: req.user.id,
-        resolvedAt: new Date().toISOString()
-      });
+      const existingAcceptedSubtotal = existingRequest.acceptedAt ? getExplicitSubtotal(existingRequest.documentData) : null;
+      const proposedSubtotal = getExplicitSubtotal(documentData);
+      if (existingRequest.acceptedAt) {
+        if (proposedSubtotal !== null && existingAcceptedSubtotal !== null && proposedSubtotal !== existingAcceptedSubtotal) {
+          return res.status(409).json({ message: 'Accepted quotation subtotal is immutable' });
+        }
+        if (existingAcceptedSubtotal !== null && proposedSubtotal === null) {
+          documentData = {
+            ...documentData,
+            subtotal: String(existingAcceptedSubtotal)
+          };
+        }
+      }
+
+      const client = await getClient();
+      let updatedRequest;
+      try {
+        await client.query('BEGIN');
+        updatedRequest = await quoteRequestsModel.update(requestId, {
+          status: 'saved',
+          documentData: {
+            ...documentData,
+            quoteNumber: quotationNumber
+          },
+          resolvedBy: req.user.id,
+          resolvedAt: new Date().toISOString()
+        }, client);
+
+        if (existingRequest.requestType === 'quotation' && !existingRequest.acceptedAt) {
+          await syncLeadQuotationPricing(existingRequest.leadId, {
+            ...documentData,
+            quoteNumber: quotationNumber
+          }, { markAccepted: false }, client);
+        }
+
+        await client.query('COMMIT');
+      } catch (error) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (_) {}
+        throw error;
+      } finally {
+        client.release();
+      }
 
       const lead = await leadsModel.findById(existingRequest.leadId);
       if (lead) {
@@ -498,7 +536,7 @@ export const quoteRequestsController = {
       }
 
       const { id } = req.params;
-      const { documentData, managerNotes } = req.body;
+      let { documentData, managerNotes } = req.body;
 
       const quoteRequest = await quoteRequestsModel.findById(id);
       if (!quoteRequest) {
@@ -509,10 +547,42 @@ export const quoteRequestsController = {
         return res.status(400).json({ message: 'This quote request is not pending manager action' });
       }
 
-      const updatedRequest = await quoteRequestsModel.updateByManager(id, req.user.id, {
-        documentData,
-        managerNotes
-      });
+      const existingAcceptedSubtotal = quoteRequest.acceptedAt ? getExplicitSubtotal(quoteRequest.documentData) : null;
+      const proposedSubtotal = getExplicitSubtotal(documentData);
+      if (quoteRequest.acceptedAt) {
+        if (proposedSubtotal !== null && existingAcceptedSubtotal !== null && proposedSubtotal !== existingAcceptedSubtotal) {
+          return res.status(409).json({ message: 'Accepted quotation subtotal is immutable' });
+        }
+        if (existingAcceptedSubtotal !== null && proposedSubtotal === null) {
+          documentData = {
+            ...documentData,
+            subtotal: String(existingAcceptedSubtotal)
+          };
+        }
+      }
+
+      const client = await getClient();
+      let updatedRequest;
+      try {
+        await client.query('BEGIN');
+        updatedRequest = await quoteRequestsModel.updateByManager(id, req.user.id, {
+          documentData,
+          managerNotes
+        }, client);
+
+        if (quoteRequest.requestType === 'quotation' && !quoteRequest.acceptedAt) {
+          await syncLeadQuotationPricing(quoteRequest.leadId, documentData, { markAccepted: false }, client);
+        }
+
+        await client.query('COMMIT');
+      } catch (error) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (_) {}
+        throw error;
+      } finally {
+        client.release();
+      }
 
       // Notify admins about pending approval
       const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
@@ -646,6 +716,166 @@ export const quoteRequestsController = {
       } catch (_) {}
 
       res.json(rejectedRequest);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async markAsAccepted(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only admins and managers can mark quotations as accepted' });
+      }
+
+      const { id } = req.params;
+      const quoteRequest = await quoteRequestsModel.findById(id);
+      if (!quoteRequest) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (quoteRequest.requestType !== 'quotation') {
+        return res.status(400).json({ message: 'Only quotations can be marked as accepted' });
+      }
+
+      const existingAccepted = await query(
+        `SELECT id FROM quote_requests WHERE lead_id = $1 AND accepted_at IS NOT NULL AND id <> $2 LIMIT 1`,
+        [quoteRequest.leadId, id]
+      );
+
+      if (existingAccepted.rows.length) {
+        return res.status(409).json({ message: 'Another quotation is already accepted for this lead' });
+      }
+
+      const subtotalResolution = resolveQuotationSubtotal(quoteRequest.documentData);
+      if (subtotalResolution.subtotal === null) {
+        console.warn('[Quotation Acceptance] Unable to accept quotation because subtotal could not be resolved.', {
+          quoteRequestId: quoteRequest.id,
+          leadId: quoteRequest.leadId
+        });
+        await quoteRequestsModel.update(id, {
+          status: 'invalid_for_acceptance',
+          invalidAcceptanceReason: 'Accepted quotation subtotal is missing or invalid'
+        });
+
+        try {
+          await logActivity({
+            userId: req.user.id,
+            entityType: 'quote_request',
+            entityId: id,
+            action: 'reject_acceptance_missing_subtotal',
+            changes: { status: 'invalid_for_acceptance', reason: 'Accepted quotation subtotal is missing or invalid' }
+          });
+        } catch (_) {}
+
+        return res.status(422).json({ message: 'Accepted quotation subtotal is missing or invalid', status: 'invalid_for_acceptance' });
+      }
+
+      const client = await getClient();
+      let updatedLead;
+      try {
+        await client.query('BEGIN');
+        await quoteRequestsModel.update(id, {
+          acceptedAt: new Date().toISOString(),
+          invalidAcceptanceReason: null,
+          status: 'approved'
+        }, client);
+        updatedLead = await setLeadActualPrice(quoteRequest.leadId, subtotalResolution.subtotal, client);
+        await client.query('COMMIT');
+      } catch (error) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (_) {}
+        throw error;
+      } finally {
+        client.release();
+      }
+
+      if (!updatedLead) {
+        return res.status(404).json({ message: 'Lead not found' });
+      }
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: id,
+          action: 'accept_quotation',
+          changes: {
+            acceptedAt: new Date().toISOString(),
+            subtotal: subtotalResolution.subtotal,
+            subtotalSource: subtotalResolution.source
+          }
+        });
+      } catch (_) {}
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'lead',
+          entityId: quoteRequest.leadId,
+          action: 'set_actual_price',
+          changes: {
+            subtotal: subtotalResolution.subtotal,
+            actualPrice: (updatedLead as any).actual_price ?? (updatedLead as any).actualPrice ?? null,
+            latestRevisedPrice: (updatedLead as any).latest_revised_price ?? (updatedLead as any).latestRevisedPrice ?? null
+          }
+        });
+      } catch (_) {}
+
+      res.json(updatedLead);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async fixAcceptanceSubtotal(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+        return res.status(403).json({ message: 'Only admins and managers can fix quotation subtotals' });
+      }
+
+      const { id } = req.params;
+      const { subtotal, note, confirmed } = req.body || {};
+      if (confirmed !== true) {
+        return res.status(400).json({ message: 'Admin confirmation is required before repairing subtotal' });
+      }
+      const parsedSubtotal = Number(String(subtotal ?? '').replace(/[^0-9.\-]/g, ''));
+
+      if (!Number.isFinite(parsedSubtotal) || parsedSubtotal <= 0) {
+        return res.status(400).json({ message: 'A valid subtotal is required' });
+      }
+
+      const existing = await quoteRequestsModel.findById(id);
+      if (!existing) {
+        return res.status(404).json({ message: 'Quote request not found' });
+      }
+
+      if (existing.acceptedAt) {
+        return res.status(409).json({ message: 'Accepted quotation subtotal is immutable' });
+      }
+
+      const updatedDocumentData = {
+        ...(existing.documentData || {}),
+        subtotal: String(parsedSubtotal)
+      };
+
+      const updated = await quoteRequestsModel.update(id, {
+        documentData: updatedDocumentData,
+        status: 'admin_pending',
+        invalidAcceptanceReason: null
+      });
+
+      try {
+        await logActivity({
+          userId: req.user.id,
+          entityType: 'quote_request',
+          entityId: id,
+          action: 'fix_acceptance_subtotal',
+          changes: { subtotal: parsedSubtotal, note: note || null }
+        });
+      } catch (_) {}
+
+      res.json(updated);
     } catch (error) {
       next(error);
     }

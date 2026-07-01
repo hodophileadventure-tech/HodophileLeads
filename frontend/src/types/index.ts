@@ -192,10 +192,13 @@ export interface Notification {
 
 export interface QuoteRequest {
   id: string;
+  initialPrice?: number | null;
+  latestRevisedPrice?: number | null;
+  actualPrice?: number | null;
   leadId: string;
   requestedBy: string;
   requestType: 'quotation' | 'invoice';
-  status: 'requested' | 'saved' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected';
+  status: 'requested' | 'saved' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected' | 'invalid_for_acceptance';
   documentData?: any;
   createdByManager?: string | null;
   createdByManagerAt?: string | null;
@@ -204,6 +207,7 @@ export interface QuoteRequest {
   resolvedAt?: string | null;
   approvedBy?: string | null;
   approvedAt?: string | null;
+  acceptedAt?: string | null;
   rejectedBy?: string | null;
   rejectedAt?: string | null;
   rejectionReason?: string | null;
@@ -231,6 +235,10 @@ export interface QuoteRequest {
   leadLeadOutcome?: string | null;
   leadAgentRemarks?: string | null;
   leadIslamabadStay?: string | null;
+  invalidAcceptanceReason?: string | null;
+  leadInitialPrice?: number | null;
+  leadLatestRevisedPrice?: number | null;
+  leadActualPrice?: number | null;
 }
 
 export interface DashboardStats {

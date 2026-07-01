@@ -58,6 +58,9 @@ const mapLeadRow = (row: any) => {
     canceledReason: row.canceledReason || row.canceled_reason || null,
     canceledBy: row.canceledBy || row.canceled_by || null,
     canceledAt: row.canceledAt || row.canceled_at || null,
+    initialPrice: row.initialPrice || row.initial_price || null,
+    latestRevisedPrice: row.latestRevisedPrice || row.latest_revised_price || null,
+    actualPrice: row.actualPrice || row.actual_price || null,
     leadOutcome: row.leadOutcome || row.lead_outcome || null,
     pipelineStage:
       row.pipelineStage ||
@@ -241,6 +244,9 @@ export const leadsModel = {
       'canceled_reason',
       'canceled_by',
       'canceled_at',
+      'initial_price',
+      'latest_revised_price',
+      'actual_price',
       'pipeline_stage'
     ]);
 

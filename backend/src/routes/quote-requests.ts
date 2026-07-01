@@ -16,6 +16,8 @@ quoteRequestsRouter.post('/:id/send-for-approval', roleMiddleware(['manager']), 
 quoteRequestsRouter.post('/:id/create-quotation', roleMiddleware(['manager']), quoteRequestsController.createQuotationByManager);
 quoteRequestsRouter.post('/:id/approve', roleMiddleware(['admin']), quoteRequestsController.approveRequest);
 quoteRequestsRouter.post('/:id/approve-quotation', roleMiddleware(['admin']), quoteRequestsController.approveQuotation);
+quoteRequestsRouter.post('/:id/accept', roleMiddleware(['admin', 'manager']), quoteRequestsController.markAsAccepted);
+quoteRequestsRouter.post('/:id/fix-subtotal', roleMiddleware(['admin', 'manager']), quoteRequestsController.fixAcceptanceSubtotal);
 quoteRequestsRouter.post('/:id/reject', roleMiddleware(['admin']), quoteRequestsController.rejectQuotation);
 quoteRequestsRouter.post('/:id/reject-quotation', roleMiddleware(['admin']), quoteRequestsController.rejectQuotation);
 quoteRequestsRouter.delete('/:id', quoteRequestsController.deleteRequest);

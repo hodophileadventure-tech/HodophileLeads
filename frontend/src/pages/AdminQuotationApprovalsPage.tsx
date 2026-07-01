@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { quoteRequestsAPI } from '../utils/api-service';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
-import { Button } from '../components/common';
+import { Button, Modal } from '../components/common';
 import type { QuoteRequest } from '../types';
 
 interface AdminQuotationApprovalsPageProps {
@@ -20,6 +20,33 @@ export default function AdminQuotationApprovalsPage({
   const [message, setMessage] = useState<string>('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [showRepairModal, setShowRepairModal] = useState(false);
+  const [repairSubtotal, setRepairSubtotal] = useState('');
+  const [repairNote, setRepairNote] = useState('');
+  const [repairConfirmed, setRepairConfirmed] = useState(false);
+  const [repairLoading, setRepairLoading] = useState(false);
+
+  const isInvalidForAcceptance = selectedRequest?.status === 'invalid_for_acceptance';
+
+  const normalizedAmount = (value: unknown) => {
+    const parsed = Number(String(value ?? '').replace(/[^0-9.\-]/g, ''));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
+
+  const money = (value: unknown) => {
+    const parsed = normalizedAmount(value);
+    return parsed != null ? `Rs. ${parsed.toLocaleString()}` : '—';
+  };
+
+  const repairSourceSubtotal = useMemo(() => {
+    if (!selectedRequest) return '';
+    const pdfSubtotal = normalizedAmount(selectedRequest.documentData?.subtotal);
+    const lastKnownSubtotal = normalizedAmount(
+      selectedRequest.leadLatestRevisedPrice ?? selectedRequest.leadInitialPrice ?? selectedRequest.leadActualPrice
+    );
+    const seed = pdfSubtotal ?? lastKnownSubtotal;
+    return seed != null ? String(seed) : '';
+  }, [selectedRequest]);
 
   useEffect(() => {
     loadPendingQuotations();
@@ -27,6 +54,13 @@ export default function AdminQuotationApprovalsPage({
     window.addEventListener('quotation-approvals-updated', handler);
     return () => window.removeEventListener('quotation-approvals-updated', handler);
   }, []);
+
+  useEffect(() => {
+    setShowRepairModal(Boolean(isInvalidForAcceptance));
+    setRepairSubtotal(repairSourceSubtotal);
+    setRepairNote('');
+    setRepairConfirmed(false);
+  }, [isInvalidForAcceptance, repairSourceSubtotal, selectedRequest?.id]);
 
   const loadPendingQuotations = async () => {
     try {
@@ -85,6 +119,66 @@ export default function AdminQuotationApprovalsPage({
     } catch (error: any) {
       console.error('Failed to reject quotation:', error);
       setMessage(`Failed to reject: ${error?.response?.data?.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleMarkAccepted = async (quotation: QuoteRequest) => {
+    if (quotation.status === 'invalid_for_acceptance') {
+      setShowRepairModal(true);
+      return;
+    }
+
+    if (!window.confirm(`Mark ${quotation.requestType} for ${quotation.leadClientName} as accepted?`)) {
+      return;
+    }
+
+    try {
+      setMessage('Marking quotation as accepted...');
+      await quoteRequestsAPI.markAccepted(quotation.id);
+      setMessage('✅ Quotation accepted. Lead payment pricing updated.');
+      onRequestUpdated?.();
+      loadPendingQuotations();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error: any) {
+      console.error('Failed to mark quotation as accepted:', error);
+      setMessage(`Failed to mark accepted: ${error?.response?.data?.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleRepairAndAccept = async () => {
+    if (!selectedRequest) return;
+
+    const parsedSubtotal = normalizedAmount(repairSubtotal);
+    if (parsedSubtotal == null) {
+      setMessage('Please enter a valid subtotal before acceptance');
+      return;
+    }
+
+    if (!repairConfirmed) {
+      setMessage('Please confirm the repaired subtotal before continuing');
+      return;
+    }
+
+    try {
+      setRepairLoading(true);
+      setMessage('Repairing quotation subtotal...');
+      await quoteRequestsAPI.fixAcceptanceSubtotal(selectedRequest.id, {
+        subtotal: String(parsedSubtotal),
+        confirmed: true,
+        note: repairNote.trim() || undefined
+      });
+      setMessage('Repair saved. Accepting quotation...');
+      await quoteRequestsAPI.markAccepted(selectedRequest.id);
+      setMessage('✅ Quotation repaired and accepted. Lead payment pricing updated.');
+      setShowRepairModal(false);
+      onRequestUpdated?.();
+      loadPendingQuotations();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error: any) {
+      console.error('Failed to repair/accept quotation:', error);
+      setMessage(`Failed to repair or accept: ${error?.response?.data?.message || 'Unknown error'}`);
+    } finally {
+      setRepairLoading(false);
     }
   };
 
@@ -315,6 +409,12 @@ export default function AdminQuotationApprovalsPage({
               ✅ Approve Quotation
             </button>
             <button
+              onClick={() => handleMarkAccepted(selectedRequest)}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded"
+            >
+              {isInvalidForAcceptance ? '🛠 Repair Required Before Acceptance' : '✅ Mark as Accepted'}
+            </button>
+            <button
               onClick={() => setShowRejectForm(true)}
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded"
             >
@@ -359,8 +459,86 @@ export default function AdminQuotationApprovalsPage({
           {selectedRequest.documentData?.quoteNumber && (
             <p><strong>Number:</strong> {selectedRequest.documentData.quoteNumber}</p>
           )}
+          {selectedRequest.invalidAcceptanceReason && (
+            <p className="mt-2 text-amber-700 dark:text-amber-300">
+              <strong>Repair reason:</strong> {selectedRequest.invalidAcceptanceReason}
+            </p>
+          )}
         </div>
       </aside>
     </div>
+
+      <Modal
+        isOpen={showRepairModal}
+        onClose={() => setShowRepairModal(false)}
+        title="Repair Quotation Before Acceptance"
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setShowRepairModal(false)} disabled={repairLoading}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleRepairAndAccept} disabled={repairLoading || !repairConfirmed || normalizedAmount(repairSubtotal) == null}>
+              {repairLoading ? 'Processing...' : 'Confirm Repair & Accept'}
+            </Button>
+          </>
+        )}
+      >
+        {selectedRequest && (
+          <div className="space-y-4 text-sm">
+            <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-900">
+              Acceptance is blocked until an explicit subtotal is confirmed by an admin. No computed values will be used.
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="rounded border p-3">
+                <p className="text-xs uppercase text-slate-500">PDF subtotal</p>
+                <p className="font-semibold">{money(selectedRequest.documentData?.subtotal)}</p>
+              </div>
+              <div className="rounded border p-3">
+                <p className="text-xs uppercase text-slate-500">Last known subtotal</p>
+                <p className="font-semibold">{money(selectedRequest.leadLatestRevisedPrice ?? selectedRequest.leadInitialPrice ?? selectedRequest.leadActualPrice)}</p>
+              </div>
+              <div className="rounded border p-3">
+                <p className="text-xs uppercase text-slate-500">Lead actual price</p>
+                <p className="font-semibold">{money(selectedRequest.leadActualPrice)}</p>
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="block text-sm font-semibold mb-2">Admin confirmed subtotal</span>
+              <input
+                type="text"
+                value={repairSubtotal}
+                onChange={(e) => setRepairSubtotal(e.target.value)}
+                placeholder="Enter exact subtotal to repair"
+                className="w-full border rounded p-2"
+              />
+            </label>
+
+            <label className="block">
+              <span className="block text-sm font-semibold mb-2">Repair note</span>
+              <textarea
+                value={repairNote}
+                onChange={(e) => setRepairNote(e.target.value)}
+                placeholder="Optional note explaining the repair source"
+                className="w-full border rounded p-2"
+                rows={3}
+              />
+            </label>
+
+            <label className="flex items-start gap-2 rounded border border-slate-200 bg-slate-50 p-3">
+              <input
+                type="checkbox"
+                checked={repairConfirmed}
+                onChange={(e) => setRepairConfirmed(e.target.checked)}
+                className="mt-1"
+              />
+              <span>
+                I confirm this subtotal is explicit, verified, and should be used as the only financial source for acceptance.
+              </span>
+            </label>
+          </div>
+        )}
+      </Modal>
   );
 }

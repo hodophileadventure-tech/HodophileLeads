@@ -179,6 +179,66 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] ✅ trip_budget column added successfully');
     }
 
+    const initialPriceCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'initial_price'
+    `);
+    const initialPriceExists = initialPriceCheckResult.rows?.[0]?.count > 0;
+
+    if (!initialPriceExists) {
+      console.log('[MIGRATION] Adding initial_price column to leads table...');
+      await query(`ALTER TABLE leads ADD COLUMN initial_price DECIMAL(12, 2)`);
+      console.log('[MIGRATION] ✅ initial_price column added successfully');
+    }
+
+    const latestRevisedPriceCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'latest_revised_price'
+    `);
+    const latestRevisedPriceExists = latestRevisedPriceCheckResult.rows?.[0]?.count > 0;
+
+    if (!latestRevisedPriceExists) {
+      console.log('[MIGRATION] Adding latest_revised_price column to leads table...');
+      await query(`ALTER TABLE leads ADD COLUMN latest_revised_price DECIMAL(12, 2)`);
+      console.log('[MIGRATION] ✅ latest_revised_price column added successfully');
+    }
+
+    const actualPriceCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'actual_price'
+    `);
+    const actualPriceExists = actualPriceCheckResult.rows?.[0]?.count > 0;
+
+    if (!actualPriceExists) {
+      console.log('[MIGRATION] Adding actual_price column to leads table...');
+      await query(`ALTER TABLE leads ADD COLUMN actual_price DECIMAL(12, 2)`);
+      console.log('[MIGRATION] ✅ actual_price column added successfully');
+    }
+
+    const acceptedAtCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'quote_requests' AND column_name = 'accepted_at'
+    `);
+    const acceptedAtExists = acceptedAtCheckResult.rows?.[0]?.count > 0;
+
+    if (!acceptedAtExists) {
+      console.log('[MIGRATION] Adding accepted_at column to quote_requests table...');
+      await query(`ALTER TABLE quote_requests ADD COLUMN accepted_at TIMESTAMP`);
+      console.log('[MIGRATION] ✅ accepted_at column added successfully');
+    }
+
+    const invalidAcceptanceReasonCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'quote_requests' AND column_name = 'invalid_acceptance_reason'
+    `);
+    const invalidAcceptanceReasonExists = invalidAcceptanceReasonCheckResult.rows?.[0]?.count > 0;
+
+    if (!invalidAcceptanceReasonExists) {
+      console.log('[MIGRATION] Adding invalid_acceptance_reason column to quote_requests table...');
+      await query(`ALTER TABLE quote_requests ADD COLUMN invalid_acceptance_reason TEXT`);
+      console.log('[MIGRATION] ✅ invalid_acceptance_reason column added successfully');
+    }
+
     // Ensure leads table supports spam status and potential flag
     const statusColumnCheckResult = await query(`
       SELECT COUNT(*) as count FROM information_schema.columns 
@@ -558,6 +618,13 @@ export const query = async (text: string, params?: any[]) => {
           rows: [...mockDb.leads],
           rowCount: mockDb.leads.length
         };
+      }
+
+      // Lead by id
+      if (normalized.includes('select id, initial_price, latest_revised_price, actual_price from leads where id = $1 for update')) {
+        const id = params?.[0];
+        const row = mockDb.leads.find((lead: any) => lead.id === id);
+        return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
       }
 
       // Lead by id
