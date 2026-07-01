@@ -1,5 +1,5 @@
 import React from 'react';
-import { paymentsAPI } from '../utils/api-service';
+import { paymentsAPI, leadsAPI } from '../utils/api-service';
 import { Button, Modal } from './common';
 import type { Payment, Lead } from '../types';
 
@@ -10,6 +10,7 @@ interface PaymentsPanelProps {
 
 export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) => {
   const [payments, setPayments] = React.useState<Payment[]>([]);
+  const [displayLead, setDisplayLead] = React.useState<Lead | undefined>(lead);
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({ amount: 0, method: 'cash', dueDate: '', notes: '' });
@@ -31,12 +32,44 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
     }
   };
 
+  React.useEffect(() => {
+    setDisplayLead(lead);
+  }, [lead]);
+
   React.useEffect(() => { load(); }, [leadId]);
 
+  React.useEffect(() => {
+    const handleLeadPricingUpdated = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ leadId?: string; lead?: Lead | null }>;
+      const updatedLeadId = customEvent.detail?.leadId;
+      if (updatedLeadId && String(updatedLeadId) !== String(leadId)) {
+        return;
+      }
+
+      try {
+        if (customEvent.detail?.lead) {
+          setDisplayLead(customEvent.detail.lead);
+          return;
+        }
+
+        const response = await paymentsAPI.list(leadId);
+        setPayments(response.data || []);
+
+        const { data } = await leadsAPI.getById(leadId);
+        setDisplayLead(data);
+      } catch (error) {
+        console.error('Failed to refresh payment panel after pricing update:', error);
+      }
+    };
+
+    window.addEventListener('lead-payment-pricing-updated', handleLeadPricingUpdated as EventListener);
+    return () => window.removeEventListener('lead-payment-pricing-updated', handleLeadPricingUpdated as EventListener);
+  }, [leadId]);
+
   const totalDeposits = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-  const initialPrice = (lead as any)?.initialPrice ?? (lead as any)?.initial_price ?? null;
-  const latestRevisedPrice = (lead as any)?.latestRevisedPrice ?? (lead as any)?.latest_revised_price ?? null;
-  const actualPrice = (lead as any)?.actualPrice ?? (lead as any)?.actual_price ?? null;
+  const initialPrice = (displayLead as any)?.initialPrice ?? (displayLead as any)?.initial_price ?? null;
+  const latestRevisedPrice = (displayLead as any)?.latestRevisedPrice ?? (displayLead as any)?.latest_revised_price ?? null;
+  const actualPrice = (displayLead as any)?.actualPrice ?? (displayLead as any)?.actual_price ?? null;
   const remainingBalance = actualPrice != null ? Math.max((Number(actualPrice) || 0) - totalDeposits, 0) : null;
   const paymentStatus = actualPrice == null
     ? 'Unpaid'
