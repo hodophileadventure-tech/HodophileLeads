@@ -242,7 +242,8 @@ export default function AdminQuotationApprovalsPage({
   }
 
   return (
-    <div className="grid grid-cols-3 gap-6 w-full" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
+    <>
+      <div className="grid grid-cols-3 gap-6 w-full" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
       {/* Back Button */}
       <div className="col-span-3">
         <Button
@@ -466,7 +467,7 @@ export default function AdminQuotationApprovalsPage({
           )}
         </div>
       </aside>
-    </div>
+      </div>
 
       <Modal
         isOpen={showRepairModal}
@@ -540,5 +541,6 @@ export default function AdminQuotationApprovalsPage({
           </div>
         )}
       </Modal>
+    </>
   );
 }
