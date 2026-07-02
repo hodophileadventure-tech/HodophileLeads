@@ -229,7 +229,7 @@ export default function AdminQuotationApprovalsPage({
                     <div className="text-right">
                       <p className="text-sm text-slate-500">{quotation.leadDestination}</p>
                       {quotation.documentData?.quoteNumber && (
-                        <p className="font-mono text-sm font-semibold">{quotation.documentData.quoteNumber}</p>
+                        <p className="font-mono text-sm font-semibold">{quotation.quotationNumber || quotation.documentData?.quoteNumber}</p>
                       )}
                     </div>
                   </div>
@@ -465,7 +465,7 @@ export default function AdminQuotationApprovalsPage({
           <p><strong>Type:</strong> {selectedRequest.requestType}</p>
           <p><strong>Status:</strong> <span className="font-mono">{selectedRequest.status}</span></p>
           {selectedRequest.documentData?.quoteNumber && (
-            <p><strong>Number:</strong> {selectedRequest.documentData.quoteNumber}</p>
+            <p><strong>Number:</strong> {selectedRequest.quotationNumber || selectedRequest.documentData?.quoteNumber}</p>
           )}
           {selectedRequest.invalidAcceptanceReason && (
             <p className="mt-2 text-amber-700 dark:text-amber-300">

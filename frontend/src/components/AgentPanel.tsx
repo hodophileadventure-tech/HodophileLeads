@@ -776,7 +776,7 @@ export const AgentPanel: React.FC = () => {
                     <p className="font-semibold">{request.requestType === 'quotation' ? 'Quotation' : 'Invoice'} for {request.leadClientName || request.leadPhone}</p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Lead: {request.leadClientName || 'Unknown'} · {request.leadPhone}</p>
                     {request.documentData?.quoteNumber && (
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Quote #: {request.documentData.quoteNumber}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Quote #: {request.quotationNumber || request.documentData?.quoteNumber}</p>
                     )}
                   </div>
                   <div className="text-right">

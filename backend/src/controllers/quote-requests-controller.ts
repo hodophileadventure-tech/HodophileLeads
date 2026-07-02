@@ -136,6 +136,7 @@ export const quoteRequestsController = {
 
   async listByUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      await repairPendingQuotationNumbers();
       const { id: userId, role } = req.user;
       const requests = await quoteRequestsModel.findAccessibleByUser(userId, role);
       res.json(requests);
@@ -146,6 +147,7 @@ export const quoteRequestsController = {
 
   async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      await repairPendingQuotationNumbers();
       const requestId = String(req.params.id || '');
       const request = await quoteRequestsModel.findById(requestId);
       if (!request) {
