@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI, quoteRequestsAPI } from '../utils/api-service';
 import { LeadForm } from './LeadForm';
@@ -439,6 +439,10 @@ export const AgentPanel: React.FC = () => {
     setShowConfirmForm(false);
   };
 
+  const requestedLeadIds = useMemo(() => {
+    return new Set(quoteRequests.map((request) => request.leadId));
+  }, [quoteRequests]);
+
   const requestLeadDocument = async (lead: Lead) => {
     const type = window.prompt('Enter document request type: quotation or invoice', 'quotation');
     if (!type) return;
@@ -451,6 +455,7 @@ export const AgentPanel: React.FC = () => {
     try {
       await leadsAPI.requestQuote(String(lead.id), normalizedType as 'quotation' | 'invoice');
       alert(`Requested ${normalizedType} for ${lead.clientName || lead.phone}. A manager will be notified.`);
+      await loadQuoteRequests();
     } catch (error) {
       console.error('Failed to request document', error);
       alert('Unable to submit document request. Please try again.');
@@ -722,7 +727,20 @@ export const AgentPanel: React.FC = () => {
                     }
                   }}>Attachments</Button>
                 <Button variant="secondary" onClick={() => openFollowUp(lead)}>Schedule Follow Up</Button>
-                <Button variant="secondary" onClick={() => requestLeadDocument(lead)}>Request Quote/Invoice</Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => requestLeadDocument(lead)}
+                    disabled={requestedLeadIds.has(lead.id)}
+                  >
+                    Request Quote/Invoice
+                  </Button>
+                  {requestedLeadIds.has(lead.id) && (
+                    <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 px-3 py-1 text-xs font-semibold">
+                      Already requested
+                    </span>
+                  )}
+                </div>
                 {lifecycle.state !== 'confirmed' && (
                   <Button variant="primary" onClick={() => openConfirm(lead)}>Confirm</Button>
                 )}
