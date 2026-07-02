@@ -11,6 +11,39 @@ import { resolveQuotationSubtotal, setLeadActualPrice, syncLeadQuotationPricing 
 
 const getExplicitSubtotal = (documentData: any): number | null => resolveQuotationSubtotal(documentData).subtotal;
 
+const resolveUniqueQuotationNumber = async (
+  requestId: string,
+  referenceDate: Date,
+  proposedQuotationNumber: string | null,
+  client?: any
+) => {
+  if (proposedQuotationNumber) {
+    const conflict = client
+      ? await client.query(
+          `SELECT 1
+           FROM quote_requests
+           WHERE RIGHT(COALESCE(quotation_number, document_data->>'quoteNumber'), 4) = RIGHT($1, 4)
+             AND id <> $2
+           LIMIT 1`,
+          [proposedQuotationNumber, requestId]
+        )
+      : await query(
+          `SELECT 1
+           FROM quote_requests
+           WHERE RIGHT(COALESCE(quotation_number, document_data->>'quoteNumber'), 4) = RIGHT($1, 4)
+             AND id <> $2
+           LIMIT 1`,
+          [proposedQuotationNumber, requestId]
+        );
+
+    if (!conflict.rows.length) {
+      return proposedQuotationNumber;
+    }
+  }
+
+  return generateQuotationNumber(referenceDate, client);
+};
+
 export const quoteRequestsController = {
   async requestQuote(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
@@ -177,9 +210,9 @@ export const quoteRequestsController = {
       try {
         await client.query('BEGIN');
 
-        if (isQuotation && !quotationNumber) {
+        if (isQuotation) {
           const referenceDate = documentData.date ? new Date(documentData.date) : new Date();
-          quotationNumber = await generateQuotationNumber(referenceDate, client);
+          quotationNumber = await resolveUniqueQuotationNumber(requestId, referenceDate, quotationNumber, client);
         }
 
         const savedDocumentData = {
@@ -634,7 +667,12 @@ export const quoteRequestsController = {
         await client.query('BEGIN');
 
         const existingQuotationNumber = quoteRequest.quotationNumber || quoteRequest.documentData?.quoteNumber || null;
-        const quotationNumber = existingQuotationNumber || await generateQuotationNumber(new Date(documentData.date || new Date().toISOString()), client);
+        const quotationNumber = await resolveUniqueQuotationNumber(
+          id,
+          new Date(documentData.date || new Date().toISOString()),
+          existingQuotationNumber,
+          client
+        );
         const savedDocumentData = {
           ...documentData,
           quoteNumber: quotationNumber
