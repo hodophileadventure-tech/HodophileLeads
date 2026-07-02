@@ -455,7 +455,10 @@ html, body {
 }
 
 .pdf-person-value {
-  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
   font-weight: 800;
   font-size: 34px;
   line-height: 1.1;
