@@ -454,6 +454,13 @@ html, body {
   text-align: center;
 }
 
+.pdf-person-value {
+  vertical-align: middle;
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
 .pdf-description-cell {
   text-align: left;
 }
@@ -525,6 +532,10 @@ html, body {
   line-height: 1.8;
   color: #111827;
   font-weight: 600;
+}
+
+.pdf-package-includes-box {
+  line-height: 1.7;
 }
 
 .pdf-notes .notes-title {

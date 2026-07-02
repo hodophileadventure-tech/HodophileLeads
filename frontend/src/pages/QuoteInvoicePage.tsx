@@ -54,7 +54,6 @@ type DocumentData = {
   totalDue: string;
   advanceAmount: string;
   balanceDue: string;
-  notes: string[];
   packageIncludes: string[];
   accommodationType: string;
   transportationType: string;
@@ -93,11 +92,6 @@ const defaultData: DocumentData = {
   totalDue: '608,000',
   advanceAmount: '200,000',
   balanceDue: '408,000',
-  notes: [
-    'Remaining amount handed over to Driver cum Guide at departure is mandatory.',
-    'Detailed itinerary already shared.',
-    'Read Terms & Conditions.',
-  ],
   packageIncludes: ['Transport', 'Accommodation', 'Breakfast & Dinner', 'Jeep Ride'],
   accommodationType: 'Standard Accommodation',
   transportationType: 'ISB-to-ISB',
@@ -170,7 +164,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'saved' || requestStatus === 'created' || requestStatus === 'approved' || requestStatus === 'rejected');
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
-  const initialPreviewGeneratedRef = useRef(false);
 
   const displayQuoteNumber = data.quoteNumber || initialQuotationNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
   const previewHiddenStyle = hidePreview
@@ -276,9 +269,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
-      if (initialPreviewGeneratedRef.current) {
-        return;
-      }
       const generatePreview = async () => {
         try {
           const canvas = await html2canvas(previewRef.current!, {
@@ -289,7 +279,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           });
           const jpegData = canvas.toDataURL('image/jpeg', 0.95);
           onPreviewGenerated(jpegData);
-          initialPreviewGeneratedRef.current = true;
         } catch (error) {
           console.error('Failed to generate preview:', error);
         }
@@ -367,6 +356,23 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     }
     return rows.slice(0, 5);
   }, [tableRows]);
+
+  useEffect(() => {
+    const packageAmount = formatAmount(parseNumber(data.price || '') * parseNumber(data.persons || ''));
+    setTableRows((current) => {
+      if (!current.length) {
+        return current;
+      }
+
+      if (current[0].amount === packageAmount) {
+        return current;
+      }
+
+      const nextRows = [...current];
+      nextRows[0] = { ...nextRows[0], amount: packageAmount };
+      return nextRows;
+    });
+  }, [data.price, data.persons]);
 
   const canSaveRequest = !!_requestId && requestStatus && ['requested', 'manager_pending', 'admin_pending', 'saved', 'created', 'rejected'].includes(requestStatus) && ['manager', 'admin'].includes(user?.role || '') && !viewOnly;
   const canSendForApproval = !!_requestId && isSaved && requestStatus && (requestStatus === 'manager_pending' || requestStatus === 'saved') && user?.role === 'manager' && !viewOnly;
@@ -573,11 +579,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
               <textarea disabled={viewOnly} value={data.packageIncludes.join('\n')} onChange={(event) => updateField('packageIncludes', event.target.value.split('\n'))} />
               <small>Enter each item on a new line.</small>
             </div>
-            <div>
-              <label>Notes</label>
-              <textarea value={data.notes.join('\n')} onChange={(event) => updateField('notes', event.target.value.split('\n'))} />
-              <small>Enter each note on a new line.</small>
-            </div>
             <div className="space-y-2">
               <button type="button" className="btn-primary" onClick={downloadJPEG}>
                 Download JPEG
@@ -686,7 +687,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                           </div>
                         </td>
                         <td className="pdf-price-cell text-right"><strong>{data.price}</strong></td>
-                        <td className="pdf-person-cell text-center">{data.persons}</td>
+                        <td className="pdf-person-cell text-center pdf-person-value">{data.persons}</td>
                         <td className="pdf-amount-cell text-right">
                           <strong>{formatAmount(parseNumber(data.price) * parseNumber(data.persons))}</strong>
                         </td>
@@ -694,10 +695,10 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                       <tr className="pdf-footer-row">
                         <td colSpan={3}>
                           <div className="pdf-left-box">
-                            <div className="pdf-notes">
-                              <div className="notes-title">NOTES:</div>
-                              {data.notes.map((note, index) => (
-                                <div key={index}><strong>{note}</strong></div>
+                            <div className="pdf-notes pdf-package-includes-box">
+                              <div className="notes-title">PACKAGE INCLUDES:</div>
+                              {data.packageIncludes.map((item, index) => (
+                                <div key={index}><strong>{item}</strong></div>
                               ))}
                             </div>
                           </div>
