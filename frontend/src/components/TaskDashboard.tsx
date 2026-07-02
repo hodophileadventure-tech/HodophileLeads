@@ -13,6 +13,7 @@ type TaskItem = {
   id: string;
   title: string;
   description: string;
+  note?: string;
   priority: 'high' | 'medium' | 'low';
   status: 'overdue' | 'today' | 'upcoming';
   dueLabel: string;
@@ -95,6 +96,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
         id: item.id,
         title: item.title,
         description: item.description || 'Client follow-up task',
+        note: item.description ? item.description : undefined,
         priority: item.priority,
         status: item.status === 'overdue' || item.status === 'today' ? item.status : 'upcoming',
         dueLabel: `Due ${formatKarachiDateTime(item.dueDate || '')}`,
@@ -246,13 +248,21 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                 <div className="flex flex-wrap gap-2 justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{task.title}</h3>
-                    {item.clientName && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        Client: <span className="font-medium">{item.clientName}</span>
-                        {item.phone && <span className="text-slate-500"> · {item.phone}</span>}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      {item.clientName
+                        ? (
+                          <>Client: <span className="font-medium">{item.clientName}</span>{item.phone && <span className="text-slate-500"> · {item.phone}</span>}</>
+                        )
+                        : item.phone
+                          ? <>Client: <span className="font-medium">{item.phone}</span></>
+                          : <>Client ID: <span className="font-medium">{item.leadId}</span></>}
+                    </p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{task.description}</p>
+                    {task.note && (
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 whitespace-pre-wrap">
+                        Note: {task.note}
                       </p>
                     )}
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{task.description}</p>
                     <p className="text-xs text-slate-500 mt-2">{task.dueLabel}</p>
                     {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (
                       <p className="text-xs text-rose-700 dark:text-rose-200 mt-2">
