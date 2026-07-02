@@ -86,7 +86,7 @@ export const initDatabase = async () => {
   }
 };
 
-const repairPendingQuotationNumbers = async () => {
+export const repairPendingQuotationNumbers = async () => {
   try {
     const client = await getClient();
     try {

@@ -5,6 +5,7 @@ import { leadsModel } from '../models/Lead';
 import { notificationsModel } from '../models/Notification';
 import { sendToUser } from '../utils/wsServer';
 import { query, getClient } from '../utils/database';
+import { repairPendingQuotationNumbers } from '../utils/database';
 import { logActivity } from '../utils/activity-log';
 import { generateQuotationNumber, peekNextQuotationNumber } from '../services/quotation-number-service';
 import { resolveQuotationSubtotal, setLeadActualPrice, syncLeadQuotationPricing } from '../services/quotation-pricing-sync-service';
@@ -168,6 +169,7 @@ export const quoteRequestsController = {
 
   async listPending(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      await repairPendingQuotationNumbers();
       let pendingRequests;
 
       if (req.user.role === 'agent') {
@@ -643,6 +645,7 @@ export const quoteRequestsController = {
         return res.status(403).json({ message: 'Only managers can view pending requests' });
       }
 
+      await repairPendingQuotationNumbers();
       const requests = await quoteRequestsModel.findPendingForManager();
       res.json(requests);
     } catch (error) {
@@ -753,6 +756,7 @@ export const quoteRequestsController = {
         return res.status(403).json({ message: 'Only admins can view pending approvals' });
       }
 
+      await repairPendingQuotationNumbers();
       const requests = await quoteRequestsModel.findPendingForAdmin();
       res.json(requests);
     } catch (error) {
