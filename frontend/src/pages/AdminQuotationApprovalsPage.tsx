@@ -383,6 +383,7 @@ export default function AdminQuotationApprovalsPage({
           requestType={selectedRequest.requestType}
           requestStatus={selectedRequest.status as any}
           initialDocumentData={selectedRequest.documentData}
+          initialQuotationNumber={selectedRequest.quotationNumber}
           viewOnly={false}
           generatePreviewOnMount
           embedded={true}

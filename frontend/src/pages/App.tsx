@@ -1357,6 +1357,7 @@ export const App: React.FC = () => {
                           requestType={selectedQuoteRequest.requestType}
                           requestStatus={selectedQuoteRequest.status as any}
                           initialDocumentData={selectedQuoteRequest.documentData}
+                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('pending-quotes');
@@ -1575,6 +1576,7 @@ export const App: React.FC = () => {
                           requestType={selectedQuoteRequest.requestType}
                           requestStatus={selectedQuoteRequest.status as any}
                           initialDocumentData={selectedQuoteRequest.documentData}
+                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
                           onSaved={() => {
                             setSelectedQuoteRequest(null);
                             setCurrentPage('manager-quotations');

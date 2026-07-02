@@ -26,6 +26,7 @@ type QuoteInvoicePageProps = {
   requestType?: 'quotation' | 'invoice';
   requestStatus?: 'requested' | 'saved' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected';
   initialDocumentData?: any;
+  initialQuotationNumber?: string | null;
   viewOnly?: boolean;
   generatePreviewOnMount?: boolean;
   onPreviewGenerated?: (dataUrl: string) => void;
@@ -139,6 +140,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   requestType: _requestType,
   requestStatus,
   initialDocumentData,
+  initialQuotationNumber,
   viewOnly = false,
   generatePreviewOnMount = false,
   onPreviewGenerated,
@@ -157,7 +159,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
 
-  const displayQuoteNumber = data.quoteNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
+  const displayQuoteNumber = data.quoteNumber || initialQuotationNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
   const previewHiddenStyle = hidePreview
     ? {
         position: 'absolute' as const,
@@ -180,7 +182,11 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (initialDocumentData) {
-      setData({ ...initialDocumentData });
+      setData({
+        ...defaultData,
+        ...initialDocumentData,
+        quoteNumber: initialDocumentData.quoteNumber || initialQuotationNumber || ''
+      });
       if (Array.isArray(initialDocumentData.tableRows) && initialDocumentData.tableRows.length > 0) {
         setTableRows(initialDocumentData.tableRows);
       } else {
@@ -264,7 +270,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   }, []); // Empty dependency array - only run once on mount
 
   useEffect(() => {
-    if (documentType === 'quotation' && !data.quoteNumber) {
+    if (documentType === 'quotation' && !data.quoteNumber && !initialQuotationNumber) {
       setIsLoadingQuoteNumber(true);
       fetchNextQuotationNumber(data.date)
         .then((generated) => {
@@ -275,7 +281,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           setIsLoadingQuoteNumber(false);
         });
     }
-  }, [data.date, documentType, data.quoteNumber]);
+  }, [data.date, documentType, data.quoteNumber, initialQuotationNumber]);
 
   useEffect(() => {
     if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
@@ -414,7 +420,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       setData((current) => ({
         ...current,
         ...(response.data?.documentData || saveData.documentData),
-        quoteNumber: response.data?.quotationNumber || response.data?.documentData?.quoteNumber || saveData.documentData.quoteNumber || current.quoteNumber
+        quoteNumber: response.data?.quotationNumber || response.data?.documentData?.quoteNumber || initialQuotationNumber || saveData.documentData.quoteNumber || current.quoteNumber
       }));
       setIsSaved(true);
       setMessage('Quotation saved successfully.');
