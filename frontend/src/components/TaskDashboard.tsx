@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Badge, Button, Spinner } from './common';
 import type { Lead, FollowUp } from '../types';
-import { formatDate } from '../utils/helpers';
+import { formatDate, formatKarachiDateTime } from '../utils/helpers';
 import { followUpsAPI } from '../utils/api-service';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
@@ -97,7 +97,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
         description: item.description || 'Client follow-up task',
         priority: item.priority,
         status: item.status === 'overdue' || item.status === 'today' ? item.status : 'upcoming',
-        dueLabel: `Due ${formatDate(item.dueDate || '')}`,
+        dueLabel: `Due ${formatKarachiDateTime(item.dueDate || '')}`,
         whatsappLink: item.whatsappLink
       }));
   }, [fallbackTasks, followUps]);
