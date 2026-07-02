@@ -4,9 +4,10 @@ import type { FollowUp } from '../types';
 export const followUpsModel = {
   async findAllByAssignee(assignedTo: string, status?: string) {
     let sql = `
-      SELECT fu.*, l.client_name, l.phone
+      SELECT fu.*, l.client_name, l.phone, u.name AS created_by_name
       FROM follow_ups fu
       LEFT JOIN leads l ON l.id = fu.lead_id
+      LEFT JOIN users u ON u.id = fu.created_by
       WHERE fu.assigned_to = $1
     `;
     const params: any[] = [assignedTo];
@@ -23,9 +24,10 @@ export const followUpsModel = {
 
   async findAll(status?: string) {
     let sql = `
-      SELECT fu.*, l.client_name, l.phone
+      SELECT fu.*, l.client_name, l.phone, u.name AS created_by_name
       FROM follow_ups fu
       LEFT JOIN leads l ON l.id = fu.lead_id
+      LEFT JOIN users u ON u.id = fu.created_by
     `;
     const params: any[] = [];
 
@@ -41,9 +43,10 @@ export const followUpsModel = {
 
   async findByLead(leadId: string) {
     const result = await query(`
-      SELECT fu.*, l.client_name, l.phone
+      SELECT fu.*, l.client_name, l.phone, u.name AS created_by_name
       FROM follow_ups fu
       LEFT JOIN leads l ON l.id = fu.lead_id
+      LEFT JOIN users u ON u.id = fu.created_by
       WHERE fu.lead_id = $1 
       ORDER BY fu.due_date ASC
     `, [leadId]);
@@ -53,8 +56,8 @@ export const followUpsModel = {
   async create(data: Partial<FollowUp>) {
     const sql = `
       INSERT INTO follow_ups (
-        lead_id, type, title, description, due_date, status, priority, assigned_to, completed_at, canceled_reason, canceled_by, canceled_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        lead_id, type, title, description, due_date, status, priority, assigned_to, created_by, completed_at, canceled_reason, canceled_by, canceled_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `;
 
@@ -67,6 +70,7 @@ export const followUpsModel = {
       data.status || 'upcoming',
       data.priority || 'medium',
       data.assignedTo,
+      (data as any).createdBy || null,
       (data as any).completedAt || null,
       (data as any).canceledReason || null,
       (data as any).canceledBy || null,
@@ -86,10 +90,11 @@ export const followUpsModel = {
           due_date = COALESCE($5, due_date),
           status = COALESCE($6, status),
           priority = COALESCE($7, priority),
-          completed_at = COALESCE($8, completed_at),
-          canceled_reason = COALESCE($9, canceled_reason),
-          canceled_by = COALESCE($10, canceled_by),
-          canceled_at = COALESCE($11, canceled_at)
+          created_by = COALESCE($8, created_by),
+          completed_at = COALESCE($9, completed_at),
+          canceled_reason = COALESCE($10, canceled_reason),
+          canceled_by = COALESCE($11, canceled_by),
+          canceled_at = COALESCE($12, canceled_at)
       WHERE id = $1
       RETURNING *
     `;
@@ -102,6 +107,7 @@ export const followUpsModel = {
       data.dueDate,
       data.status,
       data.priority,
+      (data as any).createdBy,
       (data as any).completedAt,
       (data as any).canceledReason,
       (data as any).canceledBy,
@@ -135,9 +141,10 @@ export const followUpsModel = {
 
   async findOverdue() {
     const result = await query(`
-      SELECT fu.*, l.client_name, l.phone
+      SELECT fu.*, l.client_name, l.phone, u.name AS created_by_name
       FROM follow_ups fu
       LEFT JOIN leads l ON l.id = fu.lead_id
+      LEFT JOIN users u ON u.id = fu.created_by
       WHERE fu.status != 'completed' AND fu.due_date < NOW() 
       ORDER BY fu.due_date ASC
     `);

@@ -106,7 +106,7 @@ WITH agent_data AS (
 lead_data AS (
   SELECT id FROM leads LIMIT 5
 )
-INSERT INTO follow_ups (lead_id, type, title, description, due_date, status, priority, assigned_to)
+INSERT INTO follow_ups (lead_id, type, title, description, due_date, status, priority, assigned_to, created_by)
 SELECT
   lead_data.id,
   'manual',

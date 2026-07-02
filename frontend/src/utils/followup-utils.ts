@@ -22,6 +22,8 @@ export const normalizeFollowUp = (item: any): FollowUp => ({
   status: normalizeFollowUpStatus(item.status || item.task_status),
   priority: (item.priority || 'medium') as FollowUpPriority,
   assignedTo: String(item.assignedTo || item.assigned_to || ''),
+  createdBy: String(item.createdBy || item.created_by || ''),
+  createdByName: item.createdByName || item.created_by_name || item.creator_name || null,
   whatsappNumber: item.whatsappNumber || item.whatsapp_number,
   whatsappLink: item.whatsappLink || item.whatsapp_link,
   completedAt: item.completedAt || item.completed_at || null,

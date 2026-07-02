@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS follow_ups (
   status VARCHAR(50) NOT NULL DEFAULT 'upcoming',
   priority VARCHAR(50) NOT NULL DEFAULT 'medium',
   assigned_to UUID NOT NULL REFERENCES users(id),
+  created_by UUID REFERENCES users(id),
   completed_at TIMESTAMP,
   canceled_reason TEXT,
   canceled_by UUID REFERENCES users(id),
@@ -203,6 +204,7 @@ CREATE INDEX idx_leads_outcome ON leads(lead_outcome);
 CREATE INDEX idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX idx_follow_ups_lead_id ON follow_ups(lead_id);
 CREATE INDEX idx_follow_ups_assigned_to ON follow_ups(assigned_to);
+CREATE INDEX idx_follow_ups_created_by ON follow_ups(created_by);
 CREATE INDEX idx_follow_ups_due_date ON follow_ups(due_date);
 CREATE INDEX idx_payments_lead_id ON payments(lead_id);
 CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);

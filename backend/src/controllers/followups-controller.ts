@@ -43,7 +43,8 @@ export const followUpsController = {
     try {
       const payload = validatePayload(followUpSchema, {
         ...req.body,
-        assignedTo: req.body.assignedTo || req.user.id
+        assignedTo: req.body.assignedTo || req.user.id,
+        createdBy: req.user.id
       });
       const item = await followUpsModel.create(payload);
       // create an in-app notification to inform the assignee about the scheduled follow-up
@@ -80,7 +81,7 @@ export const followUpsController = {
 
   async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const payload = validatePayload(followUpSchema.fork(['leadId','title','dueDate'], (s) => s.optional()), req.body) as any;
+      const payload = validatePayload(followUpSchema.fork(['leadId','title','description','dueDate'], (s) => s.optional()), req.body) as any;
       if (payload.status === 'completed' && !payload.completedAt) {
         payload.completedAt = new Date().toISOString();
       }

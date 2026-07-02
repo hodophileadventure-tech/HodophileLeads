@@ -315,6 +315,18 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] ✅ accepted_at column added successfully');
     }
 
+    const followUpCreatedByCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'follow_ups' AND column_name = 'created_by'
+    `);
+    const followUpCreatedByExists = followUpCreatedByCheckResult.rows?.[0]?.count > 0;
+
+    if (!followUpCreatedByExists) {
+      console.log('[MIGRATION] Adding created_by column to follow_ups table...');
+      await query(`ALTER TABLE follow_ups ADD COLUMN created_by UUID REFERENCES users(id)`);
+      console.log('[MIGRATION] ✅ created_by column added successfully');
+    }
+
     const invalidAcceptanceReasonCheckResult = await query(`
       SELECT COUNT(*) as count FROM information_schema.columns 
       WHERE table_schema = 'public' AND table_name = 'quote_requests' AND column_name = 'invalid_acceptance_reason'

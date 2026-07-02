@@ -86,6 +86,8 @@ export interface FollowUp {
   status: TaskStatus;
   priority: FollowUpPriority;
   assignedTo: string;
+  createdBy?: string;
+  createdByName?: string | null;
   whatsappNumber?: string;
   whatsappLink?: string;
   completedAt?: string;

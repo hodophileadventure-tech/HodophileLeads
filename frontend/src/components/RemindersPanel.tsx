@@ -65,6 +65,7 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
               <div>
                 <p className="font-medium">{r.title || r.task_type}</p>
                 <p className="text-xs text-slate-500">Due: {formatKarachiDateTime(r.due_date)}</p>
+                {(r.description || r.notes) && <p className="text-xs text-slate-600 mt-1 whitespace-pre-wrap">Note: {r.description || r.notes}</p>}
                 <p className="text-xs text-slate-400">Status: {r.status}</p>
               </div>
               <div className="flex flex-col gap-2">
@@ -101,11 +102,16 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
                 <button className="px-3 py-1 rounded bg-slate-200" onClick={() => setEditing(null)}>Cancel</button>
                 <button className="px-3 py-1 rounded bg-primary-500 text-white" onClick={async () => {
                   try {
-                    await followUpsAPI.update(editing.id, {
+                    const updatePayload: any = {
                       title: form.title,
                       dueDate: parseKarachiDateTimeToISOString(form.dueDate),
-                      priority: form.priority as any,
-                      description: form.description
+                      priority: form.priority as any
+                    };
+                    if (form.description.trim()) {
+                      updatePayload.description = form.description.trim();
+                    }
+                    await followUpsAPI.update(editing.id, {
+                      ...updatePayload
                     });
                     setEditing(null);
                     await load();

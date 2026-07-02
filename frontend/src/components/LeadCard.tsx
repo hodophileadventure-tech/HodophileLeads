@@ -19,6 +19,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
   const [showReminderModal, setShowReminderModal] = React.useState(false);
   const [reminderTitle, setReminderTitle] = React.useState('');
   const [reminderWhen, setReminderWhen] = React.useState('');
+  const [reminderNote, setReminderNote] = React.useState('');
   const [showHotelModal, setShowHotelModal] = React.useState(false);
   const [hotelForm, setHotelForm] = React.useState({
     hotelName: lead.hotelInfo?.hotelName || '',
@@ -203,6 +204,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           onClick={() => {
             setReminderTitle('Follow up with client');
             setReminderWhen(getKarachiLocalDateTimeString(new Date(Date.now() + 24 * 3600 * 1000)));
+            setReminderNote('');
             setShowReminderModal(true);
           }}
           className="text-xs px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 ml-2"
@@ -218,6 +220,8 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
               <input value={reminderTitle} onChange={(e) => setReminderTitle(e.target.value)} className="w-full p-2 rounded mb-2 bg-slate-50 dark:bg-slate-700" />
               <label className="block text-xs text-slate-600">Due (local datetime)</label>
               <input type="datetime-local" value={reminderWhen} onChange={(e) => setReminderWhen(e.target.value)} className="w-full p-2 rounded mb-4 bg-slate-50 dark:bg-slate-700" />
+              <label className="block text-xs text-slate-600">Note</label>
+              <textarea value={reminderNote} onChange={(e) => setReminderNote(e.target.value)} className="w-full p-2 rounded mb-4 bg-slate-50 dark:bg-slate-700" rows={4} placeholder="Add a note for this follow-up" />
               <div className="flex justify-end gap-2">
                 <button onClick={() => setShowReminderModal(false)} className="px-3 py-1 rounded bg-slate-200">Cancel</button>
                 <button onClick={async () => {
@@ -230,9 +234,13 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
                     alert('Please choose a due date/time.');
                     return;
                   }
+                  if (!reminderNote || reminderNote.trim().length < 2) {
+                    alert('Please enter a note for the reminder (at least 2 characters).');
+                    return;
+                  }
                   try {
                     const iso = parseKarachiDateTimeToISOString(reminderWhen);
-                    await followUpsAPI.create({ leadId: lead.id, title: reminderTitle, dueDate: iso, assignedTo: lead.agentId });
+                    await followUpsAPI.create({ leadId: lead.id, title: reminderTitle, description: reminderNote.trim(), dueDate: iso, assignedTo: lead.agentId });
                     setShowReminderModal(false);
                     alert('Reminder scheduled');
                   } catch (err: any) {

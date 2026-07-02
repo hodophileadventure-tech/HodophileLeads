@@ -384,6 +384,7 @@ export const leadsController = {
           await followUpsModel.create({
             leadId: req.params.id,
             assignedTo: req.user.id,
+            createdBy: req.user.id,
             title: task.title,
             description: `Auto-generated on stage change to ${stage}`,
             dueDate: task.dueDate,
