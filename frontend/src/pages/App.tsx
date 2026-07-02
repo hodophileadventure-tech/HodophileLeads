@@ -23,7 +23,7 @@ import AdminQuotationApprovalsPage from './AdminQuotationApprovalsPage';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import { Badge, Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiDateTime, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
+import { formatKarachiDateTime, formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels';
@@ -130,6 +130,7 @@ export const App: React.FC = () => {
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
+  const [followUpNote, setFollowUpNote] = useState('');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionRemarks, setCompletionRemarks] = useState('');
@@ -289,6 +290,7 @@ export const App: React.FC = () => {
   const openFollowUpModal = (followUp?: FollowUp) => {
     setEditingFollowUp(followUp || null);
     setFollowUpTitle(followUp?.title || `Follow up with ${selectedLead?.clientName || 'client'}`);
+    setFollowUpNote(followUp?.description || '');
     setFollowUpDateTime(
       followUp?.dueDate
         ? getKarachiLocalDateTimeString(new Date(followUp.dueDate))
@@ -386,6 +388,10 @@ export const App: React.FC = () => {
       alert('Please choose a follow-up date and time.');
       return;
     }
+    if (!editingFollowUp && !followUpNote.trim()) {
+      alert('Please enter a note for the follow-up.');
+      return;
+    }
 
     try {
       if (!user) {
@@ -393,10 +399,14 @@ export const App: React.FC = () => {
         return;
       }
 
-      const payload = {
+      const payload: Partial<FollowUp> = {
         title: followUpTitle.trim(),
         dueDate: parseKarachiDateTimeToISOString(followUpDateTime)
-      } as Partial<FollowUp>;
+      };
+
+      if (followUpNote.trim()) {
+        payload.description = followUpNote.trim();
+      }
 
       if (editingFollowUp) {
         await followUpsAPI.update(editingFollowUp.id, payload);
@@ -813,7 +823,7 @@ export const App: React.FC = () => {
                           <h2 className="text-2xl font-bold">{selectedLead.clientName}</h2>
                           {nextPendingFollowUp && (
                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                              Scheduled follow-up at {formatKarachiDateTime(nextPendingFollowUp.dueDate)}
+                              {formatKarachiFollowUpReminder(nextPendingFollowUp.dueDate)}
                               {nextPendingFollowUp.title ? ` — ${nextPendingFollowUp.title}` : ''}
                             </p>
                           )}
@@ -1027,6 +1037,11 @@ export const App: React.FC = () => {
                                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                                     Due {formatKarachiDateTime(followUp.dueDate)}
                                   </p>
+                                  {followUp.description && (
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 whitespace-pre-wrap">
+                                      Note: {followUp.description}
+                                    </p>
+                                  )}
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                   <Button size="sm" variant="secondary" onClick={() => openFollowUpModal(followUp)}>
@@ -1083,6 +1098,15 @@ export const App: React.FC = () => {
                             value={followUpTitle}
                             onChange={(e) => setFollowUpTitle(e.target.value)}
                             placeholder="Follow up with client"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Note</label>
+                          <textarea
+                            className="input-field min-h-[110px]"
+                            value={followUpNote}
+                            onChange={(e) => setFollowUpNote(e.target.value)}
+                            placeholder="Add a note for this follow-up"
                           />
                         </div>
                         <div>
@@ -1631,8 +1655,17 @@ export const App: React.FC = () => {
                       <p className="text-sm uppercase tracking-wide text-red-500 font-semibold">Follow Up Alert</p>
                       <h3 className="text-2xl font-bold mt-1">This lead has follow up, do follow up</h3>
                       <p className="mt-2 text-slate-600 dark:text-slate-300">
-                        {activeFollowUpLead ? activeFollowUpLead.clientName : 'Lead'} · {activeAlarm.title}
+                        {activeAlarm.clientName
+                          ? `${activeAlarm.clientName}${activeAlarm.phone ? ` · ${activeAlarm.phone}` : ''}`
+                          : activeFollowUpLead?.phone
+                            ? `Phone: ${activeFollowUpLead.phone}`
+                            : activeAlarm.phone
+                              ? `Phone: ${activeAlarm.phone}`
+                              : `Lead ID: ${activeAlarm.leadId}`}
                       </p>
+                      {activeAlarm.createdByName && (
+                        <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Created by {activeAlarm.createdByName}</p>
+                      )}
                       <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
                         Due at {formatKarachiDateTime(activeAlarm.dueDate)}
                       </p>

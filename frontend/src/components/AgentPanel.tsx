@@ -6,7 +6,7 @@ import ConfirmedLeadForm from './ConfirmedLeadForm';
 import { PendingQuotesPanel } from './PendingQuotesPanel';
 import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiDateTime, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
+import { formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
 
@@ -45,6 +45,7 @@ export const AgentPanel: React.FC = () => {
   const [completionRemarks, setCompletionRemarks] = useState('');
   const quotePanelRef = useRef<HTMLDivElement | null>(null);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
+  const [followUpNote, setFollowUpNote] = useState('');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
@@ -421,6 +422,7 @@ export const AgentPanel: React.FC = () => {
   const openFollowUp = (lead: Lead) => {
     setFollowUpLead(lead);
     setFollowUpTitle(`Follow up with ${lead.clientName || 'client'}`);
+    setFollowUpNote('');
     const defaultDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
     setFollowUpDateTime(getKarachiLocalDateTimeString(defaultDate));
     setShowFollowUpModal(true);
@@ -881,6 +883,15 @@ export const AgentPanel: React.FC = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium mb-1">Note</label>
+                <textarea
+                  className="input-field min-h-[110px]"
+                  value={followUpNote}
+                  onChange={(e) => setFollowUpNote(e.target.value)}
+                  placeholder="Add a note for this follow-up"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium mb-1">Date and Time</label>
                 <input
                   type="datetime-local"
@@ -901,6 +912,10 @@ export const AgentPanel: React.FC = () => {
                     alert('Please enter a follow-up title.');
                     return;
                   }
+                  if (!followUpNote.trim()) {
+                    alert('Please enter a note for the follow-up.');
+                    return;
+                  }
                   if (!followUpDateTime) {
                     alert('Please choose a follow-up date and time.');
                     return;
@@ -910,6 +925,7 @@ export const AgentPanel: React.FC = () => {
                     const response = await followUpsAPI.create({
                       leadId: String(followUpLead.id),
                       title: followUpTitle.trim(),
+                      description: followUpNote.trim(),
                       dueDate: parseKarachiDateTimeToISOString(followUpDateTime),
                       assignedTo: user?.id ?? '',
                       type: 'manual',
@@ -1029,7 +1045,17 @@ export const AgentPanel: React.FC = () => {
                 <p className="text-sm uppercase tracking-wide text-red-500 font-semibold">Follow Up Alert</p>
                 <h3 className="text-2xl font-bold mt-1">This lead has follow up, do follow up</h3>
                 <p className="mt-2 text-slate-600 dark:text-slate-300">{activeAlarm.title}</p>
-                <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Due at {formatKarachiDateTime(activeAlarm.dueDate)}</p>
+                <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
+                  {activeAlarm.clientName
+                    ? `${activeAlarm.clientName}${activeAlarm.phone ? ` · ${activeAlarm.phone}` : ''}`
+                    : activeAlarm.phone
+                      ? `Phone: ${activeAlarm.phone}`
+                      : `Lead ID: ${activeAlarm.leadId}`}
+                </p>
+                {activeAlarm.createdByName && (
+                  <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Created by {activeAlarm.createdByName}</p>
+                )}
+                <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">{formatKarachiFollowUpReminder(activeAlarm.dueDate)}</p>
               </div>
               <div className="flex flex-col gap-2">
                 <Button variant="primary" onClick={() => { void completeActiveFollowUp(activeAlarm); }}>
