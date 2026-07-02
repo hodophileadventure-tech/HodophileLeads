@@ -52,6 +52,8 @@ const mockDb: {
   dailyReports: []
 };
 
+const shouldLogQueries = process.env.NODE_ENV !== 'production' || process.env.LOG_DB_QUERIES === 'true';
+
 // Passwords are stored as bcrypt hashes in the mock DB seed above.
 
 let pool: Pool | null = null;
@@ -362,7 +364,9 @@ export const query = async (text: string, params?: any[]) => {
   try {
     // Use mock database by default
     if (useMockDb) {
-      console.log('[MOCK DB Query]', { text, params });
+      if (shouldLogQueries) {
+        console.log('[MOCK DB Query]', { text, params });
+      }
       const normalized = text.replace(/\s+/g, ' ').trim().toLowerCase();
       
       // SELECT * FROM users WHERE email = $1
@@ -1397,7 +1401,9 @@ export const query = async (text: string, params?: any[]) => {
     // Try real database if mock is disabled
     const result = await getPool().query(text, params);
     const duration = Date.now() - start;
-    console.log('[DB Query]', { text, params, duration: `${duration}ms` });
+    if (shouldLogQueries) {
+      console.log('[DB Query]', { text, params, duration: `${duration}ms` });
+    }
     return result;
   } catch (error) {
     console.error('Database query error:', { text, params, error });

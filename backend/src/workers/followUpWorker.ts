@@ -8,12 +8,13 @@ export const startFollowUpWorker = () => {
   // Run every minute for demo/dev. In prod adjust schedule.
   cron.schedule('* * * * *', async () => {
     try {
-      console.log('[Worker] Checking for overdue follow-ups...');
       const res = await query("SELECT * FROM follow_ups WHERE status != 'completed' AND due_date < now()", []);
       const items = res.rows || [];
+      if (items.length > 0) {
+        console.log(`[Worker] Overdue follow-ups found: ${items.length}`);
+      }
       for (const item of items) {
         try {
-          console.log('[Worker] Overdue follow-up:', item.id || item);
           // Placeholder notifications
           const message = `Follow-up overdue for lead ${item.lead_id} - task ${item.title || item.task_type || 'Follow up'}`;
           // create in-app notification for assignee
