@@ -154,6 +154,9 @@ export const quoteRequestsController = {
 
       const existingQuotationNumber = existingRequest.quotationNumber || existingRequest.documentData?.quoteNumber || null;
       let quotationNumber = existingQuotationNumber;
+      const isQuotation = existingRequest.requestType === 'quotation';
+      const isAdminCreatedQuotation = req.user.role === 'admin' && isQuotation;
+      const isManagerCreatedQuotation = req.user.role === 'manager' && isQuotation;
 
       const existingAcceptedSubtotal = existingRequest.acceptedAt ? getExplicitSubtotal(existingRequest.documentData) : null;
       const proposedSubtotal = getExplicitSubtotal(documentData);
@@ -174,7 +177,7 @@ export const quoteRequestsController = {
       try {
         await client.query('BEGIN');
 
-        if (existingRequest.requestType === 'quotation' && !quotationNumber) {
+        if (isQuotation && !quotationNumber) {
           const referenceDate = documentData.date ? new Date(documentData.date) : new Date();
           quotationNumber = await generateQuotationNumber(referenceDate, client);
         }
@@ -184,15 +187,32 @@ export const quoteRequestsController = {
           quoteNumber: quotationNumber
         };
 
-        updatedRequest = await quoteRequestsModel.update(requestId, {
-          status: 'saved',
+        const updatePayload: Partial<typeof existingRequest> = {
           quotationNumber,
           documentData: savedDocumentData,
           resolvedBy: req.user.id,
           resolvedAt: new Date().toISOString(),
-        }, client);
+        };
 
-        if (existingRequest.requestType === 'quotation' && !existingRequest.acceptedAt) {
+        if (isAdminCreatedQuotation) {
+          Object.assign(updatePayload, {
+            status: 'approved' as const,
+            approvedBy: req.user.id,
+            approvedAt: new Date().toISOString(),
+          });
+        } else if (isManagerCreatedQuotation) {
+          Object.assign(updatePayload, {
+            status: 'manager_pending' as const,
+          });
+        } else {
+          Object.assign(updatePayload, {
+            status: 'saved' as const,
+          });
+        }
+
+        updatedRequest = await quoteRequestsModel.update(requestId, updatePayload, client);
+
+        if (isQuotation && !existingRequest.acceptedAt) {
           try {
             await syncLeadQuotationPricing(existingRequest.leadId, savedDocumentData, { markAccepted: false }, client);
           } catch (syncError) {
@@ -219,28 +239,45 @@ export const quoteRequestsController = {
 
       if (lead) {
         try {
-          const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
-          const notificationMessage = req.user.role === 'admin'
-            ? `Admin updated quotation: ${req.user.email || 'Admin'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`
-            : `Saved quote ready for approval: ${req.user.email || 'Manager'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
-
-          for (const admin of admins.rows) {
+          if (isAdminCreatedQuotation) {
             const notification = await notificationsModel.create({
-              userId: admin.id,
+              userId: existingRequest.requestedBy,
               leadId: lead.id,
-              type: 'quote_saved_for_approval',
-              message: notificationMessage,
+              type: 'quote_saved',
+              message: `Your ${existingRequest.requestType} for ${lead.clientName || lead.phone} is ready`,
               payload: {
                 requestId: updatedRequest.id,
                 leadId: lead.id,
                 requestType: updatedRequest.requestType,
+                quotationNumber,
                 savedBy: req.user.id,
-                savedByEmail: req.user.email,
-                quotationNumber
+                savedByEmail: req.user.email
               },
               is_read: false
             });
-            sendToUser(admin.id, 'notification', notification);
+            sendToUser(existingRequest.requestedBy, 'notification', notification);
+          } else {
+            const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
+            const notificationMessage = `Saved quote ready for approval: ${req.user.email || 'Manager'} saved a ${existingRequest.requestType} for ${lead.clientName || lead.phone}`;
+
+            for (const admin of admins.rows) {
+              const notification = await notificationsModel.create({
+                userId: admin.id,
+                leadId: lead.id,
+                type: 'quote_saved_for_approval',
+                message: notificationMessage,
+                payload: {
+                  requestId: updatedRequest.id,
+                  leadId: lead.id,
+                  requestType: updatedRequest.requestType,
+                  savedBy: req.user.id,
+                  savedByEmail: req.user.email,
+                  quotationNumber
+                },
+                is_read: false
+              });
+              sendToUser(admin.id, 'notification', notification);
+            }
           }
         } catch (notificationError) {
           console.error('[Quotation Save] Failed to create notifications after save:', notificationError);
