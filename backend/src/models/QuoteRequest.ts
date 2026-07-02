@@ -56,7 +56,7 @@ const mapQuoteRequestRow = (row: any) => {
 };
 
 export const quoteRequestsModel = {
-  async create(data: Partial<QuoteRequest>) {
+  async create(data: Partial<QuoteRequest>, client?: DbTransactionClient) {
     const sql = `
       INSERT INTO quote_requests (
         lead_id,
@@ -106,7 +106,7 @@ export const quoteRequestsModel = {
       data.reRequestNotes || null,
       data.parentRequestId || null
     ];
-    const res = await query(sql, params);
+    const res = await (client ? client.query(sql, params) : query(sql, params));
     return mapQuoteRequestRow(res.rows[0]);
   },
 

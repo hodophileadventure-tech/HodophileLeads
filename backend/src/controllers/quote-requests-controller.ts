@@ -13,35 +13,35 @@ const getExplicitSubtotal = (documentData: any): number | null => resolveQuotati
 
 const resolveUniqueQuotationNumber = async (
   requestId: string,
-  referenceDate: Date,
   proposedQuotationNumber: string | null,
   client?: any
 ) => {
   if (proposedQuotationNumber) {
+    const normalizedQuotationNumber = String(proposedQuotationNumber).trim();
     const conflict = client
       ? await client.query(
           `SELECT 1
            FROM quote_requests
-           WHERE RIGHT(COALESCE(quotation_number, document_data->>'quoteNumber'), 4) = RIGHT($1, 4)
+           WHERE COALESCE(quotation_number, document_data->>'quoteNumber') = $1
              AND id <> $2
            LIMIT 1`,
-          [proposedQuotationNumber, requestId]
+          [normalizedQuotationNumber, requestId]
         )
       : await query(
           `SELECT 1
            FROM quote_requests
-           WHERE RIGHT(COALESCE(quotation_number, document_data->>'quoteNumber'), 4) = RIGHT($1, 4)
+           WHERE COALESCE(quotation_number, document_data->>'quoteNumber') = $1
              AND id <> $2
            LIMIT 1`,
-          [proposedQuotationNumber, requestId]
+          [normalizedQuotationNumber, requestId]
         );
 
     if (!conflict.rows.length) {
-      return proposedQuotationNumber;
+      return normalizedQuotationNumber;
     }
   }
 
-  return generateQuotationNumber(referenceDate, client);
+  return generateQuotationNumber(client);
 };
 
 export const quoteRequestsController = {
@@ -67,12 +67,29 @@ export const quoteRequestsController = {
         return res.status(403).json({ message: 'You can only request documents for your own leads' });
       }
 
-      const quoteRequest = await quoteRequestsModel.create({
-        leadId,
-        requestedBy: req.user.id,
-        requestType,
-        status: 'requested'
-      });
+      const client = await getClient();
+      let quoteRequest;
+      try {
+        await client.query('BEGIN');
+
+        const quotationNumber = requestType === 'quotation' ? await generateQuotationNumber(client) : null;
+        quoteRequest = await quoteRequestsModel.create({
+          leadId,
+          requestedBy: req.user.id,
+          requestType,
+          status: 'requested',
+          quotationNumber
+        }, client);
+
+        await client.query('COMMIT');
+      } catch (error) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (_) {}
+        throw error;
+      } finally {
+        client.release();
+      }
 
       const managers = await query('SELECT id, name, email FROM users WHERE role = $1', ['manager']);
       const recipients = managers.rows.length ? managers.rows : (await query('SELECT id, name, email FROM users WHERE role = $1', ['admin'])).rows;
@@ -212,7 +229,7 @@ export const quoteRequestsController = {
 
         if (isQuotation) {
           const referenceDate = documentData.date ? new Date(documentData.date) : new Date();
-          quotationNumber = await resolveUniqueQuotationNumber(requestId, referenceDate, quotationNumber, client);
+          quotationNumber = await resolveUniqueQuotationNumber(requestId, quotationNumber, client);
         }
 
         const savedDocumentData = {
@@ -482,14 +499,31 @@ export const quoteRequestsController = {
       }
 
       // Create new re-request with notes
-      const newRequest = await quoteRequestsModel.create({
-        leadId: existingRequest.leadId,
-        requestedBy: req.user.id,
-        requestType: existingRequest.requestType,
-        status: 'requested',
-        reRequestNotes: notes.trim(),
-        parentRequestId: requestId
-      });
+      const client = await getClient();
+      let newRequest;
+      try {
+        await client.query('BEGIN');
+
+        const quotationNumber = existingRequest.requestType === 'quotation' ? await generateQuotationNumber(client) : null;
+        newRequest = await quoteRequestsModel.create({
+          leadId: existingRequest.leadId,
+          requestedBy: req.user.id,
+          requestType: existingRequest.requestType,
+          status: 'requested',
+          quotationNumber,
+          reRequestNotes: notes.trim(),
+          parentRequestId: requestId
+        }, client);
+
+        await client.query('COMMIT');
+      } catch (error) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (_) {}
+        throw error;
+      } finally {
+        client.release();
+      }
 
       // Notify admins
       const admins = await query('SELECT id, name, email FROM users WHERE role = $1', ['admin']);
@@ -594,14 +628,7 @@ export const quoteRequestsController = {
         return res.status(403).json({ message: 'Only admins and managers can generate quotation numbers' });
       }
 
-      const { date } = req.query;
-      const referenceDate = date ? new Date(String(date)) : new Date();
-      
-      if (isNaN(referenceDate.getTime())) {
-        return res.status(400).json({ message: 'Invalid date provided' });
-      }
-
-      const quotationNumber = await peekNextQuotationNumber(referenceDate);
+      const quotationNumber = await peekNextQuotationNumber();
       
       res.json({ quotationNumber });
     } catch (error) {
@@ -665,12 +692,7 @@ export const quoteRequestsController = {
         await client.query('BEGIN');
 
         const existingQuotationNumber = quoteRequest.quotationNumber || null;
-        const quotationNumber = await resolveUniqueQuotationNumber(
-          id,
-          new Date(documentData.date || new Date().toISOString()),
-          existingQuotationNumber,
-          client
-        );
+        const quotationNumber = await resolveUniqueQuotationNumber(id, existingQuotationNumber, client);
         const savedDocumentData = {
           ...documentData,
           quoteNumber: quotationNumber
