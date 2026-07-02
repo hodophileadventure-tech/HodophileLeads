@@ -133,6 +133,18 @@ const fetchNextQuotationNumber = async (dateString: string): Promise<string> => 
   }
 };
 
+const hydrateLeadFields = (current: DocumentData, leadData: any): DocumentData => ({
+  ...current,
+  customerName: !current.customerName || current.customerName === defaultData.customerName ? (leadData.clientName || current.customerName) : current.customerName,
+  phone: !current.phone || current.phone === defaultData.phone ? (leadData.phone || current.phone) : current.phone,
+  city: !current.city || current.city === defaultData.city ? (leadData.address || current.city) : current.city,
+  destination: !current.destination || current.destination === defaultData.destination ? (leadData.destination || current.destination) : current.destination,
+  persons: !current.persons || current.persons === defaultData.persons ? (leadData.persons ? String(leadData.persons) : current.persons) : current.persons,
+  accommodationType: !current.accommodationType || current.accommodationType === defaultData.accommodationType ? (leadData.hotelPreference || current.accommodationType) : current.accommodationType,
+  transportationType: !current.transportationType || current.transportationType === defaultData.transportationType ? (leadData.transportPreference || current.transportationType) : current.transportationType,
+  travelDate: !current.travelDate || current.travelDate === defaultData.travelDate ? (leadData.travelDates?.from || current.travelDate) : current.travelDate,
+});
+
 export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   leadId: _leadId,
   leadData: _leadData,
@@ -182,11 +194,12 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (initialDocumentData) {
-      setData({
+      const nextData = {
         ...defaultData,
         ...initialDocumentData,
         quoteNumber: initialDocumentData.quoteNumber || initialQuotationNumber || ''
-      });
+      };
+      setData(_leadData ? hydrateLeadFields(nextData, _leadData) : nextData);
       if (Array.isArray(initialDocumentData.tableRows) && initialDocumentData.tableRows.length > 0) {
         setTableRows(initialDocumentData.tableRows);
       } else {
@@ -197,34 +210,11 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   // Auto-populate form with lead details (only on first mount or when request ID changes)
   useEffect(() => {
-    // If initialDocumentData exists, skip lead data initialization
-    if (initialDocumentData) {
-      return;
-    }
-
     // If leadData is provided directly (from parent), use it
     if (_leadData) {
       console.log('✅ Using provided lead data:', _leadData);
       setData((current) => {
-        // Only update if form hasn't been modified yet (all fields are still default)
-        const isFormEmpty = current.customerName === defaultData.customerName &&
-                           current.packageName === defaultData.packageName;
-        
-        if (!isFormEmpty) {
-          return current; // Don't overwrite user-modified form
-        }
-
-        return {
-          ...current,
-          customerName: _leadData.clientName || '',
-          phone: _leadData.phone || '',
-          city: _leadData.address || '',
-          destination: _leadData.destination || '',
-          persons: _leadData.persons ? String(_leadData.persons) : '',
-          accommodationType: _leadData.hotelPreference || '',
-          transportationType: _leadData.transportPreference || '',
-          travelDate: _leadData.travelDates?.from || new Date().toISOString().split('T')[0],
-        };
+        return hydrateLeadFields(current, _leadData);
       });
       return;
     }
