@@ -185,7 +185,7 @@ export const quoteRequestsController = {
         return res.status(404).json({ message: 'Quote request not found' });
       }
 
-      const existingQuotationNumber = existingRequest.quotationNumber || existingRequest.documentData?.quoteNumber || null;
+      const existingQuotationNumber = existingRequest.quotationNumber || null;
       let quotationNumber = existingQuotationNumber;
       const isQuotation = existingRequest.requestType === 'quotation';
       const isAdminCreatedQuotation = req.user.role === 'admin' && isQuotation;
@@ -666,7 +666,7 @@ export const quoteRequestsController = {
       try {
         await client.query('BEGIN');
 
-        const existingQuotationNumber = quoteRequest.quotationNumber || quoteRequest.documentData?.quoteNumber || null;
+        const existingQuotationNumber = quoteRequest.quotationNumber || null;
         const quotationNumber = await resolveUniqueQuotationNumber(
           id,
           new Date(documentData.date || new Date().toISOString()),
