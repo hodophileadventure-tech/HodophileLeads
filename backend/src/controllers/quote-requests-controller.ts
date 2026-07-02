@@ -6,7 +6,7 @@ import { notificationsModel } from '../models/Notification';
 import { sendToUser } from '../utils/wsServer';
 import { query, getClient } from '../utils/database';
 import { logActivity } from '../utils/activity-log';
-import { generateQuotationNumber } from '../services/quotation-number-service';
+import { generateQuotationNumber, peekNextQuotationNumber } from '../services/quotation-number-service';
 import { resolveQuotationSubtotal, setLeadActualPrice, syncLeadQuotationPricing } from '../services/quotation-pricing-sync-service';
 
 const getExplicitSubtotal = (documentData: any): number | null => resolveQuotationSubtotal(documentData).subtotal;
@@ -152,7 +152,8 @@ export const quoteRequestsController = {
         return res.status(404).json({ message: 'Quote request not found' });
       }
 
-      let quotationNumber = documentData.quoteNumber || null;
+      const existingQuotationNumber = existingRequest.quotationNumber || existingRequest.documentData?.quoteNumber || null;
+      let quotationNumber = existingQuotationNumber;
 
       const existingAcceptedSubtotal = existingRequest.acceptedAt ? getExplicitSubtotal(existingRequest.documentData) : null;
       const proposedSubtotal = getExplicitSubtotal(documentData);
@@ -169,7 +170,6 @@ export const quoteRequestsController = {
       }
 
       const client = await getClient();
-      let isAdminCreatedQuotation = false;
       let updatedRequest;
       try {
         await client.query('BEGIN');
@@ -179,30 +179,22 @@ export const quoteRequestsController = {
           quotationNumber = await generateQuotationNumber(referenceDate, client);
         }
 
-        isAdminCreatedQuotation = req.user.role === 'admin' && existingRequest.requestType === 'quotation';
+        const savedDocumentData = {
+          ...documentData,
+          quoteNumber: quotationNumber
+        };
 
         updatedRequest = await quoteRequestsModel.update(requestId, {
           status: 'saved',
-          documentData: {
-            ...documentData,
-            quoteNumber: quotationNumber
-          },
+          quotationNumber,
+          documentData: savedDocumentData,
           resolvedBy: req.user.id,
           resolvedAt: new Date().toISOString(),
-          ...(isAdminCreatedQuotation
-            ? {
-                acceptedAt: new Date().toISOString(),
-                invalidAcceptanceReason: null
-              }
-            : {})
         }, client);
 
         if (existingRequest.requestType === 'quotation' && !existingRequest.acceptedAt) {
           try {
-            await syncLeadQuotationPricing(existingRequest.leadId, {
-              ...documentData,
-              quoteNumber: quotationNumber
-            }, { markAccepted: isAdminCreatedQuotation }, client);
+            await syncLeadQuotationPricing(existingRequest.leadId, savedDocumentData, { markAccepted: false }, client);
           } catch (syncError) {
             console.error('[Quotation Save] Failed to sync lead pricing after save, continuing with saved quotation:', syncError);
           }
@@ -269,9 +261,7 @@ export const quoteRequestsController = {
         ...lead,
         initialPrice: (lead as any).initialPrice ?? (lead as any).initial_price ?? getExplicitSubtotal(documentData),
         latestRevisedPrice: (lead as any).latestRevisedPrice ?? (lead as any).latest_revised_price ?? getExplicitSubtotal(documentData),
-        actualPrice: isAdminCreatedQuotation
-          ? getExplicitSubtotal(documentData)
-          : ((lead as any).actualPrice ?? (lead as any).actual_price ?? null)
+        actualPrice: (lead as any).actualPrice ?? (lead as any).actual_price ?? null
       } : null;
 
       res.json({ ...updatedRequest, lead: leadSnapshot });
@@ -543,7 +533,7 @@ export const quoteRequestsController = {
         return res.status(400).json({ message: 'Invalid date provided' });
       }
 
-      const quotationNumber = await generateQuotationNumber(referenceDate);
+      const quotationNumber = await peekNextQuotationNumber(referenceDate);
       
       res.json({ quotationNumber });
     } catch (error) {
@@ -574,6 +564,10 @@ export const quoteRequestsController = {
       const { id } = req.params;
       let { documentData, managerNotes } = req.body;
 
+      if (!documentData) {
+        return res.status(400).json({ message: 'Missing document data' });
+      }
+
       const quoteRequest = await quoteRequestsModel.findById(id);
       if (!quoteRequest) {
         return res.status(404).json({ message: 'Quote request not found' });
@@ -601,13 +595,22 @@ export const quoteRequestsController = {
       let updatedRequest;
       try {
         await client.query('BEGIN');
+
+        const existingQuotationNumber = quoteRequest.quotationNumber || quoteRequest.documentData?.quoteNumber || null;
+        const quotationNumber = existingQuotationNumber || await generateQuotationNumber(new Date(documentData.date || new Date().toISOString()), client);
+        const savedDocumentData = {
+          ...documentData,
+          quoteNumber: quotationNumber
+        };
+
         updatedRequest = await quoteRequestsModel.updateByManager(id, req.user.id, {
-          documentData,
+          quotationNumber,
+          documentData: savedDocumentData,
           managerNotes
         }, client);
 
         if (quoteRequest.requestType === 'quotation' && !quoteRequest.acceptedAt) {
-          await syncLeadQuotationPricing(quoteRequest.leadId, documentData, { markAccepted: false }, client);
+          await syncLeadQuotationPricing(quoteRequest.leadId, savedDocumentData, { markAccepted: false }, client);
         }
 
         await client.query('COMMIT');
@@ -771,6 +774,14 @@ export const quoteRequestsController = {
 
       if (quoteRequest.requestType !== 'quotation') {
         return res.status(400).json({ message: 'Only quotations can be marked as accepted' });
+      }
+
+      if (quoteRequest.acceptedAt) {
+        const existingLead = await leadsModel.findById(quoteRequest.leadId);
+        if (!existingLead) {
+          return res.status(404).json({ message: 'Lead not found' });
+        }
+        return res.json(existingLead);
       }
 
       const existingAccepted = await query(

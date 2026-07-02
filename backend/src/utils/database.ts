@@ -244,6 +244,65 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] ✅ invalid_acceptance_reason column added successfully');
     }
 
+    const quotationCountersTableCheck = await query(`
+      SELECT COUNT(*) as count FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'quotation_counters'
+    `);
+    const quotationCountersExists = quotationCountersTableCheck.rows?.[0]?.count > 0;
+
+    if (!quotationCountersExists) {
+      console.log('[MIGRATION] Creating quotation_counters table...');
+      await query(`
+        CREATE TABLE quotation_counters (
+          date_key VARCHAR(6) PRIMARY KEY,
+          last_sequence INTEGER NOT NULL DEFAULT 1100,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('[MIGRATION] ✅ quotation_counters table created successfully');
+    }
+
+    const quotationNumberColumnCheck = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'quote_requests' AND column_name = 'quotation_number'
+    `);
+    const quotationNumberColumnExists = quotationNumberColumnCheck.rows?.[0]?.count > 0;
+
+    if (!quotationNumberColumnExists) {
+      console.log('[MIGRATION] Adding quotation_number column to quote_requests table...');
+      await query(`ALTER TABLE quote_requests ADD COLUMN quotation_number VARCHAR(20)`);
+      console.log('[MIGRATION] ✅ quotation_number column added successfully');
+    }
+
+    const quoteRequestStatusConstraint = await query(`
+      SELECT pg_get_constraintdef(c.oid) AS definition
+      FROM pg_constraint c
+      JOIN pg_class t ON t.oid = c.conrelid
+      JOIN pg_namespace n ON n.oid = t.relnamespace
+      WHERE t.relname = 'quote_requests'
+        AND n.nspname = 'public'
+        AND c.conname = 'quote_requests_status_check'
+      LIMIT 1
+    `);
+    const quoteRequestStatusConstraintDefinition = quoteRequestStatusConstraint.rows?.[0]?.definition || '';
+    const desiredQuoteRequestStatusConstraint = "CHECK (((status)::text = ANY ((ARRAY['requested'::character varying, 'saved'::character varying, 'manager_pending'::character varying, 'admin_pending'::character varying, 'approved'::character varying, 'rejected'::character varying, 'invalid_for_acceptance'::character varying])::text[])))";
+
+    if (!quoteRequestStatusConstraintDefinition.includes('approved') || !quoteRequestStatusConstraintDefinition.includes('invalid_for_acceptance')) {
+      console.log('[MIGRATION] Updating quote_requests status constraint to support acceptance states...');
+      await query(`ALTER TABLE quote_requests DROP CONSTRAINT IF EXISTS quote_requests_status_check`);
+      await query(`ALTER TABLE quote_requests ADD CONSTRAINT quote_requests_status_check ${desiredQuoteRequestStatusConstraint}`);
+      console.log('[MIGRATION] ✅ quote_requests status constraint updated successfully');
+    }
+
+    try {
+      await query(`ALTER TABLE quote_requests ADD CONSTRAINT quote_requests_quotation_number_unique UNIQUE (quotation_number)`);
+      console.log('[MIGRATION] ✅ quotation_number unique constraint ensured');
+    } catch (constraintError: any) {
+      if (!String(constraintError?.message || '').includes('already exists') && constraintError?.code !== '42P07') {
+        console.warn('[MIGRATION] Warning ensuring quotation_number unique constraint:', constraintError.message);
+      }
+    }
+
     // Ensure leads table supports spam status and potential flag
     const statusColumnCheckResult = await query(`
       SELECT COUNT(*) as count FROM information_schema.columns 

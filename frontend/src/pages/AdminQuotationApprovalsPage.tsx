@@ -134,8 +134,11 @@ export default function AdminQuotationApprovalsPage({
 
     try {
       setMessage('Marking quotation as accepted...');
-      await quoteRequestsAPI.markAccepted(quotation.id);
+      const response = await quoteRequestsAPI.markAccepted(quotation.id);
       setMessage('✅ Quotation accepted. Lead payment pricing updated.');
+      window.dispatchEvent(new CustomEvent('lead-payment-pricing-updated', {
+        detail: { leadId: quotation.leadId, lead: response.data }
+      }));
       onRequestUpdated?.();
       loadPendingQuotations();
       setTimeout(() => setMessage(''), 3000);
@@ -168,9 +171,12 @@ export default function AdminQuotationApprovalsPage({
         note: repairNote.trim() || undefined
       });
       setMessage('Repair saved. Accepting quotation...');
-      await quoteRequestsAPI.markAccepted(selectedRequest.id);
+      const response = await quoteRequestsAPI.markAccepted(selectedRequest.id);
       setMessage('✅ Quotation repaired and accepted. Lead payment pricing updated.');
       setShowRepairModal(false);
+      window.dispatchEvent(new CustomEvent('lead-payment-pricing-updated', {
+        detail: { leadId: selectedRequest.leadId, lead: response.data }
+      }));
       onRequestUpdated?.();
       loadPendingQuotations();
       setTimeout(() => setMessage(''), 3000);

@@ -11,6 +11,7 @@ const mapQuoteRequestRow = (row: any) => {
     requestedBy: row.requested_by || row.requestedBy,
     requestType: row.request_type || row.requestType,
     status: row.status,
+    quotationNumber: row.quotation_number || row.quotationNumber || row.document_data?.quoteNumber || row.documentData?.quoteNumber || null,
     documentData: row.document_data || row.documentData || null,
     createdByManager: row.created_by_manager || row.createdByManager || null,
     createdByManagerAt: row.created_by_manager_at || row.createdByManagerAt || null,
@@ -61,6 +62,7 @@ export const quoteRequestsModel = {
         lead_id,
         requested_by,
         request_type,
+        quotation_number,
         status,
         document_data,
         created_by_manager,
@@ -79,13 +81,14 @@ export const quoteRequestsModel = {
         parent_request_id,
         created_at,
         updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), NOW())
       RETURNING *
     `;
     const params = [
       data.leadId,
       data.requestedBy,
       data.requestType,
+      (data as any).quotationNumber || null,
       data.status || 'requested',
       data.documentData || null,
       data.createdByManager || null,
@@ -267,6 +270,10 @@ export const quoteRequestsModel = {
       fields.push(`status = $${paramIndex++}`);
       params.push(data.status);
     }
+    if ((data as any).quotationNumber !== undefined) {
+      fields.push(`quotation_number = $${paramIndex++}`);
+      params.push((data as any).quotationNumber);
+    }
     if (data.documentData !== undefined) {
       fields.push(`document_data = $${paramIndex++}`);
       params.push(data.documentData);
@@ -401,13 +408,14 @@ export const quoteRequestsModel = {
         created_by_manager = $1,
         created_by_manager_at = NOW(),
         manager_notes = $2,
-        document_data = COALESCE($3, document_data),
+        quotation_number = $3,
+        document_data = $4,
         status = 'admin_pending',
         updated_at = NOW()
-      WHERE id = $4
+      WHERE id = $5
       RETURNING *
     `;
-    const params = [managerId, data.managerNotes || null, data.documentData || null, id];
+    const params = [managerId, data.managerNotes || null, (data as any).quotationNumber || null, data.documentData || null, id];
     const res = await (client ? client.query(sql, params) : query(sql, params));
     
     return mapQuoteRequestRow(res.rows[0]);

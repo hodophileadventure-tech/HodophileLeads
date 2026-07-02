@@ -180,24 +180,11 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (initialDocumentData) {
-      setData((current) => {
-        // Only update if form hasn't been modified yet
-        const isFormEmpty = current.customerName === defaultData.customerName &&
-                           current.packageName === defaultData.packageName;
-        
-        if (!isFormEmpty) {
-          return current; // Don't overwrite user-modified form
-        }
-
-        return {
-          ...current,
-          ...initialDocumentData,
-          quoteNumber: initialDocumentData.quoteNumber || current.quoteNumber,
-          invoiceNumber: initialDocumentData.invoiceNumber || current.invoiceNumber
-        };
-      });
+      setData({ ...initialDocumentData });
       if (Array.isArray(initialDocumentData.tableRows) && initialDocumentData.tableRows.length > 0) {
         setTableRows(initialDocumentData.tableRows);
+      } else {
+        setTableRows(getDefaultRows());
       }
     }
   }, []); // Only run once on mount
@@ -416,7 +403,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           tableRows
         }
       };
-      console.log('💾 Saving quotation with data:', saveData);
       const response = await quoteRequestsAPI.save(_requestId, saveData.documentData);
       let refreshedLead: Lead | null = null;
       if (response.data?.lead) {
@@ -425,6 +411,11 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         const leadResponse = await leadsAPI.getById(_leadId);
         refreshedLead = leadResponse.data;
       }
+      setData((current) => ({
+        ...current,
+        ...(response.data?.documentData || saveData.documentData),
+        quoteNumber: response.data?.quotationNumber || response.data?.documentData?.quoteNumber || saveData.documentData.quoteNumber || current.quoteNumber
+      }));
       setIsSaved(true);
       setMessage('Quotation saved successfully.');
       window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { leadId: _leadId || null, lead: refreshedLead } }));

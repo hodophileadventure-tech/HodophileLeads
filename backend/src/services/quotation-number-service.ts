@@ -1,16 +1,19 @@
 import type { DbTransactionClient } from '../utils/database';
 import { query } from '../utils/database';
 
+const getDateKey = (referenceDate: Date) => {
+  const year = String(referenceDate.getFullYear()).slice(-2);
+  const month = String(referenceDate.getMonth() + 1).padStart(2, '0');
+  const day = String(referenceDate.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
 export async function generateQuotationNumber(
   referenceDate: Date = new Date(),
   client?: DbTransactionClient
 ): Promise<string> {
   try {
-    // Format date as YYMMDD
-    const year = String(referenceDate.getFullYear()).slice(-2);
-    const month = String(referenceDate.getMonth() + 1).padStart(2, '0');
-    const day = String(referenceDate.getDate()).padStart(2, '0');
-    const datePrefix = `${year}${month}${day}`;
+    const datePrefix = getDateKey(referenceDate);
 
     // Thread-safe atomic increment using UPSERT pattern
     // This ensures that even with concurrent requests, each gets a unique number
@@ -35,4 +38,14 @@ export async function generateQuotationNumber(
     console.error('Error generating quotation number:', error);
     throw new Error('Failed to generate quotation number');
   }
+}
+
+export async function peekNextQuotationNumber(referenceDate: Date = new Date()): Promise<string> {
+  const datePrefix = getDateKey(referenceDate);
+  const result = await query(
+    'SELECT last_sequence FROM quotation_counters WHERE date_key = $1',
+    [datePrefix]
+  );
+  const nextSequence = result.rows[0]?.last_sequence ? Number(result.rows[0].last_sequence) + 1 : 1101;
+  return `${datePrefix}${nextSequence}`;
 }
