@@ -53,6 +53,9 @@ const mockDb: {
 };
 
 const shouldLogQueries = process.env.NODE_ENV !== 'production' || process.env.LOG_DB_QUERIES === 'true';
+const QUOTATION_NUMBER_LOCK_KEY = 'quotation-number-global';
+const QUOTATION_NUMBER_START = 1100;
+const PENDING_QUOTATION_STATUSES = ['requested', 'saved', 'created', 'manager_pending', 'admin_pending'];
 
 // Passwords are stored as bcrypt hashes in the mock DB seed above.
 
@@ -83,6 +86,83 @@ export const initDatabase = async () => {
   }
 };
 
+const repairPendingQuotationNumbers = async () => {
+  try {
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [QUOTATION_NUMBER_LOCK_KEY]);
+
+      const maxResult = await client.query(`
+        SELECT COALESCE(
+          MAX((NULLIF(regexp_replace(COALESCE(quotation_number, document_data->>'quoteNumber'), '\\D', '', 'g'), '')::bigint)),
+          0
+        ) AS max_sequence
+        FROM quote_requests
+        WHERE COALESCE(quotation_number, document_data->>'quoteNumber') ~ '\\d'
+      `);
+      let nextSequence = Math.max(Number(maxResult.rows?.[0]?.max_sequence ?? 0), QUOTATION_NUMBER_START) + 1;
+
+      const pendingResult = await client.query(
+        `SELECT id,
+                quotation_number,
+                document_data,
+                COALESCE(quotation_number, document_data->>'quoteNumber') AS current_number
+         FROM quote_requests
+         WHERE request_type = 'quotation'
+           AND status = ANY($1::text[])
+         ORDER BY created_at ASC, id ASC`,
+        [PENDING_QUOTATION_STATUSES]
+      );
+
+      const seen = new Set<number>();
+      let repairedCount = 0;
+
+      for (const row of pendingResult.rows || []) {
+        const digits = String(row.current_number || '').replace(/\D/g, '');
+        const currentSequence = digits ? Number(digits) : null;
+        const isUnique = currentSequence !== null && Number.isFinite(currentSequence) && !seen.has(currentSequence);
+
+        if (isUnique) {
+          seen.add(currentSequence);
+          continue;
+        }
+
+        const newSequence = nextSequence++;
+        seen.add(newSequence);
+        const newQuotationNumber = String(newSequence);
+
+        await client.query(
+          `UPDATE quote_requests
+           SET quotation_number = $1,
+               document_data = CASE
+                 WHEN document_data IS NULL THEN NULL
+                 ELSE jsonb_set(COALESCE(document_data::jsonb, '{}'::jsonb), '{quoteNumber}', to_jsonb($1::text), true)
+               END,
+               updated_at = NOW()
+           WHERE id = $2`,
+          [newQuotationNumber, row.id]
+        );
+        repairedCount += 1;
+      }
+
+      await client.query('COMMIT');
+
+      if (repairedCount > 0) {
+        console.log(`[MIGRATION] Repaired ${repairedCount} pending quotation numbers`);
+      }
+    } catch (error) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (_) {}
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error: any) {
+    console.warn('[MIGRATION] Warning repairing pending quotation numbers:', error.message);
+  }
+};
 const initializeSchema = async () => {
   try {
     // First check if tables already exist to avoid re-creating and losing data
@@ -98,6 +178,7 @@ const initializeSchema = async () => {
       
       // Run any pending migrations
       await runPendingMigrations();
+      await repairPendingQuotationNumbers();
       
       // Check data integrity - warn if database looks suspiciously empty
       try {
