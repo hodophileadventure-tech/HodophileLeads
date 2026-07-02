@@ -188,10 +188,11 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (initialDocumentData) {
+      const canonicalQuoteNumber = initialQuotationNumber || initialDocumentData.quoteNumber || '';
       const nextData = {
         ...defaultData,
         ...initialDocumentData,
-        quoteNumber: initialDocumentData.quoteNumber || initialQuotationNumber || ''
+        quoteNumber: canonicalQuoteNumber
       };
       setData(_leadData ? hydrateLeadFields(nextData, _leadData) : nextData);
       if (Array.isArray(initialDocumentData.tableRows) && initialDocumentData.tableRows.length > 0) {
