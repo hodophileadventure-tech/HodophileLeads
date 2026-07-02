@@ -54,7 +54,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       const response = await quoteRequestsAPI.listPending();
       const allRequests = response.data || [];
       setPendingRequests(allRequests.filter((request) => request.status === 'requested'));
-      setSavedRequests(allRequests.filter((request) => request.status === 'saved'));
+      setSavedRequests(allRequests.filter((request) => ['saved', 'created'].includes(request.status)));
       return allRequests;
     } catch (err: any) {
       console.error('Failed to load quote requests:', err);
@@ -101,7 +101,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
               {request.requestType}
             </span>
             <span className="px-2 py-1 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 capitalize">
-              {request.status === 'saved' ? 'Created' : 'Pending'}
+              {['saved', 'created'].includes(request.status) ? 'Created' : 'Pending'}
             </span>
             {request.reRequestNotes && (
               <span className="px-2 py-1 rounded text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
@@ -126,7 +126,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
               <p className="text-xs text-slate-500 dark:text-slate-400">Destination</p>
               <p className="font-medium">{request.leadDestination || 'N/A'}</p>
             </div>
-            {request.status === 'saved' && request.documentData?.date && (
+            {['saved', 'created'].includes(request.status) && request.documentData?.date && (
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Created</p>
                 <p className="font-medium">{new Date(request.documentData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>

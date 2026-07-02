@@ -24,7 +24,7 @@ type QuoteInvoicePageProps = {
   leadData?: any; // If provided, use this instead of fetching
   requestId?: string;
   requestType?: 'quotation' | 'invoice';
-  requestStatus?: 'requested' | 'saved' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected';
+  requestStatus?: 'requested' | 'saved' | 'created' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected';
   initialDocumentData?: any;
   initialQuotationNumber?: string | null;
   viewOnly?: boolean;
@@ -167,9 +167,10 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
   const [message, setMessage] = useState<string>('');
   const [isLoadingQuoteNumber, setIsLoadingQuoteNumber] = useState(false);
-  const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'saved' || requestStatus === 'approved' || requestStatus === 'rejected');
+  const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'saved' || requestStatus === 'created' || requestStatus === 'approved' || requestStatus === 'rejected');
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const initialPreviewGeneratedRef = useRef(false);
 
   const displayQuoteNumber = data.quoteNumber || initialQuotationNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
   const previewHiddenStyle = hidePreview
@@ -189,7 +190,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   }, [_requestType]);
 
   useEffect(() => {
-    setIsSaved(['manager_pending', 'admin_pending', 'saved', 'approved', 'rejected'].includes(requestStatus || ''));
+    setIsSaved(['manager_pending', 'admin_pending', 'saved', 'created', 'approved', 'rejected'].includes(requestStatus || ''));
   }, [requestStatus]);
 
   useEffect(() => {
@@ -275,6 +276,9 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   useEffect(() => {
     if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
+      if (initialPreviewGeneratedRef.current) {
+        return;
+      }
       const generatePreview = async () => {
         try {
           const canvas = await html2canvas(previewRef.current!, {
@@ -285,6 +289,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           });
           const jpegData = canvas.toDataURL('image/jpeg', 0.95);
           onPreviewGenerated(jpegData);
+          initialPreviewGeneratedRef.current = true;
         } catch (error) {
           console.error('Failed to generate preview:', error);
         }
@@ -363,7 +368,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     return rows.slice(0, 5);
   }, [tableRows]);
 
-  const canSaveRequest = !!_requestId && requestStatus && ['requested', 'manager_pending', 'admin_pending', 'saved', 'rejected'].includes(requestStatus) && ['manager', 'admin'].includes(user?.role || '') && !viewOnly;
+  const canSaveRequest = !!_requestId && requestStatus && ['requested', 'manager_pending', 'admin_pending', 'saved', 'created', 'rejected'].includes(requestStatus) && ['manager', 'admin'].includes(user?.role || '') && !viewOnly;
   const canSendForApproval = !!_requestId && isSaved && requestStatus && (requestStatus === 'manager_pending' || requestStatus === 'saved') && user?.role === 'manager' && !viewOnly;
 
   useEffect(() => {
@@ -574,7 +579,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
               <small>Enter each note on a new line.</small>
             </div>
             <div className="space-y-2">
-              <button type="button" className="btn-primary" onClick={downloadJPEG} disabled={viewOnly}>
+              <button type="button" className="btn-primary" onClick={downloadJPEG}>
                 Download JPEG
               </button>
               {canSaveRequest && (

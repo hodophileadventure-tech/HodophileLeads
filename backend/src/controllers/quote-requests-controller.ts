@@ -229,9 +229,7 @@ export const quoteRequestsController = {
 
         if (isAdminCreatedQuotation) {
           Object.assign(updatePayload, {
-            status: 'approved' as const,
-            approvedBy: req.user.id,
-            approvedAt: new Date().toISOString(),
+            status: 'created' as const,
           });
         } else if (isManagerCreatedQuotation) {
           Object.assign(updatePayload, {
@@ -546,8 +544,8 @@ export const quoteRequestsController = {
         return res.status(403).json({ message: 'Only admins can approve quote requests' });
       }
 
-      if (existingRequest.status !== 'saved') {
-        return res.status(400).json({ message: 'Only saved quote requests can be approved' });
+      if (existingRequest.status !== 'saved' && existingRequest.status !== 'created') {
+        return res.status(400).json({ message: 'Only saved or created quote requests can be approved' });
       }
 
       const updatedRequest = await quoteRequestsModel.update(requestId, {

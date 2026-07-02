@@ -38,7 +38,7 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
       
       // Separate pending (agent requested) and submitted (manager submitted to admin)
       setPendingRequests(allRequests.filter((request: QuoteRequest) => request.status === 'requested'));
-      setSubmittedRequests(allRequests.filter((request: QuoteRequest) => ['saved', 'manager_pending', 'admin_pending', 'rejected'].includes(request.status)));
+      setSubmittedRequests(allRequests.filter((request: QuoteRequest) => ['saved', 'created', 'manager_pending', 'admin_pending', 'rejected'].includes(request.status)));
       setError(null);
     } catch (err) {
       console.error('Failed to load pending quotations:', err);
@@ -64,13 +64,13 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
         </div>
         <span className={`px-2 py-1 rounded text-xs font-semibold ${
           request.status === 'requested' ? 'bg-blue-100 text-blue-800' :
-          request.status === 'saved' ? 'bg-amber-100 text-amber-800' :
+          request.status === 'saved' || request.status === 'created' ? 'bg-amber-100 text-amber-800' :
           request.status === 'admin_pending' ? 'bg-yellow-100 text-yellow-800' :
           request.status === 'rejected' ? 'bg-red-100 text-red-800' :
           'bg-gray-100 text-gray-800'
         }`}>
           {request.status === 'requested' ? 'Pending' :
-           request.status === 'saved' ? 'Ready to Send' :
+           request.status === 'saved' || request.status === 'created' ? 'Ready to Send' :
            request.status === 'admin_pending' ? 'Awaiting Approval' :
            request.status === 'rejected' ? 'Needs Revision' :
            request.status.charAt(0).toUpperCase() + request.status.slice(1)}

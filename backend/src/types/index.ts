@@ -155,7 +155,7 @@ export interface QuoteRequest {
   leadId: string;
   requestedBy: string;
   requestType: 'quotation' | 'invoice';
-  status: 'requested' | 'saved' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected' | 'invalid_for_acceptance';
+  status: 'requested' | 'saved' | 'created' | 'manager_pending' | 'admin_pending' | 'approved' | 'rejected' | 'invalid_for_acceptance';
   quotationNumber?: string | null;
   documentData?: any;
   createdByManager?: string | null;

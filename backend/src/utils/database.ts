@@ -285,9 +285,9 @@ const runPendingMigrations = async () => {
       LIMIT 1
     `);
     const quoteRequestStatusConstraintDefinition = quoteRequestStatusConstraint.rows?.[0]?.definition || '';
-    const desiredQuoteRequestStatusConstraint = "CHECK (((status)::text = ANY ((ARRAY['requested'::character varying, 'saved'::character varying, 'manager_pending'::character varying, 'admin_pending'::character varying, 'approved'::character varying, 'rejected'::character varying, 'invalid_for_acceptance'::character varying])::text[])))";
+    const desiredQuoteRequestStatusConstraint = "CHECK (((status)::text = ANY ((ARRAY['requested'::character varying, 'saved'::character varying, 'created'::character varying, 'manager_pending'::character varying, 'admin_pending'::character varying, 'approved'::character varying, 'rejected'::character varying, 'invalid_for_acceptance'::character varying])::text[])))";
 
-    if (!quoteRequestStatusConstraintDefinition.includes('approved') || !quoteRequestStatusConstraintDefinition.includes('invalid_for_acceptance')) {
+    if (!quoteRequestStatusConstraintDefinition.includes('created') || !quoteRequestStatusConstraintDefinition.includes('invalid_for_acceptance')) {
       console.log('[MIGRATION] Updating quote_requests status constraint to support acceptance states...');
       await query(`ALTER TABLE quote_requests DROP CONSTRAINT IF EXISTS quote_requests_status_check`);
       await query(`ALTER TABLE quote_requests ADD CONSTRAINT quote_requests_status_check ${desiredQuoteRequestStatusConstraint}`);

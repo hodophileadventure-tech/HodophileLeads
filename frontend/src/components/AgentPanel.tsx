@@ -781,7 +781,7 @@ export const AgentPanel: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Requested: {new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(request.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-                    {request.status === 'saved' && request.documentData?.date && (
+                    {['saved', 'created'].includes(request.status) && request.documentData?.date && (
                       <p className="text-xs text-green-600 dark:text-green-400 mb-1">Created: {new Date(request.documentData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                     )}
                     <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
