@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useUIStore, useDataStore } from '../context/store';
 import { leadsAPI, followUpsAPI, quoteRequestsAPI } from '../utils/api-service';
@@ -145,6 +145,9 @@ export const App: React.FC = () => {
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const alarmAudioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
+  const handlePreviewGenerated = useCallback((dataUrl: string) => {
+    setPreviewDataUrl(dataUrl);
+  }, []);
 
   const selectedLeadFollowUps = useMemo(() => {
     if (!selectedLead) return [];
@@ -1365,7 +1368,7 @@ export const App: React.FC = () => {
                           onClose={() => setSelectedQuoteRequest(null)}
                           viewOnly={false}
                           generatePreviewOnMount
-                          onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                          onPreviewGenerated={handlePreviewGenerated}
                           hidePreview={true}
                         />
                       </main>
@@ -1584,7 +1587,7 @@ export const App: React.FC = () => {
                           onClose={() => setSelectedQuoteRequest(null)}
                           viewOnly={false}
                           generatePreviewOnMount
-                          onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                          onPreviewGenerated={handlePreviewGenerated}
                           hidePreview={true}
                         />
                       </main>

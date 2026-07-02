@@ -260,7 +260,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   }, []); // Empty dependency array - only run once on mount
 
   useEffect(() => {
-    if (documentType === 'quotation' && !data.quoteNumber && !initialQuotationNumber) {
+    if (!initialDocumentData && documentType === 'quotation' && !data.quoteNumber && !initialQuotationNumber) {
       setIsLoadingQuoteNumber(true);
       fetchNextQuotationNumber(data.date)
         .then((generated) => {
