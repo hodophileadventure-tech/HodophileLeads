@@ -334,19 +334,19 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   const subtotalValue = useMemo(() => {
     const total = tableRows.reduce((sum, row) => {
-      const amount = Number(row.amount.replace(/[^0-9.]/g, '')) || 0;
+      const amount = parseNumber(row.amount || '');
       return sum + amount;
     }, 0);
     return total;
   }, [tableRows]);
 
   const discountValue = useMemo(() => {
-    const discount = Number(data.discount.replace(/[^0-9.]/g, '')) || 0;
+    const discount = parseNumber(data.discount || '');
     return Math.round((subtotalValue * discount) / 100);
   }, [data.discount, subtotalValue]);
 
   const totalDueValue = useMemo(() => subtotalValue - discountValue, [subtotalValue, discountValue]);
-  const advanceValue = useMemo(() => Number(data.advanceAmount.replace(/[^0-9.]/g, '')) || 0, [data.advanceAmount]);
+  const advanceValue = useMemo(() => parseNumber(data.advanceAmount || ''), [data.advanceAmount]);
   const balanceValue = useMemo(() => Math.max(totalDueValue - advanceValue, 0), [totalDueValue, advanceValue]);
 
   const updateField = (field: keyof DocumentData, value: string | string[]) => {
