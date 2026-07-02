@@ -251,6 +251,44 @@ export const formatKarachiDateTime = (dateTime: string) => {
   }
 };
 
+const getDayOrdinal = (day: number) => {
+  const remainder = day % 100;
+  if (remainder >= 11 && remainder <= 13) return 'th';
+  switch (day % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+};
+
+export const formatKarachiFollowUpReminder = (dateTime: string) => {
+  try {
+    const value = new Date(dateTime);
+    if (Number.isNaN(value.getTime())) return 'Unknown date';
+
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: KARACHI_TIME_ZONE,
+      day: 'numeric',
+      month: 'long',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).formatToParts(value);
+
+    const dayPart = parts.find((part) => part.type === 'day')?.value || '';
+    const monthPart = parts.find((part) => part.type === 'month')?.value || '';
+    const hourPart = parts.find((part) => part.type === 'hour')?.value || '';
+    const minutePart = parts.find((part) => part.type === 'minute')?.value || '';
+    const day = Number(dayPart);
+    const ordinal = Number.isFinite(day) ? getDayOrdinal(day) : 'th';
+
+    return `Follow up on ${dayPart}${ordinal} ${monthPart} ${hourPart}:${minutePart}`;
+  } catch {
+    return new Date(dateTime).toLocaleString();
+  }
+};
+
 export const getKarachiLocalDateTimeString = (date: Date) => {
   const utc = date.getTime() + date.getTimezoneOffset() * 60000;
   const karachi = new Date(utc + 5 * 60 * 60000);
