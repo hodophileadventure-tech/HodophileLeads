@@ -75,7 +75,10 @@ export const dashboardAPI = {
   getStats: () => apiClient.get('/dashboard/stats'),
   getPipeline: () => apiClient.get('/dashboard/pipeline'),
   getAnalytics: () => apiClient.get('/dashboard/analytics'),
-  getHealthScore: () => apiClient.get('/dashboard/health')
+  getHealthScore: () => apiClient.get('/dashboard/health'),
+  getAgentQuickSummary: (agentId: string, startDate?: string, endDate?: string) => apiClient.get('/dashboard/agent-quick-summary', {
+    params: { agentId, startDate, endDate }
+  })
 };
 
 export const adminAPI = {

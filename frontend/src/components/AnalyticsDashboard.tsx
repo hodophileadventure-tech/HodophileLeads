@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Spinner, Button } from './common';
+import { QuickSummary } from './QuickSummary';
 import { dashboardAPI, adminAPI } from '../utils/api-service';
 import type { Lead } from '../types';
 import { formatCurrency, formatKarachiDateTime } from '../utils/helpers';
@@ -395,6 +396,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
         <Card>
           <p className="text-red-600 dark:text-red-300">{error}</p>
         </Card>
+      )}
+
+      {isAdmin && agents.length > 0 && (
+        <QuickSummary agents={agents} />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -125,5 +125,64 @@ export const dashboardController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async getAgentQuickSummary(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { agentId, startDate, endDate } = req.query;
+
+      // Admin-only endpoint
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      if (!agentId) {
+        return res.status(400).json({ message: 'agentId is required' });
+      }
+
+      // Parse dates
+      const start = startDate ? new Date(String(startDate)) : new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+      const end = endDate ? new Date(String(endDate)) : new Date();
+
+      // Ensure valid dates
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return res.status(400).json({ message: 'Invalid date format' });
+      }
+
+      const result = await query(`
+        SELECT
+          -- Lead statuses
+          COUNT(*) FILTER (WHERE status = 'booked')::int as confirmed_leads,
+          COUNT(*) FILTER (WHERE status IN ('negotiation', 'interested', 'contacted'))::int as in_progress_leads,
+          COUNT(*) FILTER (WHERE potential = true AND status NOT IN ('booked', 'completed', 'canceled'))::int as potential_leads,
+          COUNT(*) FILTER (WHERE status = 'canceled')::int as canceled_leads,
+          COUNT(*) FILTER (WHERE temperature = 'cold' AND status IN ('new', 'contacted'))::int as pan_leads,
+          COUNT(*)::int as total_leads,
+          -- Follow-up stats
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3))::int as total_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status = 'completed')::int as completed_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status IN ('overdue', 'today'))::int as past_due_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status = 'upcoming')::int as active_followups
+        FROM leads l
+        WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3
+      `, [agentId, start.toISOString(), end.toISOString()]);
+
+      const stats = result.rows[0] || {};
+
+      res.json({
+        confirmedLeads: parseInt(stats.confirmed_leads) || 0,
+        inProgressLeads: parseInt(stats.in_progress_leads) || 0,
+        potentialLeads: parseInt(stats.potential_leads) || 0,
+        canceledLeads: parseInt(stats.canceled_leads) || 0,
+        panLeads: parseInt(stats.pan_leads) || 0,
+        totalLeads: parseInt(stats.total_leads) || 0,
+        totalFollowups: parseInt(stats.total_followups) || 0,
+        completedFollowups: parseInt(stats.completed_followups) || 0,
+        pastDueFollowups: parseInt(stats.past_due_followups) || 0,
+        activeFollowups: parseInt(stats.active_followups) || 0
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };
