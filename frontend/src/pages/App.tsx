@@ -1663,10 +1663,17 @@ export const App: React.FC = () => {
                               ? `Phone: ${activeAlarm.phone}`
                               : `Lead ID: ${activeAlarm.leadId}`}
                       </p>
-                      {activeAlarm.createdByName && (
-                        <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Created by {activeAlarm.createdByName}</p>
+                      {activeAlarm.title && (
+                        <p className="text-sm mt-2 text-slate-700 dark:text-slate-200 font-medium">
+                          Task: {activeAlarm.title}
+                        </p>
                       )}
-                      <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
+                      {activeAlarm.createdByName && (
+                        <p className="text-sm mt-2 px-3 py-1.5 inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-md font-medium">
+                          Follow up of {activeAlarm.createdByName}
+                        </p>
+                      )}
+                      <p className="text-sm mt-2 text-slate-500 dark:text-slate-400">
                         Due at {formatKarachiDateTime(activeAlarm.dueDate)}
                       </p>
                     </div>
