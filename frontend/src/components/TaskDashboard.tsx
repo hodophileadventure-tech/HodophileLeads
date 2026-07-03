@@ -46,9 +46,14 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
       try {
         setError('');
         const response = await followUpsAPI.list();
-        setFollowUps((response.data || []).map(normalizeFollowUp));
+        const normalized = (response.data || []).map(normalizeFollowUp);
+        console.log('[DEBUG TaskDashboard] Raw API response:', response.data);
+        console.log('[DEBUG TaskDashboard] Normalized follow-ups:', normalized);
+        console.log('[DEBUG TaskDashboard] Sample created_by_name:', normalized[0]?.createdByName);
+        setFollowUps(normalized);
       } catch (err) {
         setError('Failed to load follow-up tasks.');
+        console.error('[DEBUG TaskDashboard] Error fetching tasks:', err);
       } finally {
         setLoading(false);
       }
