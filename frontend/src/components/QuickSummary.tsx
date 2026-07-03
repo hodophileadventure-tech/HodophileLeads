@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Card, Spinner, Button } from './common';
 import { dashboardAPI } from '../utils/api-service';
 
@@ -79,6 +79,9 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
     { name: 'Past Due', value: data.pastDueFollowups, color: COLORS.pastDue },
     { name: 'Active', value: data.activeFollowups, color: COLORS.active }
   ].filter(item => item.value > 0) : [];
+
+  const totalLeadPieValue = leadsData.reduce((sum, item) => sum + item.value, 0);
+  const hasLeadPieMismatch = data ? totalLeadPieValue !== data.totalLeads : false;
 
   return (
     <Card>
@@ -172,14 +175,15 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <h3 className="text-lg font-semibold mb-4">Lead Distribution</h3>
               {leadsData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={350}>
-                  <PieChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
+                  <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                     <Pie
                       data={leadsData}
                       cx="50%"
-                      cy="50%"
-                      labelLine={true}
+                      cy="45%"
+                      labelLine={false}
                       label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={70}
+                      outerRadius={90}
+                      innerRadius={40}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -188,10 +192,16 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => `${value} leads`} />
+                    <Legend verticalAlign="bottom" height={50} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
                 <p className="text-slate-600 dark:text-slate-400 text-center py-8">No lead data available</p>
+              )}
+              {hasLeadPieMismatch && (
+                <div className="mt-3 text-sm text-yellow-700 dark:text-yellow-300">
+                  Note: lead pie segments total {totalLeadPieValue}, but overall total leads is {data?.totalLeads}.
+                </div>
               )}
             </div>
 
@@ -219,14 +229,15 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
 
               {followupsData.length > 0 && (
                 <ResponsiveContainer width="100%" height={350}>
-                  <PieChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
+                  <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                     <Pie
                       data={followupsData}
                       cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={70}
+                      cy="45%"
+                      labelLine={false}
+                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={90}
+                      innerRadius={40}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -235,6 +246,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => `${value} followups`} />
+                    <Legend verticalAlign="bottom" height={50} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
