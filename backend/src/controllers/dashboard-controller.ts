@@ -154,9 +154,12 @@ export const dashboardController = {
           -- Lead statuses (mutually exclusive categories)
           COUNT(*) FILTER (WHERE status = 'booked')::int as confirmed_leads,
           COUNT(*) FILTER (WHERE status IN ('negotiation', 'interested', 'contacted'))::int as in_progress_leads,
-          COUNT(*) FILTER (WHERE potential = true AND status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted'))::int as potential_leads,
+          COUNT(*) FILTER (WHERE status = 'completed')::int as completed_leads,
+          COUNT(*) FILTER (WHERE status = 'spam')::int as spam_leads,
           COUNT(*) FILTER (WHERE status = 'canceled')::int as canceled_leads,
-          COUNT(*) FILTER (WHERE temperature = 'cold' AND status = 'new')::int as pan_leads,
+          COUNT(*) FILTER (WHERE potential = true AND status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted'))::int as potential_leads,
+          COUNT(*) FILTER (WHERE temperature = 'cold' AND status = 'new' AND potential = false)::int as pan_leads,
+          COUNT(*) FILTER (WHERE status = 'new' AND potential = false AND temperature IS DISTINCT FROM 'cold')::int as new_leads,
           COUNT(*)::int as total_leads,
           -- Follow-up stats
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.created_at >= $2 AND f.created_at <= $3)::int as total_followups,
@@ -173,6 +176,7 @@ export const dashboardController = {
         confirmedLeads: parseInt(stats.confirmed_leads) || 0,
         inProgressLeads: parseInt(stats.in_progress_leads) || 0,
         potentialLeads: parseInt(stats.potential_leads) || 0,
+        newLeads: parseInt(stats.new_leads) || 0,
         canceledLeads: parseInt(stats.canceled_leads) || 0,
         panLeads: parseInt(stats.pan_leads) || 0,
         totalLeads: parseInt(stats.total_leads) || 0,
