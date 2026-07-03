@@ -246,7 +246,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
               return (
               <div key={task.id} className="p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                 <div className="flex flex-wrap gap-2 justify-between items-start">
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold">{task.title}</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                       {item.clientName
@@ -257,7 +257,12 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                           ? <>Client: <span className="font-medium">{item.phone}</span></>
                           : <>Client ID: <span className="font-medium">{item.leadId}</span></>}
                     </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{task.description}</p>
+                    {item.createdByName && (
+                      <p className="text-sm mt-2 px-2 py-1 inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded font-medium">
+                        Follow up of {item.createdByName}
+                      </p>
+                    )}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{task.description}</p>
                     {task.note && (
                       <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 whitespace-pre-wrap">
                         Note: {task.note}
