@@ -12,6 +12,7 @@ interface SummaryData {
   inProgressLeads: number;
   potentialLeads: number;
   newLeads: number;
+  spamLeads: number;
   canceledLeads: number;
   panLeads: number;
   totalLeads: number;
@@ -72,6 +73,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
     { name: 'In Progress', value: data.inProgressLeads, color: COLORS.inProgress },
     { name: 'Potential', value: data.potentialLeads, color: COLORS.potential },
     { name: 'New', value: data.newLeads, color: '#60a5fa' },
+    { name: 'Spam', value: data.spamLeads, color: '#9f1239' },
     { name: 'Pan Leads', value: data.panLeads, color: COLORS.pan },
     { name: 'Canceled', value: data.canceledLeads, color: COLORS.canceled }
   ].filter(item => item.value > 0) : [];
@@ -180,6 +182,10 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             <div className="bg-sky-50 dark:bg-sky-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">New</p>
               <p className="text-2xl font-bold text-sky-600 dark:text-sky-300">{data.newLeads}</p>
+            </div>
+            <div className="bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg">
+              <p className="text-xs text-slate-600 dark:text-slate-400">Spam</p>
+              <p className="text-2xl font-bold text-rose-600 dark:text-rose-300">{data.spamLeads}</p>
             </div>
             <div className="bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Canceled</p>

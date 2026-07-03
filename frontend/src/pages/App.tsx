@@ -21,16 +21,40 @@ import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
 import { HotelsPanel } from '../components/HotelsPanel';
 import AdminQuotationApprovalsPage from './AdminQuotationApprovalsPage';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
-import { Badge, Button, Spinner } from '../components/common';
+import { ItinerariesPanel } from '../components/ItinerariesPanel';
+import { Badge, Button, Modal, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries';
 
  
 
 const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
+
+const CANCEL_LEAD_REASONS = [
+  'Budget constraints',
+  'Change of plans',
+  'Work commitments',
+  'Leave not approved',
+  'Family emergency',
+  'Medical issue',
+  'Friends/family cancelled',
+  'Unexpected expenses',
+  'Another agency offered a lower price',
+  'Payment issues',
+  'Preferred dates unavailable',
+  'Weather concerns',
+  'Safety concerns',
+  'Visa delay/rejection',
+  'Passport/travel document issue',
+  'Trip postponed',
+  'Not ready to travel',
+  'Itinerary not suitable',
+  'Changed destination',
+  'No specific reason',
+];
 
 const readDismissedFollowUps = (): Record<string, number> => {
   try {
@@ -135,6 +159,8 @@ export const App: React.FC = () => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionRemarks, setCompletionRemarks] = useState('');
   const [showConfirmForm, setShowConfirmForm] = useState(false);
+  const [showCancelLeadModal, setShowCancelLeadModal] = useState(false);
+  const [cancelLeadReason, setCancelLeadReason] = useState('');
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
@@ -332,12 +358,18 @@ export const App: React.FC = () => {
 
   const cancelLead = async () => {
     if (!selectedLead) return;
-    const reason = window.prompt('Reason for canceling this lead?')?.trim();
-    if (!reason) return;
+    setCancelLeadReason('');
+    setShowCancelLeadModal(true);
+  };
+
+  const confirmCancelLead = async () => {
+    if (!selectedLead || !cancelLeadReason) return;
     try {
-      const resp = await leadsAPI.cancel(String(selectedLead.id), reason);
+      const resp = await leadsAPI.cancel(String(selectedLead.id), cancelLeadReason);
       setSelectedLead(resp.data);
       await refreshLeads();
+      setShowCancelLeadModal(false);
+      setCancelLeadReason('');
     } catch (error) {
       console.error('Failed to cancel lead:', error);
       alert('Failed to cancel lead.');
@@ -624,6 +656,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
     ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
+    { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
   ];
@@ -1178,6 +1211,58 @@ export const App: React.FC = () => {
                   </div>
                 )}
 
+                {showCancelLeadModal && selectedLead && (
+                  <Modal
+                    isOpen={showCancelLeadModal}
+                    onClose={() => {
+                      setShowCancelLeadModal(false);
+                      setCancelLeadReason('');
+                    }}
+                    title="Cancel Lead"
+                    footer={
+                      <>
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setShowCancelLeadModal(false);
+                            setCancelLeadReason('');
+                          }}
+                        >
+                          Close
+                        </Button>
+                        <Button
+                          variant="danger"
+                          onClick={confirmCancelLead}
+                          disabled={!cancelLeadReason}
+                        >
+                          Confirm Cancel
+                        </Button>
+                      </>
+                    }
+                  >
+                    <div className="space-y-4">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Select the reason for canceling this lead before confirming.
+                      </p>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Cancellation Reason</label>
+                        <select
+                          className="input-field w-full"
+                          value={cancelLeadReason}
+                          onChange={(e) => setCancelLeadReason(e.target.value)}
+                        >
+                          <option value="">Select a reason</option>
+                          {CANCEL_LEAD_REASONS.map((reason) => (
+                            <option key={reason} value={reason}>
+                              {reason}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </Modal>
+                )}
+
                 {selectedLead && showConfirmForm && (
                   <ConfirmedLeadForm
                     lead={selectedLead}
@@ -1210,6 +1295,12 @@ export const App: React.FC = () => {
               <div>
                 <h1 className="text-3xl font-bold mb-4">Agent Panel</h1>
                 <AgentPanel />
+              </div>
+            )}
+
+            {currentPage === 'itineraries' && (
+              <div>
+                <ItinerariesPanel />
               </div>
             )}
 

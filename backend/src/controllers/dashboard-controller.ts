@@ -161,11 +161,11 @@ export const dashboardController = {
           COUNT(*) FILTER (WHERE temperature = 'cold' AND status = 'new' AND potential = false)::int as pan_leads,
           COUNT(*) FILTER (WHERE status = 'new' AND potential = false AND temperature IS DISTINCT FROM 'cold')::int as new_leads,
           COUNT(*)::int as total_leads,
-          -- Follow-up stats
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3))::int as total_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status = 'completed')::int as completed_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status IN ('overdue', 'today'))::int as past_due_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status = 'upcoming')::int as active_followups
+          -- Follow-up stats (follow-ups created in selected date range for this agent)
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3)::int as total_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'completed')::int as completed_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status IN ('overdue', 'today'))::int as past_due_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'upcoming')::int as active_followups
         FROM leads l
         WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3
       `, [agentId, start.toISOString(), end.toISOString()]);
@@ -177,6 +177,7 @@ export const dashboardController = {
         inProgressLeads: parseInt(stats.in_progress_leads) || 0,
         potentialLeads: parseInt(stats.potential_leads) || 0,
         newLeads: parseInt(stats.new_leads) || 0,
+        spamLeads: parseInt(stats.spam_leads) || 0,
         canceledLeads: parseInt(stats.canceled_leads) || 0,
         panLeads: parseInt(stats.pan_leads) || 0,
         totalLeads: parseInt(stats.total_leads) || 0,
