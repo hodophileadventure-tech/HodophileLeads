@@ -433,21 +433,51 @@ const runPendingMigrations = async () => {
 
     // Populate created_by for follow-ups that don't have a creator
     // Assign the lead's agent as the creator for orphaned follow-ups
-    const orphanedFollowUpsCount = await query(`
-      SELECT COUNT(*) as count FROM follow_ups 
-      WHERE created_by IS NULL
-    `);
-    const orphanedCount = orphanedFollowUpsCount.rows?.[0]?.count || 0;
-    
-    if (orphanedCount > 0) {
-      console.log(`[MIGRATION] Populating created_by for ${orphanedCount} orphaned follow-ups...`);
-      await query(`
-        UPDATE follow_ups fu
-        SET created_by = l.agent_id
-        WHERE fu.created_by IS NULL
-          AND fu.lead_id IN (SELECT id FROM leads)
+    try {
+      const orphanedFollowUpsCount = await query(`
+        SELECT COUNT(*) as count FROM follow_ups 
+        WHERE created_by IS NULL
       `);
-      console.log(`[MIGRATION] ✅ Populated created_by for ${orphanedCount} follow-ups`);
+      const orphanedCount = Number(orphanedFollowUpsCount.rows?.[0]?.count) || 0;
+      
+      console.log(`[MIGRATION] Found ${orphanedCount} follow-ups without creator`);
+      
+      if (orphanedCount > 0) {
+        console.log(`[MIGRATION] Populating created_by for ${orphanedCount} orphaned follow-ups...`);
+        
+        // Use explicit JOIN syntax instead of subquery
+        const updateResult = await query(`
+          UPDATE follow_ups 
+          SET created_by = leads.agent_id
+          FROM leads
+          WHERE follow_ups.lead_id = leads.id
+            AND follow_ups.created_by IS NULL
+        `);
+        
+        console.log(`[MIGRATION] ✅ Update completed. Rows affected: ${updateResult.rowCount || 0}`);
+        
+        // Verify the update worked
+        const verifyCount = await query(`
+          SELECT COUNT(*) as count FROM follow_ups 
+          WHERE created_by IS NULL
+        `);
+        const remainingCount = Number(verifyCount.rows?.[0]?.count) || 0;
+        console.log(`[MIGRATION] ✅ Remaining orphaned follow-ups: ${remainingCount}`);
+        
+        // Show some examples of updated follow-ups
+        const examples = await query(`
+          SELECT id, lead_id, created_by, (SELECT name FROM users WHERE id = created_by LIMIT 1) as creator_name
+          FROM follow_ups 
+          WHERE created_by IS NOT NULL 
+          LIMIT 3
+        `);
+        console.log('[MIGRATION] Example updated follow-ups:', examples.rows);
+      } else {
+        console.log('[MIGRATION] ✅ No orphaned follow-ups found');
+      }
+    } catch (migrationError: any) {
+      console.error('[MIGRATION] Error populating created_by:', migrationError.message);
+      console.error('[MIGRATION] Error details:', migrationError);
     }
   } catch (error: any) {
     console.warn('[MIGRATION] Warning during migration:', error.message);
