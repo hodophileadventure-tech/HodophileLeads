@@ -186,8 +186,8 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                       data={leadsData}
                       cx="50%"
                       cy="45%"
-                      labelLine={false}
-                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      labelLine={true}
+                      label={{ position: 'outside', fill: '#0f172a', fontSize: 12, fontWeight: 600 }}
                       outerRadius={90}
                       innerRadius={40}
                       fill="#8884d8"
@@ -240,8 +240,8 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                       data={followupsData}
                       cx="50%"
                       cy="45%"
-                      labelLine={false}
-                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      labelLine={true}
+                      label={{ position: 'outside', fill: '#0f172a', fontSize: 12, fontWeight: 600 }}
                       outerRadius={90}
                       innerRadius={40}
                       fill="#8884d8"
