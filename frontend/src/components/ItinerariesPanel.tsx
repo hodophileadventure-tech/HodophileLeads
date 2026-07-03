@@ -36,7 +36,10 @@ const privateImageFiles = [
   'WhatsApp Image 2026-07-01 at 1.46.08 PM.jpeg',
 ];
 
-const groupImageFiles: string[] = [];
+const groupImageFiles: string[] = [
+  'WhatsApp Image 2026-07-03 at 6.03.45 PM.jpeg',
+  'WhatsApp Image 2026-07-03 at 6.05.30 PM.jpeg',
+];
 
 const folderItems = [
   { key: 'private', label: 'Private', files: privateImageFiles },
