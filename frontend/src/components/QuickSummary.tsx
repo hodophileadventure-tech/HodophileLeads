@@ -82,6 +82,19 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
     { name: 'Active', value: data.activeFollowups, color: COLORS.active }
   ].filter(item => item.value > 0) : [];
 
+  const renderPieLabel = ({ cx, cy, midAngle, outerRadius, name, value }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 16;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="#0f172a" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12} fontWeight={600}>
+        {`${name}: ${value}`}
+      </text>
+    );
+  };
+
   const totalLeadPieValue = leadsData.reduce((sum, item) => sum + item.value, 0);
   const hasLeadPieMismatch = data ? totalLeadPieValue !== data.totalLeads : false;
 
@@ -187,7 +200,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                       cx="50%"
                       cy="45%"
                       labelLine={true}
-                      label={{ position: 'outside', fill: '#0f172a', fontSize: 12, fontWeight: 600 }}
+                      label={renderPieLabel}
                       outerRadius={90}
                       innerRadius={40}
                       fill="#8884d8"
@@ -241,7 +254,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                       cx="50%"
                       cy="45%"
                       labelLine={true}
-                      label={{ position: 'outside', fill: '#0f172a', fontSize: 12, fontWeight: 600 }}
+                      label={renderPieLabel}
                       outerRadius={90}
                       innerRadius={40}
                       fill="#8884d8"
