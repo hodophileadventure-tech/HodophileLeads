@@ -171,15 +171,15 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Lead Distribution</h3>
               {leadsData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
                     <Pie
                       data={leadsData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
+                      labelLine={true}
                       label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={80}
+                      outerRadius={70}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -218,15 +218,15 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               </div>
 
               {followupsData.length > 0 && (
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
                     <Pie
                       data={followupsData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
+                      labelLine={true}
                       label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={80}
+                      outerRadius={70}
                       fill="#8884d8"
                       dataKey="value"
                     >
