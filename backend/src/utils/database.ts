@@ -430,6 +430,25 @@ const runPendingMigrations = async () => {
       )
     `);
     console.log('[MIGRATION] ✅ valid_status constraint ensured');
+
+    // Populate created_by for follow-ups that don't have a creator
+    // Assign the lead's agent as the creator for orphaned follow-ups
+    const orphanedFollowUpsCount = await query(`
+      SELECT COUNT(*) as count FROM follow_ups 
+      WHERE created_by IS NULL
+    `);
+    const orphanedCount = orphanedFollowUpsCount.rows?.[0]?.count || 0;
+    
+    if (orphanedCount > 0) {
+      console.log(`[MIGRATION] Populating created_by for ${orphanedCount} orphaned follow-ups...`);
+      await query(`
+        UPDATE follow_ups fu
+        SET created_by = l.agent_id
+        WHERE fu.created_by IS NULL
+          AND fu.lead_id IN (SELECT id FROM leads)
+      `);
+      console.log(`[MIGRATION] ✅ Populated created_by for ${orphanedCount} follow-ups`);
+    }
   } catch (error: any) {
     console.warn('[MIGRATION] Warning during migration:', error.message);
     // Don't throw - column might already exist or migration may have already run
