@@ -151,18 +151,18 @@ export const dashboardController = {
 
       const result = await query(`
         SELECT
-          -- Lead statuses
+          -- Lead statuses (mutually exclusive categories)
           COUNT(*) FILTER (WHERE status = 'booked')::int as confirmed_leads,
           COUNT(*) FILTER (WHERE status IN ('negotiation', 'interested', 'contacted'))::int as in_progress_leads,
-          COUNT(*) FILTER (WHERE potential = true AND status NOT IN ('booked', 'completed', 'canceled'))::int as potential_leads,
+          COUNT(*) FILTER (WHERE potential = true AND status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted'))::int as potential_leads,
           COUNT(*) FILTER (WHERE status = 'canceled')::int as canceled_leads,
-          COUNT(*) FILTER (WHERE temperature = 'cold' AND status IN ('new', 'contacted'))::int as pan_leads,
+          COUNT(*) FILTER (WHERE temperature = 'cold' AND status = 'new')::int as pan_leads,
           COUNT(*)::int as total_leads,
           -- Follow-up stats
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3))::int as total_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status = 'completed')::int as completed_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status IN ('overdue', 'today'))::int as past_due_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.status = 'upcoming')::int as active_followups
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.created_at >= $2 AND f.created_at <= $3)::int as total_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'completed')::int as completed_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status IN ('overdue', 'today'))::int as past_due_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'upcoming')::int as active_followups
         FROM leads l
         WHERE l.agent_id = $1 AND l.created_at >= $2 AND l.created_at <= $3
       `, [agentId, start.toISOString(), end.toISOString()]);
