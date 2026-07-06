@@ -336,7 +336,7 @@ async function migrate() {
     
     await client.query(`
       ALTER TABLE quote_requests 
-      ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE
+      ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(255) UNIQUE
     `);
 
     const outboxTableCheck = await client.query(`
