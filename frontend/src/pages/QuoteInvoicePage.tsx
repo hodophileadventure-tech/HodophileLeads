@@ -670,20 +670,16 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                           <div className="pdf-package-description">{data.packageDescription}</div>
                           <div className="pdf-package-info-group">
                             <div className="pdf-package-info-line">
-                              <span>Accommodation Type</span>
-                              <strong>{data.accommodationType}</strong>
+                              <strong>Accommodation Type</strong>
+                              <span>{data.accommodationType}</span>
                             </div>
                             <div className="pdf-package-info-line">
-                              <span>Transportation Type</span>
-                              <strong>{data.transportationType}</strong>
+                              <strong>Transportation Type</strong>
+                              <span>{data.transportationType}</span>
                             </div>
                             <div className="pdf-package-info-line">
-                              <span>Departure Location</span>
-                              <strong>{data.departureLocation}</strong>
-                            </div>
-                            <div className="pdf-package-info-line">
-                              <span>Package Includes</span>
-                              <strong>{data.packageIncludes.join(', ')}</strong>
+                              <strong>Departure Location</strong>
+                              <span>{data.departureLocation}</span>
                             </div>
                           </div>
                         </td>
@@ -701,7 +697,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                             <div className="pdf-notes pdf-package-includes-box">
                               <div className="notes-title">PACKAGE INCLUDES:</div>
                               {data.packageIncludes.map((item, index) => (
-                                <div key={index}><strong>{item}</strong></div>
+                                <div key={index}>{item}</div>
                               ))}
                             </div>
                           </div>
