@@ -5,7 +5,7 @@ const privateImageFiles = [
   '10Days Fairy Meadows, Hunza & Skardu.jpg',
   '10Days Fairy Meadows, Skardu & Naltar.jpg',
   '10Days Kartarpur, Nankana Sahib, Skardu & Naran.jpg',
-  '10Days-Astore-Minimarg-&-Naran.jpg',
+  // '10Days-Astore-Minimarg-&-Naran.jpg', (removed)
   '3Days Naran itinerary.jpg',
   '3Days Swat & Kalam.jpg',
   '3Days-Kashmir.jpg',
