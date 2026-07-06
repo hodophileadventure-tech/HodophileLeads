@@ -265,4 +265,4 @@ CREATE TABLE IF NOT EXISTS quotation_counters (
 );
 
 -- Add quotation_number column to quote_requests table
-ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE;
+ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(255) UNIQUE;

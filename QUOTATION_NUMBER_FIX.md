@@ -177,7 +177,7 @@ ALTER TABLE quote_requests DROP COLUMN quotation_number;
 
 ```sql
 ALTER TABLE quote_requests
-ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE;
+ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(255) UNIQUE;
 ```
 
 This adds a unique constraint to ensure no duplicate quotation numbers.

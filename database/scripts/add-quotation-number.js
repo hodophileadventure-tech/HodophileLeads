@@ -7,7 +7,7 @@ async function migrateQuotationNumber() {
     // Add quotation_number column if it doesn't exist
     await query(`
       ALTER TABLE quote_requests
-      ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE;
+      ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(255) UNIQUE;
     `);
     
     console.log('✓ Column added successfully');

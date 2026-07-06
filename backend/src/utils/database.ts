@@ -392,7 +392,7 @@ const runPendingMigrations = async () => {
 
     if (!quotationNumberColumnExists) {
       console.log('[MIGRATION] Adding quotation_number column to quote_requests table...');
-      await query(`ALTER TABLE quote_requests ADD COLUMN quotation_number VARCHAR(20)`);
+      await query(`ALTER TABLE quote_requests ADD COLUMN quotation_number VARCHAR(255)`);
       console.log('[MIGRATION] ✅ quotation_number column added successfully');
     }
 
