@@ -58,7 +58,7 @@ export const followUpSchema = Joi.object({
   leadId: Joi.string().required(),
   assignedTo: Joi.string().optional(),
   title: Joi.string().min(2).required(),
-  description: Joi.string().min(2).required(),
+  description: Joi.string().min(2).optional(),
   dueDate: Joi.string().required(),
   status: Joi.string().valid('overdue', 'today', 'upcoming', 'completed', 'canceled').optional(),
   priority: Joi.string().valid('low', 'medium', 'high').optional(),

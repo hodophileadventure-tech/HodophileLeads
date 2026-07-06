@@ -21,6 +21,7 @@ import { errorHandler } from './middleware/auth';
 import { initDatabase } from './utils/database';
 import { startFollowUpWorker } from './workers/followUpWorker';
 import { startReportWorker } from './workers/reportWorker';
+import { startOutboxWorker } from './workers/outboxWorker';
 import { createServer } from 'http';
 import { initWebsocket } from './utils/wsServer';
 import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
@@ -180,6 +181,7 @@ const start = async () => {
   // start background workers
   startFollowUpWorker();
   startReportWorker();
+  startOutboxWorker();
   startScreenCaptureCleanup();
 
   const server = createServer(app);

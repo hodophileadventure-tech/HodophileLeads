@@ -205,7 +205,8 @@ export const leadsModel = {
     return mapLeadRow(result.rows[0]);
   },
 
-  async update(id: string, data: Partial<Lead>) {
+  async update(id: string, data: Partial<Lead>, client?: any) {
+    const executor = client && typeof client.query === 'function' ? client.query.bind(client) : query;
     const fields: string[] = [];
     const params: any[] = [];
     let paramCount = 1;
@@ -320,7 +321,7 @@ export const leadsModel = {
     params.push(id);
 
     const sql = `UPDATE leads SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${paramCount} RETURNING *`;
-    const result = await query(sql, params);
+    const result = await executor(sql, params);
     return mapLeadRow(result.rows[0]);
   },
 

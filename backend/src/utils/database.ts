@@ -357,6 +357,33 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] ✅ quotation_counters table created successfully');
     }
 
+    const outboxTableCheck = await query(`
+      SELECT COUNT(*) as count FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'outbox_events'
+    `);
+    const outboxTableExists = outboxTableCheck.rows?.[0]?.count > 0;
+
+    if (!outboxTableExists) {
+      console.log('[MIGRATION] Creating outbox_events table...');
+      await query(`
+        CREATE TABLE outbox_events (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          external_id VARCHAR(255),
+          event_type VARCHAR(100) NOT NULL,
+          payload JSONB NOT NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'pending',
+          retry_count INTEGER NOT NULL DEFAULT 0,
+          last_error TEXT,
+          next_attempt_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT valid_outbox_status CHECK (status IN ('pending', 'processing', 'completed', 'failed'))
+        )
+      `);
+      await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_outbox_events_external_id ON outbox_events(external_id) WHERE external_id IS NOT NULL`);
+      console.log('[MIGRATION] ✅ outbox_events table created successfully');
+    }
+
     const quotationNumberColumnCheck = await query(`
       SELECT COUNT(*) as count FROM information_schema.columns
       WHERE table_schema = 'public' AND table_name = 'quote_requests' AND column_name = 'quotation_number'

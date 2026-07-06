@@ -5,8 +5,9 @@ import { attachmentsModel } from '../models/Attachment';
 import { followUpsModel } from '../models/FollowUp';
 import { availabilityModel } from '../models/Availability';
 import { notificationsModel } from '../models/Notification';
-import { query } from '../utils/database';
+import { query, getClient } from '../utils/database';
 import { calculateBookingHealthScore, calculateLeadDataHealth, generateFollowUpTasks } from '../services/lead-service';
+import { enqueueConfirmedLeadNotification } from '../services/employeePortalService';
 import Joi from 'joi';
 import { validatePayload, leadSchema } from '../utils/validation';
 import { logActivity } from '../utils/activity-log';
@@ -129,6 +130,22 @@ const ensureLeadAccess = (lead: any, user: any) => {
   return String(lead.agentId) === String(user.id);
 };
 
+const confirmLeadAndEnqueue = async (leadId: string, updateData: Partial<any>) => {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    const lead = await leadsModel.update(leadId, updateData, client);
+    await enqueueConfirmedLeadNotification(lead, client);
+    await client.query('COMMIT');
+    return lead;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 export const leadsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
@@ -222,8 +239,13 @@ export const leadsController = {
         console.log('[LeadsController] After permissive validation:', payload);
       }
       console.log('[LeadsController] Calling leadsModel.update with:', { leadId: req.params.id, payload });
-      const lead = await leadsModel.update(req.params.id, payload);
-      
+      let lead;
+      if (payload && payload.pipelineStage === 'confirmed') {
+        lead = await confirmLeadAndEnqueue(req.params.id, payload);
+        console.log('[LeadsController] Enqueued confirmed lead notification for Employee Portal', { leadId: lead.id });
+      } else {
+        lead = await leadsModel.update(req.params.id, payload);
+      }
       if (!lead) {
         console.log('[LeadsController] Lead not found:', req.params.id);
         return res.status(404).json({ message: 'Lead not found' });
@@ -316,7 +338,13 @@ export const leadsController = {
   async updateStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { status } = req.body;
-      const lead = await leadsModel.update(req.params.id, { status });
+      let lead;
+      if (status === 'booked') {
+        lead = await confirmLeadAndEnqueue(req.params.id, { status });
+        console.log('[LeadsController] Enqueued confirmed lead notification for Employee Portal via status update', { leadId: lead.id });
+      } else {
+        lead = await leadsModel.update(req.params.id, { status });
+      }
       if (!lead) {
         return res.status(404).json({ message: 'Lead not found' });
       }
@@ -362,7 +390,7 @@ export const leadsController = {
         return res.status(400).json({ message: 'Invalid pipeline stage' });
       }
 
-      const lead = await leadsModel.update(req.params.id, { pipelineStage: stage as any });
+      let lead = await leadsModel.update(req.params.id, { pipelineStage: stage as any });
       if (!lead) {
         return res.status(404).json({ message: 'Lead not found' });
       }
@@ -377,6 +405,16 @@ export const leadsController = {
 
       const eventType = eventMap[stage];
       let autoTasksCreated = 0;
+
+      if (stage === 'confirmed') {
+        try {
+          const updatedLead = await confirmLeadAndEnqueue(req.params.id, { pipelineStage: stage });
+          console.log('[LeadsController] Enqueued confirmed lead notification via updateStage', { leadId: req.params.id });
+          lead = updatedLead;
+        } catch (notifyErr) {
+          console.error('[LeadsController] Failed to enqueue Employee Portal notification via updateStage:', notifyErr);
+        }
+      }
 
       if (eventType) {
         const tasks = await generateFollowUpTasks(req.params.id, eventType);

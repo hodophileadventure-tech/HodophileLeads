@@ -339,6 +339,34 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(20) UNIQUE
     `);
 
+    const outboxTableCheck = await client.query(`
+      SELECT COUNT(*) as count FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'outbox_events'
+    `);
+    const outboxTableExists = outboxTableCheck.rows?.[0]?.count > 0;
+    if (!outboxTableExists) {
+      console.log('✅ Creating outbox_events table...');
+      await client.query(`
+        CREATE TABLE outbox_events (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          external_id VARCHAR(255),
+          event_type VARCHAR(100) NOT NULL,
+          payload JSONB NOT NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'pending',
+          retry_count INTEGER NOT NULL DEFAULT 0,
+          last_error TEXT,
+          next_attempt_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT valid_outbox_status CHECK (status IN ('pending', 'processing', 'completed', 'failed'))
+        )
+      `);
+      await client.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_outbox_events_external_id ON outbox_events(external_id) WHERE external_id IS NOT NULL
+      `);
+      console.log('✅ outbox_events table created successfully');
+    }
+
     // Add approval workflow columns
     await client.query(`
       ALTER TABLE quote_requests 

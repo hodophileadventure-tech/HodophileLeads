@@ -28,6 +28,13 @@ const getLatestQuotationSequenceSql = `
   LIMIT 1
 `;
 
+const formatDatePrefix = (date: Date) => {
+  const year = String(date.getUTCFullYear()).slice(-2);
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
 const allocateNextQuotationSequence = async (dbClient: DbTransactionClient) => {
   await dbClient.query('SELECT pg_advisory_xact_lock(hashtext($1))', [QUOTATION_NUMBER_LOCK_KEY]);
 
@@ -36,14 +43,16 @@ const allocateNextQuotationSequence = async (dbClient: DbTransactionClient) => {
   return Math.max(latestSequence, QUOTATION_NUMBER_START) + 1;
 };
 
-const allocateNextQuotationNumber = async (dbClient: DbTransactionClient) => {
+const allocateNextQuotationNumber = async (dbClient: DbTransactionClient, datePrefix: string) => {
   const nextSequence = await allocateNextQuotationSequence(dbClient);
-  return String(nextSequence);
+  return `${datePrefix}${String(nextSequence)}`;
 };
 
-export async function generateQuotationNumber(client?: DbTransactionClient): Promise<string> {
+export async function generateQuotationNumber(date?: Date, client?: DbTransactionClient): Promise<string> {
   try {
-    const run = async (dbClient: DbTransactionClient) => allocateNextQuotationNumber(dbClient);
+    const referenceDate = date ?? new Date();
+    const datePrefix = formatDatePrefix(referenceDate);
+    const run = async (dbClient: DbTransactionClient) => allocateNextQuotationNumber(dbClient, datePrefix);
 
     if (client) {
       return await run(client);
@@ -69,12 +78,14 @@ export async function generateQuotationNumber(client?: DbTransactionClient): Pro
   }
 }
 
-export async function peekNextQuotationNumber(): Promise<string> {
+export async function peekNextQuotationNumber(date?: Date): Promise<string> {
+  const referenceDate = date ?? new Date();
+  const datePrefix = formatDatePrefix(referenceDate);
   const dbClient = await getDatabaseClient();
   try {
     const result = await dbClient.query(getLatestQuotationSequenceSql);
     const latestSequence = Number(result.rows[0]?.sequence_value ?? QUOTATION_NUMBER_START);
-    return String(Math.max(latestSequence, QUOTATION_NUMBER_START) + 1);
+    return `${datePrefix}${String(Math.max(latestSequence, QUOTATION_NUMBER_START) + 1)}`;
   } finally {
     dbClient.release();
   }

@@ -42,7 +42,7 @@ const resolveUniqueQuotationNumber = async (
     }
   }
 
-  return generateQuotationNumber(client);
+  return generateQuotationNumber(undefined, client);
 };
 
 export const quoteRequestsController = {
@@ -73,7 +73,7 @@ export const quoteRequestsController = {
       try {
         await client.query('BEGIN');
 
-        const quotationNumber = requestType === 'quotation' ? await generateQuotationNumber(client) : null;
+        const quotationNumber = requestType === 'quotation' ? await generateQuotationNumber(undefined, client) : null;
         quoteRequest = await quoteRequestsModel.create({
           leadId,
           requestedBy: req.user.id,
@@ -508,7 +508,7 @@ export const quoteRequestsController = {
       try {
         await client.query('BEGIN');
 
-        const quotationNumber = existingRequest.requestType === 'quotation' ? await generateQuotationNumber(client) : null;
+        const quotationNumber = existingRequest.requestType === 'quotation' ? await generateQuotationNumber(undefined, client) : null;
         newRequest = await quoteRequestsModel.create({
           leadId: existingRequest.leadId,
           requestedBy: req.user.id,
