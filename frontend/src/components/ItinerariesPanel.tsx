@@ -29,8 +29,10 @@ const privateImageFiles = [
 ];
 
 const groupImageFiles: string[] = [
-  'WhatsApp Image 2026-07-03 at 6.03.45 PM.jpeg',
-  'WhatsApp Image 2026-07-03 at 6.05.30 PM.jpeg',
+  '10 Days 9 Nights Astore Domel Minimarg and Naran Valley.jpeg',
+  '10 Days 9 Nights Skardu Deosai Naran Valley.jpeg',
+  '12 days 11 night Hunza Skardu Basho and Naran Valley.jpeg',
+  '12 Days 11 Nights Skardu Fairy Meadows.jpeg',
 ];
 
 const folderItems = [
