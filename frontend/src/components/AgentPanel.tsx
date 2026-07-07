@@ -456,9 +456,10 @@ export const AgentPanel: React.FC = () => {
       await leadsAPI.requestQuote(String(lead.id), normalizedType as 'quotation' | 'invoice');
       alert(`Requested ${normalizedType} for ${lead.clientName || lead.phone}. A manager will be notified.`);
       await loadQuoteRequests();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to request document', error);
-      alert('Unable to submit document request. Please try again.');
+      const message = error?.response?.data?.message || error?.message || 'Unable to submit document request. Please try again.';
+      alert(message);
     }
   };
 
