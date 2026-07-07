@@ -111,7 +111,7 @@ export const ItinerariesPanel: React.FC = () => {
                 placeholder="Search itineraries by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-10 py-2 rounded-full border border-slate-200 bg-white dark:bg-slate-800 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full pl-10 pr-10 py-2 rounded-full border border-[#fcc000] bg-white dark:bg-slate-800 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#fcc000]"
               />
 
               {searchQuery && (
