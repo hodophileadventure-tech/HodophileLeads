@@ -112,24 +112,6 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
         >
           {request.status === 'requested' ? 'Create Quotation' : 'View/Edit'}
         </button>
-        {request.status === 'requested' && (
-          <button
-            onClick={async () => {
-              if (!window.confirm(`Delete pending quotation request for ${request.leadClientName || request.leadPhone}? This cannot be undone.`)) return;
-              try {
-                await quoteRequestsAPI.delete(request.id);
-                // reload list
-                loadRequests();
-              } catch (err) {
-                console.error('Failed to delete quotation request:', err);
-                alert('Failed to delete quotation request.');
-              }
-            }}
-            className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition text-sm font-medium"
-          >
-            Delete
-          </button>
-        )}
       </div>
     </div>
   );
