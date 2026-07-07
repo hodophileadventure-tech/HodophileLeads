@@ -339,6 +339,21 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS quotation_number VARCHAR(255) UNIQUE
     `);
 
+    const quotationNumberLengthCheck = await client.query(`
+      SELECT character_maximum_length
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'quote_requests'
+        AND column_name = 'quotation_number'
+      LIMIT 1
+    `);
+    const currentLength = quotationNumberLengthCheck.rows?.[0]?.character_maximum_length;
+    if (typeof currentLength === 'number' && currentLength < 255) {
+      console.log('[MIGRATION] Updating quotation_number column length to VARCHAR(255)...');
+      await client.query(`ALTER TABLE quote_requests ALTER COLUMN quotation_number TYPE VARCHAR(255)`);
+      console.log('[MIGRATION] ✅ quotation_number column altered to VARCHAR(255)');
+    }
+
     const outboxTableCheck = await client.query(`
       SELECT COUNT(*) as count FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name = 'outbox_events'
