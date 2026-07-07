@@ -58,6 +58,12 @@ const sendCommissionEvent = async (event: any) => {
     if (error.response && [200, 201].includes(error.response.status)) {
       return;
     }
+    console.error('[OutboxWorker] Commission event failure response:', {
+      eventId: event.id,
+      status: error.response?.status,
+      responseData: error.response?.data,
+      payload: event.payload,
+    });
     throw error;
   }
 };
