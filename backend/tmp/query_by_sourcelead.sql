@@ -1,0 +1,1 @@
+SELECT id, "employeeId", "customerName", "customerNumber", "destination", "persons", "leadWorth", "commission", "sourceLeadId", "sourceSystem", "confirmed", "confirmedAt", "createdAt" FROM "SalesLead" WHERE "sourceLeadId"='55592607-1f37-4759-b540-917dc741cf6c' ORDER BY "createdAt" DESC LIMIT 5;

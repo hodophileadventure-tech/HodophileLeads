@@ -1,6 +1,7 @@
 import { Lead } from '../types';
 import { query } from '../utils/database';
 import { outboxEventModel } from '../models/OutboxEvent';
+import { calculateCommission, getRuleDescription } from './commissionRuleService';
 
 const EVENT_TYPE = 'employee_portal_confirmed_lead';
 
@@ -9,19 +10,16 @@ const getAgentEmail = async (agentId: string) => {
   return result.rows?.[0]?.email || null;
 };
 
-const getCommissionRate = () => {
-  const raw = process.env.EMPLOYEE_PORTAL_COMMISSION_RATE ?? '0.1';
-  const parsed = Number(raw);
-  if (Number.isNaN(parsed) || parsed < 0) {
-    return 0.1;
-  }
-  return Math.min(1, parsed);
-};
-
 const buildConfirmedLeadPayload = async (lead: Lead) => {
   const leadWorth = Number(lead.actualPrice ?? lead.latestRevisedPrice ?? lead.initialPrice ?? 0);
-  const rate = getCommissionRate();
-  const commission = Number((leadWorth * rate).toFixed(2));
+  
+  // Calculate commission using rule-based service
+  const commissionResult = calculateCommission({
+    leadWorth,
+    employeeId: String(lead.agentId || ''),
+    leadId: String(lead.id || '')
+  });
+  
   const agentEmail = lead.agentId ? await getAgentEmail(String(lead.agentId)) : null;
 
   return {
@@ -33,7 +31,9 @@ const buildConfirmedLeadPayload = async (lead: Lead) => {
     destination: lead.destination || '',
     persons: Number(lead.persons || 1),
     leadWorth,
-    commission,
+    commission: commissionResult.commission,
+    commissionRule: commissionResult.ruleApplied,
+    ruleDescription: getRuleDescription(commissionResult.ruleApplied),
     sourceSystem: 'lead-manager',
     confirmedAt: new Date().toISOString()
   };

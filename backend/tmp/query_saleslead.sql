@@ -1,0 +1,1 @@
+SELECT * FROM "SalesLead" ORDER BY "createdAt" DESC LIMIT 5;

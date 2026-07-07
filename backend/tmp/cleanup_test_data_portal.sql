@@ -1,0 +1,12 @@
+SELECT count(*) FROM "SalesLead" WHERE "sourceLeadId"='55592607-1f37-4759-b540-917dc741cf6c';
+SELECT count(*) FROM "SalaryRecord" WHERE "employeeId"='ecdde89f-975f-4f37-9da7-22e803c2ca63';
+SELECT count(*) FROM "Employee" WHERE id='ecdde89f-975f-4f37-9da7-22e803c2ca63';
+SELECT count(*) FROM "User" WHERE id='u-test-emp-1';
+DELETE FROM "SalesLead" WHERE "sourceLeadId"='55592607-1f37-4759-b540-917dc741cf6c';
+DELETE FROM "SalaryRecord" WHERE "employeeId"='ecdde89f-975f-4f37-9da7-22e803c2ca63';
+DELETE FROM "Employee" WHERE id='ecdde89f-975f-4f37-9da7-22e803c2ca63';
+DELETE FROM "User" WHERE id='u-test-emp-1';
+SELECT count(*) FROM "SalesLead" WHERE "sourceLeadId"='55592607-1f37-4759-b540-917dc741cf6c';
+SELECT count(*) FROM "SalaryRecord" WHERE "employeeId"='ecdde89f-975f-4f37-9da7-22e803c2ca63';
+SELECT count(*) FROM "Employee" WHERE id='ecdde89f-975f-4f37-9da7-22e803c2ca63';
+SELECT count(*) FROM "User" WHERE id='u-test-emp-1';
