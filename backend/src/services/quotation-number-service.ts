@@ -13,7 +13,11 @@ const getLatestQuotationSequenceSql = `
   SELECT COALESCE(
     NULLIF(
       regexp_replace(
-        COALESCE(quotation_number, document_data->>'quoteNumber'),
+        regexp_replace(
+          COALESCE(quotation_number, document_data->>'quoteNumber'),
+          '^(?:\\d{6})+(\\d{4,})$',
+          '\\1'
+        ),
         '\\D',
         '',
         'g'

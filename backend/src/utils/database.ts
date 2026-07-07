@@ -95,7 +95,7 @@ export const repairPendingQuotationNumbers = async () => {
 
       const maxResult = await client.query(`
         SELECT COALESCE(
-          MAX((NULLIF(regexp_replace(COALESCE(quotation_number, document_data->>'quoteNumber'), '\\D', '', 'g'), '')::bigint)),
+          MAX((NULLIF(regexp_replace(regexp_replace(COALESCE(quotation_number, document_data->>'quoteNumber'), '^(?:\\d{6})+(\\d{4,})$', '\\1'), '\\D', '', 'g'), '')::bigint)),
           0
         ) AS max_sequence
         FROM quote_requests
@@ -119,8 +119,9 @@ export const repairPendingQuotationNumbers = async () => {
       let repairedCount = 0;
 
       for (const row of pendingResult.rows || []) {
-        const digits = String(row.current_number || '').replace(/\D/g, '');
-        const currentSequence = digits ? Number(digits) : null;
+        const currentString = String(row.current_number || '');
+        const match = currentString.match(/^(?:\d{6})+(\d{4,})$/);
+        const currentSequence = match ? Number(match[1]) : Number(currentString.replace(/\D/g, '')) || null;
         const isUnique = currentSequence !== null && Number.isFinite(currentSequence) && !seen.has(currentSequence);
 
         if (isUnique) {
@@ -394,6 +395,19 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] Adding quotation_number column to quote_requests table...');
       await query(`ALTER TABLE quote_requests ADD COLUMN quotation_number VARCHAR(255)`);
       console.log('[MIGRATION] ✅ quotation_number column added successfully');
+    } else {
+      const lengthResult = await query(`
+        SELECT character_maximum_length
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'quote_requests' AND column_name = 'quotation_number'
+        LIMIT 1
+      `);
+      const currentLength = lengthResult.rows?.[0]?.character_maximum_length;
+      if (typeof currentLength === 'number' && currentLength < 255) {
+        console.log('[MIGRATION] Updating quotation_number column length to VARCHAR(255)...');
+        await query(`ALTER TABLE quote_requests ALTER COLUMN quotation_number TYPE VARCHAR(255)`);
+        console.log('[MIGRATION] ✅ quotation_number column altered to VARCHAR(255)');
+      }
     }
 
     const quoteRequestStatusConstraint = await query(`
