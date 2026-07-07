@@ -48,12 +48,19 @@ const buildImageUrl = (folder: FolderKey, filename: string) => {
 
 export const ItinerariesPanel: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState<FolderKey>('private');
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeImage, setActiveImage] = useState<{ name: string; url: string } | null>(null);
 
   const currentFolder = useMemo(
     () => folderItems.find((item) => item.key === selectedFolder) || folderItems[0],
     [selectedFolder]
   );
+
+  const filteredFiles = useMemo(() => {
+    if (!searchQuery.trim()) return currentFolder.files;
+    const q = searchQuery.toLowerCase();
+    return currentFolder.files.filter((f) => f.toLowerCase().includes(q));
+  }, [currentFolder, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -80,14 +87,25 @@ export const ItinerariesPanel: React.FC = () => {
       </section>
 
       <section className="card">
-        <div className="flex items-center justify-between mb-4 gap-4">
-          <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+          <div className="flex-1 min-w-0">
             <h2 className="text-xl font-semibold">{currentFolder.label} Itineraries</h2>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {currentFolder.files.length === 0
                 ? 'No images available in this folder yet.'
-                : `Showing ${currentFolder.files.length} ${currentFolder.files.length === 1 ? 'image' : 'images'}.`}
+                : `Showing ${filteredFiles.length} of ${currentFolder.files.length} ${currentFolder.files.length === 1 ? 'image' : 'images'}.`}
             </p>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <input
+              type="search"
+              aria-label="Search itineraries"
+              placeholder="Search itineraries by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input input-sm w-full sm:w-64"
+            />
           </div>
         </div>
 
@@ -96,27 +114,35 @@ export const ItinerariesPanel: React.FC = () => {
             Group itineraries are empty. Private itineraries will appear here once added.
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {currentFolder.files.map((filename) => {
-              const url = buildImageUrl(currentFolder.key, filename);
-              return (
-                <button
-                  key={filename}
-                  type="button"
-                  onClick={() => setActiveImage({ name: filename, url })}
-                  className="group block overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <img
-                    src={url}
-                    alt={filename}
-                    className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                  />
-                  <div className="p-3 text-left">
-                    <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">{filename}</p>
-                  </div>
-                </button>
-              );
-            })}
+          <div>
+            {filteredFiles.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-500 dark:text-slate-400">
+                No itineraries match your search.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredFiles.map((filename) => {
+                  const url = buildImageUrl(currentFolder.key, filename);
+                  return (
+                    <button
+                      key={filename}
+                      type="button"
+                      onClick={() => setActiveImage({ name: filename, url })}
+                      className="group block overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <img
+                        src={url}
+                        alt={filename}
+                        className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      />
+                      <div className="p-3 text-left">
+                        <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">{filename}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </section>
