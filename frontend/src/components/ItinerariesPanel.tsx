@@ -97,15 +97,35 @@ export const ItinerariesPanel: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <input
-              type="search"
-              aria-label="Search itineraries"
-              placeholder="Search itineraries by name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input input-sm w-full sm:w-64"
-            />
+          <div className="w-full flex justify-center sm:justify-end">
+            <div className="relative w-full sm:w-80">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" />
+                </svg>
+              </span>
+
+              <input
+                type="search"
+                aria-label="Search itineraries"
+                placeholder="Search itineraries by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-10 py-2 rounded-full border border-slate-200 bg-white dark:bg-slate-800 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
