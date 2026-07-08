@@ -61,13 +61,7 @@ type DocumentData = {
 };
 
 const getDefaultRows = (): TableRow[] => [
-  {
-    id: crypto.randomUUID(),
-    particulars: '8 Days Hunza & Skardu (By Road)',
-    persons: '04',
-    price: '160,000',
-    amount: '640,000',
-  },
+  { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
   { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
   { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
   { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' },
@@ -83,19 +77,19 @@ const defaultData: DocumentData = {
   date: new Date().toISOString().split('T')[0],
   travelDate: new Date().toISOString().split('T')[0],
   destination: 'Gilgit Baltistan',
-  packageName: '8 Days Hunza & Skardu (By Road)',
-  packageDescription: 'A premium mountain experience with luxury camps and private transport.',
-  persons: '04',
-  price: '160,000',
-  subtotal: '640,000',
-  discount: '5',
-  totalDue: '608,000',
-  advanceAmount: '200,000',
-  balanceDue: '408,000',
-  packageIncludes: ['Transport', 'Accommodation', 'Breakfast & Dinner', 'Jeep Ride'],
-  accommodationType: 'Standard Accommodation',
-  transportationType: 'ISB-to-ISB',
-  departureLocation: 'Grand Cabin',
+  packageName: '',
+  packageDescription: '',
+  persons: '',
+  price: '',
+  subtotal: '0',
+  discount: '',
+  totalDue: '0',
+  advanceAmount: '',
+  balanceDue: '0',
+  packageIncludes: [],
+  accommodationType: '',
+  transportationType: '',
+  departureLocation: '',
 };
 
 const formatDate = (value: string) => {
