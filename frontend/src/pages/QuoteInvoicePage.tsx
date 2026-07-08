@@ -77,8 +77,8 @@ const defaultData: DocumentData = {
   date: new Date().toISOString().split('T')[0],
   travelDate: new Date().toISOString().split('T')[0],
   destination: 'Gilgit Baltistan',
-  packageName: '',
-  packageDescription: '',
+  packageName: 'Gilgit Baltistan',
+  packageDescription: 'A premium travel package with accommodation, meals, and guided tours.',
   persons: '',
   price: '',
   subtotal: '0',
@@ -86,7 +86,7 @@ const defaultData: DocumentData = {
   totalDue: '0',
   advanceAmount: '',
   balanceDue: '0',
-  packageIncludes: [],
+  packageIncludes: ['Transport', 'Accommodation', 'Breakfast & Dinner', 'Guided Tours'],
   accommodationType: '',
   transportationType: '',
   departureLocation: '',
@@ -121,17 +121,21 @@ const fetchNextQuotationNumber = async (dateString: string): Promise<string> => 
   }
 };
 
-const hydrateLeadFields = (current: DocumentData, leadData: any): DocumentData => ({
-  ...current,
-  customerName: !current.customerName || current.customerName === defaultData.customerName ? (leadData.clientName || current.customerName) : current.customerName,
-  phone: !current.phone || current.phone === defaultData.phone ? (leadData.phone || current.phone) : current.phone,
-  city: !current.city || current.city === defaultData.city ? (leadData.address || current.city) : current.city,
-  destination: !current.destination || current.destination === defaultData.destination ? (leadData.destination || current.destination) : current.destination,
-  persons: !current.persons || current.persons === defaultData.persons ? (leadData.persons ? String(leadData.persons) : current.persons) : current.persons,
-  accommodationType: !current.accommodationType || current.accommodationType === defaultData.accommodationType ? (leadData.hotelPreference || current.accommodationType) : current.accommodationType,
-  transportationType: !current.transportationType || current.transportationType === defaultData.transportationType ? (leadData.transportPreference || current.transportationType) : current.transportationType,
-  travelDate: !current.travelDate || current.travelDate === defaultData.travelDate ? (leadData.travelDates?.from || current.travelDate) : current.travelDate,
-});
+const hydrateLeadFields = (current: DocumentData, leadData: any): DocumentData => {
+  const destination = !current.destination || current.destination === defaultData.destination ? (leadData.destination || current.destination) : current.destination;
+  return {
+    ...current,
+    customerName: !current.customerName || current.customerName === defaultData.customerName ? (leadData.clientName || current.customerName) : current.customerName,
+    phone: !current.phone || current.phone === defaultData.phone ? (leadData.phone || current.phone) : current.phone,
+    city: !current.city || current.city === defaultData.city ? (leadData.address || current.city) : current.city,
+    destination: destination,
+    packageName: destination,
+    persons: !current.persons || current.persons === defaultData.persons ? (leadData.persons ? String(leadData.persons) : current.persons) : current.persons,
+    accommodationType: !current.accommodationType || current.accommodationType === defaultData.accommodationType ? (leadData.hotelPreference || current.accommodationType) : current.accommodationType,
+    transportationType: !current.transportationType || current.transportationType === defaultData.transportationType ? (leadData.transportPreference || current.transportationType) : current.transportationType,
+    travelDate: !current.travelDate || current.travelDate === defaultData.travelDate ? (leadData.travelDates?.from || current.travelDate) : current.travelDate,
+  };
+};
 
 export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   leadId: _leadId,
@@ -261,6 +265,13 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         });
     }
   }, [data.date, documentType, data.quoteNumber, initialQuotationNumber]);
+
+  // Sync packageName with destination
+  useEffect(() => {
+    if (data.destination && data.packageName !== data.destination) {
+      setData((current) => ({ ...current, packageName: current.destination }));
+    }
+  }, [data.destination]);
 
   useEffect(() => {
     if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
