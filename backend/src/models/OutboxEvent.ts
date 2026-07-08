@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { query } from '../utils/database';
 
 export type OutboxEventStatus = 'pending' | 'processing' | 'completed' | 'failed';
@@ -19,8 +20,8 @@ export const outboxEventModel = {
   async create(event: { eventType: string; payload: any; externalId?: string | null; nextAttemptAt?: string }, client?: any) {
     const executor = client && typeof client.query === 'function' ? client.query.bind(client) : query;
     const sql = `
-      INSERT INTO outbox_events (external_id, event_type, payload, status, retry_count, next_attempt_at, created_at, updated_at)
-      VALUES ($1, $2, $3, 'pending', 0, $4, NOW(), NOW())
+      INSERT INTO outbox_events (id, external_id, event_type, payload, status, retry_count, next_attempt_at, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, 'pending', 0, $5, NOW(), NOW())
       ON CONFLICT (external_id) DO UPDATE
         SET payload = EXCLUDED.payload,
             status = 'pending',
@@ -32,7 +33,7 @@ export const outboxEventModel = {
     `;
 
     const nextAttemptAt = event.nextAttemptAt || new Date().toISOString();
-    const params = [event.externalId || null, event.eventType, event.payload, nextAttemptAt];
+    const params = [randomUUID(), event.externalId || null, event.eventType, event.payload, nextAttemptAt];
     const result = await executor(sql, params);
     return result.rows[0];
   },
