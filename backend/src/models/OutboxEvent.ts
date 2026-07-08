@@ -19,22 +19,37 @@ export interface OutboxEvent {
 export const outboxEventModel = {
   async create(event: { eventType: string; payload: any; externalId?: string | null; nextAttemptAt?: string }, client?: any) {
     const executor = client && typeof client.query === 'function' ? client.query.bind(client) : query;
-    const sql = `
+    const nextAttemptAt = event.nextAttemptAt || new Date().toISOString();
+
+    if (event.externalId) {
+      const existingResult = await executor(
+        `SELECT id FROM outbox_events WHERE external_id = $1 LIMIT 1`,
+        [event.externalId]
+      );
+      if (existingResult.rows.length) {
+        const existingId = existingResult.rows[0].id;
+        const updateSql = `
+          UPDATE outbox_events
+          SET payload = $1,
+              status = 'pending',
+              last_error = NULL,
+              next_attempt_at = $2,
+              updated_at = NOW()
+          WHERE id = $3
+          RETURNING *
+        `;
+        const updateResult = await executor(updateSql, [event.payload, nextAttemptAt, existingId]);
+        return updateResult.rows[0];
+      }
+    }
+
+    const insertSql = `
       INSERT INTO outbox_events (id, external_id, event_type, payload, status, retry_count, next_attempt_at, created_at, updated_at)
       VALUES ($1, $2, $3, $4, 'pending', 0, $5, NOW(), NOW())
-      ON CONFLICT (external_id) DO UPDATE
-        SET payload = EXCLUDED.payload,
-            status = 'pending',
-            retry_count = outbox_events.retry_count,
-            last_error = NULL,
-            next_attempt_at = EXCLUDED.next_attempt_at,
-            updated_at = NOW()
       RETURNING *
     `;
-
-    const nextAttemptAt = event.nextAttemptAt || new Date().toISOString();
     const params = [randomUUID(), event.externalId || null, event.eventType, event.payload, nextAttemptAt];
-    const result = await executor(sql, params);
+    const result = await executor(insertSql, params);
     return result.rows[0];
   },
 

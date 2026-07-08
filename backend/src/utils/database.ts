@@ -381,9 +381,10 @@ const runPendingMigrations = async () => {
           CONSTRAINT valid_outbox_status CHECK (status IN ('pending', 'processing', 'completed', 'failed'))
         )
       `);
-      await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_outbox_events_external_id ON outbox_events(external_id) WHERE external_id IS NOT NULL`);
       console.log('[MIGRATION] ✅ outbox_events table created successfully');
     }
+
+    await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_outbox_events_external_id ON outbox_events(external_id) WHERE external_id IS NOT NULL`);
 
     const quotationNumberColumnCheck = await query(`
       SELECT COUNT(*) as count FROM information_schema.columns
