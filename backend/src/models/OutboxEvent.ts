@@ -16,6 +16,23 @@ export interface OutboxEvent {
   updatedAt: string;
 }
 
+const mapOutboxRow = (row: any) => {
+  if (!row) return row;
+
+  return {
+    id: row.id,
+    externalId: row.external_id ?? row.externalId ?? null,
+    eventType: row.event_type ?? row.eventType,
+    payload: row.payload,
+    status: row.status,
+    retryCount: row.retry_count ?? row.retryCount ?? 0,
+    lastError: row.last_error ?? row.lastError ?? null,
+    nextAttemptAt: row.next_attempt_at ?? row.nextAttemptAt,
+    createdAt: row.created_at ?? row.createdAt,
+    updatedAt: row.updated_at ?? row.updatedAt,
+  };
+};
+
 export const outboxEventModel = {
   async create(event: { eventType: string; payload: any; externalId?: string | null; nextAttemptAt?: string }, client?: any) {
     const executor = client && typeof client.query === 'function' ? client.query.bind(client) : query;
@@ -39,7 +56,7 @@ export const outboxEventModel = {
           RETURNING *
         `;
         const updateResult = await executor(updateSql, [event.payload, nextAttemptAt, existingId]);
-        return updateResult.rows[0];
+        return mapOutboxRow(updateResult.rows[0]);
       }
     }
 
@@ -50,7 +67,7 @@ export const outboxEventModel = {
     `;
     const params = [randomUUID(), event.externalId || null, event.eventType, event.payload, nextAttemptAt];
     const result = await executor(insertSql, params);
-    return result.rows[0];
+    return mapOutboxRow(result.rows[0]);
   },
 
   async reservePending(limit = 10) {
@@ -70,7 +87,7 @@ export const outboxEventModel = {
     `;
 
     const result = await query(sql, [limit]);
-    return result.rows;
+    return result.rows.map(mapOutboxRow);
   },
 
   async markCompleted(id: string) {
@@ -81,7 +98,7 @@ export const outboxEventModel = {
       RETURNING *
     `;
     const result = await query(sql, [id]);
-    return result.rows[0];
+    return mapOutboxRow(result.rows[0]);
   },
 
   async markFailed(id: string, errorMessage: string, nextAttemptAt: string, retryCount: number) {
@@ -97,6 +114,6 @@ export const outboxEventModel = {
       RETURNING *
     `;
     const result = await query(sql, [id, status, retryCount, errorMessage, nextAttemptAt]);
-    return result.rows[0];
+    return mapOutboxRow(result.rows[0]);
   }
 };
