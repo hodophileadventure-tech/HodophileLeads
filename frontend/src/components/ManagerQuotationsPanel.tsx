@@ -12,6 +12,7 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadRequests();
@@ -52,6 +53,25 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
 
   const handleRefresh = () => {
     loadRequests();
+  };
+
+  const handleDelete = async (requestId: string, clientName: string) => {
+    if (!window.confirm(`Are you sure you want to delete the quotation for ${clientName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeletingId(requestId);
+      await quoteRequestsAPI.delete(requestId);
+      // Remove from state
+      setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+      setSubmittedRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (err) {
+      console.error('Failed to delete quotation:', err);
+      alert('Failed to delete quotation. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const renderRequestCard = (request: QuoteRequest) => (
@@ -111,6 +131,14 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
           className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium"
         >
           {request.status === 'requested' ? 'Create Quotation' : 'View/Edit'}
+        </button>
+        <button
+          onClick={() => handleDelete(request.id, request.leadClientName || 'Unknown Client')}
+          disabled={deletingId === request.id}
+          className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition text-sm font-medium disabled:bg-red-400 disabled:cursor-not-allowed"
+          title="Delete quotation"
+        >
+          {deletingId === request.id ? 'Deleting...' : '🗑️ Delete'}
         </button>
       </div>
     </div>
