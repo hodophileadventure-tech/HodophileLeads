@@ -23,7 +23,15 @@ export const paymentsController = {
     try {
       const payload = validatePayload(paymentSchema, req.body);
       const lead = await leadsModel.findById(payload.leadId);
-      const actualPrice = Number((lead as any)?.actualPrice ?? (lead as any)?.actual_price ?? 0);
+      const actualPrice = Number(
+        (lead as any)?.actualPrice ??
+        (lead as any)?.actual_price ??
+        (lead as any)?.latestRevisedPrice ??
+        (lead as any)?.latest_revised_price ??
+        (lead as any)?.initialPrice ??
+        (lead as any)?.initial_price ??
+        0
+      );
       if (!actualPrice || actualPrice <= 0) {
         console.warn('[Payments] Rejected deposit creation because lead has no accepted actual price.', {
           leadId: payload.leadId,
@@ -60,7 +68,15 @@ export const paymentsController = {
       const existingPayment = await paymentsModel.findById(req.params.id);
       if (existingPayment) {
         const lead = await leadsModel.findById(existingPayment.leadId);
-        const actualPrice = Number((lead as any)?.actualPrice ?? (lead as any)?.actual_price ?? 0);
+        const actualPrice = Number(
+          (lead as any)?.actualPrice ??
+          (lead as any)?.actual_price ??
+          (lead as any)?.latestRevisedPrice ??
+          (lead as any)?.latest_revised_price ??
+          (lead as any)?.initialPrice ??
+          (lead as any)?.initial_price ??
+          0
+        );
         if (actualPrice <= 0) {
           console.warn('[Payments] Rejected deposit update because lead has no accepted actual price.', {
             paymentId: req.params.id,
