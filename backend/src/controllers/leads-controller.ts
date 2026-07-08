@@ -240,7 +240,13 @@ export const leadsController = {
       }
       console.log('[LeadsController] Calling leadsModel.update with:', { leadId: req.params.id, payload });
       let lead;
-      if (payload && payload.pipelineStage === 'confirmed') {
+      const shouldConfirmLead = payload && (
+        payload.pipelineStage === 'confirmed' ||
+        payload.status === 'booked' ||
+        payload.leadOutcome === 'confirmed' ||
+        payload.lead_outcome === 'confirmed'
+      );
+      if (shouldConfirmLead) {
         lead = await confirmLeadAndEnqueue(req.params.id, payload);
         console.log('[LeadsController] Enqueued confirmed lead notification for Employee Portal', { leadId: lead.id });
       } else {
