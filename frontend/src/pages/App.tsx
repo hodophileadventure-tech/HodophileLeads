@@ -27,7 +27,7 @@ import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries';
 
  
 
@@ -652,6 +652,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
+    ...(user?.role === 'admin' ? [{ label: 'Pending Invoices', href: 'pending-invoices', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
     ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
     ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
@@ -748,6 +749,14 @@ export const App: React.FC = () => {
                     }}
                   >
                     Saved
+                  </button>
+                  <button
+                    className="btn-secondary px-3 py-2"
+                    onClick={() => {
+                      setCurrentPage('pending-invoices');
+                    }}
+                  >
+                    Pending Invoices
                   </button>
                 </div>
                 <div />
@@ -1511,6 +1520,189 @@ export const App: React.FC = () => {
                   <PendingQuotesPanel onSelectRequest={(request) => {
                     setSelectedQuoteRequest(request);
                   }} />
+                )}
+              </div>
+            )}
+
+            {currentPage === 'pending-invoices' && ['admin', 'manager'].includes(user?.role || '') && (
+              <div className="space-y-6">
+                {selectedQuoteRequest ? (
+                  <div>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }}
+                      className="mb-4"
+                    >
+                      ← Back to Pending Invoices
+                    </Button>
+
+                    <div className="grid grid-cols-3 gap-6 min-h-[80vh] w-full" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
+                      {/* Left: Lead Details */}
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0" style={{ minWidth: 0 }}>
+                        <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
+                        <div className="space-y-3 text-sm">
+                          <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">CLIENT INFO</p>
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <p className="text-xs text-slate-500">Name</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadClientName || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Phone</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadPhone || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Email</p>
+                                <p className="font-medium text-blue-600 break-all text-xs">{selectedQuoteRequest.leadEmail || '—'}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {(selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy) && (
+                            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 p-2 rounded">
+                              <p className="text-xs text-blue-800 dark:text-blue-300 font-semibold">Requested By Agent</p>
+                              <p className="text-xs text-blue-900 dark:text-blue-200 mt-1">{selectedQuoteRequest.requestedByName || selectedQuoteRequest.requestedBy || '—'}</p>
+                            </div>
+                          )}
+
+                          <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">TRIP DETAILS</p>
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <p className="text-xs text-slate-500">Destination</p>
+                                <p className="font-medium">{Array.isArray(selectedQuoteRequest.leadDestinations) ? selectedQuoteRequest.leadDestinations.join(', ') : selectedQuoteRequest.leadDestination || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Travel Date</p>
+                                <p className="font-medium text-xs">{typeof selectedQuoteRequest.leadTravelDates === 'string' ? selectedQuoteRequest.leadTravelDates : selectedQuoteRequest.leadTravelDates?.from && selectedQuoteRequest.leadTravelDates?.to ? `${selectedQuoteRequest.leadTravelDates.from} - ${selectedQuoteRequest.leadTravelDates.to}` : '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Persons</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadPersons || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Budget</p>
+                                <p className="font-medium">Rs. {selectedQuoteRequest.leadBudget?.toLocaleString() || '—'}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {(selectedQuoteRequest.leadRemarks || selectedQuoteRequest.leadAgentRemarks || selectedQuoteRequest.leadSpecialRequests || selectedQuoteRequest.leadTourType || selectedQuoteRequest.leadSource || selectedQuoteRequest.leadStatus || selectedQuoteRequest.leadLeadOutcome || selectedQuoteRequest.leadIslamabadStay || selectedQuoteRequest.leadAdults != null || selectedQuoteRequest.leadKids != null || selectedQuoteRequest.leadSeniors != null) && (
+                            <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">PREFERENCES & DETAILS</p>
+                              <div className="mt-2 space-y-2">
+                                {selectedQuoteRequest.leadTourType && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Tour Type</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadTourType}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadSource && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Source</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadSource}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadStatus && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Lead Status</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadStatus}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadLeadOutcome && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Lead Outcome</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadLeadOutcome}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadIslamabadStay && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Islamabad Stay</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadIslamabadStay}</p>
+                                  </div>
+                                )}
+                                {(selectedQuoteRequest.leadAdults != null || selectedQuoteRequest.leadKids != null || selectedQuoteRequest.leadSeniors != null) && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Party Composition</p>
+                                    <p className="font-medium text-xs">
+                                      {selectedQuoteRequest.leadAdults ?? 0} adults
+                                      {selectedQuoteRequest.leadKids != null ? `, ${selectedQuoteRequest.leadKids} kids` : ''}
+                                      {selectedQuoteRequest.leadSeniors != null ? `, ${selectedQuoteRequest.leadSeniors} seniors` : ''}
+                                    </p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadSpecialRequests && (
+                                  <div>
+                                    <p className="text-xs text-slate-500">Special Requests</p>
+                                    <p className="font-medium text-xs">{selectedQuoteRequest.leadSpecialRequests}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadAgentRemarks && (
+                                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                                    <p className="text-xs text-yellow-700 dark:text-yellow-300 font-semibold">Agent Remarks</p>
+                                    <p className="text-xs text-yellow-900 dark:text-yellow-200 mt-1">{selectedQuoteRequest.leadAgentRemarks}</p>
+                                  </div>
+                                )}
+                                {selectedQuoteRequest.leadRemarks && (
+                                  <div className="border-t border-slate-300 dark:border-slate-600 pt-2">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Lead Notes</p>
+                                    <p className="text-xs text-slate-800 dark:text-slate-200 mt-1">{selectedQuoteRequest.leadRemarks}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </aside>
+
+                      {/* Middle: Quotation Form */}
+                      <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
+                        <QuoteInvoicePage
+                          key={selectedQuoteRequest.id}
+                          leadId={selectedQuoteRequest.leadId}
+                          embedded={true}
+                          leadData={memoizedManagerQuotationLeadData}
+                          requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
+                          requestStatus={selectedQuoteRequest.status as any}
+                          initialDocumentData={selectedQuoteRequest.documentData}
+                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                          onSaved={() => {
+                            setSelectedQuoteRequest(null);
+                            setCurrentPage('pending-invoices');
+                          }}
+                          onClose={() => setSelectedQuoteRequest(null)}
+                          viewOnly={false}
+                          generatePreviewOnMount
+                          onPreviewGenerated={handlePreviewGenerated}
+                          hidePreview={true}
+                        />
+                      </main>
+
+                      {/* Right: Preview */}
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0" style={{ minWidth: 0 }}>
+                        <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
+                        <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
+                          {previewDataUrl ? (
+                            <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                          ) : (
+                            <div className="text-sm text-slate-500">Generating preview…</div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          {previewDataUrl && (
+                            <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                          )}
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                ) : (
+                  <PendingQuotesPanel onSelectRequest={(request) => {
+                    setSelectedQuoteRequest(request);
+                  }} defaultRequestType="invoice" />
                 )}
               </div>
             )}

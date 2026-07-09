@@ -5,17 +5,26 @@ import { Button } from './common';
 
 interface PendingQuotesPanelProps {
   onSelectRequest: (request: QuoteRequest) => void;
+  defaultRequestType?: 'quotation' | 'invoice';
 }
 
-export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelectRequest }) => {
+export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelectRequest, defaultRequestType = 'quotation' }) => {
   const [pendingRequests, setPendingRequests] = useState<QuoteRequest[]>([]);
   const [savedRequests, setSavedRequests] = useState<QuoteRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedRequestType, setSelectedRequestType] = useState<'quotation' | 'invoice'>(defaultRequestType);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const getQuotationNumber = (request: QuoteRequest) => request.quotationNumber || request.documentData?.quoteNumber || '';
+
+  const filteredPendingRequests = pendingRequests.filter((request) => request.requestType === selectedRequestType);
+  const filteredSavedRequests = savedRequests.filter((request) => request.requestType === selectedRequestType);
+
+  useEffect(() => {
+    setSelectedRequestType(defaultRequestType);
+  }, [defaultRequestType]);
 
   useEffect(() => {
     loadRequests();
@@ -223,7 +232,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
     return (
       <div className="space-y-6">
         <div className="card">
-          <h2 className="text-2xl font-semibold mb-4">Pending Quote Requests</h2>
+          <h2 className="text-2xl font-semibold mb-4">Pending {selectedRequestType === 'invoice' ? 'Invoice' : 'Quote'} Requests</h2>
           <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg">
             <p>{error}</p>
             <Button variant="primary" onClick={loadRequests} className="mt-4">
@@ -237,28 +246,50 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
 
   return (
     <div className="space-y-6" id="pending-quotes-panel" style={{ display: 'block' }}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-semibold">Pending Requests</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Switch between pending quotations and pending invoices.</p>
+        </div>
+        <div className="flex rounded-xl bg-slate-100 dark:bg-slate-900 p-1">
+          <button
+            type="button"
+            className={`px-4 py-2 rounded-lg font-medium transition ${selectedRequestType === 'quotation' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+            onClick={() => setSelectedRequestType('quotation')}
+          >
+            Pending Quotes
+          </button>
+          <button
+            type="button"
+            className={`px-4 py-2 rounded-lg font-medium transition ${selectedRequestType === 'invoice' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+            onClick={() => setSelectedRequestType('invoice')}
+          >
+            Pending Invoices
+          </button>
+        </div>
+      </div>
       <section id="pending-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-semibold">Pending Quote Requests</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">These leads still need quotations or invoices to be generated.</p>
+            <h2 className="text-2xl font-semibold">Pending {selectedRequestType === 'invoice' ? 'Invoice' : 'Quote'} Requests</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">These leads still need {selectedRequestType === 'invoice' ? 'invoices' : 'quotations'} to be generated.</p>
           </div>
           <span className="px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-sm font-medium">
-            {pendingRequests.length}
+            {filteredPendingRequests.length}
           </span>
         </div>
 
-        {pendingRequests.filter(r => {
+        {filteredPendingRequests.filter(r => {
             if (!searchQuery) return true;
             const q = searchQuery.toLowerCase();
             return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || getQuotationNumber(r).toLowerCase().includes(q);
           }).length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            <p>No pending quote requests right now.</p>
+            <p>No pending {selectedRequestType === 'invoice' ? 'invoices' : 'quote requests'} right now.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {pendingRequests.filter(r => {
+            {filteredPendingRequests.filter(r => {
               if (!searchQuery) return true;
               const q = searchQuery.toLowerCase();
               return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || getQuotationNumber(r).toLowerCase().includes(q);
@@ -270,25 +301,25 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       <section id="saved-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-semibold">Created Quotations</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Leads for whom a quotation or invoice has already been created.</p>
+            <h2 className="text-2xl font-semibold">Created {selectedRequestType === 'invoice' ? 'Invoices' : 'Quotations'}</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Leads for whom a {selectedRequestType === 'invoice' ? 'invoice' : 'quotation'} has already been created.</p>
           </div>
           <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium">
-            {savedRequests.length}
+            {filteredSavedRequests.length}
           </span>
         </div>
 
-        {savedRequests.filter(r => {
+        {filteredSavedRequests.filter(r => {
             if (!searchQuery) return true;
             const q = searchQuery.toLowerCase();
             return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || getQuotationNumber(r).toLowerCase().includes(q);
           }).length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            <p>No created quotations yet.</p>
+            <p>No created {selectedRequestType === 'invoice' ? 'invoices' : 'quotations'} yet.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {savedRequests.filter(r => {
+            {filteredSavedRequests.filter(r => {
               if (!searchQuery) return true;
               const q = searchQuery.toLowerCase();
               return (r.leadClientName || '').toLowerCase().includes(q) || (r.leadPhone || '').toLowerCase().includes(q) || getQuotationNumber(r).toLowerCase().includes(q);
