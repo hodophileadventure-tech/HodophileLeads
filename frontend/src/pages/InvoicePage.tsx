@@ -28,7 +28,8 @@ export const InvoicePage: React.FC = () => {
   const [discount, setDiscount] = useState<string>('');
   const [advance, setAdvance] = useState<string>('');
 
-  const previewRef = useRef<HTMLDivElement | null>(null);
+  const previewCanvasRef = useRef<HTMLDivElement | null>(null);
+  const previewDocRef = useRef<HTMLDivElement | null>(null);
 
   // Debug helper: if `?forcePreview=1` or `?mockInvoice=1` is present, populate sample data
   React.useEffect(() => {
@@ -103,9 +104,10 @@ export const InvoicePage: React.FC = () => {
   }, [travelDate]);
 
   const downloadJPEG = async () => {
-    if (!previewRef.current) return;
+    const target = previewDocRef.current || previewCanvasRef.current;
+    if (!target) return;
     try {
-      const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
       const data = canvas.toDataURL('image/jpeg', 0.95);
       const link = document.createElement('a');
       link.href = data;
@@ -200,8 +202,8 @@ export const InvoicePage: React.FC = () => {
 
       <section className="invoice-preview-panel">
         <h2>Preview</h2>
-        <div ref={previewRef} className="invoice-preview-canvas">
-          <div className="invoice-preview-doc">
+        <div ref={previewCanvasRef} className="invoice-preview-canvas">
+          <div ref={previewDocRef} className="invoice-preview-doc">
             <section className="invoice-header">
               <div className="invoice-header-left">
                 <div className="invoice-branding">
