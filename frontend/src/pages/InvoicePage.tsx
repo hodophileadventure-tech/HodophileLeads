@@ -1,5 +1,7 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
+import logoImage from '../assets/hodophile-logo.png';
+import watermarkImage from '../assets/invoice-watermark.jpg';
 import './InvoicePage.css';
 
 type Row = { id: string; particulars: string; persons: string; price: string; amount: string };
@@ -176,16 +178,18 @@ export const InvoicePage: React.FC = () => {
             <section className="invoice-header">
               <div className="invoice-header-left">
                 <div className="invoice-branding">
-                  <div className="invoice-brand-logo">HA</div>
-                  <div className="invoice-brand-details">
-                    <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
-                    <div className="invoice-brand-address">
-                      Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.
-                    </div>
-                    <div className="invoice-brand-contact">Contact: 0337-7777460</div>
-                    <div className="invoice-brand-license">Govt. License: 5436</div>
-                  </div>
+                  <div className="invoice-brand-logo">
+                  <img src={logoImage} alt="Hodophile Adventures" />
                 </div>
+                <div className="invoice-brand-details">
+                  <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
+                  <div className="invoice-brand-address">
+                    Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.
+                  </div>
+                  <div className="invoice-brand-contact">Contact: 0337-7777460</div>
+                  <div className="invoice-brand-license">Govt. License: 5436</div>
+                </div>
+              </div>
               </div>
 
               <div className="invoice-header-right">
@@ -232,7 +236,9 @@ export const InvoicePage: React.FC = () => {
             </section>
 
             <section className="invoice-table-section">
-              <div className="invoice-table-watermark">HODOPHILE</div>
+              <div className="invoice-table-watermark">
+                <img src={watermarkImage} alt="Invoice watermark" />
+              </div>
               <table className="invoice-items-table">
                 <thead>
                   <tr>
