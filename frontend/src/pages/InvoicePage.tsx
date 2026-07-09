@@ -1,7 +1,11 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
-import logoImage from '../assets/hodophile-logo.png';
 import watermarkImage from '../assets/invoice-watermark.jpg';
+import invoiceLogoImage from '../assets/invoice-logo.png';
+import govtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
+import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
+import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
+import fbrLogo from '../assets/logos/images-removebg-preview.png';
 import './InvoicePage.css';
 
 type Row = { id: string; particulars: string; persons: string; price: string; amount: string };
@@ -179,10 +183,9 @@ export const InvoicePage: React.FC = () => {
               <div className="invoice-header-left">
                 <div className="invoice-branding">
                   <div className="invoice-brand-logo">
-                    <img src={logoImage} alt="Hodophile Adventures" />
+                    <img src={invoiceLogoImage} alt="Company logo" />
                   </div>
                   <div className="invoice-brand-details">
-                    <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
                     <div className="invoice-brand-address">Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.</div>
                     <div className="invoice-brand-contact">Contact: 0337-7777460</div>
                     <div className="invoice-brand-license">Govt. License: 5436</div>
@@ -291,9 +294,18 @@ export const InvoicePage: React.FC = () => {
             </section>
 
             <section className="invoice-footer-logos">
-              <div className="footer-logo">Govt</div>
-              <div className="footer-logo">Certification</div>
-              <div className="footer-logo">Partner</div>
+              <div className="footer-logo">
+                <img src={govtLogo} alt="Government of Pakistan" />
+              </div>
+              <div className="footer-logo">
+                <img src={nadraLogo} alt="NADRA" />
+              </div>
+              <div className="footer-logo">
+                <img src={patoLogo} alt="PATO" />
+              </div>
+              <div className="footer-logo">
+                <img src={fbrLogo} alt="FBR" />
+              </div>
             </section>
           </div>
         </div>
