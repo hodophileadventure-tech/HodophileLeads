@@ -1507,7 +1507,7 @@ export const App: React.FC = () => {
                               src={previewDataUrl}
                               alt="Quotation preview"
                               className="max-h-full object-contain rounded"
-                              style={{ width: '100%', height: 'auto', maxWidth: '100%' }}
+                              style={{ width: 'auto', maxWidth: '240px', maxHeight: '100%' }}
                             />
                           ) : (
                             <div className="text-sm text-slate-500">Generating preview…</div>
@@ -1879,7 +1879,7 @@ export const App: React.FC = () => {
                               src={previewDataUrl}
                               alt="Quotation preview"
                               className="max-h-full object-contain rounded"
-                              style={{ width: '100%', height: 'auto', maxWidth: '100%' }}
+                              style={{ width: 'auto', maxWidth: '240px', maxHeight: '100%' }}
                             />
                           ) : (
                             <div className="text-sm text-slate-500">Generating preview…</div>
