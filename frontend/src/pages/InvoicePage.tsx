@@ -52,46 +52,6 @@ export const InvoicePage: React.FC = () => {
     }
   }, []);
 
-  // Scale the preview to fit its container when embedded in narrow layouts.
-  React.useEffect(() => {
-    const container = previewRef.current;
-    if (!container) return;
-
-    const docEl = container.querySelector('.invoice-preview-doc') as HTMLElement | null;
-    if (!docEl) return;
-
-    const updateScale = () => {
-      try {
-        const cw = container.clientWidth || container.getBoundingClientRect().width;
-        // measure 210mm in pixels dynamically (accounts for browser DPI)
-        const ruler = document.createElement('div');
-        ruler.style.width = '210mm';
-        ruler.style.position = 'absolute';
-        ruler.style.visibility = 'hidden';
-        document.body.appendChild(ruler);
-        const mmWidth = ruler.getBoundingClientRect().width || ruler.offsetWidth || 794;
-        document.body.removeChild(ruler);
-
-        if (!mmWidth || !cw) return;
-        const raw = Math.min(1, cw / mmWidth);
-        const minScale = 0.88;
-        const scale = Math.max(minScale, raw);
-        docEl.style.setProperty('--scale', String(scale));
-      } catch (e) {
-        // ignore
-      }
-    };
-
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    const ro = new ResizeObserver(updateScale);
-    ro.observe(container);
-
-    return () => {
-      window.removeEventListener('resize', updateScale);
-      try { ro.disconnect(); } catch (e) {}
-    };
-  }, []);
 
   const parseNumber = (v: string) => {
     const n = Number(String(v).replace(/[^0-9.]/g, ''));

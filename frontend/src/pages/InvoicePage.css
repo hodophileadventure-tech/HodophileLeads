@@ -142,10 +142,10 @@ body {
   overflow-y: auto;
   padding: 12px 8px;
   min-height: 640px;
+  background: #f9fafb;
 }
 
 .invoice-preview-doc {
-  /* Fixed A4 width in preview; scale down only when the container is narrower */
   width: 210mm;
   max-width: 210mm;
   aspect-ratio: 210 / 297;
@@ -159,7 +159,7 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transform: scale(var(--scale, 1));
+  transform: none;
   transform-origin: top center;
 }
 
