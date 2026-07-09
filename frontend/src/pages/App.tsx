@@ -21,6 +21,7 @@ import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
 import { HotelsPanel } from '../components/HotelsPanel';
 import AdminQuotationApprovalsPage from './AdminQuotationApprovalsPage';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
+import InvoicePage from './InvoicePage';
 import { ItinerariesPanel } from '../components/ItinerariesPanel';
 import { Badge, Button, Modal, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
@@ -1536,7 +1537,7 @@ export const App: React.FC = () => {
                       ← Back to Pending Invoices
                     </Button>
 
-                    <div className="grid grid-cols-3 gap-6 min-h-[80vh] w-full" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
+                    <div className="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-6 w-full">
                       {/* Left: Lead Details */}
                       <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0" style={{ minWidth: 0 }}>
                         <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
@@ -1656,47 +1657,10 @@ export const App: React.FC = () => {
                         </div>
                       </aside>
 
-                      {/* Middle: Quotation Form */}
+                      {/* Middle: Invoice Form */}
                       <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
-                        <QuoteInvoicePage
-                          key={selectedQuoteRequest.id}
-                          leadId={selectedQuoteRequest.leadId}
-                          embedded={true}
-                          leadData={memoizedManagerQuotationLeadData}
-                          requestId={selectedQuoteRequest.id}
-                          requestType={selectedQuoteRequest.requestType}
-                          requestStatus={selectedQuoteRequest.status as any}
-                          initialDocumentData={selectedQuoteRequest.documentData}
-                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                          onSaved={() => {
-                            setSelectedQuoteRequest(null);
-                            setCurrentPage('pending-invoices');
-                          }}
-                          onClose={() => setSelectedQuoteRequest(null)}
-                          viewOnly={false}
-                          generatePreviewOnMount
-                          onPreviewGenerated={handlePreviewGenerated}
-                          hidePreview={true}
-                        />
+                        <InvoicePage />
                       </main>
-
-                      {/* Right: Preview */}
-                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0" style={{ minWidth: 0 }}>
-                        <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                        <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
-                          {previewDataUrl ? (
-                            <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
-                          ) : (
-                            <div className="text-sm text-slate-500">Generating preview…</div>
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-2 flex-shrink-0">
-                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
-                          {previewDataUrl && (
-                            <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
-                          )}
-                        </div>
-                      </aside>
                     </div>
                   </div>
                 ) : (
