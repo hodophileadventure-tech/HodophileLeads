@@ -482,12 +482,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         el.style.maxWidth = 'none';
       } catch (e) {}
       await new Promise((r) => setTimeout(r, 80));
-      const rect = targetEl.getBoundingClientRect();
-      const canvas = await html2canvas(document.body, {
-        x: rect.left + window.scrollX,
-        y: rect.top + window.scrollY,
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
+      const canvas = await html2canvas(targetEl, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
