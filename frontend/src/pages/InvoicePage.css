@@ -144,8 +144,11 @@ body {
 }
 
 .invoice-preview-doc {
-  width: 210mm;
-  height: 297mm;
+  /* Responsive preview: cap at A4 size but allow scaling to fit container */
+  max-width: 210mm;
+  width: 100%;
+  aspect-ratio: 210 / 297;
+  height: auto;
   padding: 10mm 14mm 8mm;
   margin: 0 auto;
   background: #ffffff;
@@ -155,13 +158,6 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-/* Prevent the preview document from shrinking inside narrow containers.
-   Ensure it always renders at A4 width and allows horizontal scrolling when needed. */
-.invoice-preview-doc {
-  flex: 0 0 210mm;
-  min-width: 210mm;
 }
 
 .invoice-header {
