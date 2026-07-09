@@ -179,17 +179,15 @@ export const InvoicePage: React.FC = () => {
               <div className="invoice-header-left">
                 <div className="invoice-branding">
                   <div className="invoice-brand-logo">
-                  <img src={logoImage} alt="Hodophile Adventures" />
-                </div>
-                <div className="invoice-brand-details">
-                  <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
-                  <div className="invoice-brand-address">
-                    Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.
+                    <img src={logoImage} alt="Hodophile Adventures" />
                   </div>
-                  <div className="invoice-brand-contact">Contact: 0337-7777460</div>
-                  <div className="invoice-brand-license">Govt. License: 5436</div>
+                  <div className="invoice-brand-details">
+                    <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
+                    <div className="invoice-brand-address">Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.</div>
+                    <div className="invoice-brand-contact">Contact: 0337-7777460</div>
+                    <div className="invoice-brand-license">Govt. License: 5436</div>
+                  </div>
                 </div>
-              </div>
               </div>
 
               <div className="invoice-header-right">
@@ -216,7 +214,7 @@ export const InvoicePage: React.FC = () => {
                     <strong>{formattedTravelDate}</strong>
                   </div>
                   <div className="invoice-meta-row">
-                    <span>No. of Person(s)</span>
+                    <span>Persons</span>
                     <span>:</span>
                     <strong>{persons || '—'}</strong>
                   </div>
@@ -229,9 +227,9 @@ export const InvoicePage: React.FC = () => {
             <section className="invoice-client-section">
               <div className="invoice-client-title">Bill To</div>
               <div className="invoice-client-details">
-                <div>{customerName || 'Client Name'}</div>
-                <div>{number || 'Phone Number'}</div>
-                <div>{city || 'City'}</div>
+                <div className="invoice-client-line">{customerName || 'Client Name'}</div>
+                <div className="invoice-client-line">{number || 'Phone Number'}</div>
+                <div className="invoice-client-line">{city || 'City'}</div>
               </div>
             </section>
 
@@ -243,9 +241,9 @@ export const InvoicePage: React.FC = () => {
                 <thead>
                   <tr>
                     <th className="desc-col">Description</th>
-                    <th className="qty-col">Number of Person(s)</th>
+                    <th className="qty-col">Persons</th>
                     <th className="price-col">Package Price</th>
-                    <th className="amount-col">Amount in PKR</th>
+                    <th className="amount-col">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -270,15 +268,15 @@ export const InvoicePage: React.FC = () => {
                 <span>Discount</span>
                 <span>{discountValue.toLocaleString('en-US')}</span>
               </div>
-              <div className="summary-row">
+              <div className="summary-row summary-total">
                 <span>Total Due</span>
                 <span>{totalDue.toLocaleString('en-US')}</span>
               </div>
               <div className="summary-row">
-                <span>Advance Amount</span>
+                <span>Advance</span>
                 <span>{parseNumber(advance).toLocaleString('en-US')}</span>
               </div>
-              <div className="summary-row summary-total">
+              <div className="summary-row summary-balance">
                 <span>Balance Due</span>
                 <strong>{balance.toLocaleString('en-US')}</strong>
               </div>
