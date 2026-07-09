@@ -61,6 +61,18 @@ export const InvoicePage: React.FC = () => {
     return filled.slice(0, 6);
   }, [rows]);
 
+  const formattedDate = useMemo(() => {
+    const parsed = new Date(date);
+    return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString('en-GB');
+  }, [date]);
+
+  const formattedTravelDate = useMemo(() => {
+    const parsed = new Date(travelDate);
+    return Number.isNaN(parsed.getTime())
+      ? travelDate
+      : parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  }, [travelDate]);
+
   const downloadJPEG = async () => {
     if (!previewRef.current) return;
     try {
@@ -161,104 +173,122 @@ export const InvoicePage: React.FC = () => {
         <h2>Preview</h2>
         <div ref={previewRef} className="invoice-preview-canvas">
           <div className="invoice-preview-doc">
-            <header className="invoice-preview-header">
-              <div className="invoice-company-info">
-                <div className="invoice-company-name">HODOPHILE ADVENTURES</div>
-                <div className="invoice-company-address">
-                  Suite# M2, Mazzanine floor, Plot#111-113-C,<br />
-                  Block-2, P.E.C.H.S, Tariq Road,<br />
-                  Karachi, Pakistan.<br />
-                  Contact# 0337-7777460<br />
-                  Govt. License# 5436
+            <section className="invoice-header">
+              <div className="invoice-header-left">
+                <div className="invoice-branding">
+                  <div className="invoice-brand-logo">HA</div>
+                  <div className="invoice-brand-details">
+                    <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
+                    <div className="invoice-brand-address">
+                      Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.
+                    </div>
+                    <div className="invoice-brand-contact">Contact: 0337-7777460</div>
+                    <div className="invoice-brand-license">Govt. License: 5436</div>
+                  </div>
                 </div>
               </div>
-              <div className="invoice-label-block">
+
+              <div className="invoice-header-right">
                 <div className="invoice-label">INVOICE</div>
+                <div className="invoice-meta-list">
+                  <div className="invoice-meta-row">
+                    <span>Invoice #</span>
+                    <span>:</span>
+                    <strong>{invoiceNumber}</strong>
+                  </div>
+                  <div className="invoice-meta-row">
+                    <span>Date</span>
+                    <span>:</span>
+                    <strong>{formattedDate}</strong>
+                  </div>
+                  <div className="invoice-meta-row">
+                    <span>Destination</span>
+                    <span>:</span>
+                    <strong>{destination || '—'}</strong>
+                  </div>
+                  <div className="invoice-meta-row">
+                    <span>Travel Date</span>
+                    <span>:</span>
+                    <strong>{formattedTravelDate}</strong>
+                  </div>
+                  <div className="invoice-meta-row">
+                    <span>No. of Person(s)</span>
+                    <span>:</span>
+                    <strong>{persons || '—'}</strong>
+                  </div>
+                </div>
               </div>
-            </header>
+            </section>
 
-            <div className="invoice-meta-grid">
-              <div>
-                <div className="meta-label">Invoice Number</div>
-                <div className="meta-value">{invoiceNumber}</div>
-              </div>
-              <div>
-                <div className="meta-label">Date</div>
-                <div className="meta-value">{new Date(date).toLocaleDateString()}</div>
-              </div>
-              <div>
-                <div className="meta-label">Destination</div>
-                <div className="meta-value">{destination}</div>
-              </div>
-              <div>
-                <div className="meta-label">Travel Date</div>
-                <div className="meta-value">{new Date(travelDate).toLocaleDateString()}</div>
-              </div>
-              <div className="meta-full">
-                <div className="meta-label">No. of Person(s)</div>
-                <div className="meta-value">{persons}</div>
-              </div>
-            </div>
+            <div className="invoice-divider" />
 
-            <div className="invoice-bill-to-card">
-              <div className="bill-to-title">Bill To</div>
-              <div className="bill-to-content">
-                <div className="bill-to-name">{customerName || 'Client Name'}</div>
-                <div>{city}</div>
-                <div>{number}</div>
+            <section className="invoice-client-section">
+              <div className="invoice-client-title">Bill To</div>
+              <div className="invoice-client-details">
+                <div>{customerName || 'Client Name'}</div>
+                <div>{number || 'Phone Number'}</div>
+                <div>{city || 'City'}</div>
               </div>
-            </div>
+            </section>
 
-            <div className="invoice-items-wrapper">
+            <section className="invoice-table-section">
+              <div className="invoice-table-watermark">HODOPHILE</div>
               <table className="invoice-items-table">
                 <thead>
                   <tr>
-                    <th>Description</th>
-                    <th>Package Price</th>
-                    <th>No. of Person(s)</th>
-                    <th>Amount In PKR</th>
+                    <th className="desc-col">Description</th>
+                    <th className="qty-col">Number of Person(s)</th>
+                    <th className="price-col">Package Price</th>
+                    <th className="amount-col">Amount in PKR</th>
                   </tr>
                 </thead>
                 <tbody>
                   {previewRows.map((r) => (
                     <tr key={r.id}>
-                      <td>{r.particulars || destination}</td>
+                      <td>{r.particulars || destination || '—'}</td>
+                      <td className="text-center">{r.persons || persons || ''}</td>
                       <td className="text-right">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
-                      <td className="text-center">{r.persons || persons}</td>
                       <td className="text-right">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </section>
 
-              <div className="invoice-summary-card">
-                <div className="summary-row">
-                  <span>Subtotal</span>
-                  <strong>{subtotal.toLocaleString('en-US')}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Discount</span>
-                  <strong>{discountValue.toLocaleString('en-US')}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Total Due</span>
-                  <strong>{totalDue.toLocaleString('en-US')}</strong>
-                </div>
-                <div className="summary-row">
-                  <span>Advance Amount</span>
-                  <strong>{parseNumber(advance).toLocaleString('en-US')}</strong>
-                </div>
-                <div className="summary-row total-row">
-                  <span>Balance Due</span>
-                  <strong>{balance.toLocaleString('en-US')}</strong>
-                </div>
+            <section className="invoice-summary-section">
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>{subtotal.toLocaleString('en-US')}</span>
               </div>
-            </div>
+              <div className="summary-row">
+                <span>Discount</span>
+                <span>{discountValue.toLocaleString('en-US')}</span>
+              </div>
+              <div className="summary-row">
+                <span>Total Due</span>
+                <span>{totalDue.toLocaleString('en-US')}</span>
+              </div>
+              <div className="summary-row">
+                <span>Advance Amount</span>
+                <span>{parseNumber(advance).toLocaleString('en-US')}</span>
+              </div>
+              <div className="summary-row summary-total">
+                <span>Balance Due</span>
+                <strong>{balance.toLocaleString('en-US')}</strong>
+              </div>
+            </section>
 
-            <div className="invoice-preview-footer">
-              <div>Remaining amount handed over to Driver cum Guide at the time of departure is mandatory.</div>
-              <div>Detailed itinerary already shared with you via provided WhatsApp number.</div>
-            </div>
+            <section className="invoice-footer-notes">
+              <p>Remaining amount handed over to Driver cum Guide at departure is mandatory.</p>
+              <p>Detailed itinerary has already been shared on WhatsApp.</p>
+              <p>Terms & Conditions apply. Driver details will be shared one day before departure.</p>
+            </section>
+
+            <section className="invoice-footer-logos">
+              <div className="footer-logo">Govt</div>
+              <div className="footer-logo">Certification</div>
+              <div className="footer-logo">Partner</div>
+            </section>
           </div>
         </div>
       </section>
