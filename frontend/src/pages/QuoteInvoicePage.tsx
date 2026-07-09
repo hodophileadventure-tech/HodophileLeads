@@ -486,9 +486,10 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       // Temporarily enforce A4 sizing to avoid wrapper/layout differences on deployed builds
       const previousStyle = targetEl.getAttribute('style') || '';
       try {
-        targetEl.style.width = '210mm';
-        targetEl.style.height = '297mm';
-        targetEl.style.maxWidth = 'none';
+        const el = targetEl as HTMLElement;
+        el.style.width = '210mm';
+        el.style.height = '297mm';
+        el.style.maxWidth = 'none';
       } catch (e) {}
       await new Promise((r) => setTimeout(r, 80));
       const rect = targetEl.getBoundingClientRect();

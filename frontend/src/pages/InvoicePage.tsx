@@ -110,9 +110,10 @@ export const InvoicePage: React.FC = () => {
       // Temporarily enforce A4 sizing to avoid wrapper/layout differences on deployed builds
       const previousStyle = target.getAttribute('style') || '';
       try {
-        target.style.width = '210mm';
-        target.style.height = '297mm';
-        target.style.maxWidth = 'none';
+        const el = target as HTMLElement;
+        el.style.width = '210mm';
+        el.style.height = '297mm';
+        el.style.maxWidth = 'none';
       } catch (e) {
         // ignore
       }
