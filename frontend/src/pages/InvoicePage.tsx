@@ -51,7 +51,10 @@ export const InvoicePage: React.FC = () => {
         document.body.removeChild(ruler);
 
         if (!mmWidth || !cw) return;
-        const scale = Math.min(1, cw / mmWidth);
+        const raw = Math.min(1, cw / mmWidth);
+        // Prevent the preview from becoming too small in narrow panes — use a minimum scale.
+        const minScale = 0.78;
+        const scale = Math.max(minScale, raw);
         docEl.style.setProperty('--scale', String(scale));
       } catch (e) {
         // ignore
