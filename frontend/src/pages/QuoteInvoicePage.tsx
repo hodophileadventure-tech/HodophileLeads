@@ -481,7 +481,16 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     if (!previewRef.current) return;
     try {
       setMessage('Generating JPEG...');
-      const targetEl = (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current;
+      const targetEl = (previewRef.current.closest('.pdf-page')) || previewRef.current;
+      if (!targetEl) return;
+      // Temporarily enforce A4 sizing to avoid wrapper/layout differences on deployed builds
+      const previousStyle = targetEl.getAttribute('style') || '';
+      try {
+        targetEl.style.width = '210mm';
+        targetEl.style.height = '297mm';
+        targetEl.style.maxWidth = 'none';
+      } catch (e) {}
+      await new Promise((r) => setTimeout(r, 80));
       const rect = targetEl.getBoundingClientRect();
       const canvas = await html2canvas(document.body, {
         x: rect.left + window.scrollX,
@@ -493,6 +502,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         useCORS: true,
         allowTaint: false,
       });
+      try { targetEl.setAttribute('style', previousStyle); } catch (e) {}
       const jpegData = canvas.toDataURL('image/jpeg', 0.95);
       const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.jpeg`;
       const link = document.createElement('a');

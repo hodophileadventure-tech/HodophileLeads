@@ -107,6 +107,17 @@ export const InvoicePage: React.FC = () => {
     const target = previewDocRef.current;
     if (!target) return;
     try {
+      // Temporarily enforce A4 sizing to avoid wrapper/layout differences on deployed builds
+      const previousStyle = target.getAttribute('style') || '';
+      try {
+        target.style.width = '210mm';
+        target.style.height = '297mm';
+        target.style.maxWidth = 'none';
+      } catch (e) {
+        // ignore
+      }
+      // allow layout to settle
+      await new Promise((r) => setTimeout(r, 80));
       const rect = target.getBoundingClientRect();
       const canvas = await html2canvas(document.body, {
         x: rect.left + window.scrollX,
@@ -117,6 +128,12 @@ export const InvoicePage: React.FC = () => {
         backgroundColor: '#ffffff',
         useCORS: true,
       });
+      // restore inline style
+      try {
+        target.setAttribute('style', previousStyle);
+      } catch (e) {
+        // ignore
+      }
       const data = canvas.toDataURL('image/jpeg', 0.95);
       const link = document.createElement('a');
       link.href = data;
