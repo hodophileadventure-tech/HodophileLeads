@@ -1659,7 +1659,9 @@ export const App: React.FC = () => {
 
                       {/* Middle: Invoice Form */}
                       <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
-                        <InvoicePage />
+                        <div style={{ minWidth: '0', overflowX: 'auto', padding: '0' }}>
+                          <InvoicePage />
+                        </div>
                       </main>
                     </div>
                   </div>
