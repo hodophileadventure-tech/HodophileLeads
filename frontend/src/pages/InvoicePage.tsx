@@ -30,6 +30,28 @@ export const InvoicePage: React.FC = () => {
 
   const previewRef = useRef<HTMLDivElement | null>(null);
 
+  // Debug helper: if `?forcePreview=1` or `?mockInvoice=1` is present, populate sample data
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('forcePreview') === '1' || params.get('mockInvoice') === '1') {
+        setCustomerName('Test Client');
+        setNumber('0337-7777460');
+        setCity('Karachi');
+        setDestination('Sample Destination');
+        setRows([
+          { id: crypto.randomUUID(), particulars: 'Tour Package A', persons: '2', price: '50000', amount: '100000' },
+          { id: crypto.randomUUID(), particulars: 'Hotel (2 nights)', persons: '2', price: '20000', amount: '40000' },
+          { id: crypto.randomUUID(), particulars: 'Transport', persons: '2', price: '5000', amount: '10000' },
+        ]);
+        setDiscount('5');
+        setAdvance('20000');
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
   // Scale the preview to fit its container when embedded in narrow layouts.
   React.useEffect(() => {
     const container = previewRef.current;
