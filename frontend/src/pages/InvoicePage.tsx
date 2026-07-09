@@ -30,12 +30,14 @@ export const InvoicePage: React.FC = () => {
 
   const previewCanvasRef = useRef<HTMLDivElement | null>(null);
   const previewDocRef = useRef<HTMLDivElement | null>(null);
+  const [embeddedMode, setEmbeddedMode] = useState<boolean>(false);
 
   // Debug helper: if `?forcePreview=1` or `?mockInvoice=1` is present, populate sample data
   React.useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       if (params.get('forcePreview') === '1' || params.get('mockInvoice') === '1') {
+        setEmbeddedMode(params.get('forcePreview') === '1');
         setCustomerName('Test Client');
         setNumber('0337-7777460');
         setCity('Karachi');
@@ -148,7 +150,7 @@ export const InvoicePage: React.FC = () => {
   };
 
   return (
-    <div className="invoice-page-root">
+    <div className={`invoice-page-root ${embeddedMode ? 'embedded' : ''}`}>
       <section className="invoice-form-panel">
         <h2>Invoice Form</h2>
         <div className="invoice-form-grid">

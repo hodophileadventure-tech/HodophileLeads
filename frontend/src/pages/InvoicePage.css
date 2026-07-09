@@ -556,3 +556,56 @@ body {
     transform: none; /* don't scale when printing */
   }
 }
+
+/* Embedded / manager panel rules: make invoice preview behave like quotation preview when embedded */
+.invoice-page-root.embedded {
+  min-height: unset !important;
+  background: transparent !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: unset !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.invoice-page-root.embedded .invoice-preview-panel {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.invoice-page-root.embedded .invoice-preview-canvas {
+  padding: 0 !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  overflow: auto !important;
+}
+
+/* When embedded, present the invoice as a large centered canvas (matching quotation dimensions) */
+.invoice-page-root.embedded .invoice-preview-doc {
+  width: 2550px !important;
+  min-height: 3300px !important;
+  max-width: none !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: #ffffff !important;
+  transform: none !important;
+  overflow: visible !important;
+}
+
+.invoice-page-root.embedded .invoice-header,
+.invoice-page-root.embedded .invoice-table-section,
+.invoice-page-root.embedded .invoice-footer-logos {
+  width: 90% !important;
+  margin: 0 auto !important;
+}
