@@ -8,7 +8,7 @@ export const InvoicePage: React.FC = () => {
   const [travelDate, setTravelDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [persons, setPersons] = useState<string>('');
   const [destination, setDestination] = useState<string>('');
-  const [invoiceNumber, setInvoiceNumber] = useState<string>('2606011237');
+  const [invoiceNumber] = useState<string>('2606011237');
 
   const [customerName, setCustomerName] = useState<string>('');
   const [number, setNumber] = useState<string>('');
