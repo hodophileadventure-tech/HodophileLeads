@@ -1503,7 +1503,12 @@ export const App: React.FC = () => {
                         <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
                         <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
                           {previewDataUrl ? (
-                            <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                            <img
+                              src={previewDataUrl}
+                              alt="Quotation preview"
+                              className="max-h-full object-contain rounded"
+                              style={{ minWidth: '2550px', maxWidth: 'none' }}
+                            />
                           ) : (
                             <div className="text-sm text-slate-500">Generating preview…</div>
                           )}
@@ -1870,7 +1875,12 @@ export const App: React.FC = () => {
                         <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
                         <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
                           {previewDataUrl ? (
-                            <img src={previewDataUrl} alt="Quotation preview" className="w-full max-h-full object-contain rounded" />
+                            <img
+                              src={previewDataUrl}
+                              alt="Quotation preview"
+                              className="max-h-full object-contain rounded"
+                              style={{ minWidth: '2550px', maxWidth: 'none' }}
+                            />
                           ) : (
                             <div className="text-sm text-slate-500">Generating preview…</div>
                           )}

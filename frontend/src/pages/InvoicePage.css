@@ -147,7 +147,8 @@ body {
 
 .invoice-preview-doc {
   width: 210mm;
-  max-width: 210mm;
+  min-width: 210mm;
+  max-width: none;
   aspect-ratio: 210 / 297;
   height: auto;
   padding: 10mm 14mm 8mm;
