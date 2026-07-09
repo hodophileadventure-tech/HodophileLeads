@@ -534,8 +534,7 @@ body {
     align-items: flex-start;
     overflow: auto;
   }
-    background: #ffffff;
-  }
+  
 
   .invoice-preview-canvas {
     padding: 0;
