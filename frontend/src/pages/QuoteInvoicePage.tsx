@@ -471,7 +471,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     if (!previewRef.current) return;
     try {
       setMessage('Generating JPEG...');
-      const targetEl = (previewRef.current.closest('.pdf-page')) || previewRef.current;
+      const targetEl = (previewRef.current.closest<HTMLElement>('.pdf-page')) || previewRef.current;
       if (!targetEl) return;
       // Temporarily enforce A4 sizing to avoid wrapper/layout differences on deployed builds
       const previousStyle = targetEl.getAttribute('style') || '';
