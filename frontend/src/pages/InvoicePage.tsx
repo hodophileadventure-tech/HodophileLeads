@@ -41,9 +41,17 @@ export const InvoicePage: React.FC = () => {
     const updateScale = () => {
       try {
         const cw = container.clientWidth || container.getBoundingClientRect().width;
-        const dw = docEl.scrollWidth || docEl.getBoundingClientRect().width;
-        if (!dw || !cw) return;
-        const scale = Math.min(1, cw / dw);
+        // measure 210mm in pixels dynamically (accounts for browser DPI)
+        const ruler = document.createElement('div');
+        ruler.style.width = '210mm';
+        ruler.style.position = 'absolute';
+        ruler.style.visibility = 'hidden';
+        document.body.appendChild(ruler);
+        const mmWidth = ruler.getBoundingClientRect().width || ruler.offsetWidth || 794;
+        document.body.removeChild(ruler);
+
+        if (!mmWidth || !cw) return;
+        const scale = Math.min(1, cw / mmWidth);
         docEl.style.setProperty('--scale', String(scale));
       } catch (e) {
         // ignore
