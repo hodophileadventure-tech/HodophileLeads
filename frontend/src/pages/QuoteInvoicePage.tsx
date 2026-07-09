@@ -279,8 +279,13 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         try {
           const targetEl = previewRef.current ? (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current : null;
           if (!targetEl) return;
-          const canvas = await html2canvas(targetEl, {
-            scale: 1,
+          const rect = targetEl.getBoundingClientRect();
+          const canvas = await html2canvas(document.body, {
+            x: rect.left + window.scrollX,
+            y: rect.top + window.scrollY,
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+            scale: 2,
             backgroundColor: '#ffffff',
             useCORS: true,
             allowTaint: false,
@@ -315,8 +320,13 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           try {
             const targetEl = (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current;
             if (!targetEl) return;
-            const canvas = await html2canvas(targetEl, {
-              scale: 1,
+            const rect = targetEl.getBoundingClientRect();
+            const canvas = await html2canvas(document.body, {
+              x: rect.left + window.scrollX,
+              y: rect.top + window.scrollY,
+              width: Math.round(rect.width),
+              height: Math.round(rect.height),
+              scale: 2,
               backgroundColor: '#ffffff',
               useCORS: true,
               allowTaint: false,
@@ -471,8 +481,14 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     if (!previewRef.current) return;
     try {
       setMessage('Generating JPEG...');
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1,
+      const targetEl = (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current;
+      const rect = targetEl.getBoundingClientRect();
+      const canvas = await html2canvas(document.body, {
+        x: rect.left + window.scrollX,
+        y: rect.top + window.scrollY,
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: false,

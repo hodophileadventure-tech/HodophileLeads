@@ -107,7 +107,16 @@ export const InvoicePage: React.FC = () => {
     const target = previewDocRef.current;
     if (!target) return;
     try {
-      const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const rect = target.getBoundingClientRect();
+      const canvas = await html2canvas(document.body, {
+        x: rect.left + window.scrollX,
+        y: rect.top + window.scrollY,
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
       const data = canvas.toDataURL('image/jpeg', 0.95);
       const link = document.createElement('a');
       link.href = data;
