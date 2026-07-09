@@ -1,5 +1,6 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
+import './InvoicePage.css';
 
 type Row = { id: string; particulars: string; persons: string; price: string; amount: string };
 
@@ -77,185 +78,190 @@ export const InvoicePage: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-      <div style={{ flex: '0 0 380px' }}>
+    <div className="invoice-page-root">
+      <section className="invoice-form-panel">
         <h2>Invoice Form</h2>
-        <div style={{ display: 'grid', gap: 8 }}>
-          <label>Date:</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <div className="invoice-form-grid">
+          <div>
+            <label>Date</label>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </div>
+          <div>
+            <label>Travel Date</label>
+            <input type="date" value={travelDate} onChange={(e) => setTravelDate(e.target.value)} />
+          </div>
+          <div>
+            <label>No. of Persons</label>
+            <input value={persons} onChange={(e) => { setPersons(e.target.value); syncRowAmounts(); }} />
+          </div>
+          <div>
+            <label>Destination</label>
+            <input value={destination} onChange={(e) => setDestination(e.target.value)} />
+          </div>
 
-          <label>Travel Date:</label>
-          <input type="date" value={travelDate} onChange={(e) => setTravelDate(e.target.value)} />
+          <div>
+            <label>Customer Name</label>
+            <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+          </div>
+          <div>
+            <label>Number</label>
+            <input value={number} onChange={(e) => setNumber(e.target.value)} />
+          </div>
+          <div>
+            <label>City</label>
+            <input value={city} onChange={(e) => setCity(e.target.value)} />
+          </div>
 
-          <label>No. of Persons:</label>
-          <input value={persons} onChange={(e) => { setPersons(e.target.value); syncRowAmounts(); }} />
-
-          <label>Destination:</label>
-          <input value={destination} onChange={(e) => setDestination(e.target.value)} />
-
-          <hr />
-
-          <label>Customer Name:</label>
-          <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-
-          <label>Number:</label>
-          <input value={number} onChange={(e) => setNumber(e.target.value)} />
-
-          <label>City:</label>
-          <input value={city} onChange={(e) => setCity(e.target.value)} />
-
-          <hr />
-
-          <label>Particulars / Items</label>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {rows.map((r) => (
-              <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 80px', gap: 8 }}>
-                <input placeholder="Particulars" value={r.particulars} onChange={(e) => updateRow(r.id, 'particulars', e.target.value)} />
-                <input placeholder="Pax" value={r.persons || persons} onChange={(e) => { updateRow(r.id, 'persons', e.target.value); }} />
-                <input placeholder="Price" value={r.price} onChange={(e) => { updateRow(r.id, 'price', e.target.value); syncRowAmounts(); }} />
-                <input placeholder="Amount" value={r.amount} onChange={(e) => updateRow(r.id, 'amount', e.target.value)} />
+          <div className="invoice-form-spanning">
+            <label>Invoice Items</label>
+            <div className="invoice-items-grid">
+              {rows.map((r) => (
+                <div key={r.id} className="invoice-item-row">
+                  <input placeholder="Particulars" value={r.particulars} onChange={(e) => updateRow(r.id, 'particulars', e.target.value)} />
+                  <input placeholder="Pax" value={r.persons || persons} onChange={(e) => { updateRow(r.id, 'persons', e.target.value); }} />
+                  <input placeholder="Price" value={r.price} onChange={(e) => { updateRow(r.id, 'price', e.target.value); syncRowAmounts(); }} />
+                  <input placeholder="Amount" value={r.amount} onChange={(e) => updateRow(r.id, 'amount', e.target.value)} />
+                </div>
+              ))}
+              <div className="invoice-item-actions">
+                <button type="button" onClick={addRow}>Add row</button>
+                <button type="button" onClick={() => { if (rows.length > 1) removeRow(rows[rows.length - 1].id); }}>Remove last</button>
               </div>
-            ))}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" onClick={addRow}>Add row</button>
-              <button type="button" onClick={() => { if (rows.length > 1) removeRow(rows[rows.length - 1].id); }}>Remove last</button>
             </div>
           </div>
 
-          <hr />
+          <div>
+            <label>Subtotal</label>
+            <input value={subtotal.toLocaleString('en-US')} readOnly />
+          </div>
+          <div>
+            <label>Discount %</label>
+            <input value={discount} onChange={(e) => setDiscount(e.target.value)} />
+          </div>
+          <div>
+            <label>Total Due</label>
+            <input value={totalDue.toLocaleString('en-US')} readOnly />
+          </div>
+          <div>
+            <label>Advance Amount</label>
+            <input value={advance} onChange={(e) => setAdvance(e.target.value)} />
+          </div>
+          <div>
+            <label>Balance Due</label>
+            <input value={balance.toLocaleString('en-US')} readOnly />
+          </div>
 
-          <label>Subtotal:</label>
-          <input value={subtotal.toLocaleString('en-US')} readOnly />
-
-          <label>Discount %:</label>
-          <input value={discount} onChange={(e) => setDiscount(e.target.value)} />
-
-          <label>Total Due:</label>
-          <input value={totalDue.toLocaleString('en-US')} readOnly />
-
-          <label>Advance Amount:</label>
-          <input value={advance} onChange={(e) => setAdvance(e.target.value)} />
-
-          <label>Balance Due:</label>
-          <input value={balance.toLocaleString('en-US')} readOnly />
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <div className="invoice-form-actions">
             <button type="button" onClick={downloadJPEG}>Download JPEG</button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div style={{ flex: 1 }}>
+      <section className="invoice-preview-panel">
         <h2>Preview</h2>
-        <div ref={previewRef} style={{ width: 800, padding: 24, background: '#fff', color: '#111', boxShadow: '0 0 6px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ maxWidth: '55%' }}>
-              <div style={{ fontSize: 22, fontWeight: 700 }}>HODOPHILE ADVENTURES</div>
-              <div style={{ marginTop: 8, lineHeight: 1.3 }}>
-                Suite# M2, Mazzanine floor, Plot#111-113-C,<br />
-                Block-2, P.E.C.H.S, Tariq Road,<br />
-                Karachi, Pakistan.<br />
-                Contact# 0337-7777460<br />
-                Govt. License# 5436
+        <div ref={previewRef} className="invoice-preview-canvas">
+          <div className="invoice-preview-doc">
+            <header className="invoice-preview-header">
+              <div className="invoice-company-info">
+                <div className="invoice-company-name">HODOPHILE ADVENTURES</div>
+                <div className="invoice-company-address">
+                  Suite# M2, Mazzanine floor, Plot#111-113-C,<br />
+                  Block-2, P.E.C.H.S, Tariq Road,<br />
+                  Karachi, Pakistan.<br />
+                  Contact# 0337-7777460<br />
+                  Govt. License# 5436
+                </div>
+              </div>
+              <div className="invoice-label-block">
+                <div className="invoice-label">INVOICE</div>
+              </div>
+            </header>
+
+            <div className="invoice-meta-grid">
+              <div>
+                <div className="meta-label">Invoice Number</div>
+                <div className="meta-value">{invoiceNumber}</div>
+              </div>
+              <div>
+                <div className="meta-label">Date</div>
+                <div className="meta-value">{new Date(date).toLocaleDateString()}</div>
+              </div>
+              <div>
+                <div className="meta-label">Destination</div>
+                <div className="meta-value">{destination}</div>
+              </div>
+              <div>
+                <div className="meta-label">Travel Date</div>
+                <div className="meta-value">{new Date(travelDate).toLocaleDateString()}</div>
+              </div>
+              <div className="meta-full">
+                <div className="meta-label">No. of Person(s)</div>
+                <div className="meta-value">{persons}</div>
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 48, color: '#f7c600', fontWeight: 800 }}>INVOICE</div>
-            </div>
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
-            <div>
-              <div style={{ marginBottom: 6 }}><strong>Invoice Number</strong></div>
-              <div>{invoiceNumber}</div>
+            <div className="invoice-bill-to-card">
+              <div className="bill-to-title">Bill To</div>
+              <div className="bill-to-content">
+                <div className="bill-to-name">{customerName || 'Client Name'}</div>
+                <div>{city}</div>
+                <div>{number}</div>
+              </div>
             </div>
-            <div>
-              <div style={{ marginBottom: 6 }}><strong>Date</strong></div>
-              <div>{new Date(date).toLocaleDateString()}</div>
-            </div>
-            <div>
-              <div style={{ marginBottom: 6 }}><strong>Destination</strong></div>
-              <div>{destination}</div>
-            </div>
-            <div>
-              <div style={{ marginBottom: 6 }}><strong>Travel Date</strong></div>
-              <div>{new Date(travelDate).toLocaleDateString()}</div>
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <div style={{ marginBottom: 6 }}><strong>No. of Person(s)</strong></div>
-              <div>{persons}</div>
-            </div>
-          </div>
 
-          <hr style={{ margin: '20px 0', borderColor: '#000' }} />
-
-          <div>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Bill To</div>
-            <div style={{ border: '1px solid #ccc', padding: 12, background: '#f5f5f5' }}>
-              <div style={{ fontWeight: 700 }}>{customerName || 'Client Name'}</div>
-              <div>{city}</div>
-              <div>{number}</div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
-            <div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="invoice-items-wrapper">
+              <table className="invoice-items-table">
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', padding: 8, background: '#000', color: '#FCC000' }}>Particulars</th>
-                    <th style={{ padding: 8, width: 160, textAlign: 'center', background: '#FCC000', color: '#000' }}>Number of Person(s)</th>
-                    <th style={{ padding: 8, width: 120, textAlign: 'right', background: '#000', color: '#FCC000' }}>Price</th>
-                    <th style={{ padding: 8, width: 160, textAlign: 'right', background: '#FCC000', color: '#000' }}>Amount In PKR</th>
+                    <th>Description</th>
+                    <th>Package Price</th>
+                    <th>No. of Person(s)</th>
+                    <th>Amount In PKR</th>
                   </tr>
                 </thead>
                 <tbody>
                   {previewRows.map((r) => (
-                    <tr key={r.id} style={{ borderBottom: '1px solid #e6e6e6' }}>
-                      <td style={{ padding: 12 }}>{r.particulars || destination}</td>
-                      <td style={{ padding: 12, textAlign: 'center' }}>{r.persons || persons}</td>
-                      <td style={{ padding: 12, textAlign: 'right' }}>{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
-                      <td style={{ padding: 12, textAlign: 'right' }}>{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
+                    <tr key={r.id}>
+                      <td>{r.particulars || destination}</td>
+                      <td className="text-right">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
+                      <td className="text-center">{r.persons || persons}</td>
+                      <td className="text-right">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              <div className="invoice-summary-card">
+                <div className="summary-row">
+                  <span>Subtotal</span>
+                  <strong>{subtotal.toLocaleString('en-US')}</strong>
+                </div>
+                <div className="summary-row">
+                  <span>Discount</span>
+                  <strong>{discountValue.toLocaleString('en-US')}</strong>
+                </div>
+                <div className="summary-row">
+                  <span>Total Due</span>
+                  <strong>{totalDue.toLocaleString('en-US')}</strong>
+                </div>
+                <div className="summary-row">
+                  <span>Advance Amount</span>
+                  <strong>{parseNumber(advance).toLocaleString('en-US')}</strong>
+                </div>
+                <div className="summary-row total-row">
+                  <span>Balance Due</span>
+                  <strong>{balance.toLocaleString('en-US')}</strong>
+                </div>
+              </div>
             </div>
 
-            <div style={{ width: 280 }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <tbody>
-                  <tr>
-                    <td style={{ padding: 6 }}>Subtotal</td>
-                    <td style={{ padding: 6, textAlign: 'right' }}>{subtotal.toLocaleString('en-US')}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: 6 }}>Discount</td>
-                    <td style={{ padding: 6, textAlign: 'right' }}>{discountValue.toLocaleString('en-US')}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: 6 }}>Total Due</td>
-                    <td style={{ padding: 6, textAlign: 'right' }}>{totalDue.toLocaleString('en-US')}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: 6 }}>Advance Amount</td>
-                    <td style={{ padding: 6, textAlign: 'right' }}>{parseNumber(advance).toLocaleString('en-US')}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: 6, fontWeight: 700 }}>Balance Due</td>
-                    <td style={{ padding: 6, textAlign: 'right', fontWeight: 700 }}>{balance.toLocaleString('en-US')}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="invoice-preview-footer">
+              <div>Remaining amount handed over to Driver cum Guide at the time of departure is mandatory.</div>
+              <div>Detailed itinerary already shared with you via provided WhatsApp number.</div>
             </div>
-          </div>
-
-          <div style={{ marginTop: 18, fontSize: 12, color: '#666' }}>
-            <div>- Remaining amount handed over to Driver cum Guide at the time of departure is mandatory.</div>
-            <div>- Detailed itinerary already shared with you via provided WhatsApp number.</div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
