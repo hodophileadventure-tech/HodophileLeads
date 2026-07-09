@@ -158,6 +158,9 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Allow JS to scale the preview to fit its container using --scale (1 = 100%) */
+  transform: scale(var(--scale, 1));
+  transform-origin: top center;
 }
 
 .invoice-header {
@@ -543,5 +546,6 @@ body {
     padding: 12mm 14mm 10mm;
     border: none;
     box-shadow: none;
+    transform: none; /* don't scale when printing */
   }
 }

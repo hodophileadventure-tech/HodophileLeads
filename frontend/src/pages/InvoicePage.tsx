@@ -30,6 +30,37 @@ export const InvoicePage: React.FC = () => {
 
   const previewRef = useRef<HTMLDivElement | null>(null);
 
+  // Scale the preview to fit its container when embedded in narrow layouts.
+  React.useEffect(() => {
+    const container = previewRef.current;
+    if (!container) return;
+
+    const docEl = container.querySelector('.invoice-preview-doc') as HTMLElement | null;
+    if (!docEl) return;
+
+    const updateScale = () => {
+      try {
+        const cw = container.clientWidth || container.getBoundingClientRect().width;
+        const dw = docEl.scrollWidth || docEl.getBoundingClientRect().width;
+        if (!dw || !cw) return;
+        const scale = Math.min(1, cw / dw);
+        docEl.style.setProperty('--scale', String(scale));
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(container);
+
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      try { ro.disconnect(); } catch (e) {}
+    };
+  }, []);
+
   const parseNumber = (v: string) => {
     const n = Number(String(v).replace(/[^0-9.]/g, ''));
     return Number.isNaN(n) ? 0 : n;
