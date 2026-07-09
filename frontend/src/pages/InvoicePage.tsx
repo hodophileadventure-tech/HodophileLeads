@@ -227,9 +227,9 @@ export const InvoicePage: React.FC = () => {
             <section className="invoice-client-section">
               <div className="invoice-client-title">Bill To</div>
               <div className="invoice-client-details">
-                <div className="invoice-client-line">{customerName || 'Client Name'}</div>
-                <div className="invoice-client-line">{number || 'Phone Number'}</div>
-                <div className="invoice-client-line">{city || 'City'}</div>
+                <div className="invoice-client-name">{customerName || 'Client Name'}</div>
+                <div className="invoice-client-phone">{number || 'Phone Number'}</div>
+                <div className="invoice-client-city">{city || 'City'}</div>
               </div>
             </section>
 
