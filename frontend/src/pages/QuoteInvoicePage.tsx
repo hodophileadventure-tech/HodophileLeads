@@ -277,7 +277,9 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
       const generatePreview = async () => {
         try {
-          const canvas = await html2canvas(previewRef.current!, {
+          const targetEl = previewRef.current ? (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current : null;
+          if (!targetEl) return;
+          const canvas = await html2canvas(targetEl, {
             scale: 1,
             backgroundColor: '#ffffff',
             useCORS: true,
@@ -310,19 +312,21 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   useEffect(() => {
     const handleGenerateQuotePreview = async () => {
       if (previewRef.current && onPreviewGenerated) {
-        try {
-          const canvas = await html2canvas(previewRef.current, {
-            scale: 1,
-            backgroundColor: '#ffffff',
-            useCORS: true,
-            allowTaint: false,
-          });
-          const jpegData = canvas.toDataURL('image/jpeg', 0.95);
-          onPreviewGenerated(jpegData);
-        } catch (error) {
-          console.error('Failed to generate preview:', error);
+          try {
+            const targetEl = (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current;
+            if (!targetEl) return;
+            const canvas = await html2canvas(targetEl, {
+              scale: 1,
+              backgroundColor: '#ffffff',
+              useCORS: true,
+              allowTaint: false,
+            });
+            const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+            onPreviewGenerated(jpegData);
+          } catch (error) {
+            console.error('Failed to generate preview:', error);
+          }
         }
-      }
     };
     window.addEventListener('generate-quote-preview', handleGenerateQuotePreview);
     return () => window.removeEventListener('generate-quote-preview', handleGenerateQuotePreview);
