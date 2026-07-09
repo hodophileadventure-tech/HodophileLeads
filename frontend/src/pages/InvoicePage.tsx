@@ -241,9 +241,9 @@ export const InvoicePage: React.FC = () => {
                 <thead>
                   <tr>
                     <th className="desc-col">Description</th>
-                    <th className="qty-col">Persons</th>
-                    <th className="price-col">Package Price</th>
-                    <th className="amount-col">Amount</th>
+                    <th className="qty-col text-center">Persons</th>
+                    <th className="price-col text-center">Package Price</th>
+                    <th className="amount-col text-center">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -251,8 +251,8 @@ export const InvoicePage: React.FC = () => {
                     <tr key={r.id}>
                       <td>{r.particulars || destination || '—'}</td>
                       <td className="text-center">{r.persons || persons || ''}</td>
-                      <td className="text-right">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
-                      <td className="text-right">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
+                      <td className="text-center">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
+                      <td className="text-center">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -268,7 +268,8 @@ export const InvoicePage: React.FC = () => {
                 <span>Discount</span>
                 <span>{discountValue.toLocaleString('en-US')}</span>
               </div>
-              <div className="summary-row summary-total">
+              <div className="summary-divider" />
+              <div className="summary-row summary-total-row">
                 <span>Total Due</span>
                 <span>{totalDue.toLocaleString('en-US')}</span>
               </div>
@@ -276,7 +277,8 @@ export const InvoicePage: React.FC = () => {
                 <span>Advance</span>
                 <span>{parseNumber(advance).toLocaleString('en-US')}</span>
               </div>
-              <div className="summary-row summary-balance">
+              <div className="summary-divider" />
+              <div className="summary-row summary-balance-row">
                 <span>Balance Due</span>
                 <strong>{balance.toLocaleString('en-US')}</strong>
               </div>
