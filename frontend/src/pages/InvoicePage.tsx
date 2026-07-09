@@ -104,7 +104,7 @@ export const InvoicePage: React.FC = () => {
   }, [travelDate]);
 
   const downloadJPEG = async () => {
-    const target = previewDocRef.current || previewCanvasRef.current;
+    const target = previewDocRef.current;
     if (!target) return;
     try {
       const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true });

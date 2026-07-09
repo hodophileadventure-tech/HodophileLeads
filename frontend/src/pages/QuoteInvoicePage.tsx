@@ -169,7 +169,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         position: 'absolute' as const,
         left: '-10000px',
         top: 0,
-        width: '900px',
+        width: '2550px',
         pointerEvents: 'none' as const
       }
     : undefined;

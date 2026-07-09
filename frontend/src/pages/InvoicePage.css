@@ -146,16 +146,16 @@ body {
 }
 
 .invoice-preview-doc {
-  width: 210mm;
-  min-width: 210mm;
-  max-width: none;
+  width: min(210mm, 100%);
+  max-width: 210mm;
+  min-height: 297mm;
   aspect-ratio: 210 / 297;
   height: auto;
-  padding: 10mm 14mm 8mm;
+  padding: 14mm 14mm 12mm;
   margin: 0 auto;
   background: #ffffff;
   border: 1px solid #ececec;
-  box-shadow: none;
+  box-shadow: 0 16px 52px rgba(15, 23, 36, 0.12);
   color: #111827;
   overflow: hidden;
   display: flex;
@@ -166,10 +166,10 @@ body {
 
 .invoice-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 188px;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 5px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
 .invoice-header-left {
@@ -178,13 +178,13 @@ body {
 
 .invoice-branding {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  gap: 14px;
+  align-items: flex-start;
 }
 
 .invoice-brand-logo {
-  width: 78px;
-  height: 78px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,8 +192,8 @@ body {
 }
 
 .invoice-brand-logo img {
-  width: 78px;
-  height: 78px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
 }
 
@@ -204,7 +204,7 @@ body {
 }
 
 .invoice-brand-name {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.05;
   color: #111827;
@@ -225,16 +225,16 @@ body {
   display: grid;
   gap: 6px;
   justify-items: end;
-  align-self: center;
+  align-self: flex-start;
   text-align: right;
   min-width: 0;
 }
 
 .invoice-label {
-  font-size: 34px;
+  font-size: 30px;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: 1px;
+  line-height: 1.05;
+  letter-spacing: 0.08em;
   color: #fcc000;
   margin: 0;
   white-space: nowrap;
@@ -242,18 +242,18 @@ body {
 
 .invoice-meta-list {
   display: grid;
-  gap: 3px;
+  gap: 6px;
   width: 100%;
-  max-width: 214px;
+  max-width: 260px;
 }
 
 .invoice-meta-row {
   display: grid;
-  grid-template-columns: 70px 10px minmax(0, 1fr);
-  gap: 6px;
+  grid-template-columns: 72px 6px minmax(0, 1fr);
+  gap: 8px;
   align-items: center;
   font-size: 11px;
-  line-height: 1.08;
+  line-height: 1.2;
   color: #111827;
 }
 
@@ -284,8 +284,8 @@ body {
 
 .invoice-client-section {
   display: grid;
-  gap: 4px;
-  margin-bottom: 6px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .invoice-client-title {
@@ -293,7 +293,7 @@ body {
   font-weight: 700;
   color: #111827;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .invoice-client-details {
@@ -410,9 +410,9 @@ body {
 .invoice-summary-section {
   width: 300px;
   margin-left: auto;
-  margin-top: 5px;
+  margin-top: 10px;
   display: grid;
-  gap: 2px;
+  gap: 6px;
 }
 
 .summary-row {
@@ -420,9 +420,15 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 1px 0;
+  padding: 3px 0;
   font-size: 12px;
   color: #374151;
+}
+
+.summary-row span,
+.summary-row strong {
+  min-width: 80px;
+  text-align: right;
 }
 
 .summary-row strong {
