@@ -223,20 +223,20 @@ body {
   text-transform: uppercase;
 }
 
-.invoice-header-right {
-  display: grid;
-  gap: 12px; /* increase vertical gap between INVOICE label and metadata to avoid overlap */
-  justify-items: end;
-  align-self: flex-start;
-  text-align: right;
-  min-width: 240px;
-  padding-left: 6px;
+.invoice-brand-name,
+.invoice-brand-address,
+.invoice-brand-contact,
+.invoice-brand-license {
+  font-size: 12px; /* slightly increased base size for brand details */
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.35;
 }
-
-.invoice-label {
-  font-size: 48px; /* further increased INVOICE heading size */
-  font-weight: 800;
-  line-height: 1.02;
+.invoice-brand-name {
+  font-size: 18px; /* enlarged Hodophile brand name */
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
   letter-spacing: 0.02em;
   color: #fcc000;
   margin: 0;
