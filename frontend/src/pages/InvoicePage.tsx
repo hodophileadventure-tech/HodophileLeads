@@ -289,9 +289,10 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               <div className="invoice-header-left">
                 <div className="invoice-branding">
                   <div className="invoice-brand-logo">
-                    <img src={invoiceLogoImage} alt="Company logo" />
+                    <img src={invoiceLogoImage} alt="Hodophile logo" />
                   </div>
                   <div className="invoice-brand-details">
+                    <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
                     <div className="invoice-brand-address">Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.</div>
                     <div className="invoice-brand-contact">Contact: 0337-7777460</div>
                     <div className="invoice-brand-license">Govt. License: 5436</div>

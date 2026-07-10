@@ -166,7 +166,7 @@ body {
 
 .invoice-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
   gap: 18px;
   align-items: flex-start;
   margin-bottom: 12px;
@@ -178,13 +178,14 @@ body {
 
 .invoice-branding {
   display: flex;
-  gap: 14px;
+  flex-direction: column;
+  gap: 10px;
   align-items: flex-start;
 }
 
 .invoice-brand-logo {
-  width: 64px;
-  height: 64px;
+  width: 96px;
+  height: 96px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,33 +193,32 @@ body {
 }
 
 .invoice-brand-logo img {
-  width: 64px;
-  height: 64px;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
   object-fit: contain;
 }
 
 .invoice-brand-details {
   display: grid;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
-.invoice-brand-name {
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.05;
-  color: #111827;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-
+.invoice-brand-name,
 .invoice-brand-address,
 .invoice-brand-contact,
 .invoice-brand-license {
-  font-size: 10.5px;
-  font-weight: 400;
-  color: #374151;
-  line-height: 1.25;
+  font-size: 11px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.35;
+}
+
+.invoice-brand-name {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .invoice-header-right {
@@ -228,6 +228,7 @@ body {
   align-self: flex-start;
   text-align: right;
   min-width: 0;
+  padding-left: 8px;
 }
 
 .invoice-label {
