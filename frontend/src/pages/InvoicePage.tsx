@@ -5,7 +5,8 @@ import watermarkImage from '../assets/invoice-watermark.jpg';
 // Place your image at `frontend/src/assets/hodophile-logo.jpeg` (or .png) and it'll be used.
 // Prefer loading the logo from the public `assets/` folder so builds don't fail
 // if a project-local image wasn't added. Place the image at `frontend/public/assets/hodophile-logo.jpeg`.
-const hodophileLogoPath = '/assets/hodophile-logo.jpeg';
+// Prefer the PNG (removebg) if present; fallback to JPEG is handled by the browser cache/fetch.
+const hodophileLogoPath = '/assets/hodophile-logo.png';
 import invoiceLogoImage from '../assets/invoice-logo.png';
 import govtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
