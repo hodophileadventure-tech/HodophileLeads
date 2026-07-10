@@ -354,7 +354,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.08; /* increased opacity so watermark is visible but subtle */
+  opacity: 0.18; /* increased opacity so watermark is visible but still subtle */
 }
 
 .invoice-items-table {
