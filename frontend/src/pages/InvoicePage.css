@@ -179,7 +179,7 @@ body {
 .invoice-branding {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px; /* reduced gap between logo and brand text */
   align-items: flex-start;
 }
 
@@ -234,10 +234,10 @@ body {
 }
 
 .invoice-label {
-  font-size: 28px;
+  font-size: 36px; /* increased INVOICE heading size */
   font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: 0.08em;
+  line-height: 1.02;
+  letter-spacing: 0.06em;
   color: #fcc000;
   margin: 0;
   white-space: nowrap;
