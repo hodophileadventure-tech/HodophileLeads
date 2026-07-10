@@ -3,7 +3,9 @@ import html2canvas from 'html2canvas';
 import watermarkImage from '../assets/invoice-watermark.jpg';
 // Prefer a bundled asset inside the project so the logo works in all environments.
 // Place your image at `frontend/src/assets/hodophile-logo.jpeg` (or .png) and it'll be used.
-import hodophileLogo from '../assets/hodophile-logo.jpeg';
+// Prefer loading the logo from the public `assets/` folder so builds don't fail
+// if a project-local image wasn't added. Place the image at `frontend/public/assets/hodophile-logo.jpeg`.
+const hodophileLogoPath = '/assets/hodophile-logo.jpeg';
 import invoiceLogoImage from '../assets/invoice-logo.png';
 import govtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
@@ -292,7 +294,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               <div className="invoice-header-left">
                 <div className="invoice-branding">
                   <div className="invoice-brand-logo">
-                    <img src={hodophileLogo} alt="Hodophile logo" onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }} />
+                    <img src={hodophileLogoPath} alt="Hodophile logo" onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }} />
                   </div>
                   <div className="invoice-brand-details">
                     <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
