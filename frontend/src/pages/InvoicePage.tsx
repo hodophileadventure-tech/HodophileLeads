@@ -15,7 +15,16 @@ export const InvoicePage: React.FC = () => {
   const [travelDate, setTravelDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [persons, setPersons] = useState<string>('');
   const [destination, setDestination] = useState<string>('');
-  const [invoiceNumber] = useState<string>('2606011237');
+  const defaultInvoiceNumber = (value: string) => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '0000001241';
+    const yy = String(parsed.getFullYear()).slice(-2);
+    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+    const dd = String(parsed.getDate()).padStart(2, '0');
+    return `${yy}${mm}${dd}1241`;
+  };
+
+  const [invoiceNumber, setInvoiceNumber] = useState<string>(() => defaultInvoiceNumber(new Date().toISOString().split('T')[0]));
 
   const [customerName, setCustomerName] = useState<string>('');
   const [number, setNumber] = useState<string>('');
@@ -149,7 +158,14 @@ export const InvoicePage: React.FC = () => {
         <div className="invoice-form-grid">
           <div>
             <label>Date</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value);
+                setInvoiceNumber(defaultInvoiceNumber(e.target.value));
+              }}
+            />
           </div>
           <div>
             <label>Travel Date</label>
@@ -290,10 +306,10 @@ export const InvoicePage: React.FC = () => {
               <table className="invoice-items-table">
                 <thead>
                   <tr>
-                    <th className="desc-col">Description</th>
-                    <th className="qty-col text-center">Persons</th>
-                    <th className="price-col text-center">Package Price</th>
-                    <th className="amount-col text-center">Amount</th>
+                    <th className="desc-col">Particulars</th>
+                    <th className="qty-col text-center">Number of Person(s)</th>
+                    <th className="price-col text-center">Price</th>
+                    <th className="amount-col text-center">Amount in PKR</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -324,7 +340,7 @@ export const InvoicePage: React.FC = () => {
                 <span>{totalDue.toLocaleString('en-US')}</span>
               </div>
               <div className="summary-row">
-                <span>Advance</span>
+                <span>Advance Amount</span>
                 <span>{parseNumber(advance).toLocaleString('en-US')}</span>
               </div>
               <div className="summary-divider" />

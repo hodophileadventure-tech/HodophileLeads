@@ -277,9 +277,8 @@ body {
 }
 
 .invoice-divider {
-  height: 1px;
-  background: #d8d8d8;
-  margin: 8px 0 10px;
+    height: 3px;
+    background: #111827;
 }
 
 .invoice-client-section {
