@@ -293,20 +293,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
           <div ref={previewDocRef} className="invoice-preview-doc">
             <section className="invoice-header">
               <div className="invoice-header-left">
-                <div className="invoice-branding">
-                  <div className="invoice-brand-logo">
-                    <img src={hodophileLogoPath} alt="Hodophile logo" onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }} />
-                  </div>
-                  <div className="invoice-brand-details">
-                    <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
-                    <div className="invoice-brand-address">Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.</div>
-                    <div className="invoice-brand-contact">Contact: 0337-7777460</div>
-                    <div className="invoice-brand-license">Govt. License: 5436</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="invoice-header-right">
                 <div className="invoice-label">INVOICE</div>
                 <div className="invoice-meta-list">
                   <div className="invoice-meta-row">
@@ -333,6 +319,20 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
                     <span>Persons</span>
                     <span>:</span>
                     <strong>{persons || '—'}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="invoice-header-right">
+                <div className="invoice-branding">
+                  <div className="invoice-brand-logo">
+                    <img src={hodophileLogoPath} alt="Hodophile logo" onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }} />
+                  </div>
+                  <div className="invoice-brand-details">
+                    <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
+                    <div className="invoice-brand-address">Suite# M2, Mazzanine floor, Plot#111-113-C, Block-2, P.E.C.H.S, Tariq Road, Karachi, Pakistan.</div>
+                    <div className="invoice-brand-contact">Contact: 0337-7777460</div>
+                    <div className="invoice-brand-license">Govt. License: 5436</div>
                   </div>
                 </div>
               </div>

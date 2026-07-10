@@ -167,21 +167,22 @@ body {
 
 .invoice-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 340px);
-  gap: 12px; /* increase gap to prevent overlap between heading and metadata */
-  align-items: center; /* vertically center left and right columns */
-  margin-bottom: 8px;
-}
+   grid-template-columns: minmax(0, 360px) minmax(260px, 380px);
+   gap: 16px; /* more room between left and right header columns */
+   align-items: start;
+   margin-bottom: 8px;
+ }
 
 .invoice-header-left {
-  min-width: 0;
+   min-width: 0;
+   width: 100%;
 }
 
 .invoice-branding {
   display: flex;
-  flex-direction: row; /* place logo and brand details side-by-side */
-  gap: 12px; /* tightened spacing between logo and brand text */
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
 }
 
 .invoice-brand-logo {
@@ -250,13 +251,13 @@ body {
   margin-top: 2px; /* keep the license just below contact */
 }
 
-/* Invoice heading label (right column) */
+/* Invoice heading label (left column) */
 .invoice-label {
-  font-size: clamp(28px, 4.5vw, 36px); /* responsive cap to avoid overlap */
+  font-size: clamp(32px, 4.5vw, 40px);
   font-weight: 900;
   color: #fcc000; /* highlighted gold color */
   letter-spacing: 0.02em;
-  text-align: right;
+  text-align: left;
   line-height: 1;
   max-width: 100%;
   white-space: nowrap;
@@ -264,12 +265,12 @@ body {
   text-overflow: ellipsis;
 }
 
-/* ensure the right column stacks the heading above metadata and reserves space */
+/* ensure the right column stacks the branding and keeps its content aligned */
 .invoice-header-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .invoice-meta-list {
