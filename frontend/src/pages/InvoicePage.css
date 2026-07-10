@@ -210,34 +210,25 @@ body {
 }
 
 .invoice-brand-name,
-.invoice-brand-address,
-.invoice-brand-contact,
 .invoice-brand-license {
-  font-size: 11px;
+  font-size: 12px; /* slightly increased base size for brand name/license */
   font-weight: 700;
   color: #111827;
   line-height: 1.35;
 }
 
 .invoice-brand-name {
-  font-size: 14px;
+  font-size: 20px; /* enlarged Hodophile brand name */
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.invoice-brand-name,
 .invoice-brand-address,
-.invoice-brand-contact,
-.invoice-brand-license {
-  font-size: 12px; /* slightly increased base size for brand details */
-  font-weight: 700;
+.invoice-brand-contact {
+  font-size: 12px;
+  font-weight: 400;
   color: #111827;
-  line-height: 1.35;
-}
-.invoice-brand-name {
-  font-size: 18px; /* enlarged Hodophile brand name */
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 1.5;
 }
 
 .invoice-brand-license {
@@ -253,16 +244,18 @@ body {
 
 /* Invoice heading label (left column) */
 .invoice-label {
-  font-size: clamp(32px, 4.5vw, 40px);
+  font-size: clamp(34px, 5vw, 46px);
   font-weight: 900;
   color: #fcc000; /* highlighted gold color */
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   text-align: left;
   line-height: 1.05;
   max-width: 100%;
   white-space: normal;
   overflow: visible;
   text-overflow: unset;
+  transform: scaleX(1.08);
+  transform-origin: left;
 }
 
 /* ensure the right column stacks the branding and keeps its content aligned */
@@ -271,6 +264,7 @@ body {
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+  padding-top: 18px;
 }
 
 .invoice-meta-list {
