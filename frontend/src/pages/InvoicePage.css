@@ -333,7 +333,8 @@ body {
 
 .invoice-table-section {
   position: relative;
-  margin-top: 4px;
+  margin-top: 0; /* remove top gap between table and summary */
+  margin-bottom: 0; /* ensure no extra bottom gap */
   flex: 1 1 auto;
 }
 
@@ -419,7 +420,7 @@ body {
   margin-left: auto;
   margin-top: 0;
   display: grid;
-  gap: 4px;
+  gap: 2px; /* tightened grouping to sit closer to table */
 }
 
 .summary-row {
