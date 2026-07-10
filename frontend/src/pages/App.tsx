@@ -1542,10 +1542,10 @@ export const App: React.FC = () => {
                       ← Back to Pending Invoices
                     </Button>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-6 w-full">
+                    <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_360px] gap-6 w-full">
                       {/* Left: Lead Details */}
                       <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0" style={{ minWidth: 0 }}>
-                        <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
+                        <h3 className="font-semibold mb-4 text-sm">Agent Given Details</h3>
                         <div className="space-y-3 text-sm">
                           <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
                             <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">CLIENT INFO</p>
@@ -1665,9 +1665,47 @@ export const App: React.FC = () => {
                       {/* Middle: Invoice Form */}
                       <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
                         <div style={{ minWidth: '0', overflowX: 'auto', padding: '0' }}>
-                          <InvoicePage />
+                          <InvoicePage
+                            hidePreview
+                            generatePreviewOnMount
+                            onPreviewGenerated={handlePreviewGenerated}
+                          />
                         </div>
                       </main>
+
+                      {/* Right: Invoice Preview */}
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0" style={{ minWidth: 0 }}>
+                        <h3 className="font-semibold mb-3 text-base flex-shrink-0">Invoice Preview</h3>
+                        <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
+                          {previewDataUrl ? (
+                            <img
+                              src={previewDataUrl}
+                              alt="Invoice preview"
+                              className="max-h-full object-contain rounded"
+                              style={{ width: 'auto', maxWidth: '100%', maxHeight: '100%' }}
+                            />
+                          ) : (
+                            <div className="text-sm text-slate-500">Generating preview…</div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <button
+                            className="btn-secondary text-sm py-2 px-3"
+                            onClick={() => window.dispatchEvent(new Event('generate-invoice-preview'))}
+                          >
+                            Regenerate Preview
+                          </button>
+                          {previewDataUrl && (
+                            <a
+                              className="btn-primary text-center text-sm py-2 px-3 rounded"
+                              href={previewDataUrl}
+                              download={`invoice-preview.jpeg`}
+                            >
+                              Download Preview
+                            </a>
+                          )}
+                        </div>
+                      </aside>
                     </div>
                   </div>
                 ) : (

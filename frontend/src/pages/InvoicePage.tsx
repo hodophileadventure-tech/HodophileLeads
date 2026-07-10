@@ -10,7 +10,17 @@ import './InvoicePage.css';
 
 type Row = { id: string; particulars: string; persons: string; price: string; amount: string };
 
-export const InvoicePage: React.FC = () => {
+type InvoicePageProps = {
+  onPreviewGenerated?: (dataUrl: string) => void;
+  generatePreviewOnMount?: boolean;
+  hidePreview?: boolean;
+};
+
+export const InvoicePage: React.FC<InvoicePageProps> = ({
+  onPreviewGenerated,
+  generatePreviewOnMount = false,
+  hidePreview = false,
+}) => {
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [travelDate, setTravelDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [persons, setPersons] = useState<string>('');
@@ -99,6 +109,39 @@ export const InvoicePage: React.FC = () => {
     }
     return filled.slice(0, 6);
   }, [rows]);
+
+  const generatePreview = React.useCallback(async () => {
+    if (!previewDocRef.current) return null;
+    try {
+      const canvas = await html2canvas(previewDocRef.current, {
+        scale: 1,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false,
+      });
+      const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+      if (onPreviewGenerated) {
+        onPreviewGenerated(jpegData);
+      }
+      return jpegData;
+    } catch (error) {
+      console.error('Failed to generate preview:', error);
+      return null;
+    }
+  }, [onPreviewGenerated]);
+
+  React.useEffect(() => {
+    if (!generatePreviewOnMount || !onPreviewGenerated) return;
+    generatePreview();
+  }, [generatePreview, generatePreviewOnMount, onPreviewGenerated]);
+
+  React.useEffect(() => {
+    const listener = async () => {
+      await generatePreview();
+    };
+    window.addEventListener('generate-invoice-preview', listener);
+    return () => window.removeEventListener('generate-invoice-preview', listener);
+  }, [generatePreview]);
 
   const formattedDate = useMemo(() => {
     const parsed = new Date(date);

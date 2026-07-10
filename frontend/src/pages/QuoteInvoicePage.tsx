@@ -19,7 +19,7 @@ type TableRow = {
   amount: string;
 };
 
-type QuoteInvoicePageProps = {
+export type QuoteInvoicePageProps = {
   leadId?: string;
   leadData?: any; // If provided, use this instead of fetching
   requestId?: string;
@@ -34,6 +34,8 @@ type QuoteInvoicePageProps = {
   onClose?: () => void;
   hidePreview?: boolean;
   embedded?: boolean;
+  hideDocumentTabs?: boolean;
+  headerTitle?: string;
 };
 
 type DocumentData = {
@@ -152,6 +154,8 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   onClose: _onClose,
   hidePreview = false,
   embedded = false,
+  hideDocumentTabs = false,
+  headerTitle = 'Invoice & Quotation Generator',
 }) => {
   const { user } = useAuth();
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>(_requestType || 'quotation');
@@ -164,12 +168,17 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const previewRef = useRef<HTMLDivElement | null>(null);
 
   const displayQuoteNumber = data.quoteNumber || initialQuotationNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
+  const previewNumber = documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber;
+  const previewNumberLabel = documentType === 'quotation' ? 'Quote #' : 'Invoice #';
+  const previewDateLabel = documentType === 'quotation' ? 'Quote Date' : 'Date';
+  const previewTitle = documentType === 'quotation' ? 'QUOTATION' : 'INVOICE';
+  const summaryBalanceLabel = documentType === 'quotation' ? 'Quote' : 'Balance Due';
   const previewHiddenStyle = hidePreview
     ? {
         position: 'absolute' as const,
         left: '-10000px',
         top: 0,
-        width: '2550px',
+        width: '900px',
         pointerEvents: 'none' as const
       }
     : undefined;
@@ -277,10 +286,8 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
       const generatePreview = async () => {
         try {
-          const targetEl = previewRef.current ? (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current : null;
-          if (!targetEl) return;
-          const canvas = await html2canvas(targetEl, {
-            scale: 2,
+          const canvas = await html2canvas(previewRef.current!, {
+            scale: 1,
             backgroundColor: '#ffffff',
             useCORS: true,
             allowTaint: false,
@@ -312,21 +319,19 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   useEffect(() => {
     const handleGenerateQuotePreview = async () => {
       if (previewRef.current && onPreviewGenerated) {
-          try {
-            const targetEl = (previewRef.current.closest('.pdf-page') as HTMLElement) || previewRef.current;
-            if (!targetEl) return;
-            const canvas = await html2canvas(targetEl, {
-              scale: 2,
-              backgroundColor: '#ffffff',
-              useCORS: true,
-              allowTaint: false,
-            });
-            const jpegData = canvas.toDataURL('image/jpeg', 0.95);
-            onPreviewGenerated(jpegData);
-          } catch (error) {
-            console.error('Failed to generate preview:', error);
-          }
+        try {
+          const canvas = await html2canvas(previewRef.current, {
+            scale: 1,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            allowTaint: false,
+          });
+          const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+          onPreviewGenerated(jpegData);
+        } catch (error) {
+          console.error('Failed to generate preview:', error);
         }
+      }
     };
     window.addEventListener('generate-quote-preview', handleGenerateQuotePreview);
     return () => window.removeEventListener('generate-quote-preview', handleGenerateQuotePreview);
@@ -471,24 +476,12 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     if (!previewRef.current) return;
     try {
       setMessage('Generating JPEG...');
-      const targetEl = (previewRef.current.closest<HTMLElement>('.pdf-page')) || previewRef.current;
-      if (!targetEl) return;
-      // Temporarily enforce A4 sizing to avoid wrapper/layout differences on deployed builds
-      const previousStyle = targetEl.getAttribute('style') || '';
-      try {
-        const el = targetEl as HTMLElement;
-        el.style.width = '210mm';
-        el.style.height = '297mm';
-        el.style.maxWidth = 'none';
-      } catch (e) {}
-      await new Promise((r) => setTimeout(r, 80));
-      const canvas = await html2canvas(targetEl, {
-        scale: 2,
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 1,
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: false,
       });
-      try { targetEl.setAttribute('style', previousStyle); } catch (e) {}
       const jpegData = canvas.toDataURL('image/jpeg', 0.95);
       const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.jpeg`;
       const link = document.createElement('a');
@@ -509,15 +502,17 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       <div className={`quote-invoice-shell ${hidePreview ? 'hide-preview' : ''}`}>
         <div className="quote-invoice-sidebar">
           <div className="quote-invoice-panel">
-            <h2>Invoice & Quotation Generator</h2>
-            <div className="quote-tabs">
-              <button type="button" className={`quote-tab ${documentType === 'quotation' ? 'active' : ''}`} onClick={() => !viewOnly && setDocumentType('quotation')} disabled={viewOnly}>
-                Quotation
-              </button>
-              <button type="button" className={`quote-tab ${documentType === 'invoice' ? 'active' : ''}`} onClick={() => !viewOnly && setDocumentType('invoice')} disabled={viewOnly}>
-                Invoice
-              </button>
-            </div>
+            <h2>{headerTitle}</h2>
+            {!hideDocumentTabs && (
+              <div className="quote-tabs">
+                <button type="button" className={`quote-tab ${documentType === 'quotation' ? 'active' : ''}`} onClick={() => !viewOnly && setDocumentType('quotation')} disabled={viewOnly}>
+                  Quotation
+                </button>
+                <button type="button" className={`quote-tab ${documentType === 'invoice' ? 'active' : ''}`} onClick={() => !viewOnly && setDocumentType('invoice')} disabled={viewOnly}>
+                  Invoice
+                </button>
+              </div>
+            )}
             <div className="field-row">
               <div>
                 <label>Customer Name</label>
@@ -656,15 +651,15 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                     <div className="pdf-quote-right">
                       <div className="pdf-quote-meta-block">
                         <div className="pdf-quote-meta-row">
-                          <span>Quote #</span>
-                          <strong>{displayQuoteNumber}</strong>
+                          <span>{previewNumberLabel}</span>
+                          <strong>{previewNumber}</strong>
                         </div>
                         <div className="pdf-quote-meta-row">
-                          <span>Quote Date</span>
+                          <span>{previewDateLabel}</span>
                           <strong>{formatDate(data.date)}</strong>
                         </div>
                       </div>
-                      <div className="pdf-quotation-title">QUOTATION</div>
+                      <div className="pdf-quotation-title">{previewTitle}</div>
                     </div>
                   </div>
                 </div>
@@ -735,7 +730,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                                 <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                               <tr>
-                                <td className="label">Quote</td>
+                                <td className="label">{summaryBalanceLabel}</td>
                                 <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
                               </tr>
                             </tbody>
