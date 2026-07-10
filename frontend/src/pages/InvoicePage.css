@@ -162,6 +162,7 @@ body {
   flex-direction: column;
   transform: none;
   transform-origin: top center;
+  position: relative;
 }
 
 .invoice-header {
@@ -239,15 +240,26 @@ body {
 }
 
 .invoice-brand-license {
-  letter-spacing: 0.02em;
-  color: #fcc000;
+  color: #111827; /* black for government license */
   margin: 0;
+  font-weight: 700;
   white-space: nowrap;
-  display: block;
-  width: 100%;
-  text-align: right; /* align text to the right edge of the column */
-  transform: scaleX(1.15); /* slightly reduced horizontal stretch to avoid overlap */
-  transform-origin: right center;
+  display: inline-block;
+  width: auto;
+  text-align: left;
+  /* position the license at the top-left of the invoice document */
+  position: absolute;
+  left: 14mm; /* match document padding */
+  top: 14mm;
+}
+
+/* Invoice heading label (right column) */
+.invoice-label {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fcc000; /* highlighted gold color */
+  letter-spacing: 0.04em;
+  text-align: right;
 }
 
 .invoice-meta-list {
