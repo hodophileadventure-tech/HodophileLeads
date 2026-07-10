@@ -168,7 +168,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(240px, 340px);
   gap: 8px;
-  align-items: flex-start;
+  align-items: center; /* vertically center left and right columns */
   margin-bottom: 8px;
 }
 
@@ -234,7 +234,7 @@ body {
 }
 
 .invoice-label {
-  font-size: 36px; /* increased INVOICE heading size */
+  font-size: 48px; /* further increased INVOICE heading size */
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: 0.06em;
