@@ -167,15 +167,16 @@ body {
 
 .invoice-header {
   display: grid;
-   grid-template-columns: minmax(0, 360px) minmax(260px, 380px);
-   gap: 16px; /* more room between left and right header columns */
-   align-items: end;
-   margin-bottom: 8px;
- }
+    grid-template-columns: minmax(0, 340px) minmax(260px, 380px);
+    gap: 24px; /* more room between left and right header columns */
+    align-items: end;
+    margin-bottom: 8px;
+  }
 
 .invoice-header-left {
    min-width: 0;
    width: 100%;
+   padding-left: 20px;
 }
 
 .invoice-branding {
