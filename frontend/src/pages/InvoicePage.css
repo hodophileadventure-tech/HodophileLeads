@@ -166,10 +166,10 @@ body {
 
 .invoice-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 340px);
+  gap: 8px;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .invoice-header-left {
@@ -179,7 +179,7 @@ body {
 .invoice-branding {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   align-items: flex-start;
 }
 
@@ -227,8 +227,8 @@ body {
   justify-items: end;
   align-self: flex-start;
   text-align: right;
-  min-width: 260px;
-  padding-left: 12px;
+  min-width: 240px;
+  padding-left: 6px;
 }
 
 .invoice-label {
