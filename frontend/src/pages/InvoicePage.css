@@ -264,11 +264,15 @@ body {
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  padding-top: 18px;
+  padding-top: 28px;
+}
+
+.invoice-label {
+  margin-top: 8px;
 }
 
 .invoice-meta-list {
-  margin-top: 0;
+  margin-top: 2px;
 }
 
 .invoice-meta-list {
