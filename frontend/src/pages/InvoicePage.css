@@ -258,11 +258,11 @@ body {
   color: #fcc000; /* highlighted gold color */
   letter-spacing: 0.02em;
   text-align: left;
-  line-height: 1;
+  line-height: 1.05;
   max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
 }
 
 /* ensure the right column stacks the branding and keeps its content aligned */
