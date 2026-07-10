@@ -218,8 +218,7 @@ body {
 }
 
 .invoice-brand-name {
-  font-size: 20px; /* enlarged Hodophile brand name */
-  letter-spacing: 0.04em;
+  font-size: 24px; /* enlarged Hodophile brand name */
   text-transform: uppercase;
 }
 
@@ -410,7 +409,7 @@ body {
   color: #fcc000;
   font-size: 12px;
   font-weight: 700;
-  text-align: left;
+  text-align: center;
 }
 
 .invoice-items-table td {
