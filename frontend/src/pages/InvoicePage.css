@@ -167,11 +167,9 @@ body {
 
 .invoice-header {
   display: grid;
-    grid-template-columns: minmax(0, 340px) minmax(260px, 380px);
-    gap: 24px; /* more room between left and right header columns */
-   align-items: start;
-   margin-bottom: 8px;
- }
+    grid-template-columns: minmax(0, 420px) minmax(260px, 360px);
+    gap: 18px;
+   align-items: end;
 
 .invoice-header-left {
    min-width: 0;
