@@ -281,7 +281,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         </div>
       </section>
 
-      <section className="invoice-preview-panel">
+      <section className="invoice-preview-panel" style={hidePreview ? { position: 'absolute', left: '-10000px', top: 0, opacity: 0, pointerEvents: 'none' } : undefined} aria-hidden={hidePreview ? 'true' : undefined}>
         <h2>Preview</h2>
         <div ref={previewCanvasRef} className="invoice-preview-canvas">
           <div ref={previewDocRef} className="invoice-preview-doc">
