@@ -410,9 +410,9 @@ body {
 .invoice-summary-section {
   width: 300px;
   margin-left: auto;
-  margin-top: 10px;
+  margin-top: 0;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .summary-row {
