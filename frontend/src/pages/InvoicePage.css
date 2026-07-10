@@ -167,9 +167,7 @@ body {
 
 .invoice-header {
   display: grid;
-   grid-template-columns: minmax(0, 1fr) max-content;
-   gap: 16px;
-   align-items: start;
+   grid-template-columns: minmax(0, 360px) minmax(240px, 320px);
 }
 
 .invoice-branding {
@@ -261,8 +259,9 @@ body {
   justify-content: flex-start;
   gap: 10px;
   padding-top: 0;
-  width: max-content;
-  min-width: 220px;
+  min-width: 240px;
+  width: 100%;
+  max-width: 320px;
 }
 
 .invoice-label {
