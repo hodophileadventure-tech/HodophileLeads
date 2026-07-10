@@ -1,10 +1,9 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import watermarkImage from '../assets/invoice-watermark.jpg';
-// Use local desktop image as Hodophile logo when available on the developer machine.
-// Provided absolute path (Windows) from user: C:\Users\HP\OneDrive\Desktop\WhatsApp Image 2026-07-10 at 12.28.27 PM.jpeg
-// Note: Browsers may block `file:///` access in some environments; this works for local previews.
-const hodophileDesktopLogo = 'file:///C:/Users/HP/OneDrive/Desktop/WhatsApp%20Image%202026-07-10%20at%2012.28.27%20PM.jpeg';
+// Prefer a bundled asset inside the project so the logo works in all environments.
+// Place your image at `frontend/src/assets/hodophile-logo.jpeg` (or .png) and it'll be used.
+import hodophileLogo from '../assets/hodophile-logo.jpeg';
 import invoiceLogoImage from '../assets/invoice-logo.png';
 import govtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
@@ -293,7 +292,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               <div className="invoice-header-left">
                 <div className="invoice-branding">
                   <div className="invoice-brand-logo">
-                    <img src={hodophileDesktopLogo} alt="Hodophile logo" onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }} />
+                    <img src={hodophileLogo} alt="Hodophile logo" onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }} />
                   </div>
                   <div className="invoice-brand-details">
                     <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
