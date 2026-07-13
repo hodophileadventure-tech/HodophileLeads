@@ -175,14 +175,14 @@ body {
 
 .invoice-branding {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
+  flex-direction: row; /* place logo and details side-by-side */
+  gap: 10px; /* reduced gap between logo and text */
+  align-items: center;
 }
 
 .invoice-brand-logo {
-  width: 90px;
-  height: 90px;
+  width: 72px; /* smaller logo to reduce spacing */
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,37 +199,35 @@ body {
 }
 
 .invoice-brand-details {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  max-width: calc(100% - 100px);
 }
 
 .invoice-brand-name,
 .invoice-brand-license {
-  font-size: 12px; /* slightly increased base size for brand name/license */
+  font-size: 12px;
   font-weight: 700;
   color: #111827;
-  line-height: 1.35;
-  /* allow wrapping to prevent layout overlap with the right column */
-  white-space: normal;
-  overflow-wrap: anywhere;
+  line-height: 1.1;
 }
 
 .invoice-brand-name {
-  font-size: 24px; /* enlarged Hodophile brand name */
+  font-size: clamp(18px, 2.6vw, 24px); /* responsive but prefers larger size */
   text-transform: uppercase;
+  white-space: nowrap; /* keep on one line */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .invoice-brand-address,
 .invoice-brand-contact {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   color: #111827;
-  line-height: 1.5;
-  /* allow long addresses to wrap and break words if necessary */
+  line-height: 1.3;
   white-space: normal;
-  overflow-wrap: anywhere;
 }
 
 .invoice-brand-license {
@@ -239,9 +237,7 @@ body {
   display: block;
   width: auto;
   text-align: left;
-  margin-top: 2px; /* keep the license just below contact */
-  white-space: normal; /* allow wrapping so it doesn't overlap nearby content */
-  overflow-wrap: anywhere;
+  margin-top: 0px;
 }
 
 /* Invoice heading label (left column) */
