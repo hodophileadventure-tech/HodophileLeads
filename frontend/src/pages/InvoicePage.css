@@ -167,7 +167,10 @@ body {
 
 .invoice-header {
   display: grid;
-   grid-template-columns: minmax(0, 360px) minmax(240px, 320px);
+  grid-template-columns: 1fr minmax(240px, 320px); /* left column flexible, right column fixed-ish */
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 8px; /* ensure space before divider so license doesn't overlap */
 }
 
 .invoice-branding {
@@ -178,8 +181,8 @@ body {
 }
 
 .invoice-brand-logo {
-  width: 110px;
-  height: 110px;
+  width: 90px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,6 +202,7 @@ body {
   display: grid;
   gap: 4px;
   min-width: 0;
+  max-width: calc(100% - 100px);
 }
 
 .invoice-brand-name,
