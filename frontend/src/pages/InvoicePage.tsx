@@ -56,6 +56,19 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   const previewCanvasRef = useRef<HTMLDivElement | null>(null);
   const previewDocRef = useRef<HTMLDivElement | null>(null);
 
+  const hiddenPreviewStyle = hidePreview
+    ? {
+        position: 'absolute' as const,
+        left: '-10000px',
+        top: 0,
+        width: '210mm',
+        height: '297mm',
+        opacity: 0,
+        pointerEvents: 'none' as const,
+        visibility: 'hidden' as const,
+      }
+    : undefined;
+
   // Debug helper: if `?forcePreview=1` or `?mockInvoice=1` is present, populate sample data
   React.useEffect(() => {
     try {
@@ -287,7 +300,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         </div>
       </section>
 
-      <section className="invoice-preview-panel" style={hidePreview ? { display: 'none' } : undefined} aria-hidden={hidePreview ? 'true' : undefined}>
+      <section className="invoice-preview-panel" style={hiddenPreviewStyle} aria-hidden={hidePreview ? 'true' : undefined}>
         <h2>Preview</h2>
         <div ref={previewCanvasRef} className="invoice-preview-canvas">
           <div ref={previewDocRef} className="invoice-preview-doc">
