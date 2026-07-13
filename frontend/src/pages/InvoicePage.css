@@ -183,7 +183,7 @@ body {
 .invoice-branding {
   display: flex;
   flex-direction: column; /* stack logo above brand details */
-  gap: 4px;
+  gap: 2px;
   align-items: flex-start;
 }
 
