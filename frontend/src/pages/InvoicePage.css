@@ -491,7 +491,7 @@ body {
   align-items: center;
   gap: 10px;
   padding: 6px 0;
-  font-size: 12px;
+  font-size: 14px;
   color: #374151;
   font-weight: 500;
 }
@@ -505,7 +505,7 @@ body {
 .summary-row strong {
   color: #111827;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .summary-divider {
@@ -520,7 +520,7 @@ body {
 }
 
 .summary-balance-row {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   color: #111827;
   padding: 8px 0;
