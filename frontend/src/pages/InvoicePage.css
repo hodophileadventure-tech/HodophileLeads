@@ -349,15 +349,15 @@ body {
 }
 
 .invoice-client-name {
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   color: #111827;
 }
 
 .invoice-client-phone,
 .invoice-client-city {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: #111827;
 }
 
@@ -388,7 +388,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.42; /* increased opacity so watermark is more visible */
+  opacity: 0.62; /* increased opacity so watermark is more visible */
 }
 
 .invoice-items-table {
@@ -402,7 +402,7 @@ body {
 .invoice-items-table th,
 .invoice-items-table td {
   padding: 14px 14px;
-  border: 1px solid #d8d8d8;
+  border: 1.5px solid #bdbdbd;
   vertical-align: middle;
 }
 
@@ -440,6 +440,7 @@ body {
   font-weight: 800;
   text-align: left;
   padding-left: 14px;
+  font-size: 18px;
 }
 
 .invoice-items-table tbody td.qty-col,
@@ -490,14 +491,18 @@ body {
   align-items: center;
   gap: 10px;
   padding: 6px 0;
-  font-size: 14px;
+  font-size: 16px;
   color: #374151;
   font-weight: 600;
 }
 
-.summary-row.summary-total-row,
+.summary-row.summary-total-row {
+  font-weight: 600;
+}
+
 .summary-row.summary-balance-row {
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .summary-row span,
@@ -508,8 +513,8 @@ body {
 
 .summary-row strong {
   color: #111827;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .summary-divider {
