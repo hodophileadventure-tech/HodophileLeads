@@ -188,9 +188,9 @@ body {
 }
 
 .invoice-brand-logo {
-  width: 114px;
-  height: 114px;
-  min-width: 114px;
+  width: 84px;
+  height: 84px;
+  min-width: 84px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,10 +199,10 @@ body {
 
 .invoice-brand-logo img {
   display: block;
-  width: 114px;
-  height: 114px;
-  max-width: 114px;
-  max-height: 114px;
+  width: 84px;
+  height: 84px;
+  max-width: 84px;
+  max-height: 84px;
   object-fit: contain;
 }
 
@@ -220,7 +220,7 @@ body {
 }
 
 .invoice-brand-name {
-  font-size: 20px;
+  font-size: 32px;
   font-weight: 700;
   font-family: 'Bebas Neue', 'Montserrat', Arial, sans-serif;
   text-transform: uppercase;
