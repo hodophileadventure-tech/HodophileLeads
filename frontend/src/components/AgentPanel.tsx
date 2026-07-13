@@ -831,7 +831,7 @@ export const AgentPanel: React.FC = () => {
           {user?.role === 'agent' ? (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
               <main className="col-span-1 md:col-span-9 overflow-y-auto">
-                <QuoteInvoicePage
+                  <QuoteInvoicePage
                   leadId={selectedRequest.leadId}
                   requestId={selectedRequest.id}
                   requestType={selectedRequest.requestType}
@@ -848,7 +848,44 @@ export const AgentPanel: React.FC = () => {
                   viewOnly={true}
                     generatePreviewOnMount
                     embedded={true}
-                    onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                    onPreviewGenerated={async (dataUrl) => {
+                      try {
+                        // If we receive a data: URL, convert it to a blob-backed object URL
+                        if (!dataUrl) {
+                          setPreviewDataUrl(null);
+                          return;
+                        }
+
+                        // Revoke previous object URL if any
+                        try {
+                          const prev = previewDataUrl;
+                          if (prev && prev.startsWith('blob:')) {
+                            URL.revokeObjectURL(prev);
+                          }
+                        } catch (e) {
+                          // ignore
+                        }
+
+                        if (dataUrl.startsWith('data:') || dataUrl.startsWith('blob:')) {
+                          // For data URLs, fetch and convert to blob then create object URL
+                          if (dataUrl.startsWith('data:')) {
+                            const res = await fetch(dataUrl);
+                            const blob = await res.blob();
+                            const obj = URL.createObjectURL(blob);
+                            setPreviewDataUrl(obj);
+                          } else {
+                            // already a blob URL
+                            setPreviewDataUrl(dataUrl);
+                          }
+                        } else {
+                          // fallback: set directly
+                          setPreviewDataUrl(dataUrl);
+                        }
+                      } catch (err) {
+                        console.error('Failed to set preview data URL:', err);
+                        setPreviewDataUrl(null);
+                      }
+                    }}
                 />
               </main>
 
