@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
-import watermarkImage from '../assets/invoice-watermark-worldmap.png';
+import watermarkImage from '../assets/invoice-watermark.jpg';
 // Prefer a bundled asset inside the project so the logo works in all environments.
 // Place your image at `frontend/src/assets/hodophile-logo.jpeg` (or .png) and it'll be used.
 // Prefer loading the logo from the public `assets/` folder so builds don't fail
@@ -56,19 +56,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   const previewCanvasRef = useRef<HTMLDivElement | null>(null);
   const previewDocRef = useRef<HTMLDivElement | null>(null);
 
-  const hiddenPreviewStyle = hidePreview
-    ? {
-        position: 'absolute' as const,
-        left: '-10000px',
-        top: 0,
-        width: '210mm',
-        height: '297mm',
-        opacity: 0,
-        pointerEvents: 'none' as const,
-        visibility: 'hidden' as const,
-      }
-    : undefined;
-
   // Debug helper: if `?forcePreview=1` or `?mockInvoice=1` is present, populate sample data
   React.useEffect(() => {
     try {
@@ -97,8 +84,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     return Number.isNaN(n) ? 0 : n;
   };
 
-  const updateRow = (index: number, field: keyof Omit<Row, 'id'>, value: string) => {
-    setRows((current) => current.map((r, idx) => (idx === index ? { ...r, [field]: value } : r)));
+  const updateRow = (id: string, field: keyof Omit<Row, 'id'>, value: string) => {
+    setRows((current) => current.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
   };
 
   const syncRowAmounts = () => {
@@ -214,7 +201,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   };
 
   return (
-    <div className={`invoice-page-root ${hidePreview ? 'no-preview' : ''}`}>
+    <div className="invoice-page-root">
       <section className="invoice-form-panel">
         <h2>Invoice Form</h2>
         <div className="invoice-form-grid">
@@ -258,12 +245,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
           <div className="invoice-form-spanning">
             <label>Invoice Items</label>
             <div className="invoice-items-grid">
-              {rows.map((r, index) => (
+              {rows.map((r) => (
                 <div key={r.id} className="invoice-item-row">
-                  <input placeholder="Particulars" value={r.particulars} onChange={(e) => updateRow(index, 'particulars', e.target.value)} />
-                  <input placeholder="Pax" value={r.persons} onChange={(e) => { updateRow(index, 'persons', e.target.value); }} />
-                  <input placeholder="Price" value={r.price} onChange={(e) => { updateRow(index, 'price', e.target.value); syncRowAmounts(); }} />
-                  <input placeholder="Amount" value={r.amount} onChange={(e) => updateRow(index, 'amount', e.target.value)} />
+                  <input placeholder="Particulars" value={r.particulars} onChange={(e) => updateRow(r.id, 'particulars', e.target.value)} />
+                  <input placeholder="Pax" value={r.persons || persons} onChange={(e) => { updateRow(r.id, 'persons', e.target.value); }} />
+                  <input placeholder="Price" value={r.price} onChange={(e) => { updateRow(r.id, 'price', e.target.value); syncRowAmounts(); }} />
+                  <input placeholder="Amount" value={r.amount} onChange={(e) => updateRow(r.id, 'amount', e.target.value)} />
                 </div>
               ))}
               <div className="invoice-item-actions">
@@ -300,7 +287,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         </div>
       </section>
 
-      <section className="invoice-preview-panel" style={hiddenPreviewStyle} aria-hidden={hidePreview ? 'true' : undefined}>
+      <section className="invoice-preview-panel" style={hidePreview ? { position: 'absolute', left: '-10000px', top: 0, opacity: 0, pointerEvents: 'none' } : undefined} aria-hidden={hidePreview ? 'true' : undefined}>
         <h2>Preview</h2>
         <div ref={previewCanvasRef} className="invoice-preview-canvas">
           <div ref={previewDocRef} className="invoice-preview-doc">
@@ -378,8 +365,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
                 <tbody>
                   {previewRows.map((r) => (
                     <tr key={r.id}>
-                      <td>{r.particulars || '—'}</td>
-                      <td className="text-center">{r.persons || ''}</td>
+                      <td>{r.particulars || destination || '—'}</td>
+                      <td className="text-center">{r.persons || persons || ''}</td>
                       <td className="text-center">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
                       <td className="text-center">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
                     </tr>

@@ -65,29 +65,6 @@ html, body {
   flex: 1 !important;
 }
 
-/* When embedded in a narrow panel, scale the large PDF canvas to fit the panel width */
-.quote-invoice-root.embedded .quote-invoice-preview {
-  width: 100% !important;
-  overflow: auto !important;
-  padding: 12px !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: flex-start !important;
-}
-
-.quote-invoice-root.embedded .pdf-page {
-  /* keep original internal sizes but visually scale down to fit */
-  transform: scale(0.28);
-  transform-origin: top left;
-  width: 2550px;
-  min-height: 3300px;
-}
-
-.quote-invoice-root.embedded .pdf-canvas,
-.quote-invoice-root.embedded .pdf-background {
-  transform: none !important; /* avoid double-scaling */
-}
-
 .quote-invoice-sidebar {
   display: flex;
   flex-direction: column;
@@ -315,42 +292,33 @@ html, body {
   max-width: 100%;
 }
 
-.pdf-quote-meta-block {
-  display: grid;
-  gap: 14px;
-  align-items: flex-end;
-  justify-items: end;
-  width: 100%;
-  max-width: 560px;
-}
-
 .pdf-quote-meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  font-size: 26px;
+  display: grid;
+  grid-template-columns: 140px 20px minmax(140px, 1fr);
+  gap: 8px;
+  font-size: 22px;
   color: #111827;
-  width: 100%;
-  min-width: 0;
+  align-items: center;
 }
 
 .pdf-quote-meta-row span {
   opacity: 0.75;
   font-weight: 600;
-  font-size: 20px;
-  flex: 1 1 160px;
-  min-width: 0;
-  max-width: 50%;
+  font-size: 18px;
+}
+
+.pdf-quote-meta-row span:first-child {
+  justify-self: start;
+}
+
+.pdf-quote-meta-row span:nth-child(2) {
+  justify-self: center;
 }
 
 .pdf-quote-meta-row strong {
+  justify-self: end;
   font-weight: 800;
-  font-size: 24px;
-  text-align: right;
-  flex: 1 1 160px;
-  min-width: 0;
+  font-size: 20px;
 }
 
 .pdf-content-inner {
@@ -376,24 +344,19 @@ html, body {
 
 .pdf-package-info-line {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
   font-size: 16px;
-  flex-wrap: wrap;
-  min-width: 0;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
   color: #111827;
-  flex: 0 0 280px;
+  /* Increase label column and keep label text on a single line */
+  flex: 0 0 320px;
   white-space: nowrap;
-  padding-right: 12px;
+  padding-right: 10px;
   font-size: 16px;
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
 }
 
 .pdf-package-info-line span {
@@ -401,9 +364,26 @@ html, body {
   font-weight: 600;
   flex: 1 1 auto;
   font-size: 16px;
-  min-width: 0;
-  word-break: break-word;
-  white-space: pre-wrap;
+}
+
+/* Group spacing for package info lines */
+.pdf-package-info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* spacing between rows */
+}
+
+/* Prevent label wrapping and add small padding between label and value */
+.pdf-package-info-line strong {
+  text-align: right;
+  padding-right: 10px;
+  /* Keep labels on a single line for these key headings */
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.pdf-package-info-line span {
   padding-left: 6px;
 }
 
@@ -423,6 +403,24 @@ html, body {
 
 .pdf-left-box .pdf-notes {
   margin-top: 10px;
+}
+
+.pdf-quote-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 28px;
+  color: #111827;
+}
+
+.pdf-quote-meta-row span {
+  opacity: 0.75;
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.pdf-quote-meta-row strong {
+  font-weight: 800;
 }
 
 .pdf-table-wrapper {
@@ -499,12 +497,14 @@ html, body {
   border-left: none;
   border-right: none;
   vertical-align: middle;
-  font-size: 22px;
+  font-size: 24px;
   color: #111827;
-  padding: 18px 16px;
-  min-height: 60px;
-  white-space: normal;
-  word-break: break-word;
+  padding: 12px 16px;
+  height: 42px;
+}
+
+.pdf-main-table tbody tr td strong {
+  font-size: 34px;
 }
 
 .pdf-main-table th.text-right,
@@ -523,13 +523,12 @@ html, body {
   justify-content: center;
   min-height: 100%;
   font-weight: 800;
-  font-size: 28px;
+  font-size: 34px;
   line-height: 1.1;
 }
 
 .pdf-description-cell {
   text-align: left;
-  min-width: 0;
 }
 
 .pdf-package-title {
@@ -543,8 +542,6 @@ html, body {
   line-height: 1.7;
   color: #111827;
   margin-bottom: 12px;
-  word-break: break-word;
-  white-space: pre-wrap;
 }
 
 .pdf-content-cell {
