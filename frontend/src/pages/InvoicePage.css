@@ -187,8 +187,8 @@ body {
 }
 
 .invoice-brand-logo {
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,6 +198,7 @@ body {
 .invoice-brand-logo img {
   display: block;
   max-width: 100%;
+  max-height: 100%;
   height: auto;
 }
 
@@ -268,7 +269,7 @@ body {
   text-overflow: unset;
   transform: scaleX(1.08);
   transform-origin: left;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 /* ensure the right column stacks the heading and keeps its content aligned */
