@@ -190,6 +190,12 @@ body {
 }
 
 .invoice-brand-logo img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.invoice-brand-logo img {
   max-width: 100%;
   max-height: 100%;
   width: auto;
@@ -214,12 +220,14 @@ body {
 }
 
 .invoice-brand-name {
-  font-size: 20px; /* prefer a consistent readable size */
+  font-size: 18px; /* slightly reduced to fit header */
   text-transform: uppercase;
-  white-space: nowrap; /* keep on one line */
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal; /* allow wrapping so full name is visible */
+  overflow: visible;
+  text-overflow: unset;
   margin: 0; /* remove extra vertical spacing */
+  line-height: 1.05;
+  font-weight: 800;
 }
 
 .invoice-brand-address,
