@@ -321,30 +321,35 @@ html, body {
   align-items: flex-end;
   justify-items: end;
   width: 100%;
-  max-width: 540px;
+  max-width: 560px;
 }
 
 .pdf-quote-meta-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
   font-size: 26px;
   color: #111827;
+  width: 100%;
+  min-width: 0;
 }
 
 .pdf-quote-meta-row span {
   opacity: 0.75;
   font-weight: 600;
   font-size: 20px;
-  white-space: nowrap;
+  flex: 1 1 160px;
   min-width: 0;
+  max-width: 50%;
 }
 
 .pdf-quote-meta-row strong {
   font-weight: 800;
   font-size: 24px;
   text-align: right;
+  flex: 1 1 160px;
   min-width: 0;
 }
 
@@ -496,13 +501,10 @@ html, body {
   vertical-align: middle;
   font-size: 22px;
   color: #111827;
-  padding: 16px 16px;
-  min-height: 52px;
-}
-
-.pdf-main-table tbody tr td strong {
-  font-size: 24px;
-  line-height: 1.2;
+  padding: 18px 16px;
+  min-height: 60px;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .pdf-main-table th.text-right,
