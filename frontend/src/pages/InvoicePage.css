@@ -280,11 +280,6 @@ body {
   width: 100%;
 }
 
-.invoice-label {
-  margin: 0;
-  align-self: start;
-}
-
 .invoice-meta-list {
   margin-top: 0;
 }
