@@ -168,9 +168,9 @@ body {
 .invoice-header {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 360px);
-  gap: 24px;
+  gap: 16px;
   align-items: start;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .invoice-header-left {
@@ -182,7 +182,7 @@ body {
 .invoice-branding {
   display: flex;
   flex-direction: column; /* stack logo above brand details */
-  gap: 8px;
+  gap: 4px;
   align-items: flex-start;
 }
 
@@ -268,7 +268,7 @@ body {
   text-overflow: unset;
   transform: scaleX(1.08);
   transform-origin: left;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 /* ensure the right column stacks the heading and keeps its content aligned */
@@ -290,7 +290,7 @@ body {
 
 .invoice-meta-list {
   display: grid;
-  gap: 2px; /* slightly reduced gap for tighter grouping */
+  gap: 0px; /* remove spacing between invoice metadata rows */
   width: 100%;
   max-width: 320px;
 }
