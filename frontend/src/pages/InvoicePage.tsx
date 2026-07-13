@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
-import watermarkImage from '../assets/invoice-watermark.jpg';
+import watermarkImage from '../assets/invoice-watermark-worldmap.png';
 // Prefer a bundled asset inside the project so the logo works in all environments.
 // Place your image at `frontend/src/assets/hodophile-logo.jpeg` (or .png) and it'll be used.
 // Prefer loading the logo from the public `assets/` folder so builds don't fail
