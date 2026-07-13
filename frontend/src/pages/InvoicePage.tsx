@@ -201,7 +201,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   };
 
   return (
-    <div className="invoice-page-root">
+    <div className={`invoice-page-root ${hidePreview ? 'no-preview' : ''}`}>
       <section className="invoice-form-panel">
         <h2>Invoice Form</h2>
         <div className="invoice-form-grid">
@@ -287,7 +287,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         </div>
       </section>
 
-      <section className="invoice-preview-panel" style={hidePreview ? { position: 'absolute', left: '-10000px', top: 0, opacity: 0, pointerEvents: 'none' } : undefined} aria-hidden={hidePreview ? 'true' : undefined}>
+      <section className="invoice-preview-panel" style={hidePreview ? { display: 'none' } : undefined} aria-hidden={hidePreview ? 'true' : undefined}>
         <h2>Preview</h2>
         <div ref={previewCanvasRef} className="invoice-preview-canvas">
           <div ref={previewDocRef} className="invoice-preview-doc">
@@ -365,8 +365,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
                 <tbody>
                   {previewRows.map((r) => (
                     <tr key={r.id}>
-                      <td>{r.particulars || destination || '—'}</td>
-                      <td className="text-center">{r.persons || persons || ''}</td>
+                      <td>{r.particulars || '—'}</td>
+                      <td className="text-center">{r.persons || ''}</td>
                       <td className="text-center">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
                       <td className="text-center">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
                     </tr>

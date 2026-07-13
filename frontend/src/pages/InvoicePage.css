@@ -36,6 +36,18 @@ body {
   align-items: start;
 }
 
+.invoice-page-root.no-preview {
+  grid-template-columns: 1fr;
+}
+
+.invoice-preview-panel {
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.invoice-page-root.no-preview .invoice-preview-panel {
+  display: none;
+}
+
 .invoice-form-panel,
 .invoice-preview-panel {
   background: #ffffff;
