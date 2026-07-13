@@ -65,6 +65,29 @@ html, body {
   flex: 1 !important;
 }
 
+/* When embedded in a narrow panel, scale the large PDF canvas to fit the panel width */
+.quote-invoice-root.embedded .quote-invoice-preview {
+  width: 100% !important;
+  overflow: auto !important;
+  padding: 12px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+}
+
+.quote-invoice-root.embedded .pdf-page {
+  /* keep original internal sizes but visually scale down to fit */
+  transform: scale(0.28);
+  transform-origin: top left;
+  width: 2550px;
+  min-height: 3300px;
+}
+
+.quote-invoice-root.embedded .pdf-canvas,
+.quote-invoice-root.embedded .pdf-background {
+  transform: none !important; /* avoid double-scaling */
+}
+
 .quote-invoice-sidebar {
   display: flex;
   flex-direction: column;
