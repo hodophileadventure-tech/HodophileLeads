@@ -341,27 +341,30 @@ body {
 
 .invoice-meta-row {
   display: grid;
-  grid-template-columns: 78px 6px minmax(0, 1fr);
-  gap: 4px;
+  grid-template-columns: 92px 10px minmax(0, 1fr);
+  gap: 6px;
   align-items: center;
-  font-size: 12px;
+  font-size: 18px;
   line-height: 1.2;
   color: #111827;
 }
 
 .invoice-meta-row span {
-  color: #374151;
-  font-weight: 600;
+  color: #111827;
+  font-weight: 700;
+  font-size: 18px;
   justify-self: start;
 }
 
 .invoice-meta-row span:nth-child(2) {
   justify-self: center;
+  font-size: 18px;
 }
 
 .invoice-meta-row strong {
   justify-self: end;
   font-weight: 700;
+  font-size: 22px;
   color: #111827;
   white-space: normal;
   overflow: visible;
@@ -380,7 +383,7 @@ body {
 }
 
 .invoice-client-title {
-  font-size: 11px;
+  font-size: 18px;
   font-weight: 700;
   color: #111827;
   text-transform: uppercase;
@@ -396,18 +399,19 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1px;
+  gap: 4px;
 }
 
 .invoice-client-name {
-  font-size: 12px;
+  font-size: 22px;
   font-weight: 700;
   color: #111827;
 }
 
 .invoice-client-phone,
 .invoice-client-city {
-  font-size: 11px;
+  font-size: 18px;
+  font-weight: 500;
   color: #111827;
 }
 
@@ -465,14 +469,29 @@ body {
   height: 48px;
   background: #111827;
   color: #fcc000;
-  font-size: 12px;
   font-weight: 700;
   text-align: center;
+  line-height: 1.1;
+}
+
+.invoice-items-table thead th.desc-col {
+  font-size: 26px;
+}
+
+.invoice-items-table thead th:not(.desc-col) {
+  font-size: 18px;
 }
 
 .invoice-items-table td {
-  font-size: 12px;
+  font-size: 18px;
+  font-weight: 600;
   color: #111827;
+}
+
+.invoice-items-table tbody td:first-child {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: left;
 }
 
 .desc-col {
@@ -513,19 +532,21 @@ body {
   align-items: center;
   gap: 10px;
   padding: 4px 0;
-  font-size: 14px;
+}
+
+.summary-row span:first-child {
+  font-size: 22px;
+  font-weight: 500;
   color: #374151;
 }
 
-.summary-row span,
+.summary-row span:last-child,
 .summary-row strong {
   min-width: 80px;
   text-align: right;
-}
-
-.summary-row strong {
-  color: #111827;
+  font-size: 20px;
   font-weight: 700;
+  color: #111827;
 }
 
 .summary-divider {
@@ -534,15 +555,18 @@ body {
   margin: 4px 0;
 }
 
-.summary-total-row {
-  font-size: 16px;
-  font-weight: 800;
-  color: #111827;
+.summary-total-row span:first-child {
+  font-weight: 500;
+  font-size: 22px;
+}
+
+.summary-total-row span:last-child {
+  font-size: 20px;
 }
 
 .summary-balance-row {
-  font-size: 18px;
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: 800;
   color: #111827;
   padding: 8px 0;
   background: #ffffff;
@@ -553,8 +577,8 @@ body {
   margin-top: 6px;
   display: block;
   color: #6b7280;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1.4;
   max-width: 520px;
   margin-bottom: 8px;
