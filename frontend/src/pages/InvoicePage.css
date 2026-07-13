@@ -167,22 +167,28 @@ body {
 
 .invoice-header {
   display: grid;
-  grid-template-columns: 1fr minmax(240px, 320px); /* left column flexible, right column fixed-ish */
-  gap: 12px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 360px);
+  gap: 24px;
   align-items: start;
-  margin-bottom: 8px; /* ensure space before divider so license doesn't overlap */
+  margin-bottom: 16px;
+}
+
+.invoice-header-left {
+  display: flex;
+  align-items: flex-start;
+  justify-content: stretch;
 }
 
 .invoice-branding {
   display: flex;
   flex-direction: column; /* stack logo above brand details */
-  gap: 2px; /* minimal gap so brand appears directly under logo */
+  gap: 8px;
   align-items: flex-start;
 }
 
 .invoice-brand-logo {
-  width: 64px; /* compact logo size to match stacked layout */
-  height: 64px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -267,19 +273,15 @@ body {
 
 /* ensure the right column stacks the heading and keeps its content aligned */
 .invoice-header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 10px;
+  display: grid;
+  gap: 8px;
   padding-top: 0;
-  min-width: 240px;
   width: 100%;
-  max-width: 320px;
 }
 
 .invoice-label {
-  margin-top: 0;
+  margin: 0;
+  align-self: start;
 }
 
 .invoice-meta-list {
