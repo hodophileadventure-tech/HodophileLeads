@@ -45,7 +45,14 @@ body {
 }
 
 .invoice-page-root.no-preview .invoice-preview-panel {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 210mm;
+  height: 297mm;
+  pointer-events: none;
 }
 
 .invoice-form-panel,
