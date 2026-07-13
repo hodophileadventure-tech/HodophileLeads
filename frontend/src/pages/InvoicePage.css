@@ -218,7 +218,7 @@ body {
 }
 
 .invoice-brand-name {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   text-transform: uppercase;
   white-space: normal;
@@ -230,7 +230,7 @@ body {
 
 .invoice-brand-address,
 .invoice-brand-contact {
-  font-size: 18px;
+  font-size: 11px;
   font-weight: 400;
   color: #111827;
   line-height: 1.3;
@@ -245,7 +245,7 @@ body {
   width: auto;
   text-align: left;
   margin-top: 0;
-  font-size: 18px;
+  font-size: 12px;
 }
 
 /* Invoice heading label (left column) */
@@ -305,7 +305,7 @@ body {
 .invoice-meta-row span {
   color: #111827;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 12px;
   justify-self: start;
 }
 
@@ -316,7 +316,7 @@ body {
 .invoice-meta-row strong {
   justify-self: end;
   font-weight: 600;
-  font-size: 18px;
+  font-size: 12px;
   color: #111827;
   white-space: normal;
   overflow: visible;
@@ -335,7 +335,7 @@ body {
 }
 
 .invoice-client-title {
-  font-size: 22px;
+  font-size: 11px;
   font-weight: 700;
   color: #111827;
   text-transform: uppercase;
@@ -345,24 +345,24 @@ body {
 .invoice-client-details {
   width: 100%;
   max-width: 290px;
-  padding: 10px 12px;
+  padding: 7px 9px;
   background: #f3f4f6;
   border: 1px solid #d8d8d8;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 3px;
+  gap: 1px;
 }
 
 .invoice-client-name {
-  font-size: 22px;
+  font-size: 12px;
   font-weight: 700;
   color: #111827;
 }
 
 .invoice-client-phone,
 .invoice-client-city {
-  font-size: 18px;
+  font-size: 11px;
   font-weight: 500;
   color: #111827;
 }
@@ -407,14 +407,14 @@ body {
 
 .invoice-items-table th,
 .invoice-items-table td {
-  padding: 12px 10px;
-  min-height: 52px;
+  padding: 0 8px;
+  height: 42px;
   border: 1px solid #d8d8d8;
   vertical-align: middle;
 }
 
 .invoice-items-table tbody tr {
-  height: auto;
+  height: 42px;
 }
 
 .invoice-items-table thead th {
@@ -425,7 +425,7 @@ body {
 }
 
 .invoice-items-table thead th.desc-col {
-  font-size: 26px;
+  font-size: 12px;
   text-align: left;
   padding-left: 14px;
 }
@@ -433,18 +433,18 @@ body {
 .invoice-items-table thead th.qty-col,
 .invoice-items-table thead th.price-col,
 .invoice-items-table thead th.amount-col {
-  font-size: 18px;
+  font-size: 12px;
 }
 
 .invoice-items-table td {
-  font-size: 18px;
+  font-size: 12px;
   color: #111827;
   line-height: 1.25;
 }
 
 .invoice-items-table tbody td:first-child {
   font-weight: 800;
-  font-size: 28px;
+  font-size: 12px;
   text-align: left;
   padding-left: 12px;
 }
@@ -491,8 +491,9 @@ body {
   align-items: center;
   gap: 10px;
   padding: 6px 0;
-  font-size: 22px;
+  font-size: 12px;
   color: #374151;
+  font-weight: 500;
 }
 
 .summary-row span,
@@ -504,7 +505,7 @@ body {
 .summary-row strong {
   color: #111827;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 12px;
 }
 
 .summary-divider {
@@ -519,7 +520,7 @@ body {
 }
 
 .summary-balance-row {
-  font-size: 22px;
+  font-size: 13px;
   font-weight: 800;
   color: #111827;
   padding: 8px 0;
@@ -531,7 +532,7 @@ body {
   margin-top: 10px;
   display: block;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 400;
   line-height: 1.5;
   max-width: 520px;
