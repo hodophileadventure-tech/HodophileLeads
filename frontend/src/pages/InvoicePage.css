@@ -183,14 +183,14 @@ body {
 .invoice-branding {
   display: flex;
   flex-direction: column; /* stack logo above brand details */
-  gap: 2px;
+  gap: 0px;
   align-items: flex-start;
 }
 
 .invoice-brand-logo {
-  width: 84px;
-  height: 84px;
-  min-width: 84px;
+  width: 94px;
+  height: 94px;
+  min-width: 94px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,7 +209,7 @@ body {
 .invoice-brand-details {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0px;
   min-width: 0;
 }
 
