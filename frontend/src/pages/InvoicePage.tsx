@@ -351,7 +351,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               <div className="invoice-header-left">
                 <div className="invoice-branding">
                   <div className="invoice-brand-logo">
-                    <img src={hodophileLogoPath} alt="Hodophile logo" onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }} />
+                    <img
+                      src={hodophileLogoPath}
+                      alt="Hodophile logo"
+                      style={{ width: '104px', height: '104px', objectFit: 'contain' }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }}
+                    />
                   </div>
                   <div className="invoice-brand-details">
                     <div className="invoice-brand-name">HODOPHILE ADVENTURES</div>
@@ -412,19 +417,19 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               <table className="invoice-items-table">
                 <thead>
                   <tr>
-                    <th className="desc-col">Particulars</th>
-                    <th className="qty-col text-center">Number of Person(s)</th>
-                    <th className="price-col text-center">Price</th>
-                    <th className="amount-col text-center">Amount in PKR</th>
+                    <th className="desc-col" style={{ fontSize: '14px' }}>Particulars</th>
+                    <th className="qty-col text-center" style={{ fontSize: '14px' }}>Number of Person(s)</th>
+                    <th className="price-col text-center" style={{ fontSize: '14px' }}>Price</th>
+                    <th className="amount-col text-center" style={{ fontSize: '14px' }}>Amount in PKR</th>
                   </tr>
                 </thead>
                 <tbody>
                   {previewRows.map((r) => (
                     <tr key={r.id}>
-                      <td className="desc-col">{r.particulars || ''}</td>
-                      <td className="qty-col text-center">{r.persons || ''}</td>
-                      <td className="price-col text-center">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
-                      <td className="amount-col text-center">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
+                      <td className="desc-col" style={{ fontSize: '14px' }}>{r.particulars || ''}</td>
+                      <td className="qty-col text-center" style={{ fontSize: '14px' }}>{r.persons || ''}</td>
+                      <td className="price-col text-center" style={{ fontSize: '14px' }}>{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
+                      <td className="amount-col text-center" style={{ fontSize: '14px' }}>{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
                     </tr>
                   ))}
                 </tbody>
