@@ -343,19 +343,24 @@ html, body {
 }
 
 .pdf-package-info-line {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 260px 1fr; /* fixed label column, flexible value column */
   gap: 12px;
-  font-size: 24px;
-}
-
-.pdf-package-info-line span {
-  opacity: 0.75;
-  font-weight: 600;
+  align-items: center;
+  font-size: 20px;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
+  font-size: 18px;
+  color: #111827;
+}
+
+.pdf-package-info-line span {
+  opacity: 0.85;
+  font-weight: 600;
+  font-size: 18px;
+  text-align: left;
 }
 
 .pdf-package-info-group {
