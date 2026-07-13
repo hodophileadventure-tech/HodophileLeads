@@ -1543,7 +1543,7 @@ export const App: React.FC = () => {
                       ← Back to Pending Invoices
                     </Button>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_360px] gap-6 w-full">
+                    <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1.5fr)_360px] gap-6 w-full">
                       {/* Left: Lead Details */}
                       <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0" style={{ minWidth: 0 }}>
                         <h3 className="font-semibold mb-4 text-sm">Agent Given Details</h3>
