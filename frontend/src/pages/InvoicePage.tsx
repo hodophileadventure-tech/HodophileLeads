@@ -116,8 +116,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     return filled.slice(0, 6);
   }, [rows]);
 
-  const rowHasValues = (row: Row) => Boolean(row.particulars || row.persons || row.price || row.amount);
-
   const generatePreview = React.useCallback(async () => {
     if (!previewDocRef.current) return null;
     try {
