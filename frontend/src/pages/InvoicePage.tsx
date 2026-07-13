@@ -248,7 +248,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               {rows.map((r) => (
                 <div key={r.id} className="invoice-item-row">
                   <input placeholder="Particulars" value={r.particulars} onChange={(e) => updateRow(r.id, 'particulars', e.target.value)} />
-                  <input placeholder="Pax" value={r.persons || persons} onChange={(e) => { updateRow(r.id, 'persons', e.target.value); }} />
+                  <input placeholder="Pax" value={r.persons} onChange={(e) => { updateRow(r.id, 'persons', e.target.value); }} />
                   <input placeholder="Price" value={r.price} onChange={(e) => { updateRow(r.id, 'price', e.target.value); syncRowAmounts(); }} />
                   <input placeholder="Amount" value={r.amount} onChange={(e) => updateRow(r.id, 'amount', e.target.value)} />
                 </div>
