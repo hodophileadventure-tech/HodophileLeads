@@ -343,24 +343,22 @@ html, body {
 }
 
 .pdf-package-info-line {
-  display: grid;
-  grid-template-columns: 260px 1fr; /* fixed label column, flexible value column */
-  gap: 12px;
+  display: flex;
   align-items: center;
-  font-size: 20px;
+  gap: 8px;
+  font-size: 18px;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
-  font-size: 18px;
   color: #111827;
+  flex: 0 0 160px; /* fixed label width */
 }
 
 .pdf-package-info-line span {
   opacity: 0.85;
   font-weight: 600;
-  font-size: 18px;
-  text-align: left;
+  flex: 1 1 auto;
 }
 
 .pdf-package-info-group {
