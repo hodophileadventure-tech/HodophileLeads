@@ -377,9 +377,11 @@ html, body {
 .pdf-package-info-line strong {
   text-align: right;
   padding-right: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Allow labels to wrap so long headings are fully visible in PDFs */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: break-word;
 }
 
 .pdf-package-info-line span {
