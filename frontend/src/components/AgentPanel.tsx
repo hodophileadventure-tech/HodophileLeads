@@ -846,8 +846,9 @@ export const AgentPanel: React.FC = () => {
                   }}
                   initialDocumentData={selectedRequest.documentData}
                   viewOnly={true}
-                  generatePreviewOnMount
-                  onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
+                    generatePreviewOnMount
+                    embedded={true}
+                    onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl)}
                 />
               </main>
 
@@ -869,7 +870,28 @@ export const AgentPanel: React.FC = () => {
                   <div className="flex flex-col gap-2 flex-shrink-0">
                     <Button variant="secondary" size="sm" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</Button>
                     {previewDataUrl && (
-                      <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                      <button
+                        className="btn-primary text-center text-sm py-2 px-3 rounded"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(previewDataUrl);
+                            const blob = await res.blob();
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `${selectedRequest.requestType || 'quotation'}-preview.jpeg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                          } catch (err) {
+                            console.error('Failed to download preview:', err);
+                            alert('Failed to download preview image. Please try regenerating the preview.');
+                          }
+                        }}
+                      >
+                        Download JPEG
+                      </button>
                     )}
                   </div>
                 </div>
