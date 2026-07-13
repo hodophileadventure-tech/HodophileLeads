@@ -346,19 +346,24 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
   color: #111827;
-  flex: 0 0 160px; /* fixed label width */
+  flex: 0 0 200px; /* slightly wider label column to avoid truncation */
+  white-space: normal; /* allow wrapping so full heading is visible */
+  word-break: break-word;
+  padding-right: 10px;
+  font-size: 16px;
 }
 
 .pdf-package-info-line span {
-  opacity: 0.85;
+  opacity: 0.9;
   font-weight: 600;
   flex: 1 1 auto;
+  font-size: 16px;
 }
 
 /* Group spacing for package info lines */
