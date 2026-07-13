@@ -116,6 +116,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     return filled.slice(0, 6);
   }, [rows]);
 
+  const rowHasValues = (row: Row) => Boolean(row.particulars || row.persons || row.price || row.amount);
+
   const generatePreview = React.useCallback(async () => {
     if (!previewDocRef.current) return null;
     try {
@@ -198,6 +200,36 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     } catch (err) {
       console.error('Failed to generate JPEG', err);
     }
+  };
+
+  const saveInvoice = () => {
+    const invoiceData = {
+      invoiceNumber,
+      date,
+      travelDate,
+      destination,
+      persons,
+      customerName,
+      number,
+      city,
+      discount,
+      advance,
+      subtotal,
+      discountValue,
+      totalDue,
+      balance,
+      rows,
+    };
+
+    const blob = new Blob([JSON.stringify(invoiceData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Invoice-${invoiceNumber || 'Invoice'}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -283,6 +315,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
 
           <div className="invoice-form-actions">
             <button type="button" onClick={downloadJPEG}>Download JPEG</button>
+            <button type="button" onClick={saveInvoice}>Save Invoice</button>
           </div>
         </div>
       </section>
@@ -365,10 +398,10 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
                 <tbody>
                   {previewRows.map((r) => (
                     <tr key={r.id}>
-                      <td>{r.particulars || destination || '—'}</td>
-                      <td className="text-center">{r.persons || persons || ''}</td>
-                      <td className="text-center">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
-                      <td className="text-center">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
+                      <td className="desc-col">{r.particulars || ''}</td>
+                      <td className="qty-col text-center">{r.persons || ''}</td>
+                      <td className="price-col text-center">{r.price ? parseNumber(r.price).toLocaleString('en-US') : ''}</td>
+                      <td className="amount-col text-center">{r.amount ? parseNumber(r.amount).toLocaleString('en-US') : ''}</td>
                     </tr>
                   ))}
                 </tbody>

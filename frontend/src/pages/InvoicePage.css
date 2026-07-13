@@ -407,14 +407,13 @@ body {
 
 .invoice-items-table th,
 .invoice-items-table td {
-  padding: 0 8px;
-  height: 42px;
+  padding: 10px 10px;
   border: 1px solid #d8d8d8;
   vertical-align: middle;
 }
 
 .invoice-items-table tbody tr {
-  height: 42px;
+  height: auto;
 }
 
 .invoice-items-table thead th {
@@ -422,6 +421,7 @@ body {
   color: #fcc000;
   font-weight: 700;
   text-align: center;
+  white-space: normal;
 }
 
 .invoice-items-table thead th.desc-col {
@@ -439,23 +439,39 @@ body {
 .invoice-items-table td {
   font-size: 12px;
   color: #111827;
-  line-height: 1.25;
+  line-height: 1.4;
 }
 
-.invoice-items-table tbody td:first-child {
+.invoice-items-table tbody td.desc-col {
   font-weight: 800;
-  font-size: 12px;
   text-align: left;
   padding-left: 12px;
 }
 
-.invoice-items-table tbody td:not(:first-child) {
+.invoice-items-table tbody td.qty-col,
+.invoice-items-table tbody td.price-col,
+.invoice-items-table tbody td.amount-col {
   font-weight: 600;
 }
 
-.invoice-items-table tbody td.amount-col,
-.invoice-items-table tbody td.text-center:last-child {
+.invoice-items-table tbody td.amount-col {
   font-weight: 700;
+}
+
+.desc-col {
+  width: 42%;
+}
+
+.qty-col {
+  width: 18%;
+}
+
+.price-col {
+  width: 20%;
+}
+
+.amount-col {
+  width: 20%;
 }
 
 .desc-col {
