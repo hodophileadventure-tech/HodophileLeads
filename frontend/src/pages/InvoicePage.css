@@ -175,14 +175,14 @@ body {
 
 .invoice-branding {
   display: flex;
-  flex-direction: row; /* place logo and details side-by-side */
-  gap: 10px; /* reduced gap between logo and text */
-  align-items: center;
+  flex-direction: column; /* stack logo above brand details */
+  gap: 2px; /* minimal gap so brand appears directly under logo */
+  align-items: flex-start;
 }
 
 .invoice-brand-logo {
-  width: 72px; /* smaller logo to reduce spacing */
-  height: 72px;
+  width: 64px; /* compact logo size to match stacked layout */
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,11 +214,12 @@ body {
 }
 
 .invoice-brand-name {
-  font-size: clamp(18px, 2.6vw, 24px); /* responsive but prefers larger size */
+  font-size: 20px; /* prefer a consistent readable size */
   text-transform: uppercase;
   white-space: nowrap; /* keep on one line */
   overflow: hidden;
   text-overflow: ellipsis;
+  margin: 0; /* remove extra vertical spacing */
 }
 
 .invoice-brand-address,
@@ -238,6 +239,7 @@ body {
   width: auto;
   text-align: left;
   margin-top: 0px;
+  font-size: 12px;
 }
 
 /* Invoice heading label (left column) */
