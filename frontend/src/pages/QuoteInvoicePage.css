@@ -441,6 +441,20 @@ html, body {
   height: 52px;
 }
 
+/* Ensure numeric columns' headers align with their values */
+.pdf-main-table thead th:nth-child(2),
+.pdf-main-table thead th:nth-child(4) {
+  text-align: right;
+}
+
+/* Make numeric cell values right-aligned and block-level for consistent alignment */
+.pdf-price-cell strong,
+.pdf-amount-cell strong {
+  display: block;
+  text-align: right;
+  line-height: 1;
+}
+
 .pdf-main-table tbody tr.pdf-empty-row td {
   min-height: 80px;
   border-top: none;
