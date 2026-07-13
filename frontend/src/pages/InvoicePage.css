@@ -540,16 +540,26 @@ body {
 .invoice-footer-notes {
   margin-top: 10px;
   display: block;
-  color: #6b7280;
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.5;
+  color: #000000; /* text color black */
+  font-size: 14px; /* increased */
+  font-weight: 500;
+  line-height: 1.4;
   max-width: 520px;
   margin-bottom: 8px;
 }
 
-.invoice-footer-notes p {
+.invoice-footer-notes ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.invoice-footer-notes li {
   margin: 0 0 6px 0;
+}
+
+.invoice-footer-notes .invoice-note {
+  color: #b91c1c; /* red for NOTE label */
+  font-weight: 700;
 }
 
 .invoice-footer-logos {

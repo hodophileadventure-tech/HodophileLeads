@@ -461,9 +461,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
             </section>
 
             <section className="invoice-footer-notes">
-              <p>Remaining amount handed over to Driver cum Guide at departure is mandatory.</p>
-              <p>Detailed itinerary has already been shared on WhatsApp.</p>
-              <p>Terms & Conditions apply. Driver details will be shared one day before departure.</p>
+              <ul>
+                <li>Detailed Itinerary already shared with you via provided WhatsApp number. <strong>ONLY ONE JEEP ride includes in package.</strong></li>
+                <li><strong className="invoice-note">NOTE:</strong> ONLY ONE JEEP ride includes in package, other than pay yourself.</li>
+                <li>You are requested to read and follow our <strong>TERMS & CONDITIONS</strong> as mentioned in detailed trip itinerary.</li>
+                <li>Please cooperate with your Driver cum Guide.</li>
+              </ul>
             </section>
 
             <section className="invoice-footer-logos">
