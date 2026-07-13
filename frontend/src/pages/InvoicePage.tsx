@@ -354,7 +354,6 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
                     <img
                       src={hodophileLogoPath}
                       alt="Hodophile logo"
-                      style={{ width: '84px', height: '84px', objectFit: 'contain' }}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = invoiceLogoImage; }}
                     />
                   </div>

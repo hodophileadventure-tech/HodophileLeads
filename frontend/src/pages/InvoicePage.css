@@ -199,10 +199,10 @@ body {
 
 .invoice-brand-logo img {
   display: block;
-  width: 84px;
-  height: 84px;
-  max-width: 84px;
-  max-height: 84px;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
 }
 
@@ -401,7 +401,7 @@ body {
 
 .invoice-items-table th,
 .invoice-items-table td {
-  padding: 13px 13px;
+  padding: 14px 14px;
   border: 1px solid #d8d8d8;
   vertical-align: middle;
 }
@@ -419,7 +419,7 @@ body {
 }
 
 .invoice-items-table thead th.desc-col {
-  font-size: 14px;
+  font-size: 16px;
   text-align: left;
   padding-left: 14px;
 }
@@ -427,11 +427,11 @@ body {
 .invoice-items-table thead th.qty-col,
 .invoice-items-table thead th.price-col,
 .invoice-items-table thead th.amount-col {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .invoice-items-table td {
-  font-size: 14px;
+  font-size: 16px;
   color: #111827;
   line-height: 1.5;
 }
