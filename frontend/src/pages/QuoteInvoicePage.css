@@ -352,9 +352,9 @@ html, body {
 .pdf-package-info-line strong {
   font-weight: 800;
   color: #111827;
-  flex: 0 0 200px; /* slightly wider label column to avoid truncation */
-  white-space: normal; /* allow wrapping so full heading is visible */
-  word-break: break-word;
+  /* Increase label column and keep label text on a single line */
+  flex: 0 0 320px;
+  white-space: nowrap;
   padding-right: 10px;
   font-size: 16px;
 }
@@ -377,11 +377,10 @@ html, body {
 .pdf-package-info-line strong {
   text-align: right;
   padding-right: 10px;
-  /* Allow labels to wrap so long headings are fully visible in PDFs */
-  white-space: normal;
+  /* Keep labels on a single line for these key headings */
+  white-space: nowrap;
   overflow: visible;
   text-overflow: unset;
-  word-break: break-word;
 }
 
 .pdf-package-info-line span {
