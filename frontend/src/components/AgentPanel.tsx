@@ -736,13 +736,13 @@ export const AgentPanel: React.FC = () => {
                   <Button
                     variant="secondary"
                     onClick={() => requestLeadDocument(lead)}
-                    disabled={requestedQuotationLeadIds.has(lead.id)}
+                    disabled={requestedInvoiceLeadIds.has(lead.id)}
                   >
                     Request Quote/Invoice
                   </Button>
-                  {requestedQuotationLeadIds.has(lead.id) && (
+                  {requestedInvoiceLeadIds.has(lead.id) && (
                     <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 px-3 py-1 text-xs font-semibold">
-                      Quotation already requested
+                      Invoice already requested
                     </span>
                   )}
                 </div>
