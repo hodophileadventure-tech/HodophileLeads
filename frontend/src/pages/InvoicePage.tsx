@@ -84,8 +84,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     return Number.isNaN(n) ? 0 : n;
   };
 
-  const updateRow = (id: string, field: keyof Omit<Row, 'id'>, value: string) => {
-    setRows((current) => current.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  const updateRow = (index: number, field: keyof Omit<Row, 'id'>, value: string) => {
+    setRows((current) => current.map((r, idx) => (idx === index ? { ...r, [field]: value } : r)));
   };
 
   const syncRowAmounts = () => {
@@ -245,12 +245,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
           <div className="invoice-form-spanning">
             <label>Invoice Items</label>
             <div className="invoice-items-grid">
-              {rows.map((r) => (
+              {rows.map((r, index) => (
                 <div key={r.id} className="invoice-item-row">
-                  <input placeholder="Particulars" value={r.particulars} onChange={(e) => updateRow(r.id, 'particulars', e.target.value)} />
-                  <input placeholder="Pax" value={r.persons} onChange={(e) => { updateRow(r.id, 'persons', e.target.value); }} />
-                  <input placeholder="Price" value={r.price} onChange={(e) => { updateRow(r.id, 'price', e.target.value); syncRowAmounts(); }} />
-                  <input placeholder="Amount" value={r.amount} onChange={(e) => updateRow(r.id, 'amount', e.target.value)} />
+                  <input placeholder="Particulars" value={r.particulars} onChange={(e) => updateRow(index, 'particulars', e.target.value)} />
+                  <input placeholder="Pax" value={r.persons} onChange={(e) => { updateRow(index, 'persons', e.target.value); }} />
+                  <input placeholder="Price" value={r.price} onChange={(e) => { updateRow(index, 'price', e.target.value); syncRowAmounts(); }} />
+                  <input placeholder="Amount" value={r.amount} onChange={(e) => updateRow(index, 'amount', e.target.value)} />
                 </div>
               ))}
               <div className="invoice-item-actions">
