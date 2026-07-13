@@ -207,12 +207,14 @@ body {
   font-weight: 700;
   color: #111827;
   line-height: 1.35;
+  /* allow wrapping to prevent layout overlap with the right column */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .invoice-brand-name {
   font-size: 24px; /* enlarged Hodophile brand name */
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .invoice-brand-address,
@@ -221,17 +223,21 @@ body {
   font-weight: 400;
   color: #111827;
   line-height: 1.5;
+  /* allow long addresses to wrap and break words if necessary */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .invoice-brand-license {
   color: #111827; /* black for government license */
   margin: 0;
   font-weight: 700;
-  white-space: nowrap;
   display: block;
   width: auto;
   text-align: left;
   margin-top: 2px; /* keep the license just below contact */
+  white-space: normal; /* allow wrapping so it doesn't overlap nearby content */
+  overflow-wrap: anywhere;
 }
 
 /* Invoice heading label (left column) */
