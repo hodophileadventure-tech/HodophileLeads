@@ -315,7 +315,7 @@ body {
 
 .invoice-meta-row strong {
   justify-self: end;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 12px;
   color: #111827;
   white-space: normal;
@@ -356,7 +356,7 @@ body {
 
 .invoice-client-name {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   color: #111827;
 }
 
@@ -453,6 +453,11 @@ body {
   font-weight: 600;
 }
 
+.invoice-items-table tbody td.amount-col,
+.invoice-items-table tbody td.text-center:last-child {
+  font-weight: 700;
+}
+
 .desc-col {
   width: 48%;
 }
@@ -493,7 +498,12 @@ body {
   padding: 6px 0;
   font-size: 14px;
   color: #374151;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.summary-row.summary-total-row,
+.summary-row.summary-balance-row {
+  font-weight: 700;
 }
 
 .summary-row span,
