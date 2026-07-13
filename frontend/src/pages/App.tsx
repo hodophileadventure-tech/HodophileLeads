@@ -44,6 +44,7 @@ const CANCEL_LEAD_REASONS = [
   'Friends/family cancelled',
   'Unexpected expenses',
   'Another agency offered a lower price',
+  'Got a better offer from elsewhere',
   'Payment issues',
   'Preferred dates unavailable',
   'Weather concerns',

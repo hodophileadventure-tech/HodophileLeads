@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Spinner, Button } from './common';
 import { QuickSummary } from './QuickSummary';
+import LeadTransferPanel from './LeadTransferPanel';
 import { dashboardAPI, adminAPI } from '../utils/api-service';
 import type { Lead } from '../types';
 import { formatCurrency, formatKarachiDateTime } from '../utils/helpers';
@@ -472,6 +473,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
           </div>
         </Card>
       )}
+
+      {isAdmin && <LeadTransferPanel />}
 
       {isAdmin && adminOverview && (
         <Card>
