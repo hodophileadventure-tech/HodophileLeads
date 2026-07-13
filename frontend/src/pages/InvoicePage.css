@@ -189,7 +189,7 @@ body {
 
 .invoice-brand-logo {
   width: 94px;
-  height: 94px;
+  height: auto; /* let container size to image height so brand name sits directly below */
   min-width: 94px;
   display: flex;
   align-items: center;
@@ -200,7 +200,7 @@ body {
 .invoice-brand-logo img {
   display: block;
   max-width: 100%;
-  max-height: 100%;
+  max-height: 94px; /* cap visual size while allowing image to determine container height */
   width: auto;
   height: auto;
   object-fit: contain;
