@@ -4,8 +4,9 @@ import bcryptjs from 'bcryptjs';
 const JWT_SECRET: string = process.env.JWT_SECRET || 'super-secret-key';
 const JWT_EXPIRY: string = process.env.JWT_EXPIRY || '7d';
 
-export const generateToken = (payload: any): string => {
-  const options: SignOptions = { expiresIn: JWT_EXPIRY as any };
+export const generateToken = (payload: any, expiresIn?: string | number): string => {
+  const options: SignOptions = {};
+  options.expiresIn = expiresIn || (JWT_EXPIRY as any);
   return jwt.sign(payload, JWT_SECRET, options);
 };
 

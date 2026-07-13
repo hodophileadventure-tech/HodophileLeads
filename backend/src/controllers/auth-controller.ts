@@ -34,11 +34,15 @@ export const authController = {
 
       console.log('[AUTH] Login succeeded', { email: user.email, role: user.role, ip: req.ip });
 
+      // Issue shorter-lived tokens for elevated/internal roles
+      const privilegedRoles = ['admin', 'agent', 'manager'];
+      const tokenExpiry = privilegedRoles.includes(user.role) ? '9h' : undefined;
+
       const token = generateToken({
         id: user.id,
         email: user.email,
         role: user.role
-      });
+      }, tokenExpiry);
 
       res.json({
         token,
@@ -69,11 +73,14 @@ export const authController = {
 
       const user = result.rows[0];
 
+      const privilegedRoles = ['admin', 'agent', 'manager'];
+      const tokenExpiry = privilegedRoles.includes(user.role) ? '9h' : undefined;
+
       const token = generateToken({
         id: user.id,
         email: user.email,
         role: user.role
-      });
+      }, tokenExpiry);
 
       res.status(201).json({
         token,
@@ -113,7 +120,10 @@ export const authController = {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const token = generateToken({ id: user.id, email: user.email, role: user.role });
+      const privilegedRoles = ['admin', 'agent', 'manager'];
+      const tokenExpiry = privilegedRoles.includes(user.role) ? '9h' : undefined;
+
+      const token = generateToken({ id: user.id, email: user.email, role: user.role }, tokenExpiry);
       res.json({
         token,
         user: {
