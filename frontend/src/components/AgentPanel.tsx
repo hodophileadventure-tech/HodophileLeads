@@ -439,8 +439,12 @@ export const AgentPanel: React.FC = () => {
     setShowConfirmForm(false);
   };
 
-  const requestedLeadIds = useMemo(() => {
-    return new Set(quoteRequests.map((request) => request.leadId));
+  const requestedInvoiceLeadIds = useMemo(() => {
+    return new Set(
+      quoteRequests
+        .filter((request) => request.requestType === 'invoice')
+        .map((request) => request.leadId)
+    );
   }, [quoteRequests]);
 
   const requestLeadDocument = async (lead: Lead) => {
@@ -732,13 +736,13 @@ export const AgentPanel: React.FC = () => {
                   <Button
                     variant="secondary"
                     onClick={() => requestLeadDocument(lead)}
-                    disabled={requestedLeadIds.has(lead.id)}
+                    disabled={requestedQuotationLeadIds.has(lead.id)}
                   >
                     Request Quote/Invoice
                   </Button>
-                  {requestedLeadIds.has(lead.id) && (
+                  {requestedQuotationLeadIds.has(lead.id) && (
                     <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 px-3 py-1 text-xs font-semibold">
-                      Already requested
+                      Quotation already requested
                     </span>
                   )}
                 </div>
