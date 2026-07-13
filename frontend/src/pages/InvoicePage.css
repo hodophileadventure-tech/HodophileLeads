@@ -209,7 +209,7 @@ body {
 .invoice-brand-details {
   display: flex;
   flex-direction: column;
-  gap: 0px;
+  gap: 6px;
   min-width: 0;
 }
 
