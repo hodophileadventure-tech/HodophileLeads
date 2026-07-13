@@ -1,5 +1,6 @@
-﻿import React, { useMemo, useRef, useState } from 'react';
+﻿import React, { useMemo, useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
+import { quoteRequestsAPI } from '../utils/api-service';
 import watermarkImage from '../assets/invoice-watermark.jpg';
 // Prefer a bundled asset inside the project so the logo works in all environments.
 // Place your image at `frontend/src/assets/hodophile-logo.jpeg` (or .png) and it'll be used.
@@ -33,11 +34,21 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   const [destination, setDestination] = useState<string>('');
   const defaultInvoiceNumber = (value: string) => {
     const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return '0000001241';
+    if (Number.isNaN(parsed.getTime())) return '0000001101';
     const yy = String(parsed.getFullYear()).slice(-2);
     const mm = String(parsed.getMonth() + 1).padStart(2, '0');
     const dd = String(parsed.getDate()).padStart(2, '0');
-    return `${yy}${mm}${dd}1241`;
+    return `${yy}${mm}${dd}1101`;
+  };
+
+  const fetchNextInvoiceNumber = async (dateString: string): Promise<string> => {
+    try {
+      const response = await quoteRequestsAPI.getNextQuotationNumber(dateString);
+      return response.data.quotationNumber;
+    } catch (error) {
+      console.error('Failed to fetch next invoice number:', error);
+      return defaultInvoiceNumber(dateString);
+    }
   };
 
   const [invoiceNumber, setInvoiceNumber] = useState<string>(() => defaultInvoiceNumber(new Date().toISOString().split('T')[0]));
@@ -77,6 +88,20 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
       // ignore
     }
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadInvoiceNumber = async () => {
+      const nextNumber = await fetchNextInvoiceNumber(date);
+      if (active) {
+        setInvoiceNumber(nextNumber);
+      }
+    };
+    loadInvoiceNumber();
+    return () => {
+      active = false;
+    };
+  }, [date]);
 
 
   const parseNumber = (v: string) => {

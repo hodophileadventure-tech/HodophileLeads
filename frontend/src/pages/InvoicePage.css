@@ -187,8 +187,8 @@ body {
 }
 
 .invoice-brand-logo {
-  width: 84px;
-  height: 84px;
+  width: 94px;
+  height: 94px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -405,7 +405,7 @@ body {
 
 .invoice-items-table th,
 .invoice-items-table td {
-  padding: 10px 10px;
+  padding: 12px 12px;
   border: 1px solid #d8d8d8;
   vertical-align: middle;
 }
@@ -423,7 +423,7 @@ body {
 }
 
 .invoice-items-table thead th.desc-col {
-  font-size: 12px;
+  font-size: 13px;
   text-align: left;
   padding-left: 14px;
 }
@@ -431,19 +431,19 @@ body {
 .invoice-items-table thead th.qty-col,
 .invoice-items-table thead th.price-col,
 .invoice-items-table thead th.amount-col {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .invoice-items-table td {
-  font-size: 12px;
+  font-size: 13px;
   color: #111827;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .invoice-items-table tbody td.desc-col {
   font-weight: 800;
   text-align: left;
-  padding-left: 12px;
+  padding-left: 14px;
 }
 
 .invoice-items-table tbody td.qty-col,
@@ -457,27 +457,11 @@ body {
 }
 
 .desc-col {
-  width: 42%;
+  width: 46%;
 }
 
 .qty-col {
-  width: 18%;
-}
-
-.price-col {
-  width: 20%;
-}
-
-.amount-col {
-  width: 20%;
-}
-
-.desc-col {
-  width: 48%;
-}
-
-.qty-col {
-  width: 14%;
+  width: 16%;
 }
 
 .price-col {
