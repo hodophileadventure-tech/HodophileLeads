@@ -441,11 +441,13 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 52%;
+  /* Slightly reduced description column to move price column left */
+  width: 48%;
 }
 
 .pdf-main-table col.col-price {
-  width: 17%;
+  /* Increase price column width so it sits more to the left */
+  width: 21%;
 }
 
 .pdf-main-table col.col-person {
