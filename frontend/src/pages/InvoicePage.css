@@ -337,7 +337,7 @@ body {
   gap: 10px;
   margin: 24px 0 12px;
   padding-top: 18px;
-  border-top: 1px solid #d1d5db;
+  border-top: 1px solid #6b7280;
 }
 
 .invoice-client-title {
@@ -554,23 +554,23 @@ body {
 }
 
 .invoice-footer-notes {
-  margin-top: 10px;
+  margin-top: 8px;
   display: block;
   color: #000000; /* text color black */
   font-size: 16px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.35;
   max-width: 520px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .invoice-footer-notes ul {
   margin: 0;
-  padding-left: 16px;
+  padding-left: 14px;
 }
 
 .invoice-footer-notes li {
-  margin: 0 0 4px 0;
+  margin: 0 0 3px 0;
 }
 
 .invoice-footer-notes .invoice-note {
@@ -579,13 +579,13 @@ body {
 }
 
 .invoice-footer-logos {
-  margin-top: 12px;
+  margin-top: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 28px;
-  flex-wrap: nowrap;
-  padding: 8px 0;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 4px 0;
 }
 
 .footer-logo {
