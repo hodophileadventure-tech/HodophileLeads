@@ -447,11 +447,11 @@ html, body {
 
 .pdf-main-table col.col-price {
   /* Increase price column width so it sits more to the left */
-  width: 21%;
+  width: 19%;
 }
 
 .pdf-main-table col.col-person {
-  width: 14%;
+  width: 16%;
 }
 
 .pdf-main-table col.col-amount {
@@ -523,12 +523,13 @@ html, body {
 
 .pdf-person-value {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 100%;
   font-weight: 800;
   font-size: 34px;
   line-height: 1.1;
+  padding-top: 0;
 }
 
 .pdf-description-cell {
