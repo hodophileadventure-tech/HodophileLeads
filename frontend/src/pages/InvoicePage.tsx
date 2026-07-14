@@ -205,11 +205,18 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         // ignore
       }
       // allow layout to settle
-      await new Promise((r) => setTimeout(r, 80));
+      await new Promise((r) => setTimeout(r, 120));
+      const width = target.scrollWidth;
+      const height = target.scrollHeight;
       const canvas = await html2canvas(target, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
+        allowTaint: true,
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
       });
       // restore inline style
       try {
