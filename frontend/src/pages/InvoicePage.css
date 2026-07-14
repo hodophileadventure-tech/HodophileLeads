@@ -47,9 +47,9 @@ body {
 
 .invoice-client-section {
   display: grid;
-  gap: 6px;
-  margin: 6px 0 0; /* pull section upward */
-  padding-top: 4px; /* reduce top padding so title sits closer */
+  gap: 4px;
+  margin: 4px 0 0; /* pull section upward */
+  padding-top: 0; /* remove extra top padding */
 }
 
 .invoice-client-title {
@@ -153,7 +153,7 @@ body {
   min-height: 297mm;
   aspect-ratio: 210 / 297;
   height: auto;
-  padding: 4mm 14mm 8mm;
+  padding: 1mm 14mm 6mm; /* reduce top padding to move content upward */
   margin: 0 auto;
   background: #ffffff;
   border: 1px solid #ececec;
@@ -170,11 +170,11 @@ body {
 .invoice-header {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(240px, 320px);
-  gap: 12px;
+  gap: 8px; /* tighten horizontal gap */
   align-items: start;
-  margin-bottom: 8px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #111827; /* make the existing light rule dark */
+  margin-bottom: 4px; /* reduce vertical gap under header */
+  padding-bottom: 6px;
+  border-bottom: 2px solid #111827;
 }
 
 .invoice-header-left {
