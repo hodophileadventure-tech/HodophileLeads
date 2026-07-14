@@ -401,7 +401,7 @@ body {
 
 .invoice-items-table th,
 .invoice-items-table td {
-  padding: 12px 12px;
+  padding: 10px 10px;
   border: 1.5px solid #bdbdbd;
   vertical-align: middle;
 }
@@ -416,8 +416,10 @@ body {
   font-weight: 700;
   text-align: center;
   white-space: normal;
-  line-height: 1.2;
-  padding: 10px 12px;
+  line-height: 1.1;
+  padding: 8px 10px;
+  height: auto;
+  min-height: 0;
 }
 
 .invoice-items-table thead th.desc-col {
