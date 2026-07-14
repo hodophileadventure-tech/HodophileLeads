@@ -303,17 +303,17 @@ html, body {
 
 .pdf-quote-meta-row {
   display: grid;
-  grid-template-columns: 140px 20px minmax(140px, 1fr);
-  gap: 8px;
-  font-size: 24px;
+  grid-template-columns: 160px 24px minmax(160px, 1fr);
+  gap: 12px;
+  font-size: 28px;
   color: #111827;
   align-items: center;
 }
 
 .pdf-quote-meta-row span {
-  opacity: 0.75;
-  font-weight: 600;
-  font-size: 18px;
+  opacity: 0.85;
+  font-weight: 700;
+  font-size: 24px;
 }
 
 .pdf-quote-meta-row span:first-child {
@@ -326,8 +326,8 @@ html, body {
 
 .pdf-quote-meta-row strong {
   justify-self: end;
-  font-weight: 800;
-  font-size: 20px;
+  font-weight: 900;
+  font-size: 32px;
 }
 
 .pdf-content-inner {
@@ -423,19 +423,20 @@ html, body {
 .pdf-quote-meta-row {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  font-size: 28px;
+  gap: 18px;
+  font-size: 32px;
   color: #111827;
 }
 
 .pdf-quote-meta-row span {
-  opacity: 0.75;
-  font-weight: 600;
-  font-size: 24px;
+  opacity: 0.85;
+  font-weight: 700;
+  font-size: 26px;
 }
 
 .pdf-quote-meta-row strong {
-  font-weight: 800;
+  font-weight: 900;
+  font-size: 34px;
 }
 
 .pdf-table-wrapper {
