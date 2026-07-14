@@ -152,13 +152,13 @@ body {
   min-height: 297mm;
   aspect-ratio: 210 / 297;
   height: auto;
-  padding: 8mm 14mm 4mm;
+  padding: 8mm 14mm 8mm;
   margin: 0 auto;
   background: #ffffff;
   border: 1px solid #ececec;
   box-shadow: 0 16px 52px rgba(15, 23, 36, 0.12);
   color: #111827;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   transform: none;

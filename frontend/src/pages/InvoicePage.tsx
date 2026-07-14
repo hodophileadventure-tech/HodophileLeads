@@ -191,13 +191,16 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     const target = previewDocRef.current;
     if (!target) return;
     try {
-      // Temporarily enforce A4 sizing to avoid wrapper/layout differences on deployed builds
+      // Temporarily enforce A4 width while allowing height to grow so the footer and separators are fully captured
       const previousStyle = target.getAttribute('style') || '';
       try {
         const el = target as HTMLElement;
         el.style.width = '210mm';
-        el.style.height = '297mm';
         el.style.maxWidth = 'none';
+        el.style.height = 'auto';
+        el.style.minHeight = '297mm';
+        el.style.maxHeight = 'none';
+        el.style.overflow = 'visible';
       } catch (e) {
         // ignore
       }
