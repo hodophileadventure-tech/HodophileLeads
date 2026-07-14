@@ -201,11 +201,16 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         el.style.minHeight = '297mm';
         el.style.maxHeight = 'none';
         el.style.overflow = 'visible';
+        // Force the same padding used in preview so @media print rules don't change layout
+        el.style.padding = '0mm 14mm 6mm';
+        // ensure transform/box-shadow won't alter capture framing
+        el.style.transform = 'none';
+        el.style.boxShadow = 'none';
       } catch (e) {
         // ignore
       }
       // allow layout to settle
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, 250));
       const width = target.scrollWidth;
       const height = target.scrollHeight;
       const canvas = await html2canvas(target, {
