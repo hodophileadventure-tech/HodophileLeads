@@ -220,7 +220,7 @@ body {
 }
 
 .invoice-brand-name {
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 700;
   font-family: 'Bebas Neue', 'Montserrat', Arial, sans-serif;
   text-transform: uppercase;
@@ -233,7 +233,7 @@ body {
 
 .invoice-brand-address,
 .invoice-brand-contact {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
   color: #111827;
   line-height: 1.35;
@@ -248,7 +248,7 @@ body {
   width: auto;
   text-align: left;
   margin-top: 0;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 /* Invoice heading label (left column) */
@@ -300,7 +300,7 @@ body {
 .invoice-meta-row span {
   color: #111827;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 18px;
   justify-self: start;
 }
 
@@ -311,7 +311,7 @@ body {
 .invoice-meta-row strong {
   justify-self: end;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 18px;
   color: #111827;
   white-space: normal;
   overflow: visible;
@@ -339,7 +339,7 @@ body {
 }
 
 .invoice-client-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #111827;
   text-transform: uppercase;
@@ -349,24 +349,24 @@ body {
 .invoice-client-details {
   width: 100%;
   max-width: 290px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: #f3f4f6;
   border: 1px solid #d8d8d8;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 3px;
 }
 
 .invoice-client-name {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
   color: #111827;
 }
 
 .invoice-client-phone,
 .invoice-client-city {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: #111827;
 }
@@ -433,7 +433,7 @@ body {
 }
 
 .invoice-items-table thead th.desc-col {
-  font-size: 18px;
+  font-size: 22px;
   text-align: left;
   padding-left: 14px;
 }
@@ -441,20 +441,20 @@ body {
 .invoice-items-table thead th.qty-col,
 .invoice-items-table thead th.price-col,
 .invoice-items-table thead th.amount-col {
-  font-size: 18px;
+  font-size: 22px;
 }
 
 .invoice-items-table td {
-  font-size: 17px;
+  font-size: 19px;
   color: #111827;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .invoice-items-table tbody td.desc-col {
   font-weight: 800;
   text-align: left;
   padding-left: 14px;
-  font-size: 19px;
+  font-size: 21px;
 }
 
 .invoice-items-table tbody td.qty-col,
@@ -504,8 +504,8 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 8px 0;
-  font-size: 17px;
+  padding: 10px 0;
+  font-size: 19px;
   color: #374151;
   font-weight: 600;
 }
@@ -515,7 +515,7 @@ body {
 }
 
 .summary-row.summary-balance-row {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
 }
 
@@ -528,7 +528,7 @@ body {
 .summary-row strong {
   color: #111827;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 19px;
 }
 
 .summary-divider {
@@ -543,10 +543,10 @@ body {
 }
 
 .summary-balance-row {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   color: #111827;
-  padding: 8px 0;
+  padding: 10px 0;
   background: #f9fafb;
   border-radius: 4px;
 }
@@ -555,7 +555,7 @@ body {
   margin-top: 10px;
   display: block;
   color: #000000; /* text color black */
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
   max-width: 520px;
