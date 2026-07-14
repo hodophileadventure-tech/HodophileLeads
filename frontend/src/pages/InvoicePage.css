@@ -443,6 +443,8 @@ body {
   font-size: 22px;
   text-align: left;
   padding-left: 14px;
+  background: #111827;
+  color: #fcc000;
 }
 
 .invoice-items-table thead th.qty-col,
