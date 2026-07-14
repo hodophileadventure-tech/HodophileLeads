@@ -344,9 +344,10 @@ html, body {
 
 .pdf-package-info-line {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 18px;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 20px;
+  line-height: 1.2;
 }
 
 .pdf-package-info-line strong {
@@ -356,7 +357,8 @@ html, body {
   flex: 0 0 320px;
   white-space: nowrap;
   padding-right: 10px;
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 1.2;
 }
 
 .pdf-package-info-line span {
@@ -364,7 +366,8 @@ html, body {
   color: #111827;
   font-weight: 700;
   flex: 1 1 auto;
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 1.2;
   text-align: left;
 }
 
