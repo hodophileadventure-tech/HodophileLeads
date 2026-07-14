@@ -441,13 +441,13 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  /* Slightly reduced description column to move price column left */
-  width: 48%;
+  /* Reduce the description column so the package price column shifts left */
+  width: 44%;
 }
 
 .pdf-main-table col.col-price {
-  /* Increase price column width so it sits more to the left */
-  width: 19%;
+  /* Increase the price column so it sits further left without changing the other numeric columns */
+  width: 22%;
 }
 
 .pdf-main-table col.col-person {
@@ -455,7 +455,7 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 17%;
+  width: 18%;
 }
 
 .pdf-main-table thead th {
