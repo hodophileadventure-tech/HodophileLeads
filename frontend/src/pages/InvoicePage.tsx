@@ -13,6 +13,7 @@ import govtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-rem
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
 import fbrLogo from '../assets/logos/images-removebg-preview.png';
+import invoiceHeadingImage from '../assets/INVOICE.png';
 import './InvoicePage.css';
 
 type Row = { id: string; particulars: string; persons: string; price: string; amount: string };
@@ -371,7 +372,10 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               </div>
 
               <div className="invoice-header-right">
-                <div className="invoice-label">INVOICE</div>
+                <div className="invoice-hero-block">
+                  <img className="invoice-heading-image" src={invoiceHeadingImage} alt="Invoice heading" />
+                  <div className="invoice-subtitle">Travel booking invoice</div>
+                </div>
                 <div className="invoice-meta-list">
                   <div className="invoice-meta-row">
                     <span>Invoice #</span>
@@ -410,6 +414,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
                 <div className="invoice-client-name">{customerName || 'Client Name'}</div>
                 <div className="invoice-client-phone">{number || 'Phone Number'}</div>
                 <div className="invoice-client-city">{city || 'City'}</div>
+                <div className="invoice-client-note">Please keep this invoice as a reference for payment and travel confirmation.</div>
               </div>
             </section>
 

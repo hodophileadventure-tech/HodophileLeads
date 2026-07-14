@@ -252,12 +252,20 @@ body {
 }
 
 /* Invoice heading label (left column) */
+.invoice-hero-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
 .invoice-label {
   font-size: clamp(34px, 5vw, 46px);
   font-weight: 900;
   color: #fcc000; /* highlighted gold color */
   letter-spacing: 0.04em;
-  text-align: left;
+  text-align: left; 
   line-height: 1.05;
   max-width: 100%;
   white-space: normal;
@@ -265,7 +273,22 @@ body {
   text-overflow: unset;
   transform: scaleX(1.08);
   transform-origin: left;
-  margin-bottom: 24px;
+}
+
+.invoice-subtitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.invoice-heading-image {
+  max-width: 180px;
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 
 /* ensure the right column stacks the heading and keeps its content aligned */
@@ -339,13 +362,14 @@ body {
 .invoice-client-details {
   width: 100%;
   max-width: 290px;
-  padding: 7px 9px;
-  background: #f3f4f6;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
   border: 1px solid #d8d8d8;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1px;
+  gap: 2px;
 }
 
 .invoice-client-name {
@@ -365,11 +389,22 @@ body {
   color: #6b7280;
 }
 
+.invoice-client-note {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
 .invoice-table-section {
   position: relative;
   margin-top: 0; /* remove top gap between table and summary */
   margin-bottom: 0; /* ensure no extra bottom gap */
   flex: 1 1 auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .invoice-table-watermark {
@@ -408,6 +443,10 @@ body {
 
 .invoice-items-table tbody tr {
   height: auto;
+}
+
+.invoice-items-table tbody tr:nth-child(even) {
+  background: #fafafa;
 }
 
 .invoice-items-table thead th {
@@ -484,9 +523,13 @@ body {
 .invoice-summary-section {
   width: 300px;
   margin-left: auto;
-  margin-top: 0;
+  margin-top: 8px;
   display: grid;
   gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fcfcfd;
 }
 
 .summary-row {
