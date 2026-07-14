@@ -174,21 +174,8 @@ body {
   align-items: start;
   margin-bottom: 4px; /* reduce vertical gap under header */
   padding-bottom: 6px;
-  border-bottom: 0; /* remove heavy border, use subtle divider below */
+  border-bottom: 2px solid #111827;
   position: relative;
-}
-
-/* yellow stripe behind right-side heading to match provided design */
-.invoice-header::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 14mm; /* align with doc padding */
-  bottom: 0;
-  width: 320px; /* matches the right column max-width */
-  background: #fcc000;
-  z-index: 0;
-  border-bottom-left-radius: 2px;
 }
 
 .invoice-header-left {
@@ -202,7 +189,7 @@ body {
   display: grid;
   gap: 8px;
   padding: 8px 0 8px 12px;
-  z-index: 2; /* above the yellow stripe */
+  z-index: 2;
 }
 
 .invoice-branding {
@@ -668,8 +655,9 @@ body {
     order: -1;
   }
 
+  /* Keep header two-column for most sizes so downloaded invoice remains side-by-side */
   .invoice-header {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1.45fr) minmax(240px, 320px);
     gap: 12px;
   }
 
