@@ -363,11 +363,11 @@ html, body {
   font-weight: 800;
   color: #111827;
   /* Increase label column and keep label text on a single line */
-  flex: 0 0 380px;
+  flex: 0 0 420px;
   white-space: nowrap;
-  padding-right: 14px;
-  font-size: 28px;
-  line-height: 1.2;
+  padding-right: 18px;
+  font-size: 34px;
+  line-height: 1.15;
 }
 
 .pdf-package-info-line span {
@@ -375,8 +375,8 @@ html, body {
   color: #111827;
   font-weight: 700;
   flex: 1 1 auto;
-  font-size: 28px;
-  line-height: 1.2;
+  font-size: 34px;
+  line-height: 1.25;
   text-align: left;
 }
 
@@ -563,16 +563,16 @@ html, body {
 }
 
 .pdf-package-title {
-  font-size: 52px;
+  font-size: 64px;
   font-weight: 800;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .pdf-package-description {
-  font-size: 34px;
-  line-height: 1.5;
+  font-size: 42px;
+  line-height: 1.45;
   color: #111827;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .pdf-content-cell {
@@ -589,7 +589,7 @@ html, body {
 }
 
 .pdf-package-name {
-  font-size: 30px;
+  font-size: 36px;
   font-weight: 800;
   color: #111827;
 }
@@ -606,21 +606,21 @@ html, body {
 }
 
 .pdf-meta-label {
-  font-size: 18px;
+  font-size: 20px;
   color: #111827;
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 .pdf-meta-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
   color: #111827;
   text-align: right;
 }
 
 .pdf-notes {
-  font-size: 30px;
-  line-height: 1.8;
+  font-size: 34px;
+  line-height: 1.7;
   color: #111827;
   font-weight: 600;
 }
