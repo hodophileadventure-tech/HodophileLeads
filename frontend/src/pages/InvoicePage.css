@@ -174,7 +174,21 @@ body {
   align-items: start;
   margin-bottom: 4px; /* reduce vertical gap under header */
   padding-bottom: 6px;
-  border-bottom: 2px solid #111827;
+  border-bottom: 0; /* remove heavy border, use subtle divider below */
+  position: relative;
+}
+
+/* yellow stripe behind right-side heading to match provided design */
+.invoice-header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 14mm; /* align with doc padding */
+  bottom: 0;
+  width: 320px; /* matches the right column max-width */
+  background: #fcc000;
+  z-index: 0;
+  border-bottom-left-radius: 2px;
 }
 
 .invoice-header-left {
@@ -185,6 +199,10 @@ body {
 
 .invoice-header-right {
   justify-self: start;
+  display: grid;
+  gap: 8px;
+  padding: 8px 0 8px 12px;
+  z-index: 2; /* above the yellow stripe */
 }
 
 .invoice-branding {
@@ -192,6 +210,7 @@ body {
   flex-direction: column; /* stack logo above brand details */
   gap: 0px;
   align-items: flex-start;
+  z-index: 2; /* ensure branding sits above any background elements */
 }
 
 .invoice-brand-logo {
@@ -274,6 +293,7 @@ body {
   max-width: 320px;
   height: auto;
   object-fit: contain;
+  z-index: 2; /* ensure the heading graphic sits above the yellow stripe */
 }
 
 /* ensure the right column stacks the heading and keeps its content aligned */
