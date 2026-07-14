@@ -643,8 +643,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                 <div className="pdf-header-info-box">
                   <div className="pdf-header-top">
                     <div className="pdf-customer-box">
-                      <div className="pdf-header-info-label">Customer</div>
-                      <div className="pdf-header-info-value">{data.customerName}</div>
+                      <div className="pdf-header-info-value pdf-customer-name">{data.customerName}</div>
                       <div className="pdf-header-info-value">{data.phone}</div>
                       <div className="pdf-header-info-value">{data.city}</div>
                     </div>
