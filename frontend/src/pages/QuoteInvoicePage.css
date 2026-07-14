@@ -442,20 +442,20 @@ html, body {
 
 .pdf-main-table col.col-desc {
   /* Reduce the description column so the package price column shifts left */
-  width: 44%;
+  width: 42%;
 }
 
 .pdf-main-table col.col-price {
-  /* Increase the price column so it sits further left without changing the other numeric columns */
-  width: 22%;
+  /* Increase the price column so it sits further left and adds space before the person column */
+  width: 24%;
 }
 
 .pdf-main-table col.col-person {
-  width: 16%;
+  width: 15%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 18%;
+  width: 19%;
 }
 
 .pdf-main-table thead th {
