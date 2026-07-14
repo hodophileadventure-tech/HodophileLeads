@@ -447,10 +447,22 @@ body {
   color: #fcc000;
 }
 
-.invoice-items-table thead th.qty-col,
-.invoice-items-table thead th.price-col,
+.invoice-items-table thead th.qty-col {
+  font-size: 22px;
+  background: #fcc000;
+  color: #111827;
+}
+
+.invoice-items-table thead th.price-col {
+  font-size: 22px;
+  background: #111827;
+  color: #fcc000;
+}
+
 .invoice-items-table thead th.amount-col {
   font-size: 22px;
+  background: #fcc000;
+  color: #111827;
 }
 
 .invoice-items-table td {
