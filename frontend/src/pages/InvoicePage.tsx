@@ -208,35 +208,9 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
       document.body.appendChild(wrapper);
 
       const clone = el.cloneNode(true) as HTMLElement;
-      // Copy computed styles from the live preview into the clone so external CSS/print rules
-      // cannot change layout when capturing. We copy styles by walking both trees in parallel.
-      const copyComputedStyles = (source: HTMLElement, destination: HTMLElement) => {
-        try {
-          const srcNodes = Array.from(source.querySelectorAll('*')) as HTMLElement[];
-          const dstNodes = Array.from(destination.querySelectorAll('*')) as HTMLElement[];
-          // copy root computed style first
-          const rootStyle = window.getComputedStyle(source);
-          destination.style.cssText = rootStyle.cssText;
-          // copy children styles where possible
-          for (let i = 0; i < Math.min(srcNodes.length, dstNodes.length); i++) {
-            try {
-              const s = srcNodes[i];
-              const d = dstNodes[i];
-              const cs = window.getComputedStyle(s);
-              d.style.cssText = cs.cssText;
-            } catch (e) {
-              // ignore individual node failures
-            }
-          }
-        } catch (e) {
-          // ignore whole-copy failures
-        }
-      };
-
+      // Append the clone and enforce pixel width and key overrides to lock layout
       wrapper.appendChild(clone);
-      // copy computed styles from original into clone
-      copyComputedStyles(el, clone);
-      // enforce pixel width and key overrides after copying styles
+      // enforce pixel width and key overrides (don't copy every child style to avoid shrinking tables)
       clone.style.width = `${pixelWidth}px`;
       clone.style.maxWidth = 'none';
       clone.style.height = 'auto';
