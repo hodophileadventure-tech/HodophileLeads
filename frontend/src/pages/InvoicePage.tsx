@@ -237,6 +237,23 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
       // allow layout to settle
       await new Promise((r) => setTimeout(r, 150));
 
+      // Wait for webfonts to be ready to avoid font-driven reflow differences
+      try {
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      } catch (e) {
+        // ignore if fonts API not available
+      }
+
+      // Inline basic font properties from the source so text metrics match preview
+      try {
+        const srcStyle = window.getComputedStyle(el);
+        clone.style.fontFamily = srcStyle.fontFamily || '';
+        clone.style.fontSize = srcStyle.fontSize || '';
+        clone.style.lineHeight = srcStyle.lineHeight || '';
+      } catch (e) {
+        // ignore
+      }
+
       const width = clone.scrollWidth;
       const height = clone.scrollHeight;
       const canvas = await html2canvas(clone, {
