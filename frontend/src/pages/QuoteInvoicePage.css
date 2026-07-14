@@ -211,18 +211,21 @@ html, body {
 .pdf-header-image {
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1280px;
-  height: auto;
+  left: 0;
+  width: 2550px;
+  height: 320px;
   z-index: 2;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
 }
 
 .pdf-header-image img {
   width: auto;
-  max-width: 100%;
-  height: auto;
+  max-width: 90%;
+  max-height: 100%;
   display: block;
 }
 
