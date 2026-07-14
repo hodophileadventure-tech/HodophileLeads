@@ -412,27 +412,29 @@ body {
   table-layout: fixed;
   position: relative;
   z-index: 1;
+  border: 1.5px solid #bdbdbd;
 }
 
 .invoice-items-table th,
 .invoice-items-table td {
   padding: 14px 12px;
-  border: 2px solid #111827;
+  border: 1.5px solid #bdbdbd;
   vertical-align: middle;
 }
 
 .invoice-items-table tbody tr {
-  height: 48px;
+  height: auto;
+  min-height: 44px;
 }
 
 .invoice-items-table thead th {
-  background: #111827;
-  color: #fcc000;
+  background: #f3f4f6;
+  color: #111827;
   font-weight: 700;
   text-align: center;
   white-space: normal;
-  line-height: 1.1;
-  padding: 8px 10px;
+  line-height: 1.2;
+  padding: 12px 12px;
   height: auto;
   min-height: 0;
 }
