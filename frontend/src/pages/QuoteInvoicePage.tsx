@@ -637,7 +637,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           <div className="pdf-page">
             <div className="pdf-canvas" ref={previewRef}>
               <div className="pdf-background">
-                <div className="pdf-header-image" style={{ backgroundImage: `url(${quoteHeaderImage})` }}>
+                <div className="pdf-header-image">
                   <img src={quoteHeaderImage} alt="Hodophile header" />
                 </div>
                 <div className="pdf-header-info-box">
