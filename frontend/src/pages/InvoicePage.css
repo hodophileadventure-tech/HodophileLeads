@@ -334,6 +334,14 @@ body {
 .invoice-divider {
   height: 3px;
   background: #111827;
+  margin: 8px 0;
+}
+
+.summary-divider {
+  width: 100%;
+  height: 1.5px;
+  background: #d1d5db;
+  margin: 10px 0;
 }
 
 .invoice-client-section {
