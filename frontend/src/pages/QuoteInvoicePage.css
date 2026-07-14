@@ -423,20 +423,20 @@ html, body {
 .pdf-quote-meta-row {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
-  font-size: 32px;
+  gap: 22px;
+  font-size: 36px;
   color: #111827;
 }
 
 .pdf-quote-meta-row span {
-  opacity: 0.85;
+  opacity: 0.9;
   font-weight: 700;
-  font-size: 26px;
+  font-size: 32px;
 }
 
 .pdf-quote-meta-row strong {
   font-weight: 900;
-  font-size: 34px;
+  font-size: 44px;
 }
 
 .pdf-table-wrapper {
