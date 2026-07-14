@@ -9,6 +9,7 @@ import watermarkImage from '../assets/invoice-watermark.jpg';
 // Prefer the PNG (removebg) if present; fallback to JPEG is handled by the browser cache/fetch.
 const hodophileLogoPath = '/assets/hodophile-logo.png';
 import invoiceLogoImage from '../assets/invoice-logo.png';
+import invoiceHeadingImage from '../assets/INVOICE.png';
 import govtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import patoLogo from '../assets/logos/images__1_-removebg-preview.png';
@@ -371,7 +372,9 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
               </div>
 
               <div className="invoice-header-right">
-                <h1 className="invoice-label">INVOICE</h1>
+                <div className="invoice-label">
+                  <img src={invoiceHeadingImage} alt="INVOICE" className="invoice-heading-image" />
+                </div>
                 <div className="invoice-meta-list">
                   <div className="invoice-meta-row">
                     <span>Invoice #</span>
