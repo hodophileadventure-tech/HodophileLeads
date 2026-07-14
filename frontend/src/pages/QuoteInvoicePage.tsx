@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { quoteRequestsAPI, leadsAPI } from '../utils/api-service';
 import html2canvas from 'html2canvas';
 import type { Lead } from '../types';
-import quoteHeaderImage from '../assets/quote-header.png';
+import quoteHeaderImage from '../assets/quote-header-custom.png';
 import quoteFooterImage from '../assets/quote-footer.jpeg';
 import nadraLogo from '../assets/logos/NADRA_logo-removebg-preview.png';
 import pakistanGovtLogo from '../assets/logos/pakistan-govt-logo-png_seeklogo-190628-removebg-preview.png';
