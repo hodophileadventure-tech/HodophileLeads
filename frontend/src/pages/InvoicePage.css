@@ -153,7 +153,7 @@ body {
   min-height: 297mm;
   aspect-ratio: 210 / 297;
   height: auto;
-  padding: 1mm 14mm 6mm; /* reduce top padding to move content upward */
+  padding: 8mm 14mm 6mm; /* add extra top padding so header has breathing room */
   margin: 0 auto;
   background: #ffffff;
   border: 1px solid #ececec;
