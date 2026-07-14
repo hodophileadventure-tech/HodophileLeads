@@ -152,7 +152,7 @@ body {
   min-height: 297mm;
   aspect-ratio: 210 / 297;
   height: auto;
-  padding: 14mm 14mm 8mm;
+  padding: 14mm 14mm 4mm;
   margin: 0 auto;
   background: #ffffff;
   border: 1px solid #ececec;
