@@ -479,6 +479,10 @@ html, body {
   text-align: center;
 }
 
+.pdf-main-table td.pdf-price-cell {
+  text-align: right;
+}
+
 /* Make numeric cell values right-aligned and block-level for consistent alignment */
 .pdf-price-cell strong,
 .pdf-amount-cell strong {
