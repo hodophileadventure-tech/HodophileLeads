@@ -265,7 +265,7 @@ body {
   justify-content: flex-start;
   width: 100%;
   max-width: 100%;
-  margin: 0 0 20px;
+  margin: 0 0 8px; /* reduce bottom spacing under label */
 }
 
 .invoice-heading-image {
@@ -349,9 +349,9 @@ body {
 
 .invoice-client-section {
   display: grid;
-  gap: 8px;
-  margin: 16px 0 8px;
-  padding-top: 12px;
+  gap: 4px;
+  margin: 4px 0 0; /* bring bill-to closer to header */
+  padding-top: 0;
 }
 
 .invoice-client-title {
