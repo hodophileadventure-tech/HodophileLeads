@@ -357,6 +357,7 @@ html, body {
   gap: 18px;
   font-size: 28px;
   line-height: 1.2;
+  padding: 8px 0;
 }
 
 .pdf-package-info-line strong {
@@ -384,7 +385,7 @@ html, body {
 .pdf-package-info-group {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* spacing between rows */
+  gap: 20px; /* spacing between rows */
 }
 
 /* Prevent label wrapping and add small padding between label and value */
@@ -403,7 +404,7 @@ html, body {
 
 .pdf-package-info-group {
   display: grid;
-  gap: 12px;
+  gap: 20px;
 }
 
 .pdf-main-table thead th:last-child {
@@ -529,7 +530,7 @@ html, body {
   vertical-align: top;
   font-size: 32px;
   color: #111827;
-  padding: 14px 18px;
+  padding: 20px 22px;
   height: auto;
 }
 
@@ -578,9 +579,9 @@ html, body {
 .pdf-content-cell {
   min-height: 340px;
   position: relative;
-  padding: 20px;
+  padding: 28px;
   display: grid;
-  gap: 16px;
+  gap: 20px;
 }
 
 .pdf-package-details {
