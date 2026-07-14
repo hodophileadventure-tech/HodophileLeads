@@ -346,7 +346,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .pdf-package-info-line strong {
@@ -356,14 +356,16 @@ html, body {
   flex: 0 0 320px;
   white-space: nowrap;
   padding-right: 10px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .pdf-package-info-line span {
-  opacity: 0.9;
-  font-weight: 600;
+  opacity: 1;
+  color: #111827;
+  font-weight: 700;
   flex: 1 1 auto;
-  font-size: 16px;
+  font-size: 18px;
+  text-align: left;
 }
 
 /* Group spacing for package info lines */
