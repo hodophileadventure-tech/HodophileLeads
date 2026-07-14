@@ -434,9 +434,10 @@ body {
   text-align: center;
   white-space: normal;
   line-height: 1.2;
-  padding: 12px 12px;
+  padding: 18px 12px;
   height: auto;
   min-height: 0;
+  vertical-align: middle;
 }
 
 .invoice-items-table thead th.desc-col {
