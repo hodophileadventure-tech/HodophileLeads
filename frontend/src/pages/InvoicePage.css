@@ -184,14 +184,14 @@ body {
 }
 
 .invoice-header-right {
-  justify-self: start;
+  justify-self: end;
 }
 
 .invoice-branding {
   display: flex;
-  flex-direction: column; /* stack logo above brand details */
-  gap: 0px;
-  align-items: flex-start;
+  flex-direction: row; /* place logo and brand details side-by-side */
+  gap: 12px;
+  align-items: center;
 }
 
 .invoice-brand-logo {
@@ -262,10 +262,10 @@ body {
 .invoice-label {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end; /* align the INVOICE label to the right side */
   width: 100%;
   max-width: 100%;
-  margin: 0 0 8px; /* reduce bottom spacing under label */
+  margin: 0 0 8px;
 }
 
 .invoice-heading-image {
