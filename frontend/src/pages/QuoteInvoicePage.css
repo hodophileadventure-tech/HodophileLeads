@@ -211,9 +211,10 @@ html, body {
 .pdf-header-image {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 2550px;
-  height: 320px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2320px;
+  height: 280px;
   z-index: 2;
   overflow: hidden;
   display: flex;
@@ -227,11 +228,12 @@ html, body {
   height: auto;
   max-height: 100%;
   display: block;
+  object-fit: contain;
 }
 
 .pdf-header-info-box {
   position: absolute;
-  top: 300px;
+  top: 280px;
   left: 180px;
   right: 180px;
   min-height: 240px;
