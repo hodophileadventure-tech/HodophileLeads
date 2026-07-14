@@ -291,7 +291,7 @@ html, body {
 }
 
 .pdf-quotation-title {
-  font-size: 60px;
+  font-size: 88px;
   font-weight: 800;
   color: #fcc000;
   letter-spacing: 0.08em;
@@ -304,7 +304,7 @@ html, body {
   display: grid;
   grid-template-columns: 140px 20px minmax(140px, 1fr);
   gap: 8px;
-  font-size: 22px;
+  font-size: 24px;
   color: #111827;
   align-items: center;
 }
@@ -472,14 +472,14 @@ html, body {
 }
 
 .pdf-main-table thead th {
-  padding: 16px 16px;
-  font-size: 24px;
+  padding: 20px 18px;
+  font-size: 32px;
   font-weight: 800;
   border-bottom: 2px solid #111827;
   text-align: left;
   color: #111827;
   background: #ffffff;
-  height: 52px;
+  height: 64px;
 }
 
 .pdf-main-table thead th:nth-child(2) {
@@ -750,18 +750,20 @@ html, body {
 }
 
 .pdf-package-includes-title {
-  margin: 22px 0 12px;
-  font-size: 20px;
+  margin: 26px 0 16px;
+  font-size: 28px;
   font-weight: 800;
   color: #111827;
 }
 
 .pdf-package-includes-list {
   margin: 0;
-  padding-left: 22px;
+  padding-left: 26px;
   list-style: none;
   display: grid;
-  gap: 8px;
+  gap: 14px;
+  font-size: 24px;
+  line-height: 1.5;
 }
 
 .pdf-package-includes-list li::before {
