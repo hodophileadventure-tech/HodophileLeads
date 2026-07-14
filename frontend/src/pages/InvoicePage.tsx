@@ -203,16 +203,20 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
       wrapper.style.left = '-10000px';
       wrapper.style.top = '0';
       wrapper.style.width = `${pixelWidth}px`;
+      wrapper.style.height = 'auto';
       wrapper.style.overflow = 'visible';
       wrapper.style.pointerEvents = 'none';
+      wrapper.style.display = 'block';
+      wrapper.style.opacity = '0';
+      wrapper.style.zIndex = '-1';
       document.body.appendChild(wrapper);
 
       const clone = el.cloneNode(true) as HTMLElement;
-      // Append the clone and enforce pixel width and key overrides to lock layout
-      wrapper.appendChild(clone);
-      // enforce pixel width and key overrides (don't copy every child style to avoid shrinking tables)
-      clone.style.width = `${pixelWidth}px`;
-      clone.style.maxWidth = 'none';
+      // enforce pixel width and key overrides before appending so layout is stable
+      clone.style.boxSizing = 'border-box';
+      clone.style.width = '100%';
+      clone.style.minWidth = `${pixelWidth}px`;
+      clone.style.maxWidth = `${pixelWidth}px`;
       clone.style.height = 'auto';
       clone.style.minHeight = '297mm';
       clone.style.maxHeight = 'none';
@@ -221,6 +225,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
       clone.style.transform = 'none';
       clone.style.boxShadow = 'none';
       clone.style.background = '#ffffff';
+      clone.style.display = 'block';
+      wrapper.appendChild(clone);
 
       // Wait for images in the clone to load
       const imgs = Array.from(clone.querySelectorAll('img')) as HTMLImageElement[];
@@ -250,6 +256,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         clone.style.fontFamily = srcStyle.fontFamily || '';
         clone.style.fontSize = srcStyle.fontSize || '';
         clone.style.lineHeight = srcStyle.lineHeight || '';
+        clone.style.letterSpacing = srcStyle.letterSpacing || '';
       } catch (e) {
         // ignore
       }
