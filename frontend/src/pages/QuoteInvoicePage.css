@@ -210,11 +210,13 @@ html, body {
 
 .pdf-header-image {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2320px;
-  height: 280px;
+  top: 20px;
+  left: 0;
+  right: 0;
+  width: 92%;
+  max-width: 2200px;
+  height: 270px;
+  margin: 0 auto;
   z-index: 2;
   overflow: hidden;
   display: flex;
