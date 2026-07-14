@@ -195,7 +195,10 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
       const previousStyle = target.getAttribute('style') || '';
       try {
         const el = target as HTMLElement;
-        el.style.width = '210mm';
+        // Use the element's current on-screen pixel width to preserve grid layout
+        const rect = el.getBoundingClientRect();
+        const pixelWidth = Math.ceil(rect.width || el.offsetWidth || 794);
+        el.style.width = `${pixelWidth}px`;
         el.style.maxWidth = 'none';
         el.style.height = 'auto';
         el.style.minHeight = '297mm';
