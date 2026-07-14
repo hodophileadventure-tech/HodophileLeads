@@ -442,20 +442,20 @@ html, body {
 
 .pdf-main-table col.col-desc {
   /* Reduce the description column so the package price column shifts left */
-  width: 42%;
+  width: 40%;
 }
 
 .pdf-main-table col.col-price {
   /* Increase the price column so it sits further left and adds space before the person column */
-  width: 24%;
+  width: 26%;
 }
 
 .pdf-main-table col.col-person {
-  width: 15%;
+  width: 14%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 19%;
+  width: 20%;
 }
 
 .pdf-main-table thead th {
@@ -467,6 +467,14 @@ html, body {
   color: #111827;
   background: #ffffff;
   height: 52px;
+}
+
+.pdf-main-table thead th:nth-child(2) {
+  padding-right: 24px;
+}
+
+.pdf-main-table thead th:nth-child(3) {
+  padding-left: 14px;
 }
 
 /* Ensure numeric columns' headers align with their values */
