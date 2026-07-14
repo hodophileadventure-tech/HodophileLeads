@@ -648,6 +648,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                       <div className="pdf-header-info-value">{data.city}</div>
                     </div>
                     <div className="pdf-quote-right">
+                      <div className="pdf-quotation-title">{previewTitle}</div>
                       <div className="pdf-quote-meta-block">
                         <div className="pdf-quote-meta-row">
                           <span>{previewNumberLabel}</span>
@@ -658,7 +659,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                           <strong>{formatDate(data.date)}</strong>
                         </div>
                       </div>
-                      <div className="pdf-quotation-title">{previewTitle}</div>
                     </div>
                   </div>
                 </div>
