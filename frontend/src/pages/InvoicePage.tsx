@@ -261,6 +261,10 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         <h2>Invoice Form</h2>
         <div className="invoice-form-grid">
           <div>
+            <label>Invoice #</label>
+            <input type="text" value={invoiceNumber} readOnly style={{ fontSize: '14px', fontWeight: '600' }} />
+          </div>
+          <div>
             <label>Date</label>
             <input
               type="date"

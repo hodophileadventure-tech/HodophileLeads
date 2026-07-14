@@ -58,12 +58,12 @@ body {
 .invoice-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .invoice-form-grid > div {
   display: grid;
-  gap: 8px;
+  gap: 4px;
 }
 
 .invoice-form-grid label {
@@ -518,8 +518,8 @@ body {
 }
 
 .summary-divider {
-  height: 1px;
-  background: #d8d8d8;
+  height: 2px;
+  background: #374151;
   margin: 4px 0;
 }
 

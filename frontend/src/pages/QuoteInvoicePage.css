@@ -475,6 +475,10 @@ html, body {
   text-align: right;
 }
 
+.pdf-main-table thead th:nth-child(3) {
+  text-align: center;
+}
+
 /* Make numeric cell values right-aligned and block-level for consistent alignment */
 .pdf-price-cell strong,
 .pdf-amount-cell strong {
