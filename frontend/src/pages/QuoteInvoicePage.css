@@ -223,8 +223,8 @@ html, body {
 }
 
 .pdf-header-image img {
-  width: auto;
-  max-width: 90%;
+  width: 100%;
+  height: auto;
   max-height: 100%;
   display: block;
 }
