@@ -27,34 +27,35 @@ body {
   background: #f5f5f5;
 }
 
-.invoice-page-root {
-  min-height: 100vh;
-  background: #f3f4f6;
-  padding: 0 24px 24px;
+.invoice-divider {
+  display: block;
+  width: 100%;
+  min-height: 3px;
+  height: 3px;
+  background: #111827;
+  margin: 4px 0 2px; /* reduce space below divider */
+}
+
+.summary-divider {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  height: 2px;
+  background: #1f2937;
+  margin: 8px 0;
+}
+
+.invoice-client-section {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(0, 1.2fr);
-  gap: 24px;
-  align-items: start;
+  gap: 6px;
+  margin: 6px 0 0; /* pull section upward */
+  padding-top: 4px; /* reduce top padding so title sits closer */
 }
 
-.invoice-form-panel,
-.invoice-preview-panel {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 12px 40px rgba(15, 23, 36, 0.08);
+.invoice-client-title {
+  font-size: 14px;
+  margin: 2px 0 4px; /* tighten spacing around the title */
 }
-
-.invoice-form-panel h2,
-.invoice-preview-panel h2 {
-  margin: 0 0 20px;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #111827;
-}
-
 .invoice-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
