@@ -334,8 +334,10 @@ body {
 
 .invoice-client-section {
   display: grid;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin: 24px 0 12px;
+  padding-top: 18px;
+  border-top: 1px solid #d1d5db;
 }
 
 .invoice-client-title {
