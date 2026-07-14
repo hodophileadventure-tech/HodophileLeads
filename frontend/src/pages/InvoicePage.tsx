@@ -191,32 +191,53 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     const target = previewDocRef.current;
     if (!target) return;
     try {
-      // Temporarily enforce A4 width while allowing height to grow so the footer and separators are fully captured
+      // Clone the preview into an off-screen wrapper and capture the clone.
+      // This prevents @media print rules or mm-based widths from changing layout during capture.
       const previousStyle = target.getAttribute('style') || '';
-      try {
-        const el = target as HTMLElement;
-        // Use the element's current on-screen pixel width to preserve grid layout
-        const rect = el.getBoundingClientRect();
-        const pixelWidth = Math.ceil(rect.width || el.offsetWidth || 794);
-        el.style.width = `${pixelWidth}px`;
-        el.style.maxWidth = 'none';
-        el.style.height = 'auto';
-        el.style.minHeight = '297mm';
-        el.style.maxHeight = 'none';
-        el.style.overflow = 'visible';
-        // Force the same padding used in preview so @media print rules don't change layout
-        el.style.padding = '0mm 14mm 6mm';
-        // ensure transform/box-shadow won't alter capture framing
-        el.style.transform = 'none';
-        el.style.boxShadow = 'none';
-      } catch (e) {
-        // ignore
-      }
+      const el = target as HTMLElement;
+      const rect = el.getBoundingClientRect();
+      const pixelWidth = Math.ceil(rect.width || el.offsetWidth || 794);
+
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-10000px';
+      wrapper.style.top = '0';
+      wrapper.style.width = `${pixelWidth}px`;
+      wrapper.style.overflow = 'visible';
+      wrapper.style.pointerEvents = 'none';
+      document.body.appendChild(wrapper);
+
+      const clone = el.cloneNode(true) as HTMLElement;
+      clone.style.width = `${pixelWidth}px`;
+      clone.style.maxWidth = 'none';
+      clone.style.height = 'auto';
+      clone.style.minHeight = '297mm';
+      clone.style.maxHeight = 'none';
+      clone.style.overflow = 'visible';
+      clone.style.padding = getComputedStyle(el).padding || '0mm 14mm 6mm';
+      clone.style.transform = 'none';
+      clone.style.boxShadow = 'none';
+      clone.style.background = '#ffffff';
+      wrapper.appendChild(clone);
+
+      // Wait for images in the clone to load
+      const imgs = Array.from(clone.querySelectorAll('img')) as HTMLImageElement[];
+      await Promise.all(
+        imgs.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete) return resolve();
+              img.onload = img.onerror = () => resolve();
+            })
+        )
+      );
+
       // allow layout to settle
-      await new Promise((r) => setTimeout(r, 250));
-      const width = target.scrollWidth;
-      const height = target.scrollHeight;
-      const canvas = await html2canvas(target, {
+      await new Promise((r) => setTimeout(r, 150));
+
+      const width = clone.scrollWidth;
+      const height = clone.scrollHeight;
+      const canvas = await html2canvas(clone, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
@@ -226,12 +247,20 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         windowWidth: width,
         windowHeight: height,
       });
-      // restore inline style
+
+      try {
+        document.body.removeChild(wrapper);
+      } catch (e) {
+        // ignore
+      }
+
+      // restore inline style if any
       try {
         target.setAttribute('style', previousStyle);
       } catch (e) {
         // ignore
       }
+
       const data = canvas.toDataURL('image/jpeg', 0.95);
       const link = document.createElement('a');
       link.href = data;
