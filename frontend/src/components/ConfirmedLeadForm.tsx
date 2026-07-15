@@ -20,6 +20,7 @@ interface Props {
 
 export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSaved }) => {
   const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [hotelOptions, setHotelOptions] = useState<HotelOptionForm[]>(
     lead.hotelOptions && lead.hotelOptions.length > 0
       ? lead.hotelOptions.map((option) => ({
@@ -62,9 +63,46 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
             checkOut: lead.hotelInfo?.checkOut || ''
           }]
     );
+    setValidationError(null);
   }, [lead]);
 
   const handleSave = async () => {
+    // Validate required fields for ALL leads - both new and existing confirmed
+    setValidationError(null);
+
+    // Check if at least one hotel option has required fields (hotelName, roomType, checkIn, checkOut)
+    // Note: roomPrice is NOT mandatory
+    const hasValidHotel = hotelOptions.some(
+      (option) => option.hotelName && option.roomType && option.checkIn && option.checkOut
+    );
+
+    if (!hasValidHotel) {
+      setValidationError('Lead is not confirmed. Please fill the hotel fields (name, room type, check-in, and check-out dates are required)');
+      // If lead was already confirmed, unconfirm it
+      if (lead.leadOutcome === 'confirmed' || lead.status === 'booked' || lead.pipelineStage === 'confirmed') {
+        try {
+          await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted', pipelineStage: 'contacted' } as any);
+        } catch (err) {
+          console.error('Failed to unconfirm lead:', err);
+        }
+      }
+      return;
+    }
+
+    // Check if transport/vehicle is filled
+    if (!vehicle || vehicle.trim() === '') {
+      setValidationError('Lead is not confirmed. Please fill the transport field');
+      // If lead was already confirmed, unconfirm it
+      if (lead.leadOutcome === 'confirmed' || lead.status === 'booked' || lead.pipelineStage === 'confirmed') {
+        try {
+          await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted', pipelineStage: 'contacted' } as any);
+        } catch (err) {
+          console.error('Failed to unconfirm lead:', err);
+        }
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const validHotelOptions = hotelOptions
@@ -103,6 +141,8 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
           console.error('File upload failed', e);
         }
       }
+
+      // Now confirm the lead (this is only done after validation passes)
       const bookedResponse = await leadsAPI.update(lead.id as string, { leadOutcome: 'confirmed', status: 'booked' } as any);
       const finalLead = bookedResponse.data as Lead;
 
@@ -151,6 +191,11 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
         </>
       }
     >
+      {validationError && (
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
+          {validationError}
+        </div>
+      )}
       <div className="space-y-3">
         {hotelOptions.map((option, index) => (
           <div key={index} className="p-3 border rounded-lg">
