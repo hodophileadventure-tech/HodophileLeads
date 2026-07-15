@@ -58,6 +58,7 @@ export const AgentPanel: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled' | 'spam'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
+  const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
   const [quoteRequestError, setQuoteRequestError] = useState('');
@@ -85,6 +86,48 @@ export const AgentPanel: React.FC = () => {
     writeDismissedFollowUps(next);
     stopAlarmAudio();
     setActiveAlarm(null);
+  };
+
+  const getFollowUpTimeRemaining = (dueDate: string) => {
+    const dueAt = new Date(dueDate).getTime();
+    if (Number.isNaN(dueAt)) return 'Follow-up scheduled';
+    const diffMs = dueAt - Date.now();
+    if (diffMs <= 0) return 'Follow-up overdue';
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) {
+      return `in ${days}d ${hours}h`;
+    }
+    if (hours > 0) {
+      return `in ${hours}h ${minutes}m`;
+    }
+    return `in ${minutes}m`;
+  };
+
+  const upcomingFollowUpsByLead = useMemo(() => {
+    const map = new Map<string, FollowUp>();
+    followUps
+      .filter((item) => item.status !== 'completed' && item.status !== 'canceled')
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+      .forEach((item) => {
+        if (!map.has(item.leadId)) {
+          map.set(item.leadId, item);
+        }
+      });
+    return map;
+  }, [followUps]);
+
+  const getFollowUpBadge = (lead: Lead) => {
+    const followUp = upcomingFollowUpsByLead.get(String(lead.id));
+    if (!followUp) return null;
+    return (
+      <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 text-xs font-medium">
+        Follow-up scheduled • {getFollowUpTimeRemaining(followUp.dueDate)}
+      </span>
+    );
   };
 
   const stopScreenCapture = () => {
@@ -178,6 +221,15 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
+  const loadFollowUps = async () => {
+    try {
+      const response = await followUpsAPI.list();
+      setFollowUps((response.data || []).map(normalizeFollowUp));
+    } catch (err) {
+      console.error('Failed to load follow-ups:', err);
+    }
+  };
+
   const loadQuoteRequests = async () => {
     try {
       setLoadingQuoteRequests(true);
@@ -194,8 +246,18 @@ export const AgentPanel: React.FC = () => {
 
   useEffect(() => {
     loadLeads();
+    loadFollowUps();
     loadQuoteRequests();
   }, [user?.role]);
+
+  useEffect(() => {
+    const handleFollowUpsUpdated = () => {
+      void loadFollowUps();
+    };
+
+    window.addEventListener('followups-updated', handleFollowUpsUpdated);
+    return () => window.removeEventListener('followups-updated', handleFollowUpsUpdated);
+  }, []);
 
   useEffect(() => {
     const handleScreenshotRequest = async (event: Event) => {
@@ -747,6 +809,9 @@ export const AgentPanel: React.FC = () => {
                     <option value="budget_issue">Budget issue</option>
                     <option value="no_reply">No reply</option>
                   </select>
+                </div>
+                <div className="mt-2">
+                  {getFollowUpBadge(lead)}
                 </div>
               </div>
               <div className="flex gap-2">
