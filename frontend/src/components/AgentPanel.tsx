@@ -402,6 +402,7 @@ export const AgentPanel: React.FC = () => {
       if (leadOutcome === 'confirmed') {
         payload.pipelineStage = 'confirmed';
         payload.status = 'booked';
+        payload.potential = false;
       }
 
       const response = await leadsAPI.update(String(lead.id), payload);

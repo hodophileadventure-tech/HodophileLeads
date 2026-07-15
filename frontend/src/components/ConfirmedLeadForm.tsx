@@ -132,7 +132,8 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
         transportPreference: vehicle,
         leadOutcome: 'confirmed',
         status: 'booked',
-        pipelineStage: 'confirmed'
+        pipelineStage: 'confirmed',
+        potential: false
       };
 
       // Update lead fields and confirm in one request

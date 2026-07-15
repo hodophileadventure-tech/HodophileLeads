@@ -218,6 +218,9 @@ export const leadsModel = {
       delete normalizedData.lead_outcome;
       delete normalizedData.status;
     }
+    if (normalizedData.pipelineStage === 'confirmed') {
+      normalizedData.potential = false;
+    }
 
     const allowedColumns = new Set([
       'client_name',
