@@ -149,7 +149,7 @@ export const leadsModel = {
       destinations.length > 0 ? JSON.stringify(destinations) : null,
       data.source || 'direct',
       temperature,
-      'new',
+      (data as any).status || 'new',
       data.budget ?? 0,
       ((data as any).tripBudget || (data as any).trip_budget) ?? null,
       data.travelDates ? JSON.stringify(data.travelDates) : null,
