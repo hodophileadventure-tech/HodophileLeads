@@ -41,6 +41,8 @@ export const leadSchema = Joi.object({
   temperature: Joi.string().valid('hot', 'warm', 'cold', 'dead').optional(),
   pipelineStage: Joi.string().valid('new_lead', 'availability_check', 'quoted', 'payment_pending', 'confirmed', 'on_trip', 'completed').optional(),
   leadOutcome: Joi.string().valid('confirmed', 'budget_issue', 'no_reply').optional(),
+  transportPreference: Joi.string().allow('').optional(),
+  hotelPreference: Joi.string().allow('').optional(),
   createdAt: Joi.string().isoDate().optional(),
   tourType: Joi.string().allow('').optional(),
   hotelInfo: hotelInfoSchema.optional(),

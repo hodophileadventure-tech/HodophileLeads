@@ -82,7 +82,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       // If lead was already confirmed, unconfirm it
       if (lead.leadOutcome === 'confirmed' || lead.status === 'booked' || lead.pipelineStage === 'confirmed') {
         try {
-          await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted', pipelineStage: 'contacted' } as any);
+          await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted' } as any);
         } catch (err) {
           console.error('Failed to unconfirm lead:', err);
         }
@@ -96,7 +96,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       // If lead was already confirmed, unconfirm it
       if (lead.leadOutcome === 'confirmed' || lead.status === 'booked' || lead.pipelineStage === 'confirmed') {
         try {
-          await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted', pipelineStage: 'contacted' } as any);
+          await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted' } as any);
         } catch (err) {
           console.error('Failed to unconfirm lead:', err);
         }

@@ -281,24 +281,52 @@ export const leadsModel = {
 
           fields.push(`status = $${paramCount}`);
           params.push('booked');
+          paramCount++;
+
+          fields.push(`pipeline_stage = $${paramCount}`);
+          params.push('confirmed');
         } else if (value === 'completed') {
           fields.push(`status = $${paramCount}`);
+          params.push('completed');
+          paramCount++;
+
+          fields.push(`pipeline_stage = $${paramCount}`);
           params.push('completed');
         } else if (value === 'new_lead') {
           fields.push(`status = $${paramCount}`);
           params.push('new');
+          paramCount++;
+
+          fields.push(`pipeline_stage = $${paramCount}`);
+          params.push('new_lead');
         } else if (value === 'availability_check') {
           fields.push(`status = $${paramCount}`);
           params.push('contacted');
+          paramCount++;
+
+          fields.push(`pipeline_stage = $${paramCount}`);
+          params.push('availability_check');
         } else if (value === 'quoted') {
           fields.push(`status = $${paramCount}`);
           params.push('interested');
+          paramCount++;
+
+          fields.push(`pipeline_stage = $${paramCount}`);
+          params.push('quoted');
         } else if (value === 'payment_pending') {
           fields.push(`status = $${paramCount}`);
           params.push('negotiation');
+          paramCount++;
+
+          fields.push(`pipeline_stage = $${paramCount}`);
+          params.push('payment_pending');
         } else if (value === 'on_trip') {
           fields.push(`status = $${paramCount}`);
           params.push('booked');
+          paramCount++;
+
+          fields.push(`pipeline_stage = $${paramCount}`);
+          params.push('on_trip');
         } else {
           return;
         }
