@@ -248,13 +248,13 @@ export const quoteRequestsController = {
           resolvedAt: new Date().toISOString(),
         };
 
-        if (isAdminCreatedQuotation) {
+        if (req.user.role === 'manager') {
+          Object.assign(updatePayload, {
+            status: 'admin_pending' as const,
+          });
+        } else if (isAdminCreatedQuotation) {
           Object.assign(updatePayload, {
             status: 'created' as const,
-          });
-        } else if (isManagerCreatedQuotation) {
-          Object.assign(updatePayload, {
-            status: 'manager_pending' as const,
           });
         } else {
           Object.assign(updatePayload, {
