@@ -178,6 +178,7 @@ export const AgentPanel: React.FC = () => {
   const completeActiveFollowUp = async (item: FollowUp | null) => {
     if (!item) return;
     stopAlarmAudio();
+    setActiveAlarm(null);
     setCompletionFollowUp(item);
     setCompletionRemarks('');
     setShowCompletionRemarkModal(true);

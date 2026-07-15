@@ -55,6 +55,8 @@ const CANCEL_LEAD_REASONS = [
   'Not ready to travel',
   'Itinerary not suitable',
   'Changed destination',
+  'Low quality Lead',
+  'Did tour on their own',
   'No specific reason',
 ];
 
