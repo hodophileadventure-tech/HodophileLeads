@@ -57,6 +57,37 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
     return `${hours}h ${minutes}m left`;
   }, [availability?.hold_expiry, now]);
 
+  const followUps = useDataStore((s) => s.followUps);
+  const nextFollowUp = React.useMemo(() => {
+    const pending = followUps
+      .filter((item) => String(item.leadId) === String(lead.id))
+      .filter((item) => item.status !== 'completed' && item.status !== 'canceled')
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    return pending[0] || null;
+  }, [followUps, lead.id]);
+
+  const followUpBadge = React.useMemo(() => {
+    if (!nextFollowUp) return null;
+    const dueAt = new Date(nextFollowUp.dueDate).getTime();
+    const diffMs = dueAt - Date.now();
+    if (Number.isNaN(dueAt)) return null;
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    let label = 'Follow-up scheduled';
+    if (diffMs <= 0) {
+      label = 'Follow-up overdue';
+    } else if (days > 0) {
+      label = `Follow-up scheduled • in ${days}d ${hours}h`;
+    } else if (hours > 0) {
+      label = `Follow-up scheduled • in ${hours}h ${minutes}m`;
+    } else {
+      label = `Follow-up scheduled • in ${minutes}m`;
+    }
+    return label;
+  }, [nextFollowUp]);
+
   const healthColor = health?.health === 'green'
     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
     : health?.health === 'yellow'
@@ -95,6 +126,9 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
           <div className="flex flex-col gap-1 mt-1">
             <p className="text-sm text-slate-600 dark:text-slate-400">📍 {lead.destination} {lead.travelDates?.from ? '• ' + new Date(lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' - ' + new Date(lead.travelDates.to || lead.travelDates.from).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">Created: {createdAtDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {createdAtDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+            {followUpBadge && (
+              <p className="text-xs text-blue-700 dark:text-blue-200">{followUpBadge}</p>
+            )}
             {lead.destinations && lead.destinations.length > 1 && (
               <p className="text-xs text-slate-500">+{lead.destinations.length - 1} more destinations</p>
             )}
