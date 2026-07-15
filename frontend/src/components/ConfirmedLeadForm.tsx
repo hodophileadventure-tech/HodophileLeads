@@ -119,10 +119,12 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       const updatePayload: Partial<Lead> = {
         hotelInfo: validHotelOptions[0] || null,
         hotelOptions: validHotelOptions,
-        transportPreference: vehicle
+        transportPreference: vehicle,
+        leadOutcome: 'confirmed',
+        status: 'booked'
       };
 
-      // First update lead fields (hotel info, transport)
+      // Update lead fields and confirm in one request
       await leadsAPI.update(lead.id as string, updatePayload);
 
       // If a file was selected, upload it as multipart to keep files off the JSON payload
@@ -173,8 +175,10 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       onSaved?.(refreshedLead);
       window.dispatchEvent(new Event('dashboard-refresh'));
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      const message = err?.response?.data?.message || err?.message || 'Failed to confirm lead. Please check hotel and transport details.';
+      setValidationError(message);
     } finally {
       setLoading(false);
     }
