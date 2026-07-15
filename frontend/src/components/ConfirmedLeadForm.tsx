@@ -107,7 +107,12 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
     setLoading(true);
     try {
       const validHotelOptions = hotelOptions
-        .filter((option) => option.hotelName || option.roomType || option.roomPrice || option.checkIn || option.checkOut)
+        .filter((option) =>
+          option.hotelName?.trim() &&
+          option.roomType?.trim() &&
+          option.checkIn?.trim() &&
+          option.checkOut?.trim()
+        )
         .map((option) => ({
           hotelName: option.hotelName,
           roomType: option.roomType,
@@ -116,16 +121,23 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
           checkOut: option.checkOut
         }));
 
+      if (validHotelOptions.length === 0) {
+        setValidationError('Lead is not confirmed. Please fill complete hotel details.');
+        return;
+      }
+
       const updatePayload: Partial<Lead> = {
-        hotelInfo: validHotelOptions[0] || null,
+        hotelInfo: validHotelOptions[0],
         hotelOptions: validHotelOptions,
         transportPreference: vehicle,
         leadOutcome: 'confirmed',
-        status: 'booked'
+        status: 'booked',
+        pipelineStage: 'confirmed'
       };
 
       // Update lead fields and confirm in one request
-      await leadsAPI.update(lead.id as string, updatePayload);
+      const bookedResponse = await leadsAPI.update(lead.id as string, updatePayload);
+      const finalLead = bookedResponse.data as Lead;
 
       // If a file was selected, upload it as multipart to keep files off the JSON payload
       if (selectedFile) {
@@ -144,10 +156,6 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
           console.error('File upload failed', e);
         }
       }
-
-      // Now confirm the lead (this is only done after validation passes)
-      const bookedResponse = await leadsAPI.update(lead.id as string, { leadOutcome: 'confirmed', status: 'booked' } as any);
-      const finalLead = bookedResponse.data as Lead;
 
       if (total > 0 && advance > 0) {
         const dueDate = hotelOptions[0]?.checkIn || new Date().toISOString();

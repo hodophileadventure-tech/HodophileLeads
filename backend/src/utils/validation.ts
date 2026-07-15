@@ -3,7 +3,9 @@ import Joi from 'joi';
 export const hotelInfoSchema = Joi.object({
   hotelName: Joi.string().allow('').optional(),
   roomType: Joi.string().allow('').optional(),
-  roomPrice: Joi.number().min(0).optional()
+  roomPrice: Joi.number().min(0).optional(),
+  checkIn: Joi.string().allow('').optional(),
+  checkOut: Joi.string().allow('').optional()
 });
 
 export const authLoginSchema = Joi.object({
