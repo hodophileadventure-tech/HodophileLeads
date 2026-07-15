@@ -45,7 +45,7 @@
           "default": ""
         }
       },
-      "postDeployHook": "npm run db:migrate"
+      "postDeployHook": "npm run db:migrate && npm run unconfirm:incomplete"
     },
     "frontend": {
       "type": "nodejs",

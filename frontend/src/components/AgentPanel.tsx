@@ -367,8 +367,37 @@ export const AgentPanel: React.FC = () => {
     });
   };
 
+  const isLeadReadyForConfirmation = (lead: Lead) => {
+    const hotelInfo = lead.hotelInfo;
+    const hotelOptions = lead.hotelOptions;
+    const transport = lead.transportPreference;
+
+    const hasHotel = Boolean(
+      hotelInfo?.hotelName?.trim() &&
+      hotelInfo?.roomType?.trim() &&
+      hotelInfo?.checkIn?.trim() &&
+      hotelInfo?.checkOut?.trim()
+    ) ||
+      (Array.isArray(hotelOptions) && hotelOptions.some((option) =>
+        Boolean(
+          option.hotelName?.trim() &&
+          option.roomType?.trim() &&
+          option.checkIn?.trim() &&
+          option.checkOut?.trim()
+        )
+      ));
+
+    const hasTransport = typeof transport === 'string' && transport.trim().length > 0;
+    return hasHotel && hasTransport;
+  };
+
   const updateLeadOutcome = async (lead: Lead, leadOutcome: 'confirmed' | 'budget_issue' | 'no_reply') => {
     try {
+      if (leadOutcome === 'confirmed' && !isLeadReadyForConfirmation(lead)) {
+        alert('Cannot confirm lead until hotel details and transport information are filled.');
+        return;
+      }
+
       const payload: any = { leadOutcome };
       if (leadOutcome === 'confirmed') {
         payload.pipelineStage = 'confirmed';

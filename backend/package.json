@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "prestart": "node scripts/migrate.js && node scripts/import-complete-hotels.js",
+    "prestart": "node scripts/migrate.js && node scripts/import-complete-hotels.js && node scripts/unconfirm-incomplete-bookings.js",
     "start": "node scripts/migrate.js && node dist/index.js",
     "test": "jest",
     "smoke:test": "node scripts/smokeTest.js",
+    "unconfirm:incomplete": "node scripts/unconfirm-incomplete-bookings.js",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
     "db:reassign-leads": "node scripts/reassign-leads.js",

@@ -130,6 +130,38 @@ const ensureLeadAccess = (lead: any, user: any) => {
   return String(lead.agentId) === String(user.id);
 };
 
+const isHotelOptionComplete = (hotelOption: any) => {
+  if (!hotelOption) return false;
+  return Boolean(
+    hotelOption.hotelName?.trim() &&
+    hotelOption.roomType?.trim() &&
+    hotelOption.checkIn?.trim() &&
+    hotelOption.checkOut?.trim()
+  );
+};
+
+const normalizeConfirmationData = (lead: any, payload: any) => {
+  return {
+    ...lead,
+    ...(payload.hotelInfo !== undefined ? { hotelInfo: payload.hotelInfo } : {}),
+    ...(payload.hotelOptions !== undefined ? { hotelOptions: payload.hotelOptions } : {}),
+    ...(payload.transportPreference !== undefined ? { transportPreference: payload.transportPreference } : {})
+  };
+};
+
+const isLeadReadyForConfirmation = (lead: any) => {
+  const hotelInfo = lead.hotelInfo || lead.hotel_info || null;
+  const hotelOptions = lead.hotelOptions || lead.hotel_options;
+  const transportPreference = lead.transportPreference || lead.transport_preference;
+
+  const hasHotelDetail =
+    (hotelInfo && isHotelOptionComplete(hotelInfo)) ||
+    (Array.isArray(hotelOptions) && hotelOptions.some(isHotelOptionComplete));
+
+  const hasTransport = typeof transportPreference === 'string' && transportPreference.trim().length > 0;
+  return hasHotelDetail && hasTransport;
+};
+
 const confirmLeadAndEnqueue = async (leadId: string, updateData: Partial<any>) => {
   const client = await getClient();
   try {
@@ -246,12 +278,34 @@ export const leadsController = {
         payload.leadOutcome === 'confirmed' ||
         payload.lead_outcome === 'confirmed'
       );
+
       if (shouldConfirmLead) {
+        const existingLead = await leadsModel.findById(req.params.id);
+        if (!existingLead) {
+          return res.status(404).json({ message: 'Lead not found' });
+        }
+
+        const mergedLead = normalizeConfirmationData(existingLead, payload);
+        if (!isLeadReadyForConfirmation(mergedLead)) {
+          return res.status(400).json({
+            message: 'Lead cannot be confirmed because hotel details and transport information are required.'
+          });
+        }
+
         lead = await confirmLeadAndEnqueue(req.params.id, payload);
         console.log('[LeadsController] Enqueued confirmed lead notification for Employee Portal', { leadId: lead.id });
       } else {
         lead = await leadsModel.update(req.params.id, payload);
       }
+
+      if (lead && (lead.status === 'booked' || lead.leadOutcome === 'confirmed' || lead.pipelineStage === 'confirmed') && !isLeadReadyForConfirmation(lead)) {
+        lead = await leadsModel.update(req.params.id, {
+          status: 'contacted',
+          leadOutcome: null,
+          pipelineStage: 'contacted'
+        } as any);
+      }
+
       if (!lead) {
         console.log('[LeadsController] Lead not found:', req.params.id);
         return res.status(404).json({ message: 'Lead not found' });
@@ -346,6 +400,15 @@ export const leadsController = {
       const { status } = req.body;
       let lead;
       if (status === 'booked') {
+        const existingLead = await leadsModel.findById(req.params.id);
+        if (!existingLead) {
+          return res.status(404).json({ message: 'Lead not found' });
+        }
+        if (!isLeadReadyForConfirmation(existingLead)) {
+          return res.status(400).json({
+            message: 'Lead cannot be marked booked until hotel details and transport information are filled.'
+          });
+        }
         lead = await confirmLeadAndEnqueue(req.params.id, { status });
         console.log('[LeadsController] Enqueued confirmed lead notification for Employee Portal via status update', { leadId: lead.id });
       } else {
@@ -394,6 +457,18 @@ export const leadsController = {
       const { stage } = req.body as { stage?: string };
       if (!stage || !VALID_PIPELINE_STAGES.includes(stage)) {
         return res.status(400).json({ message: 'Invalid pipeline stage' });
+      }
+
+      if (stage === 'confirmed') {
+        const existingLead = await leadsModel.findById(req.params.id);
+        if (!existingLead) {
+          return res.status(404).json({ message: 'Lead not found' });
+        }
+        if (!isLeadReadyForConfirmation(existingLead)) {
+          return res.status(400).json({
+            message: 'Lead cannot be moved to confirmed until hotel details and transport information are filled.'
+          });
+        }
       }
 
       let lead = await leadsModel.update(req.params.id, { pipelineStage: stage as any });

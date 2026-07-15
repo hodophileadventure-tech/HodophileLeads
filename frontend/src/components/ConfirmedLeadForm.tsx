@@ -40,7 +40,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [vehicle, setVehicle] = useState('');
+  const [vehicle, setVehicle] = useState(lead.transportPreference || '');
   const [total, setTotal] = useState(0);
   const [advance, setAdvance] = useState(0);
   const [method, setMethod] = useState('cash');
@@ -63,6 +63,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
             checkOut: lead.hotelInfo?.checkOut || ''
           }]
     );
+    setVehicle(lead.transportPreference || '');
     setValidationError(null);
   }, [lead]);
 
