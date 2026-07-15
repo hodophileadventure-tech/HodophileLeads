@@ -211,6 +211,14 @@ export const leadsModel = {
     const params: any[] = [];
     let paramCount = 1;
 
+    const normalizedData: any = { ...data };
+    if (normalizedData.pipelineStage) {
+      // Avoid duplicate SQL assignments when pipelineStage already maps to status/lead_outcome.
+      delete normalizedData.leadOutcome;
+      delete normalizedData.lead_outcome;
+      delete normalizedData.status;
+    }
+
     const allowedColumns = new Set([
       'client_name',
       'email',
@@ -251,7 +259,7 @@ export const leadsModel = {
       'pipeline_stage'
     ]);
 
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(normalizedData).forEach(([key, value]) => {
       if (value === undefined) {
         return;
       }
