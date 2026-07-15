@@ -130,6 +130,7 @@ async function migrate() {
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS seniors INTEGER',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS tour_type VARCHAR(100)',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS islamabad_stay VARCHAR(10)',
+      'ALTER TABLE leads ADD COLUMN IF NOT EXISTS pipeline_stage VARCHAR(50) NOT NULL DEFAULT \'new_lead\'',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT \'new\'',
       'ALTER TABLE leads ADD COLUMN IF NOT EXISTS potential BOOLEAN DEFAULT FALSE'
     ];
