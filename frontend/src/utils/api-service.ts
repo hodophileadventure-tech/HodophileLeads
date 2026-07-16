@@ -124,7 +124,11 @@ export const reportsAPI = {
 (adminAPI as any).createIssue = (formData: FormData) =>
   apiClient.post('/admin/issues', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 
-(adminAPI as any).listIssues = () => apiClient.get('/admin/issues');
+(adminAPI as any).listIssues = (status?: string) => apiClient.get('/admin/issues', {
+  params: {
+    ...(status ? { status } : {})
+  }
+});
 
 (adminAPI as any).updateIssue = (issueId: string, data: any) => apiClient.put(`/admin/issues/${issueId}`, data);
 

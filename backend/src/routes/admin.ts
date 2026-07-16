@@ -51,6 +51,6 @@ adminRouter.post('/screen-captures/:requestId', roleMiddleware(['agent']), admin
 // Issue reporting
 // allow optional attachment during issue creation
 adminRouter.post('/issues', issueUpload.single('attachment'), adminController.createIssue);
-adminRouter.get('/issues', roleMiddleware(['admin']), adminController.listIssues);
+adminRouter.get('/issues', roleMiddleware(['admin', 'manager', 'agent']), adminController.listIssues);
 adminRouter.put('/issues/:id', roleMiddleware(['admin']), adminController.updateIssue);
 adminRouter.post('/issues/:id/attachments', roleMiddleware(['admin']), issueUpload.single('attachment'), adminController.uploadIssueAttachment);

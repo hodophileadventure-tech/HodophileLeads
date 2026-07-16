@@ -692,10 +692,43 @@ export const adminController = {
     }
   },
 
-  async listIssues(_req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  async listIssues(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      const user = req.user;
+      const isAdmin = user?.role === 'admin';
+      const reporterId = String(user?.id || '');
+      const requestedStatus = String(req.query.status || '').trim().toLowerCase();
+      const statusFilter = requestedStatus && requestedStatus !== 'all' ? requestedStatus : undefined;
+      const statusOrder = `CASE
+          WHEN i.status = 'open' THEN 1
+          WHEN i.status = 'in_progress' THEN 2
+          WHEN i.status = 'fixed' THEN 3
+          WHEN i.status = 'closed' THEN 4
+          ELSE 5
+        END`;
+
+      const requestStatusValues = (statusFilter: string | undefined) => {
+        if (!statusFilter) return undefined;
+        if (statusFilter === 'pending') return ['open', 'in_progress'];
+        if (statusFilter === 'resolved') return ['fixed', 'closed'];
+        return [statusFilter];
+      };
+
+      const statusValues = requestStatusValues(statusFilter);
+
       if (process.env.DATABASE_URL) {
         try {
+          const params: any[] = [];
+          const filters: string[] = [];
+          if (!isAdmin) {
+            params.push(reporterId);
+            filters.push(`i.reporter_id = $${params.length}`);
+          }
+          if (statusValues) {
+            params.push(statusValues);
+            filters.push(`i.status = ANY($${params.length})`);
+          }
+          const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
           const result = await query(`
             SELECT 
               i.id,
@@ -711,8 +744,9 @@ export const adminController = {
               u.email AS reporter_email
             FROM issues i
             LEFT JOIN users u ON u.id = i.reporter_id
-            ORDER BY i.created_at DESC
-          `);
+            ${whereClause}
+            ORDER BY ${statusOrder}, i.created_at DESC
+          `, params);
           return res.json({ issues: result.rows });
         } catch (dbErr) {
           console.warn('DB select for issues failed, falling back to file storage', (dbErr as any)?.message || String(dbErr));
@@ -728,6 +762,32 @@ export const adminController = {
       } catch (err) {
         list = [];
       }
+
+      if (!isAdmin) {
+        list = list.filter((issue) => String(issue.reporter_id) === reporterId || String(issue.reporterId) === reporterId);
+      }
+
+      if (statusValues) {
+        list = list.filter((issue) => statusValues.includes(String(issue.status || '')));
+      }
+
+      const rank = (status: string | undefined) => {
+        if (status === 'open') return 1;
+        if (status === 'in_progress') return 2;
+        if (status === 'fixed') return 3;
+        if (status === 'closed') return 4;
+        return 5;
+      };
+
+      list.sort((a, b) => {
+        const rankA = rank(String(a.status));
+        const rankB = rank(String(b.status));
+        if (rankA !== rankB) return rankA - rankB;
+        const dateA = new Date(a.created_at || a.createdAt || 0).getTime();
+        const dateB = new Date(b.created_at || b.createdAt || 0).getTime();
+        return dateB - dateA;
+      });
+
       res.json({ issues: list });
     } catch (err) {
       next(err);
