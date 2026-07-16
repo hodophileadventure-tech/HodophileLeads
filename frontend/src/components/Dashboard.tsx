@@ -136,7 +136,7 @@ export const Dashboard: React.FC = () => {
         ))}
       </div>
 
-      <Card className="bg-white dark:bg-slate-900 shadow-md rounded-lg p-5">
+      <Card className="bg-white dark:bg-slate-900 shadow-md rounded-3xl p-8 min-h-[30rem] lg:min-h-[32rem]">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h2 className="text-lg md:text-xl font-bold">Monthly Target Tracker</h2>
