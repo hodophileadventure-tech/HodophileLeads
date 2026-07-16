@@ -154,6 +154,8 @@ export const quoteRequestsAPI = {
   save: (requestId: string, documentData: any) => apiClient.post(`/quote-requests/${requestId}/save`, { documentData }),
   sendForApproval: (requestId: string, notes?: string) => apiClient.post(`/quote-requests/${requestId}/send-for-approval`, { notes }),
   approve: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/approve`, {}),
+  // Admin endpoint for approving quotations that were created by managers
+  approveQuotation: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/approve-quotation`, {}),
   markAccepted: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/accept`, {}),
   fixAcceptanceSubtotal: (requestId: string, data: { subtotal: string; confirmed: true; note?: string }) =>
     apiClient.post(`/quote-requests/${requestId}/fix-subtotal`, data),

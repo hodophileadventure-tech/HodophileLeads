@@ -61,8 +61,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [dateRangeStart, setDateRangeStart] = useState('');
   const [dateRangeEnd, setDateRangeEnd] = useState('');
   const [appliedDateRange, setAppliedDateRange] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
-  const [filterMode, setFilterMode] = useState<'default' | 'location' | 'travelMonth'>('default');
-  const [filterQuery, setFilterQuery] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [travelMonthFilter, setTravelMonthFilter] = useState('');
   const [tourTypeFilters, setTourTypeFilters] = useState<Array<'group' | 'private'>>([]);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
@@ -153,19 +153,16 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       });
     }
 
-    // Apply typed location/month filter
-    if (filterMode !== 'default' && filterQuery.trim()) {
-      const query = filterQuery.trim().toLowerCase();
-      result = result.filter((lead) => {
-        if (filterMode === 'location') {
-          return getLeadLocation(lead).toLowerCase().includes(query);
-        }
-        if (filterMode === 'travelMonth') {
-          const month = getLeadTravelMonth(lead);
-          return month.includes(query);
-        }
-        return true;
-      });
+    // Apply location filter
+    if (locationFilter.trim()) {
+      const query = locationFilter.trim().toLowerCase();
+      result = result.filter((lead) => getLeadLocation(lead).toLowerCase().includes(query));
+    }
+
+    // Apply travel month filter
+    if (travelMonthFilter.trim()) {
+      const query = travelMonthFilter.trim().toLowerCase();
+      result = result.filter((lead) => getLeadTravelMonth(lead).includes(query));
     }
 
     // Apply tour type filter (group/private)
@@ -177,7 +174,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     }
 
     return result;
-  }, [leads, activeFilter, leadSearchQuery, appliedDateRange, filterMode, filterQuery, tourTypeFilters]);
+  }, [leads, activeFilter, leadSearchQuery, appliedDateRange, locationFilter, travelMonthFilter, tourTypeFilters]);
 
   const selectedLeadFollowUps = useMemo(
     () => followUps.filter((fu) => String(fu.leadId) === String(selectedLead?.id)),
@@ -414,24 +411,22 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                 <input type="date" className="input-field" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
                 <label className="text-sm text-slate-600 dark:text-slate-400">To</label>
                 <input type="date" className="input-field" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
-                        <label className="text-sm text-slate-600 dark:text-slate-400">Filter by</label>
-                <select
+                        <label className="text-sm text-slate-600 dark:text-slate-400">Location</label>
+                <input
                   className="input-field"
-                  value={filterMode}
-                  onChange={(e) => {
-                    const newMode = e.target.value as 'default' | 'location' | 'travelMonth';
-                    setFilterMode(newMode);
-                    if (newMode === 'default') {
-                      setFilterQuery('');
-                    }
-                  }}
-                >
-                  <option value="default">Default</option>
-                  <option value="location">Location</option>
-                  <option value="travelMonth">Travel month</option>
-                </select>
+                  placeholder="Enter location"
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                />
+                <label className="text-sm text-slate-600 dark:text-slate-400">Travel month</label>
+                <input
+                  className="input-field"
+                  placeholder="Enter month"
+                  value={travelMonthFilter}
+                  onChange={(e) => setTravelMonthFilter(e.target.value)}
+                />
+                <label className="text-sm text-slate-600 dark:text-slate-400">Tour type</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Tour type</span>
                   {(['private', 'group'] as const).map((type) => {
                     const active = tourTypeFilters.includes(type);
                     return (
@@ -448,14 +443,6 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                     );
                   })}
                 </div>
-                {(filterMode === 'location' || filterMode === 'travelMonth') && (
-                  <input
-                    className="input-field"
-                    placeholder={filterMode === 'location' ? 'Enter location' : 'Enter month'}
-                    value={filterQuery}
-                    onChange={(e) => setFilterQuery(e.target.value)}
-                  />
-                )}
                 <Button onClick={() => void handleApplyLeadFilters()}>Apply</Button>
                 <Button variant="secondary" onClick={() => void handleClearLeadFilters()}>
                   Clear
