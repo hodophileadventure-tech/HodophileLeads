@@ -204,15 +204,19 @@ export const Dashboard: React.FC = () => {
               <p className="text-sm font-semibold">{selectedBreakdownConfig.label} breakdown</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {breakdownSegments.map((segment) => (
-                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-2 text-sm bg-white dark:bg-slate-800">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{segment.label}</span>
-                      <span className="font-semibold">{formatCurrency(segment.achieved)} / {formatCurrency(segment.target)}</span>
+                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 text-sm bg-white dark:bg-slate-800">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="font-medium text-slate-900 dark:text-slate-100">{segment.label}</span>
+                        <span className="text-xs text-slate-500 whitespace-nowrap">Remaining: {formatCurrency(segment.remaining)}</span>
+                      </div>
+                      <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 break-words">
+                        {formatCurrency(segment.achieved)} / {formatCurrency(segment.target)}
+                      </div>
+                      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                        <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, Math.round((segment.achieved / Math.max(1, segment.target)) * 100))}%` }} />
+                      </div>
                     </div>
-                    <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-700">
-                      <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.min(100, Math.round((segment.achieved / Math.max(1, segment.target)) * 100))}%` }} />
-                    </div>
-                    <p className="mt-1 text-xs text-slate-500">Remaining: {formatCurrency(segment.remaining)}</p>
                   </div>
                 ))}
               </div>
