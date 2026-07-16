@@ -61,8 +61,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [dateRangeStart, setDateRangeStart] = useState('');
   const [dateRangeEnd, setDateRangeEnd] = useState('');
   const [appliedDateRange, setAppliedDateRange] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
-  const [sortKey, setSortKey] = useState<'default' | 'location' | 'travelMonth'>('default');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [filterMode, setFilterMode] = useState<'default' | 'location' | 'travelMonth'>('default');
+  const [filterQuery, setFilterQuery] = useState('');
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpNote, setFollowUpNote] = useState('');
@@ -105,31 +105,10 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   };
 
-  const sortLeads = (items: Lead[]) => {
-    if (sortKey === 'default') return items;
-
-    const sorted = [...items];
-    sorted.sort((a, b) => {
-      if (sortKey === 'location') {
-        const aValue = getLeadLocation(a).toLowerCase();
-        const bValue = getLeadLocation(b).toLowerCase();
-        return aValue.localeCompare(bValue) * (sortDirection === 'asc' ? 1 : -1);
-      }
-
-      if (sortKey === 'travelMonth') {
-        const aDate = getLeadTravelStart(a);
-        const bDate = getLeadTravelStart(b);
-        if (aDate && bDate) {
-          return (aDate.getTime() - bDate.getTime()) * (sortDirection === 'asc' ? 1 : -1);
-        }
-        if (aDate) return sortDirection === 'asc' ? -1 : 1;
-        if (bDate) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      }
-
-      return 0;
-    });
-    return sorted;
+  const getLeadTravelMonth = (lead: Lead): string => {
+    const date = getLeadTravelStart(lead);
+    if (!date) return '';
+    return date.toLocaleString('en-US', { month: 'long' }).toLowerCase();
   };
 
   const filteredLeads = useMemo(() => {
@@ -173,8 +152,23 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       });
     }
 
-    return sortLeads(result);
-  }, [leads, activeFilter, leadSearchQuery, appliedDateRange, sortKey, sortDirection]);
+    // Apply typed location/month filter
+    if (filterMode !== 'default' && filterQuery.trim()) {
+      const query = filterQuery.trim().toLowerCase();
+      result = result.filter((lead) => {
+        if (filterMode === 'location') {
+          return getLeadLocation(lead).toLowerCase().includes(query);
+        }
+        if (filterMode === 'travelMonth') {
+          const month = getLeadTravelMonth(lead);
+          return month.includes(query);
+        }
+        return true;
+      });
+    }
+
+    return result;
+  }, [leads, activeFilter, leadSearchQuery, appliedDateRange, filterMode, filterQuery]);
 
   const selectedLeadFollowUps = useMemo(
     () => followUps.filter((fu) => String(fu.leadId) === String(selectedLead?.id)),
@@ -411,24 +405,29 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                 <input type="date" className="input-field" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
                 <label className="text-sm text-slate-600 dark:text-slate-400">To</label>
                 <input type="date" className="input-field" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
-                <label className="text-sm text-slate-600 dark:text-slate-400">Sort by</label>
+                <label className="text-sm text-slate-600 dark:text-slate-400">Filter by</label>
                 <select
                   className="input-field"
-                  value={sortKey}
-                  onChange={(e) => setSortKey(e.target.value as 'default' | 'location' | 'travelMonth')}
+                  value={filterMode}
+                  onChange={(e) => {
+                    const newMode = e.target.value as 'default' | 'location' | 'travelMonth';
+                    setFilterMode(newMode);
+                    if (newMode === 'default') {
+                      setFilterQuery('');
+                    }
+                  }}
                 >
                   <option value="default">Default</option>
                   <option value="location">Location</option>
                   <option value="travelMonth">Travel month</option>
                 </select>
-                {(sortKey === 'location' || sortKey === 'travelMonth') && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
-                  >
-                    {sortDirection === 'asc' ? 'Asc' : 'Desc'}
-                  </Button>
+                {(filterMode === 'location' || filterMode === 'travelMonth') && (
+                  <input
+                    className="input-field"
+                    placeholder={filterMode === 'location' ? 'Enter location' : 'Enter month'}
+                    value={filterQuery}
+                    onChange={(e) => setFilterQuery(e.target.value)}
+                  />
                 )}
                 <Button onClick={() => void handleApplyLeadFilters()}>Apply</Button>
                 <Button variant="secondary" onClick={() => void handleClearLeadFilters()}>
