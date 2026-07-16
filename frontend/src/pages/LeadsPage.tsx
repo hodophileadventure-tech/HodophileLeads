@@ -1,19 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { leadsAPI, followUpsAPI } from '../utils/api-service';
-import { Button, Badge, Modal, Spinner } from '../components/common';
+import { Button, Badge, Modal } from '../components/common';
 import { LeadForm } from '../components/LeadForm';
 import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import { KanbanPipeline } from '../components/KanbanPipeline';
 import { LeadList } from '../components/LeadCard';
 import PaymentsPanel from '../components/PaymentsPanel';
-import type { Lead, FollowUp } from '../types';
+import type { Lead, FollowUp, PipelineStage } from '../types';
 import { 
   formatKarachiDateTime, 
   formatKarachiFollowUpReminder, 
-  getLeadLifecycleState, 
-  getLeadLifecycleStyle, 
-  calculateLeadDataHealth, 
-  getDataHealthColor 
+  getLeadLifecycleState
 } from '../utils/helpers';
 
 const CANCEL_LEAD_REASONS = [
@@ -140,7 +137,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   );
 
   const nextPendingFollowUp = useMemo(
-    () => selectedLeadFollowUps.find((fu) => fu.status === 'pending'),
+    () => selectedLeadFollowUps.find((fu) => fu.status === 'upcoming'),
     [selectedLeadFollowUps]
   );
 
@@ -213,7 +210,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
           description: followUpNote,
           dueDate: new Date(followUpDateTime).toISOString(),
           priority: 'medium',
-          status: 'pending',
+          status: 'upcoming',
         });
       }
       setShowFollowUpModal(false);
@@ -250,7 +247,6 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       await followUpsAPI.update(followUp.id, {
         status: 'completed',
         completedAt: new Date().toISOString(),
-        agentRemarks: remarks,
       });
       setShowCompletionModal(false);
       setCompletionRemarks('');
@@ -271,7 +267,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     try {
       await leadsAPI.update(String(selectedLead.id), {
         status: 'canceled',
-        cancelReason: cancelLeadReason,
+        canceledReason: cancelLeadReason,
       });
       setShowCancelLeadModal(false);
       setCancelLeadReason('');
@@ -307,7 +303,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     }
   };
 
-  const moveLeadStage = async (leadId: string, newStage: string) => {
+  const moveLeadStage = async (leadId: string, newStage: PipelineStage) => {
     try {
       await leadsAPI.update(leadId, { pipelineStage: newStage });
       await onRefreshLeads();

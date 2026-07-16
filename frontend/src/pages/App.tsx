@@ -524,22 +524,7 @@ export const App: React.FC = () => {
     fetchLeads();
   }, [user, setLeads]);
 
-  const handleApplyLeadFilters = async () => {
-    setAppliedDateRange({ startDate: dateRangeStart, endDate: dateRangeEnd });
-    await refreshLeads();
-  };
 
-  const handleClearLeadFilters = async () => {
-    setDateRangeStart('');
-    setDateRangeEnd('');
-    setAppliedDateRange({ startDate: '', endDate: '' });
-    setLeadSearchQuery('');
-    await refreshLeads();
-  };
-
-  const handleLeadSearch = async () => {
-    await refreshLeads();
-  };
 
   useEffect(() => {
     if (!user) return;
@@ -822,7 +807,7 @@ export const App: React.FC = () => {
                 leads={leads}
                 followUps={followUps}
                 onRefreshLeads={refreshLeads}
-                onRefreshFollowUps={refreshFollowUps}
+                onRefreshFollowUps={refreshFollowUps || refreshLeads}
               />
             )}
 
