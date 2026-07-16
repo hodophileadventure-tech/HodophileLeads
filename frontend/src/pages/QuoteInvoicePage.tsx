@@ -238,7 +238,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         setTableRows(getDefaultRows());
       }
     }
-  }, []); // Only run once on mount
+  }, [_leadData, _leadId, initialDocumentData, initialQuotationNumber]);
 
   // Auto-populate form with lead details (only on first mount or when request ID changes)
   useEffect(() => {
@@ -481,6 +481,10 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       setMessage('Quotation saved successfully.');
       window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { leadId: _leadId || null, lead: refreshedLead } }));
       window.dispatchEvent(new CustomEvent('lead-payment-pricing-updated', { detail: { leadId: _leadId || null, requestId: _requestId, lead: refreshedLead } }));
+      if (response.data?.status === 'admin_pending') {
+        window.dispatchEvent(new Event('quote-request-sent-approval'));
+        window.dispatchEvent(new Event('quotation-approvals-updated'));
+      }
       _onSaved?.();
     } catch (error) {
       console.error('Failed to save quote request:', error);

@@ -66,7 +66,14 @@ export default function AdminQuotationApprovalsPage({
     try {
       setLoading(true);
       const response = await quoteRequestsAPI.listPendingForAdmin();
-      setPendingQuotations(response.data);
+      const refreshedList = response.data;
+      setPendingQuotations(refreshedList);
+      if (selectedRequest) {
+        const updatedSelected = refreshedList.find((q) => q.id === selectedRequest.id);
+        if (updatedSelected) {
+          onSelectRequest?.(updatedSelected);
+        }
+      }
     } catch (error) {
       console.error('Failed to load pending quotations:', error);
       setMessage('Failed to load pending quotations');
@@ -384,7 +391,7 @@ export default function AdminQuotationApprovalsPage({
           requestStatus={selectedRequest.status as any}
           initialDocumentData={selectedRequest.documentData}
           initialQuotationNumber={selectedRequest.quotationNumber}
-          viewOnly={true}
+          viewOnly={false}
           generatePreviewOnMount
           embedded={true}
           leadData={{

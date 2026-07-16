@@ -252,9 +252,9 @@ export const quoteRequestsController = {
           Object.assign(updatePayload, {
             status: 'admin_pending' as const,
           });
-        } else if (isAdminCreatedQuotation) {
+        } else if (req.user.role === 'admin') {
           Object.assign(updatePayload, {
-            status: 'created' as const,
+            status: existingRequest.status === 'admin_pending' ? 'admin_pending' as const : 'created' as const,
           });
         } else {
           Object.assign(updatePayload, {
