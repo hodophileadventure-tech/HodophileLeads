@@ -52,7 +52,11 @@ export default function AdminQuotationApprovalsPage({
     loadPendingQuotations();
     const handler = () => loadPendingQuotations();
     window.addEventListener('quotation-approvals-updated', handler);
-    return () => window.removeEventListener('quotation-approvals-updated', handler);
+    window.addEventListener('quote-request-saved', handler as EventListener);
+    return () => {
+      window.removeEventListener('quotation-approvals-updated', handler);
+      window.removeEventListener('quote-request-saved', handler as EventListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -68,10 +72,22 @@ export default function AdminQuotationApprovalsPage({
       const response = await quoteRequestsAPI.listPendingForAdmin();
       const refreshedList = response.data;
       setPendingQuotations(refreshedList);
+
       if (selectedRequest) {
         const updatedSelected = refreshedList.find((q) => q.id === selectedRequest.id);
         if (updatedSelected) {
           onSelectRequest?.(updatedSelected);
+          return;
+        }
+
+        try {
+          const detailResponse = await quoteRequestsAPI.getById(selectedRequest.id);
+          if (detailResponse.data?.status === 'admin_pending') {
+            onSelectRequest?.(detailResponse.data);
+            return;
+          }
+        } catch (detailError) {
+          console.warn('Failed to refresh selected quotation details:', detailError);
         }
       }
     } catch (error) {
@@ -384,7 +400,7 @@ export default function AdminQuotationApprovalsPage({
       {/* Middle: Quotation Preview */}
       <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
         <QuoteInvoicePage
-          key={selectedRequest.id}
+          key={`${selectedRequest.id}-${selectedRequest.updatedAt ?? selectedRequest.createdAt}`}
           leadId={selectedRequest.leadId}
           requestId={selectedRequest.id}
           requestType={selectedRequest.requestType}

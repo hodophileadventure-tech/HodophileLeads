@@ -96,6 +96,20 @@ const defaultData: DocumentData = {
   departureLocation: '',
 };
 
+const ensureMinimumRows = (rows: TableRow[]): TableRow[] => {
+  const normalizedRows = rows.map((row) => ({
+    id: row.id || crypto.randomUUID(),
+    particulars: row.particulars || '',
+    persons: row.persons || '',
+    price: row.price || '',
+    amount: row.amount || ''
+  }));
+  while (normalizedRows.length < 5) {
+    normalizedRows.push({ id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' });
+  }
+  return normalizedRows;
+};
+
 const formatDate = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -190,7 +204,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const { user } = useAuth();
   const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>(_requestType || 'quotation');
   const [data, setData] = useState<DocumentData>(defaultData);
-  const [tableRows, setTableRows] = useState<TableRow[]>(getDefaultRows());
+  const [tableRows, setTableRows] = useState<TableRow[]>(() => ensureMinimumRows(getDefaultRows()));
   const [message, setMessage] = useState<string>('');
   const [isLoadingQuoteNumber, setIsLoadingQuoteNumber] = useState(false);
   const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'saved' || requestStatus === 'created' || requestStatus === 'approved' || requestStatus === 'rejected');
@@ -223,18 +237,19 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     setIsSaved(['manager_pending', 'admin_pending', 'saved', 'created', 'approved', 'rejected'].includes(requestStatus || ''));
   }, [requestStatus]);
 
-  const lastHydratedRequestIdRef = useRef<string | null>(null);
+  const lastHydratedRequestKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!_requestId) {
       return;
     }
 
-    if (lastHydratedRequestIdRef.current === _requestId) {
+    const hydrationKey = JSON.stringify([_requestId, initialQuotationNumber ?? '', initialDocumentData ?? null]);
+    if (lastHydratedRequestKeyRef.current === hydrationKey) {
       return;
     }
 
-    lastHydratedRequestIdRef.current = _requestId;
+    lastHydratedRequestKeyRef.current = hydrationKey;
 
     if (initialDocumentData) {
       const canonicalQuoteNumber = initialQuotationNumber || initialDocumentData.quoteNumber || '';
@@ -244,39 +259,32 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         quoteNumber: canonicalQuoteNumber
       };
       setData(_leadData ? hydrateLeadFields(nextData, _leadData) : nextData);
-      if (Array.isArray(initialDocumentData.tableRows) && initialDocumentData.tableRows.length > 0) {
-        setTableRows(initialDocumentData.tableRows);
-      } else {
-        setTableRows(getDefaultRows());
-      }
+      const incomingRows = Array.isArray(initialDocumentData.tableRows) ? initialDocumentData.tableRows : [];
+      setTableRows(ensureMinimumRows(incomingRows));
     }
-  }, [_requestId, _leadData, _leadId, initialDocumentData, initialQuotationNumber]);
+  }, [_requestId, initialDocumentData, initialQuotationNumber]);
 
   // Auto-populate form with lead details (only on first mount or when request ID changes)
   useEffect(() => {
     // If leadData is provided directly (from parent), use it
     if (_leadData) {
       console.log('✅ Using provided lead data:', _leadData);
-      setData((current) => {
-        return hydrateLeadFields(current, _leadData);
-      });
+      setData((current) => hydrateLeadFields(current, _leadData));
       return;
     }
 
     // Otherwise, fetch using leadId
     if (_leadId) {
       console.log('🔍 Fetching lead details for leadId:', _leadId);
-      
       leadsAPI.getById(_leadId)
         .then((response) => {
           const lead = response.data;
           console.log('✅ Lead data fetched:', lead);
-          
+
           setData((current) => {
             // Only update if form hasn't been modified yet
             const isFormEmpty = current.customerName === defaultData.customerName &&
                                current.packageName === defaultData.packageName;
-            
             if (!isFormEmpty) {
               return current;
             }
@@ -310,7 +318,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           setMessage(`Error loading lead details: ${error?.response?.data?.message || error.message}`);
         });
     }
-  }, []); // Empty dependency array - only run once on mount
+  }, [_leadData, _leadId]);
 
   useEffect(() => {
     if (!initialDocumentData && documentType === 'quotation' && !data.quoteNumber && !initialQuotationNumber) {
@@ -328,7 +336,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   // Sync packageName with destination
   useEffect(() => {
-    if (data.destination && data.packageName !== data.destination) {
+    if (data.destination && !packageNameEditedRef.current && data.packageName !== data.destination) {
       setData((current) => ({ ...current, packageName: current.destination }));
     }
   }, [data.destination]);
@@ -405,8 +413,13 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const advanceValue = useMemo(() => parseNumber(data.advanceAmount || ''), [data.advanceAmount]);
   const balanceValue = useMemo(() => Math.max(totalDueValue - advanceValue, 0), [totalDueValue, advanceValue]);
 
+  const packageNameEditedRef = useRef(false);
+
   const updateField = (field: keyof DocumentData, value: string | string[]) => {
     if (viewOnly) return;
+    if (field === 'packageName' && typeof value === 'string') {
+      packageNameEditedRef.current = true;
+    }
     setData((current) => ({ ...current, [field]: value }));
   };
 
@@ -415,13 +428,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     setTableRows((current) => current.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
   };
 
-  const visibleRows = useMemo(() => {
-    const rows = [...tableRows];
-    while (rows.length < 5) {
-      rows.push({ id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' });
-    }
-    return rows.slice(0, 5);
-  }, [tableRows]);
+  const visibleRows = tableRows;
 
   useEffect(() => {
     const packageAmount = formatAmount(parseNumber(data.price || '') * parseNumber(data.persons || ''));
@@ -489,6 +496,9 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         ...(response.data?.documentData || saveData.documentData),
         quoteNumber: response.data?.quotationNumber || response.data?.documentData?.quoteNumber || initialQuotationNumber || saveData.documentData.quoteNumber || current.quoteNumber
       }));
+      if (Array.isArray(response.data?.documentData?.tableRows)) {
+        setTableRows(ensureMinimumRows(response.data.documentData.tableRows));
+      }
       setIsSaved(true);
       setMessage('Quotation saved successfully.');
       window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { leadId: _leadId || null, lead: refreshedLead } }));
