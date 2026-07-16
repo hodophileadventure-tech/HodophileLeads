@@ -23,6 +23,7 @@ import AdminQuotationApprovalsPage from './AdminQuotationApprovalsPage';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import InvoicePage from './InvoicePage';
 import { ItinerariesPanel } from '../components/ItinerariesPanel';
+import { LeadsPage } from './LeadsPage';
 import { Badge, Button, Modal, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
@@ -817,32 +818,56 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'leads' && (
+              <LeadsPage
+                leads={leads}
+                followUps={followUps}
+                onRefreshLeads={refreshLeads}
+                onRefreshFollowUps={refreshFollowUps}
+              />
+            )}
+
+            {currentPage === 'agent' && (
+              <div>
+                <h1 className="text-3xl font-bold mb-4">Agent Panel</h1>
+                <AgentPanel />
+              </div>
+            )}
+
+            {currentPage === 'itineraries' && (
+              <div>
+                <ItinerariesPanel />
+              </div>
+            )}
+
+            {currentPage === 'followups' && (
               <div className="space-y-6">
                 <section className="card">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-                    <div>
-                      <h1 className="text-3xl font-bold">Leads</h1>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        Manage your pipeline, schedule follow-ups, and review lead details in dedicated sections.
-                      </p>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <input
-                          className="input-field"
-                          placeholder="Search phone number"
-                          value={leadSearchQuery}
-                          onChange={(e) => setLeadSearchQuery(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') void handleLeadSearch(); }}
-                        />
-                        <label className="text-sm text-slate-600 dark:text-slate-400">From</label>
-                        <input type="date" className="input-field" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
-                        <label className="text-sm text-slate-600 dark:text-slate-400">To</label>
-                        <input type="date" className="input-field" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
-                        <Button onClick={() => void handleApplyLeadFilters()}>Apply</Button>
-                        <Button variant="secondary" onClick={() => void handleClearLeadFilters()}>Clear</Button>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
+                  <h1 className="text-3xl font-bold">Follow-ups</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    All follow-ups are listed here in a dedicated section so you can manage reminders and task status clearly.
+                  </p>
+                </section>
+                <section className="card">
+                  <TaskDashboard leads={leads} />
+                </section>
+              </div>
+            )}
+
+            {currentPage === 'analytics' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <h1 className="text-3xl font-bold">Analytics</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    See your pipeline trends and agent performance at a glance.
+                  </p>
+                </section>
+                <section className="card">
+                  <AnalyticsDashboard isAdmin={user.role === 'admin'} />
+                </section>
+              </div>
+            )}
+
+            {currentPage === 'pending-quotes' && ['admin', 'manager'].includes(user?.role || '') && (
                         variant={leadView === 'kanban' ? 'primary' : 'secondary'}
                         size="sm"
                         onClick={() => setLeadView('kanban')}
