@@ -766,22 +766,9 @@ export const App: React.FC = () => {
                               <p className="text-sm text-rose-700 dark:text-rose-200">{selectedLead.canceledReason}</p>
                             </div>
                           )}
-                <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-                  <div className="card xl:col-span-2">
+                <section className="grid grid-cols-1 gap-6">
+                  <div className="card">
                     <Dashboard />
-                  </div>
-                  <div className="card space-y-4">
-                    <h2 className="text-xl font-semibold">Quick Actions</h2>
-                    <div className="space-y-3">
-                      <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Need to follow up soon?</p>
-                        <p className="mt-2 font-medium">Review your upcoming tasks and lead alerts.</p>
-                      </div>
-                      <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Lead board</p>
-                        <p className="mt-2 font-medium">Switch to the Leads page for pipeline management.</p>
-                      </div>
-                    </div>
                   </div>
                 </section>
               </div>
