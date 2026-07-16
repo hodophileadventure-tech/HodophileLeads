@@ -192,52 +192,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
     refreshAgentsAndStats();
   }, [isAdmin, showAgentTargetsOnly]);
 
-  const renderAgentTargets = () => (
-    <Card>
-      <h2 className="text-xl font-bold mb-4">Agent Targets</h2>
-      {agents.length === 0 ? (
-        <p className="text-sm text-slate-600 dark:text-slate-400">No agents found.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {agents.map((a) => {
-            const rev = agentRevenue[a.id] || {};
-            const achieved = Number(rev.total_revenue || 0);
-            const target = Number(a.monthly_target || rev.monthly_target || 5_000_000);
-            const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
-            return (
-              <div key={a.id} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{a.name || a.email}</p>
-                    <p className="text-xs text-slate-500 truncate">{a.email}</p>
-                  </div>
-                  <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 px-2 py-1 text-xs font-semibold">{a.role || 'agent'}</span>
-                </div>
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center justify-between text-sm text-slate-500">
-                    <span>Total Target</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(target)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-slate-500">
-                    <span>Completed</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(achieved)}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
-                    <div className="h-2.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${percent}%` }} />
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{percent}% complete</span>
-                    <span>{formatCurrency(Math.max(0, target - achieved))} left</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Card>
-  );
-
   useEffect(() => {
     const handleScreenshotResult = (event: Event) => {
       const detail = (event as CustomEvent).detail as { requestId?: string; agentId?: string; screenshot?: { id: string; url: string; expires_at?: string; created_at?: string }; error?: string; capturedAt?: string } | undefined;
