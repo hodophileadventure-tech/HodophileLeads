@@ -24,12 +24,14 @@ import { QuoteInvoicePage } from './QuoteInvoicePage';
 import InvoicePage from './InvoicePage';
 import { ItinerariesPanel } from '../components/ItinerariesPanel';
 import { LeadsPage } from './LeadsPage';
+import { QuickSummary } from '../components/QuickSummary';
+import { LeadTransferPanel } from '../components/LeadTransferPanel';
 import { Badge, Button, Modal, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer';
 
  
 
@@ -641,6 +643,8 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Pending Invoices', href: 'pending-invoices', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
     ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
+    ...(user?.role === 'manager' ? [{ label: 'Quick Summary', href: 'quick-summary', icon: '📋' }] : []),
+    ...(user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
     ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
@@ -1323,40 +1327,6 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'itineraries' && (
-              <div>
-                <ItinerariesPanel />
-              </div>
-            )}
-
-            {currentPage === 'followups' && (
-              <div className="space-y-6">
-                <section className="card">
-                  <h1 className="text-3xl font-bold">Follow-ups</h1>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    All follow-ups are listed here in a dedicated section so you can manage reminders and task status clearly.
-                  </p>
-                </section>
-                <section className="card">
-                  <TaskDashboard leads={leads} />
-                </section>
-              </div>
-            )}
-
-            {currentPage === 'analytics' && (
-              <div className="space-y-6">
-                <section className="card">
-                  <h1 className="text-3xl font-bold">Analytics</h1>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    See your pipeline trends and agent performance at a glance.
-                  </p>
-                </section>
-                <section className="card">
-                  <AnalyticsDashboard isAdmin={user.role === 'admin'} showAgentTargetsOnly={user.role === 'manager'} />
-                </section>
-              </div>
-            )}
-
             {currentPage === 'pending-quotes' && ['admin', 'manager'].includes(user?.role || '') && (
               <div className="space-y-6">
                 {selectedQuoteRequest ? (
@@ -1953,6 +1923,14 @@ export const App: React.FC = () => {
                   }} />
                 )}
               </div>
+            )}
+
+            {currentPage === 'quick-summary' && user?.role === 'manager' && (
+              <QuickSummary />
+            )}
+
+            {currentPage === 'lead-transfer' && user?.role === 'manager' && (
+              <LeadTransferPanel leads={leads} />
             )}
 
             {currentPage === 'hotels' && (user?.role === 'admin' || user?.role === 'manager') && (
