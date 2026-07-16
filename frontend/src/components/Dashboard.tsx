@@ -189,8 +189,8 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="flex items-center justify-center">
+          <div className="flex flex-col lg:flex-row items-stretch gap-6">
+            <div className="flex items-center justify-center lg:w-1/3">
               <div className="relative flex h-28 w-28 md:h-36 md:w-36 items-center justify-center rounded-full shadow-inner" style={pieStyle}>
                 <div className="flex h-20 w-20 md:h-28 md:w-28 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-center">
                   <div>
@@ -200,27 +200,28 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex-1 space-y-2 max-w-full overflow-visible">
+            <div className="flex-1 space-y-3">
               <p className="text-sm font-semibold">{selectedBreakdownConfig.label} breakdown</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {breakdownSegments.map((segment) => (
-                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-4 text-sm bg-white dark:bg-slate-800">
-                    <div className="flex flex-col gap-3">
-                      <div className="space-y-1 break-words">
+                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-4 text-sm bg-white dark:bg-slate-800 min-h-[12rem]">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
                         <p className="font-medium text-slate-900 dark:text-slate-100">{segment.label}</p>
-                        <p className="text-xs text-slate-500">Remaining: {formatCurrency(segment.remaining)}</p>
+                        <p className="text-xs text-slate-500">Remaining</p>
+                        <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(segment.remaining)}</p>
                       </div>
-                      <div className="grid gap-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        <div className="flex items-center justify-between gap-2">
-                          <span>Achieved</span>
-                          <span className="truncate">{formatCurrency(segment.achieved)}</span>
+                      <div className="space-y-3 text-sm text-slate-900 dark:text-slate-100">
+                        <div className="space-y-1">
+                          <p className="text-slate-500">Achieved</p>
+                          <p className="font-semibold">{formatCurrency(segment.achieved)}</p>
                         </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span>Target</span>
-                          <span className="truncate">{formatCurrency(segment.target)}</span>
+                        <div className="space-y-1">
+                          <p className="text-slate-500">Target</p>
+                          <p className="font-semibold">{formatCurrency(segment.target)}</p>
                         </div>
                       </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden mt-2">
+                      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                         <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, Math.round((segment.achieved / Math.max(1, segment.target)) * 100))}%` }} />
                       </div>
                     </div>
