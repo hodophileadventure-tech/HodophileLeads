@@ -26,6 +26,23 @@ const getLeadOutcomeBucket = (lead: any): LeadOutcomeBucket => {
 // simple random password generator
 const generateTempPassword = () => Math.random().toString(36).slice(-10);
 
+const hasMonthlyTargetColumn = async () => {
+  try {
+    const result = await query(`
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND table_name = 'users'
+          AND column_name = 'monthly_target'
+      ) AS exists
+    `);
+    return result.rows?.[0]?.exists === true;
+  } catch {
+    return false;
+  }
+};
+
 export const adminController = {
   async exportLeadsSpreadsheet(req: any, res: any, next: any) {
     try {
@@ -190,7 +207,11 @@ export const adminController = {
 
   async listAgents(req: any, res: any, next: any) {
     try {
-      const result = await query("SELECT id, email, name, role, last_login_at, last_logout_at, COALESCE(monthly_target, 5000000) AS monthly_target FROM users WHERE role IN ('agent', 'manager') ORDER BY created_at DESC");
+      const hasColumn = await hasMonthlyTargetColumn();
+      const sql = hasColumn
+        ? "SELECT id, email, name, role, last_login_at, last_logout_at, COALESCE(monthly_target, 5000000) AS monthly_target FROM users WHERE role IN ('agent', 'manager') ORDER BY created_at DESC"
+        : "SELECT id, email, name, role, last_login_at, last_logout_at, 5000000 AS monthly_target FROM users WHERE role IN ('agent', 'manager') ORDER BY created_at DESC";
+      const result = await query(sql);
       res.json({ agents: result.rows });
     } catch (err) {
       next(err);
@@ -468,7 +489,12 @@ export const adminController = {
       let idx = 1;
       if (email !== undefined) { fields.push(`email = $${idx}`); params.push(email); idx++; }
       if (name !== undefined) { fields.push(`name = $${idx}`); params.push(name); idx++; }
-      if (monthlyTarget !== undefined) { fields.push(`monthly_target = $${idx}`); params.push(monthlyTarget); idx++; }
+      if (monthlyTarget !== undefined) {
+        const hasColumn = await hasMonthlyTargetColumn();
+        if (!hasColumn) {
+          return res.status(400).json({ message: 'monthly_target column is not available. Run the database migration.' });
+        }
+        fields.push(`monthly_target = $${idx}`); params.push(monthlyTarget); idx++; }
 
       if (fields.length === 0) return res.status(400).json({ message: 'No fields to update' });
 
@@ -813,16 +839,28 @@ export const adminController = {
 
   async revenueStats(req: any, res: any, next: any) {
     try {
-      const sql = `
-        SELECT u.id as agent_id, u.name,
-          COALESCE(SUM(COALESCE(l.budget,0)),0) as total_revenue,
-          COUNT(l.id) as bookings,
-          COALESCE(u.monthly_target, 5000000) AS monthly_target
-        FROM users u
-        LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed')
-        GROUP BY u.id, u.name
-        ORDER BY total_revenue DESC NULLS LAST
-      `;
+      const hasColumn = await hasMonthlyTargetColumn();
+      const sql = hasColumn
+        ? `
+          SELECT u.id as agent_id, u.name,
+            COALESCE(SUM(COALESCE(l.budget,0)),0) as total_revenue,
+            COUNT(l.id) as bookings,
+            COALESCE(u.monthly_target, 5000000) AS monthly_target
+          FROM users u
+          LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed')
+          GROUP BY u.id, u.name
+          ORDER BY total_revenue DESC NULLS LAST
+        `
+        : `
+          SELECT u.id as agent_id, u.name,
+            COALESCE(SUM(COALESCE(l.budget,0)),0) as total_revenue,
+            COUNT(l.id) as bookings,
+            5000000 AS monthly_target
+          FROM users u
+          LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed')
+          GROUP BY u.id, u.name
+          ORDER BY total_revenue DESC NULLS LAST
+        `;
 
       const result = await query(sql);
       res.json({ stats: result.rows });
