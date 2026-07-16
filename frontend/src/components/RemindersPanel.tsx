@@ -158,6 +158,7 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
                     try {
                       await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
                       await load();
+                      window.dispatchEvent(new Event('followups-updated'));
                       setShowCompletionModal(false);
                       setCompletionFollowUp(null);
                       setCompletionRemarks('');

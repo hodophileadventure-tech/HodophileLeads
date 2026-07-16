@@ -361,7 +361,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const handleFollowUpsUpdated = () => {
-      void loadFollowUps();
+      void refreshLeads();
     };
 
     window.addEventListener('followups-updated', handleFollowUpsUpdated);

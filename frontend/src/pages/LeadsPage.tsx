@@ -63,6 +63,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [appliedDateRange, setAppliedDateRange] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
   const [filterMode, setFilterMode] = useState<'default' | 'location' | 'travelMonth'>('default');
   const [filterQuery, setFilterQuery] = useState('');
+  const [tourTypeFilters, setTourTypeFilters] = useState<Array<'group' | 'private'>>([]);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpNote, setFollowUpNote] = useState('');
@@ -167,8 +168,16 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       });
     }
 
+    // Apply tour type filter (group/private)
+    if (tourTypeFilters.length > 0) {
+      result = result.filter((lead) => {
+        const type = String(lead.tourType || '').toLowerCase();
+        return tourTypeFilters.includes(type as 'group' | 'private');
+      });
+    }
+
     return result;
-  }, [leads, activeFilter, leadSearchQuery, appliedDateRange, filterMode, filterQuery]);
+  }, [leads, activeFilter, leadSearchQuery, appliedDateRange, filterMode, filterQuery, tourTypeFilters]);
 
   const selectedLeadFollowUps = useMemo(
     () => followUps.filter((fu) => String(fu.leadId) === String(selectedLead?.id)),
@@ -210,6 +219,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     setDateRangeStart('');
     setDateRangeEnd('');
     setAppliedDateRange({ startDate: '', endDate: '' });
+    setTourTypeFilters([]);
   };
 
   const openFollowUpModal = (followUp?: FollowUp) => {
@@ -283,13 +293,12 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
 
   const completeFollowUpWithRemarks = async (followUp: FollowUp) => {
     try {
-      await followUpsAPI.update(followUp.id, {
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-      });
+      await followUpsAPI.complete(followUp.id, completionRemarks || undefined);
       setShowCompletionModal(false);
       setCompletionRemarks('');
       await onRefreshFollowUps();
+      await onRefreshLeads();
+      window.dispatchEvent(new Event('followups-updated'));
     } catch (error) {
       console.error('Failed to complete follow-up:', error);
       alert('Failed to complete follow-up');
@@ -405,7 +414,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                 <input type="date" className="input-field" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
                 <label className="text-sm text-slate-600 dark:text-slate-400">To</label>
                 <input type="date" className="input-field" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
-                <label className="text-sm text-slate-600 dark:text-slate-400">Filter by</label>
+                        <label className="text-sm text-slate-600 dark:text-slate-400">Filter by</label>
                 <select
                   className="input-field"
                   value={filterMode}
@@ -421,6 +430,24 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                   <option value="location">Location</option>
                   <option value="travelMonth">Travel month</option>
                 </select>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Tour type</span>
+                  {(['private', 'group'] as const).map((type) => {
+                    const active = tourTypeFilters.includes(type);
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setTourTypeFilters((prev) =>
+                          prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type]
+                        )}
+                        className={`text-xs px-2 py-1 rounded ${active ? 'bg-primary-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'}`}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
                 {(filterMode === 'location' || filterMode === 'travelMonth') && (
                   <input
                     className="input-field"

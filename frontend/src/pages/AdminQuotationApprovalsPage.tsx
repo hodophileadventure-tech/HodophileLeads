@@ -105,7 +105,14 @@ export default function AdminQuotationApprovalsPage({
 
     try {
       setMessage('Approving quotation...');
-      await quoteRequestsAPI.approve(quotation.id);
+      // Choose the correct backend endpoint depending on the request status.
+      // If it's pending admin approval (manager sent it), use approveQuotation
+      // which expects status 'admin_pending'. For saved/created use approve.
+      if (quotation.status === 'admin_pending') {
+        await quoteRequestsAPI.approveQuotation(quotation.id);
+      } else {
+        await quoteRequestsAPI.approve(quotation.id);
+      }
       setMessage('✅ Quotation approved successfully!');
       setShowRejectForm(false);
       setRejectionReason('');

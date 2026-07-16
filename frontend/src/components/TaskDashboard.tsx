@@ -169,6 +169,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
     try {
       await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
       setFollowUps((prev) => prev.map((item) => (item.id === completionFollowUp.id ? { ...item, status: 'completed' } : item)));
+      window.dispatchEvent(new Event('followups-updated'));
       setShowCompletionModal(false);
       setCompletionFollowUp(null);
       setCompletionRemarks('');
