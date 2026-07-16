@@ -192,6 +192,52 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
     refreshAgentsAndStats();
   }, [isAdmin, showAgentTargetsOnly]);
 
+  const renderAgentTargets = () => (
+    <Card>
+      <h2 className="text-xl font-bold mb-4">Agent Targets</h2>
+      {agents.length === 0 ? (
+        <p className="text-sm text-slate-600 dark:text-slate-400">No agents found.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {agents.map((a) => {
+            const rev = agentRevenue[a.id] || {};
+            const achieved = Number(rev.total_revenue || 0);
+            const target = Number(a.monthly_target || rev.monthly_target || 5_000_000);
+            const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
+            return (
+              <div key={a.id} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{a.name || a.email}</p>
+                    <p className="text-xs text-slate-500 truncate">{a.email}</p>
+                  </div>
+                  <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 px-2 py-1 text-xs font-semibold">{a.role || 'agent'}</span>
+                </div>
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center justify-between text-sm text-slate-500">
+                    <span>Total Target</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(target)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-slate-500">
+                    <span>Completed</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(achieved)}</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                    <div className="h-2.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${percent}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>{percent}% complete</span>
+                    <span>{formatCurrency(Math.max(0, target - achieved))} left</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+
   useEffect(() => {
     const handleScreenshotResult = (event: Event) => {
       const detail = (event as CustomEvent).detail as { requestId?: string; agentId?: string; screenshot?: { id: string; url: string; expires_at?: string; created_at?: string }; error?: string; capturedAt?: string } | undefined;
@@ -501,57 +547,46 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
         </Card>
       )}
 
-      { (isAdmin || true) && agents.length > 0 && (
+      {isAdmin && agents.length > 0 && (
         <Card>
-          <h2 className="text-xl font-bold mb-4">Agents Targets</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <h2 className="text-xl font-bold mb-4">Agent Monthly Targets</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {agents.map((a) => {
               const rev = agentRevenue[a.id] || {};
               const achieved = Number(rev.total_revenue || 0);
               const target = Number(a.monthly_target || rev.monthly_target || 5_000_000);
               const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
               return (
-                <div key={a.id} className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800 shadow-sm">
-                  <div className="flex items-center justify-between">
+                <div key={a.id} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{a.name || a.email}</p>
-                      <p className="text-xs text-slate-500">{a.email}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{a.name || a.email}</p>
+                      <p className="text-xs text-slate-500 truncate">{a.email}</p>
+                      <p className="text-xs text-slate-400 mt-1">Role: {a.role || 'agent'}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-slate-500">Target</p>
-                      <p className="font-bold">{formatCurrency(target)}</p>
-                    </div>
+                    <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200">{a.role || 'agent'}</span>
                   </div>
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-500">Achieved</p>
-                      <p className="font-semibold">{formatCurrency(achieved)}</p>
+
+                  <div className="mt-4 space-y-3">
+                    <div className="grid gap-2 text-sm text-slate-600 dark:text-slate-300">
+                      <div className="flex items-center justify-between">
+                        <span>Total Target</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(target)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Completed</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(achieved)}</span>
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mt-2">
-                      <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${percent}%` }} />
+
+                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                      <div className="h-2.5 rounded-full bg-emerald-500 transition-all" style={{ width: `${percent}%` }} />
                     </div>
-                    <p className="text-xs text-slate-400 mt-2 flex items-center justify-between">
-                      <span>{percent}%</span>
-                      <button
-                        className="text-xs text-emerald-600 hover:underline"
-                        onClick={async () => {
-                          const v = window.prompt('Set monthly target (numeric)', String(target));
-                          if (!v) return;
-                          const parsed = Number(v.replace(/[_,\s]/g, ''));
-                          if (Number.isNaN(parsed) || parsed <= 0) { alert('Invalid number'); return; }
-                          try {
-                            await (adminAPI as any).updateAgent(a.id, { monthlyTarget: parsed });
-                            await refreshAgentsAndStats();
-                            alert('Target updated');
-                          } catch (err) {
-                            console.error('Failed to update target', err);
-                            alert('Failed to update target');
-                          }
-                        }}
-                      >
-                        Edit
-                      </button>
-                    </p>
+
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span>{percent}% complete</span>
+                      <span>{formatCurrency(Math.max(0, target - achieved))} left</span>
+                    </div>
                   </div>
                 </div>
               );
