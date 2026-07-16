@@ -146,7 +146,12 @@ const formatLeadPersonSummary = (leadData: any): string => {
 
 const hydrateLeadFields = (current: DocumentData, leadData: any): DocumentData => {
   const destination = !current.destination || current.destination === defaultData.destination ? (leadData.destination || current.destination) : current.destination;
-  const personsCount = leadData.persons ?? (Number(leadData.adults ?? 0) + Number(leadData.kids ?? 0) + Number(leadData.seniors ?? 0));
+  const adultsCount = Number(leadData.adults ?? leadData.leadAdults ?? 0);
+  const kidsCount = Number(leadData.kids ?? leadData.leadKids ?? 0);
+  const seniorsCount = Number(leadData.seniors ?? leadData.leadSeniors ?? 0);
+  const explicitTotal = adultsCount + kidsCount + seniorsCount;
+  const fallbackTotal = Number(leadData.persons ?? leadData.leadPersons ?? 0);
+  const personsCount = explicitTotal > 0 ? explicitTotal : fallbackTotal;
   const personsLabel = formatLeadPersonSummary(leadData);
 
   return {
@@ -264,13 +269,22 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
               return current;
             }
 
+            const adultsCount = Number(lead.adults ?? 0);
+            const kidsCount = Number(lead.kids ?? 0);
+            const seniorsCount = Number(lead.seniors ?? 0);
+            const explicitTotal = adultsCount + kidsCount + seniorsCount;
+            const fallbackTotal = Number(lead.persons ?? 0);
+            const personsCount = explicitTotal > 0 ? explicitTotal : fallbackTotal;
+            const personsLabel = formatLeadPersonSummary(lead);
+
             const updated = {
               ...current,
               customerName: lead.clientName || '',
               phone: lead.phone || '',
               city: lead.address || '',
               destination: lead.destination || '',
-              persons: lead.persons ? String(lead.persons) : '',
+              persons: personsCount ? String(personsCount) : '',
+              personsLabel: personsLabel || (personsCount ? `${personsCount} persons` : ''),
               accommodationType: lead.hotelPreference || '',
               transportationType: lead.transportPreference || '',
               travelDate: lead.travelDates?.from || new Date().toISOString().split('T')[0],
