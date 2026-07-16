@@ -174,7 +174,7 @@ const hydrateLeadFields = (current: DocumentData, leadData: any): DocumentData =
     phone: !current.phone || current.phone === defaultData.phone ? (leadData.phone || current.phone) : current.phone,
     city: !current.city || current.city === defaultData.city ? (leadData.address || current.city) : current.city,
     destination: destination,
-    packageName: destination,
+    packageName: current.packageName && current.packageName !== defaultData.packageName ? current.packageName : destination,
     persons: !current.persons || current.persons === defaultData.persons ? (personsCount ? String(personsCount) : current.persons) : current.persons,
     personsLabel: !current.personsLabel || current.personsLabel === defaultData.persons ? (personsLabel || (personsCount ? `${personsCount} persons` : current.personsLabel)) : current.personsLabel,
     accommodationType: !current.accommodationType || current.accommodationType === defaultData.accommodationType ? (leadData.hotelPreference || current.accommodationType) : current.accommodationType,
