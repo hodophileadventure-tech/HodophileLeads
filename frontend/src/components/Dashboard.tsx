@@ -204,20 +204,20 @@ export const Dashboard: React.FC = () => {
               <p className="text-sm font-semibold">{selectedBreakdownConfig.label} breakdown</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {breakdownSegments.map((segment) => (
-                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 text-sm bg-white dark:bg-slate-800">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <span className="font-medium text-slate-900 dark:text-slate-100">{segment.label}</span>
-                        <span className="text-xs text-slate-500 whitespace-nowrap">Remaining: {formatCurrency(segment.remaining)}</span>
+                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-4 text-sm bg-white dark:bg-slate-800">
+                    <div className="flex flex-col gap-3">
+                      <div className="space-y-1 break-words">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">{segment.label}</p>
+                        <p className="text-xs text-slate-500">Remaining: {formatCurrency(segment.remaining)}</p>
                       </div>
                       <div className="grid gap-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
                         <div className="flex items-center justify-between gap-2">
                           <span>Achieved</span>
-                          <span>{formatCurrency(segment.achieved)}</span>
+                          <span className="truncate">{formatCurrency(segment.achieved)}</span>
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <span>Target</span>
-                          <span>{formatCurrency(segment.target)}</span>
+                          <span className="truncate">{formatCurrency(segment.target)}</span>
                         </div>
                       </div>
                       <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden mt-2">
