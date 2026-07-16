@@ -223,7 +223,19 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     setIsSaved(['manager_pending', 'admin_pending', 'saved', 'created', 'approved', 'rejected'].includes(requestStatus || ''));
   }, [requestStatus]);
 
+  const lastHydratedRequestIdRef = useRef<string | null>(null);
+
   useEffect(() => {
+    if (!_requestId) {
+      return;
+    }
+
+    if (lastHydratedRequestIdRef.current === _requestId) {
+      return;
+    }
+
+    lastHydratedRequestIdRef.current = _requestId;
+
     if (initialDocumentData) {
       const canonicalQuoteNumber = initialQuotationNumber || initialDocumentData.quoteNumber || '';
       const nextData = {
@@ -238,7 +250,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         setTableRows(getDefaultRows());
       }
     }
-  }, [_leadData, _leadId, initialDocumentData, initialQuotationNumber]);
+  }, [_requestId, _leadData, _leadId, initialDocumentData, initialQuotationNumber]);
 
   // Auto-populate form with lead details (only on first mount or when request ID changes)
   useEffect(() => {
