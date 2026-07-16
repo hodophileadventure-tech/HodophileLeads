@@ -191,8 +191,8 @@ export const Dashboard: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="flex items-center justify-center">
-              <div className="relative flex h-36 w-36 items-center justify-center rounded-full shadow-inner" style={pieStyle}>
-                <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-center">
+              <div className="relative flex h-28 w-28 md:h-36 md:w-36 items-center justify-center rounded-full shadow-inner" style={pieStyle}>
+                <div className="flex h-20 w-20 md:h-28 md:w-28 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-center">
                   <div>
                     <p className="text-xs text-slate-500">Achieved</p>
                     <p className="text-lg md:text-xl font-bold">{monthlyTargetProgress}%</p>
@@ -200,11 +200,11 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex-1 space-y-2 max-w-full overflow-hidden">
+            <div className="flex-1 space-y-2 max-w-full overflow-visible">
               <p className="text-sm font-semibold">{selectedBreakdownConfig.label} breakdown</p>
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {breakdownSegments.map((segment) => (
-                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 text-sm bg-white dark:bg-slate-800">
+                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-2 text-sm bg-white dark:bg-slate-800">
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{segment.label}</span>
                       <span className="font-semibold">{formatCurrency(segment.achieved)} / {formatCurrency(segment.target)}</span>
