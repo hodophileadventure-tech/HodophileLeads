@@ -153,7 +153,7 @@ export const quoteRequestsAPI = {
   markAccepted: (requestId: string) => apiClient.post(`/quote-requests/${requestId}/accept`, {}),
   fixAcceptanceSubtotal: (requestId: string, data: { subtotal: string; confirmed: true; note?: string }) =>
     apiClient.post(`/quote-requests/${requestId}/fix-subtotal`, data),
-  reject: (requestId: string, reason: string) => apiClient.post(`/quote-requests/${requestId}/reject`, { reason }),
+  reject: (requestId: string, reason: string) => apiClient.post(`/quote-requests/${requestId}/reject`, { rejectionReason: reason }),
   delete: (id: string) => apiClient.delete(`/quote-requests/${id}`),
   reRequest: (id: string, notes: string) => apiClient.post(`/quote-requests/${id}/re-request`, { notes }),
   getNextQuotationNumber: (date: string) => apiClient.get<{ quotationNumber: string }>('/quote-requests/next-number', { params: { date } })
