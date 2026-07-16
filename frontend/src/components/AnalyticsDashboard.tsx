@@ -504,6 +504,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
       {isAdmin && agents.length > 0 && (
         <Card>
           <h2 className="text-xl font-bold mb-4">Agent Monthly Targets</h2>
+          <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700 p-4 mb-4">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+              Complete your target or salary will be deducted accordingly.
+            </p>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {agents.map((a) => {
               const rev = agentRevenue[a.id] || {};
