@@ -210,10 +210,17 @@ export const Dashboard: React.FC = () => {
                         <span className="font-medium text-slate-900 dark:text-slate-100">{segment.label}</span>
                         <span className="text-xs text-slate-500 whitespace-nowrap">Remaining: {formatCurrency(segment.remaining)}</span>
                       </div>
-                      <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 break-words">
-                        {formatCurrency(segment.achieved)} / {formatCurrency(segment.target)}
+                      <div className="grid gap-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        <div className="flex items-center justify-between gap-2">
+                          <span>Achieved</span>
+                          <span>{formatCurrency(segment.achieved)}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span>Target</span>
+                          <span>{formatCurrency(segment.target)}</span>
+                        </div>
                       </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden mt-2">
                         <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, Math.round((segment.achieved / Math.max(1, segment.target)) * 100))}%` }} />
                       </div>
                     </div>
