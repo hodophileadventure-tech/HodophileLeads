@@ -771,6 +771,11 @@ export const App: React.FC = () => {
                     <Dashboard />
                   </div>
                 </section>
+                {(user?.role === 'admin' || user?.role === 'manager') && (
+                  <section>
+                    <AnalyticsDashboard isAdmin={user?.role === 'admin' || user?.role === 'manager'} showAgentTargetsOnly />
+                  </section>
+                )}
               </div>
             )}
             {currentPage === 'report-issue' && (

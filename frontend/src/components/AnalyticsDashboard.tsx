@@ -8,6 +8,7 @@ import { formatCurrency, formatKarachiDateTime } from '../utils/helpers';
 
 interface AnalyticsDashboardProps {
   isAdmin: boolean;
+  showAgentTargetsOnly?: boolean;
 }
 
 interface PipelineRow {
@@ -187,9 +188,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
   };
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin && !showAgentTargetsOnly) return;
     refreshAgentsAndStats();
-  }, [isAdmin]);
+  }, [isAdmin, showAgentTargetsOnly]);
 
   useEffect(() => {
     const handleScreenshotResult = (event: Event) => {
