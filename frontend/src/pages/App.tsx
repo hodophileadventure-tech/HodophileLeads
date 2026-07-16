@@ -767,6 +767,13 @@ export const App: React.FC = () => {
                             </div>
                           )}
                 <section className="grid grid-cols-1 gap-6">
+                  {user?.role === 'agent' && (
+                    <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700 p-4">
+                      <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                        Complete your target or salary will be deducted accordingly.
+                      </p>
+                    </div>
+                  )}
                   <div className="card">
                     <Dashboard />
                   </div>
