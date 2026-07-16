@@ -13,6 +13,7 @@ import { TaskDashboard } from '../components/TaskDashboard';
 import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
 import { HotelsPanel } from '../components/HotelsPanel';
+import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
 import AdminQuotationApprovalsPage from './AdminQuotationApprovalsPage';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
 import InvoicePage from './InvoicePage';
@@ -1243,7 +1244,7 @@ export const App: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <PendingQuotesPanel onSelectRequest={(request) => {
+                  <ManagerQuotationsPanel onSelectRequest={(request) => {
                     setSelectedQuoteRequest(request);
                   }} />
                 )}
