@@ -61,6 +61,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [dateRangeStart, setDateRangeStart] = useState('');
   const [dateRangeEnd, setDateRangeEnd] = useState('');
   const [appliedDateRange, setAppliedDateRange] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
+  const [sortKey, setSortKey] = useState<'default' | 'location' | 'travelMonth'>('default');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpNote, setFollowUpNote] = useState('');
@@ -87,6 +89,49 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   }, [selectedLead]);
 
   // Filter leads based on status
+  const getLeadLocation = (lead: Lead) => {
+    if (lead.destination && typeof lead.destination === 'string' && lead.destination.trim()) {
+      return lead.destination.trim();
+    }
+    if (Array.isArray(lead.destinations) && lead.destinations.length > 0) {
+      return String(lead.destinations[0]).trim();
+    }
+    return '';
+  };
+
+  const getLeadTravelStart = (lead: Lead): Date | null => {
+    const travelDateValue = lead.travelDates?.from || lead.travel_date || '';
+    const parsed = new Date(travelDateValue);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const sortLeads = (items: Lead[]) => {
+    if (sortKey === 'default') return items;
+
+    const sorted = [...items];
+    sorted.sort((a, b) => {
+      if (sortKey === 'location') {
+        const aValue = getLeadLocation(a).toLowerCase();
+        const bValue = getLeadLocation(b).toLowerCase();
+        return aValue.localeCompare(bValue) * (sortDirection === 'asc' ? 1 : -1);
+      }
+
+      if (sortKey === 'travelMonth') {
+        const aDate = getLeadTravelStart(a);
+        const bDate = getLeadTravelStart(b);
+        if (aDate && bDate) {
+          return (aDate.getTime() - bDate.getTime()) * (sortDirection === 'asc' ? 1 : -1);
+        }
+        if (aDate) return sortDirection === 'asc' ? -1 : 1;
+        if (bDate) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      }
+
+      return 0;
+    });
+    return sorted;
+  };
+
   const filteredLeads = useMemo(() => {
     let result = [...leads];
 
@@ -128,8 +173,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       });
     }
 
-    return result;
-  }, [leads, activeFilter, leadSearchQuery, appliedDateRange]);
+    return sortLeads(result);
+  }, [leads, activeFilter, leadSearchQuery, appliedDateRange, sortKey, sortDirection]);
 
   const selectedLeadFollowUps = useMemo(
     () => followUps.filter((fu) => String(fu.leadId) === String(selectedLead?.id)),
@@ -366,6 +411,25 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                 <input type="date" className="input-field" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
                 <label className="text-sm text-slate-600 dark:text-slate-400">To</label>
                 <input type="date" className="input-field" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
+                <label className="text-sm text-slate-600 dark:text-slate-400">Sort by</label>
+                <select
+                  className="input-field"
+                  value={sortKey}
+                  onChange={(e) => setSortKey(e.target.value as 'default' | 'location' | 'travelMonth')}
+                >
+                  <option value="default">Default</option>
+                  <option value="location">Location</option>
+                  <option value="travelMonth">Travel month</option>
+                </select>
+                {(sortKey === 'location' || sortKey === 'travelMonth') && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
+                  >
+                    {sortDirection === 'asc' ? 'Asc' : 'Desc'}
+                  </Button>
+                )}
                 <Button onClick={() => void handleApplyLeadFilters()}>Apply</Button>
                 <Button variant="secondary" onClick={() => void handleClearLeadFilters()}>
                   Clear
