@@ -507,7 +507,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
             {agents.map((a) => {
               const rev = agentRevenue[a.id] || {};
               const achieved = Number(rev.total_revenue || 0);
-              const target = 5_000_000;
+              const target = Number(a.monthly_target || rev.monthly_target || 5_000_000);
               const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
               return (
                 <div key={a.id} className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800 shadow-sm">
@@ -529,7 +529,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
                     <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mt-2">
                       <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${percent}%` }} />
                     </div>
-                    <p className="text-xs text-slate-400 mt-2">{percent}%</p>
+                    <p className="text-xs text-slate-400 mt-2 flex items-center justify-between">
+                      <span>{percent}%</span>
+                      <button
+                        className="text-xs text-emerald-600 hover:underline"
+                        onClick={async () => {
+                          const v = window.prompt('Set monthly target (numeric)', String(target));
+                          if (!v) return;
+                          const parsed = Number(v.replace(/[_,\s]/g, ''));
+                          if (Number.isNaN(parsed) || parsed <= 0) { alert('Invalid number'); return; }
+                          try {
+                            await (adminAPI as any).updateAgent(a.id, { monthlyTarget: parsed });
+                            await refreshAgentsAndStats();
+                            alert('Target updated');
+                          } catch (err) {
+                            console.error('Failed to update target', err);
+                            alert('Failed to update target');
+                          }
+                        }}
+                      >
+                        Edit
+                      </button>
+                    </p>
                   </div>
                 </div>
               );

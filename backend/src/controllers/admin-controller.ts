@@ -190,7 +190,7 @@ export const adminController = {
 
   async listAgents(req: any, res: any, next: any) {
     try {
-      const result = await query("SELECT id, email, name, role, last_login_at, last_logout_at FROM users WHERE role IN ('agent', 'manager') ORDER BY created_at DESC");
+      const result = await query("SELECT id, email, name, role, last_login_at, last_logout_at, COALESCE(monthly_target, 5000000) AS monthly_target FROM users WHERE role IN ('agent', 'manager') ORDER BY created_at DESC");
       res.json({ agents: result.rows });
     } catch (err) {
       next(err);
@@ -462,8 +462,19 @@ export const adminController = {
   async updateAgent(req: any, res: any, next: any) {
     try {
       const agentId = req.params.id;
-      const { email, name } = req.body;
-      const result = await query('UPDATE users SET email = $1, name = $2, updated_at = NOW() WHERE id = $3 RETURNING id, email, name, role', [email, name, agentId]);
+      const { email, name, monthlyTarget } = req.body;
+      const fields: string[] = [];
+      const params: any[] = [];
+      let idx = 1;
+      if (email !== undefined) { fields.push(`email = $${idx}`); params.push(email); idx++; }
+      if (name !== undefined) { fields.push(`name = $${idx}`); params.push(name); idx++; }
+      if (monthlyTarget !== undefined) { fields.push(`monthly_target = $${idx}`); params.push(monthlyTarget); idx++; }
+
+      if (fields.length === 0) return res.status(400).json({ message: 'No fields to update' });
+
+      const sql = `UPDATE users SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${idx} RETURNING id, email, name, role, COALESCE(monthly_target, 5000000) AS monthly_target`;
+      params.push(agentId);
+      const result = await query(sql, params);
       res.json({ agent: result.rows[0] });
     } catch (err) {
       next(err);
@@ -805,7 +816,8 @@ export const adminController = {
       const sql = `
         SELECT u.id as agent_id, u.name,
           COALESCE(SUM(COALESCE(l.budget,0)),0) as total_revenue,
-          COUNT(l.id) as bookings
+          COUNT(l.id) as bookings,
+          COALESCE(u.monthly_target, 5000000) AS monthly_target
         FROM users u
         LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed')
         GROUP BY u.id, u.name
