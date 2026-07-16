@@ -781,7 +781,7 @@ export const App: React.FC = () => {
                 </section>
                 {(user?.role === 'admin' || user?.role === 'manager') && (
                   <section>
-                    <AnalyticsDashboard isAdmin={user?.role === 'admin' || user?.role === 'manager'} showAgentTargetsOnly />
+                    <AnalyticsDashboard isAdmin={user?.role === 'admin'} showAgentTargetsOnly={user?.role === 'manager'} />
                   </section>
                 )}
               </div>
@@ -843,7 +843,7 @@ export const App: React.FC = () => {
                   </p>
                 </section>
                 <section className="card">
-                  <AnalyticsDashboard isAdmin={user.role === 'admin' || user.role === 'manager'} />
+                  <AnalyticsDashboard isAdmin={user.role === 'admin'} showAgentTargetsOnly={user.role === 'manager'} />
                 </section>
               </div>
             )}
@@ -1352,7 +1352,7 @@ export const App: React.FC = () => {
                   </p>
                 </section>
                 <section className="card">
-                  <AnalyticsDashboard isAdmin={user.role === 'admin' || user.role === 'manager'} />
+                  <AnalyticsDashboard isAdmin={user.role === 'admin'} showAgentTargetsOnly={user.role === 'manager'} />
                 </section>
               </div>
             )}
