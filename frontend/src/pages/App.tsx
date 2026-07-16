@@ -868,6 +868,12 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'pending-quotes' && ['admin', 'manager'].includes(user?.role || '') && (
+              <div className="space-y-6">
+                <section className="card">
+                  <div className="flex justify-between items-center mb-4">
+                    <h1 className="text-3xl font-bold">Pending Quote Requests</h1>
+                    <div className="flex gap-2">
+                      <Button
                         variant={leadView === 'kanban' ? 'primary' : 'secondary'}
                         size="sm"
                         onClick={() => setLeadView('kanban')}
