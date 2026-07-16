@@ -126,7 +126,7 @@ const VALID_PIPELINE_STAGES = [
 
 const ensureLeadAccess = (lead: any, user: any) => {
   if (!lead) return false;
-  if (user.role === 'admin') return true;
+  if (user.role === 'admin' || user.role === 'manager') return true;
   return String(lead.agentId) === String(user.id);
 };
 
@@ -181,12 +181,11 @@ const confirmLeadAndEnqueue = async (leadId: string, updateData: Partial<any>) =
 export const leadsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      // Allow both agents and admins to fetch many leads (up to 10k)
-      const isAgent = req.user.role !== 'admin';
       const defaultLimit = 10000; // 10k leads max (covers most cases)
       const { limit = defaultLimit, offset = 0, startDate, endDate, phone } = req.query as any;
+      const scopeAgentId = req.user.role === 'agent' ? String(req.user.id) : undefined;
       const leads = await leadsModel.findAll(
-        isAgent ? String(req.user.id) : undefined,
+        scopeAgentId,
         Number(limit) || defaultLimit,
         Number(offset) || 0,
         { startDate, endDate, phone }
@@ -216,7 +215,8 @@ export const leadsController = {
     try {
       const { phone } = req.query as any;
       if (!phone) return res.status(400).json({ message: 'phone query parameter is required' });
-      const leads = await leadsModel.findByPhone(phone as string, req.user.role !== 'admin' ? String(req.user.id) : undefined);
+      const scopeAgentId = req.user.role === 'agent' ? String(req.user.id) : undefined;
+      const leads = await leadsModel.findByPhone(phone as string, scopeAgentId);
       res.json(leads);
     } catch (error) {
       next(error);

@@ -843,7 +843,7 @@ export const App: React.FC = () => {
                   </p>
                 </section>
                 <section className="card">
-                  <AnalyticsDashboard isAdmin={user.role === 'admin'} />
+                  <AnalyticsDashboard isAdmin={user.role === 'admin' || user.role === 'manager'} />
                 </section>
               </div>
             )}
@@ -1352,7 +1352,7 @@ export const App: React.FC = () => {
                   </p>
                 </section>
                 <section className="card">
-                  <AnalyticsDashboard isAdmin={user.role === 'admin'} />
+                  <AnalyticsDashboard isAdmin={user.role === 'admin' || user.role === 'manager'} />
                 </section>
               </div>
             )}

@@ -2,9 +2,32 @@ import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { query } from '../utils/database';
 
+export const MONTHLY_AGENT_TARGET = 5_000_000;
+
+export const calculateMonthlyTargetProgress = (achievedAmount: number | string, target = MONTHLY_AGENT_TARGET) => {
+  const numericAchieved = Number(achievedAmount) || 0;
+  const numericTarget = Number(target) || 0;
+  const progress = numericTarget > 0 ? Math.min(100, Math.round((numericAchieved / numericTarget) * 100)) : 0;
+
+  return {
+    monthlyTarget: numericTarget,
+    monthlyTargetAchieved: numericAchieved,
+    monthlyTargetProgress: progress,
+    monthlyTargetRemaining: Math.max(0, numericTarget - numericAchieved)
+  };
+};
+
+export const canAccessAdminLikeAnalytics = (role?: string) => role === 'admin' || role === 'manager';
+
+export const getLeadScopeAgentId = (role?: string, userId?: string) => {
+  return role === 'agent' ? userId : undefined;
+};
+
 export const dashboardController = {
   async getStats(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      const scopeAgentId = getLeadScopeAgentId(req.user?.role, req.user?.id);
+      const scopeParams = scopeAgentId ? [scopeAgentId] : [];
       const [statsResult, paymentsResult, overdueResult] = await Promise.allSettled([
         query(`
           SELECT
@@ -13,27 +36,29 @@ export const dashboardController = {
             COUNT(*) FILTER (WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW()) AND status = 'booked')::int as bookings_this_month,
             COALESCE(SUM(CASE WHEN status = 'booked' THEN budget ELSE 0 END), 0)::numeric as total_revenue
           FROM leads
-          WHERE agent_id = $1
-        `, [req.user.id]),
+          ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
+        `, scopeParams),
         query(`
           SELECT
             COUNT(*) FILTER (WHERE p.status = 'pending')::int as pending_payments,
             COUNT(*) FILTER (WHERE p.status = 'confirmed')::int as confirmed_payments
           FROM payments p
           JOIN leads l ON l.id = p.lead_id
-          WHERE l.agent_id = $1
-        `, [req.user.id]),
+          ${scopeAgentId ? 'WHERE l.agent_id = $1' : ''}
+        `, scopeParams),
         query(`
           SELECT COUNT(*)::int as overdue_tasks
           FROM follow_ups f
           JOIN leads l ON l.id = f.lead_id
-          WHERE l.agent_id = $1 AND f.status != 'completed' AND f.due_date < NOW()
-        `, [req.user.id])
+          ${scopeAgentId ? 'WHERE l.agent_id = $1' : ''} AND f.status != 'completed' AND f.due_date < NOW()
+        `, scopeParams)
       ]);
 
       const stats = statsResult.status === 'fulfilled' ? statsResult.value.rows[0] : null;
       const payments = paymentsResult.status === 'fulfilled' ? paymentsResult.value.rows[0] : null;
       const overdueTasks = overdueResult.status === 'fulfilled' ? overdueResult.value.rows[0] : null;
+      const confirmedRevenue = parseFloat(stats?.total_revenue) || 0;
+      const targetSummary = calculateMonthlyTargetProgress(confirmedRevenue);
 
       if (statsResult.status === 'rejected') {
         console.error('[Dashboard] stats query failed', statsResult.reason);
@@ -49,7 +74,11 @@ export const dashboardController = {
         totalLeads: parseInt(stats?.total_leads) || 0,
         hotLeads: parseInt(stats?.hot_leads) || 0,
         bookingsThisMonth: parseInt(stats?.bookings_this_month) || 0,
-        totalRevenue: parseFloat(stats?.total_revenue) || 0,
+        totalRevenue: confirmedRevenue,
+        monthlyTarget: targetSummary.monthlyTarget,
+        monthlyTargetAchieved: targetSummary.monthlyTargetAchieved,
+        monthlyTargetProgress: targetSummary.monthlyTargetProgress,
+        monthlyTargetRemaining: targetSummary.monthlyTargetRemaining,
         pipelineHealth: parseInt(stats?.hot_leads) > 0 ? 'yellow' : 'green',
         pendingPayments: parseInt(payments?.pending_payments) || 0,
         confirmedPayments: parseInt(payments?.confirmed_payments) || 0,
@@ -63,13 +92,14 @@ export const dashboardController = {
 
   async getPipeline(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      const scopeAgentId = getLeadScopeAgentId(req.user?.role, req.user?.id);
       const result = await query(`
         SELECT status, COUNT(*) as count, temperature
         FROM leads
-        WHERE agent_id = $1
+        ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
         GROUP BY status, temperature
         ORDER BY status
-      `, [req.user.id]);
+      `, scopeAgentId ? [scopeAgentId] : []);
 
       res.json(result.rows);
     } catch (error) {
@@ -98,14 +128,15 @@ export const dashboardController = {
 
   async getHealthScore(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      const scopeAgentId = getLeadScopeAgentId(req.user?.role, req.user?.id);
       const result = await query(`
         SELECT
           COUNT(*) FILTER (WHERE status IN ('booked', 'completed')) as completed_bookings,
           COUNT(*) FILTER (WHERE status IN ('negotiation')) as in_negotiation,
           COUNT(*) FILTER (WHERE status = 'new') as new_leads
         FROM leads
-        WHERE agent_id = $1
-      `, [req.user.id]);
+        ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
+      `, scopeAgentId ? [scopeAgentId] : []);
 
       const stats = result.rows[0];
       const totalLeads = parseInt(stats.completed_bookings) + parseInt(stats.in_negotiation) + parseInt(stats.new_leads);
@@ -131,9 +162,8 @@ export const dashboardController = {
     try {
       const { agentId, startDate, endDate } = req.query;
 
-      // Admin-only endpoint
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Admin access required' });
+      if (!canAccessAdminLikeAnalytics(req.user?.role)) {
+        return res.status(403).json({ message: 'Admin or Manager access required' });
       }
 
       if (!agentId) {
