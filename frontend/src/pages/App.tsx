@@ -145,6 +145,9 @@ export const App: React.FC = () => {
       destination: selectedQuoteRequest.leadDestination,
       travelDates: selectedQuoteRequest.leadTravelDates,
       persons: selectedQuoteRequest.leadPersons,
+      adults: selectedQuoteRequest.leadAdults,
+      kids: selectedQuoteRequest.leadKids,
+      seniors: selectedQuoteRequest.leadSeniors,
       address: '',
     };
   }, [
@@ -153,6 +156,9 @@ export const App: React.FC = () => {
     selectedQuoteRequest?.leadDestination,
     selectedQuoteRequest?.leadTravelDates,
     selectedQuoteRequest?.leadPersons,
+    selectedQuoteRequest?.leadAdults,
+    selectedQuoteRequest?.leadKids,
+    selectedQuoteRequest?.leadSeniors,
   ]);
 
   const stopAlarmAudio = () => {

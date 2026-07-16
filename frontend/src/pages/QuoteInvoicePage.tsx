@@ -50,6 +50,7 @@ type DocumentData = {
   packageName: string;
   packageDescription: string;
   persons: string;
+  personsLabel: string;
   price: string;
   subtotal: string;
   discount: string;
@@ -82,6 +83,7 @@ const defaultData: DocumentData = {
   packageName: 'Gilgit Baltistan',
   packageDescription: 'A premium travel package with accommodation, meals, and guided tours.',
   persons: '',
+  personsLabel: '',
   price: '',
   subtotal: '0',
   discount: '',
@@ -123,8 +125,30 @@ const fetchNextQuotationNumber = async (dateString: string): Promise<string> => 
   }
 };
 
+const formatLeadPersonSummary = (leadData: any): string => {
+  const adults = Number(leadData.adults ?? leadData.leadAdults ?? 0);
+  const kids = Number(leadData.kids ?? leadData.leadKids ?? 0);
+  const seniors = Number(leadData.seniors ?? leadData.leadSeniors ?? 0);
+  const parts: string[] = [];
+
+  if (adults > 0) {
+    parts.push(`${adults} adult${adults === 1 ? '' : 's'}`);
+  }
+  if (kids > 0) {
+    parts.push(`${kids} kid${kids === 1 ? '' : 's'}`);
+  }
+  if (seniors > 0) {
+    parts.push(`${seniors} senior${seniors === 1 ? '' : 's'}`);
+  }
+
+  return parts.join(', ');
+};
+
 const hydrateLeadFields = (current: DocumentData, leadData: any): DocumentData => {
   const destination = !current.destination || current.destination === defaultData.destination ? (leadData.destination || current.destination) : current.destination;
+  const personsCount = leadData.persons ?? (Number(leadData.adults ?? 0) + Number(leadData.kids ?? 0) + Number(leadData.seniors ?? 0));
+  const personsLabel = formatLeadPersonSummary(leadData);
+
   return {
     ...current,
     customerName: !current.customerName || current.customerName === defaultData.customerName ? (leadData.clientName || current.customerName) : current.customerName,
@@ -132,7 +156,8 @@ const hydrateLeadFields = (current: DocumentData, leadData: any): DocumentData =
     city: !current.city || current.city === defaultData.city ? (leadData.address || current.city) : current.city,
     destination: destination,
     packageName: destination,
-    persons: !current.persons || current.persons === defaultData.persons ? (leadData.persons ? String(leadData.persons) : current.persons) : current.persons,
+    persons: !current.persons || current.persons === defaultData.persons ? (personsCount ? String(personsCount) : current.persons) : current.persons,
+    personsLabel: !current.personsLabel || current.personsLabel === defaultData.persons ? (personsLabel || (personsCount ? `${personsCount} persons` : current.personsLabel)) : current.personsLabel,
     accommodationType: !current.accommodationType || current.accommodationType === defaultData.accommodationType ? (leadData.hotelPreference || current.accommodationType) : current.accommodationType,
     transportationType: !current.transportationType || current.transportationType === defaultData.transportationType ? (leadData.transportPreference || current.transportationType) : current.transportationType,
     travelDate: !current.travelDate || current.travelDate === defaultData.travelDate ? (leadData.travelDates?.from || current.travelDate) : current.travelDate,
@@ -555,6 +580,9 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
               <div>
                 <label>No. of Person(s)</label>
                 <input disabled={viewOnly} value={data.persons} onChange={(event) => updateField('persons', event.target.value)} />
+                {data.personsLabel && (
+                  <div className="text-xs text-slate-500 mt-1">{data.personsLabel}</div>
+                )}
               </div>
             </div>
             <div>
@@ -700,7 +728,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         </td>
                         <td className="pdf-price-cell text-right"><strong>{data.price}</strong></td>
                         <td className="pdf-person-cell text-center">
-                          <div className="pdf-person-value">{data.persons}</div>
+                          <div className="pdf-person-value">{data.personsLabel || data.persons}</div>
                         </td>
                         <td className="pdf-amount-cell text-right">
                           <strong>{formatAmount(parseNumber(data.price) * parseNumber(data.persons))}</strong>
