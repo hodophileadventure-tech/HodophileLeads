@@ -768,8 +768,9 @@ export const App: React.FC = () => {
                           )}
                 <section className="grid grid-cols-1 gap-6">
                   {user?.role === 'agent' && (
-                    <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700 p-4">
-                      <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                    <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-700 p-4">
+                      <p className="flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-100">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-800 text-rose-700 dark:text-rose-100">🔔</span>
                         Complete your target or salary will be deducted accordingly.
                       </p>
                     </div>
