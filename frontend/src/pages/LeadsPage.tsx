@@ -242,7 +242,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     }
   };
 
-  const completeFollowUpWithRemarks = async (followUp: FollowUp, remarks: string) => {
+  const completeFollowUpWithRemarks = async (followUp: FollowUp) => {
     try {
       await followUpsAPI.update(followUp.id, {
         status: 'completed',
@@ -303,9 +303,9 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     }
   };
 
-  const moveLeadStage = async (leadId: string, newStage: PipelineStage) => {
+  const moveLeadStage = async (leadId: string, newStage: string) => {
     try {
-      await leadsAPI.update(leadId, { pipelineStage: newStage });
+      await leadsAPI.update(leadId, { pipelineStage: newStage as PipelineStage });
       await onRefreshLeads();
     } catch (error) {
       console.error('Failed to move lead stage:', error);
@@ -730,7 +730,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                   variant="primary"
                   onClick={async () => {
                     try {
-                      await completeFollowUpWithRemarks(nextPendingFollowUp, completionRemarks);
+                      await completeFollowUpWithRemarks(nextPendingFollowUp);
                     } catch (error) {
                       console.error('Failed to complete follow-up', error);
                       alert('Failed to complete follow-up.');

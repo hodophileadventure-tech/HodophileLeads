@@ -170,10 +170,6 @@ export const App: React.FC = () => {
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
-  const [leadSearchQuery, setLeadSearchQuery] = useState('');
-  const [dateRangeStart, setDateRangeStart] = useState('');
-  const [dateRangeEnd, setDateRangeEnd] = useState('');
-  const [appliedDateRange, setAppliedDateRange] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const alarmAudioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
@@ -476,14 +472,14 @@ export const App: React.FC = () => {
     }
   };
 
+  const refreshFollowUps = async () => {
+    await loadFollowUps();
+  };
+
   const refreshLeads = async () => {
     // Request up to 10,000 leads for all users
     const limit = 10000;
-    const response = await leadsAPI.list(limit, {
-      phone: leadSearchQuery.trim() || undefined,
-      startDate: appliedDateRange.startDate || undefined,
-      endDate: appliedDateRange.endDate || undefined
-    });
+    const response = await leadsAPI.list(limit);
     setLeads(response.data);
     await loadFollowUps();
   };
@@ -807,7 +803,7 @@ export const App: React.FC = () => {
                 leads={leads}
                 followUps={followUps}
                 onRefreshLeads={refreshLeads}
-                onRefreshFollowUps={refreshFollowUps || refreshLeads}
+                onRefreshFollowUps={refreshFollowUps}
               />
             )}
 
