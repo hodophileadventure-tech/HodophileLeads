@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useUIStore, useDataStore } from '../context/store';
-import { leadsAPI, followUpsAPI, quoteRequestsAPI } from '../utils/api-service';
+import { leadsAPI, followUpsAPI, quoteRequestsAPI, adminAPI } from '../utils/api-service';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { Dashboard } from '../components/Dashboard';
@@ -25,7 +25,7 @@ import InvoicePage from './InvoicePage';
 import { ItinerariesPanel } from '../components/ItinerariesPanel';
 import { LeadsPage } from './LeadsPage';
 import { QuickSummary } from '../components/QuickSummary';
-import { LeadTransferPanel } from '../components/LeadTransferPanel';
+import LeadTransferPanel from '../components/LeadTransferPanel';
 import { Badge, Button, Modal, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime, formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
@@ -86,6 +86,7 @@ export const App: React.FC = () => {
   const { leads, followUps, setLeads, setFollowUps, updateLead } = useDataStore();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [loading, setLoading] = useState(true);
+  const [agents, setAgents] = useState<any[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -512,6 +513,16 @@ export const App: React.FC = () => {
         const response = await leadsAPI.list(limit);
         setLeads(response.data);
         await loadFollowUps();
+        
+        // Fetch agents for manager panel
+        try {
+          if (user?.role === 'admin' || user?.role === 'manager') {
+            const agentsResponse = await (adminAPI as any).getAgents();
+            setAgents(Array.isArray(agentsResponse.data?.agents) ? agentsResponse.data.agents : []);
+          }
+        } catch (agentError) {
+          console.error('Failed to load agents:', agentError);
+        }
       } catch (error) {
         console.error('Failed to fetch leads:', error);
       } finally {
@@ -1926,11 +1937,11 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'quick-summary' && user?.role === 'manager' && (
-              <QuickSummary />
+              <QuickSummary agents={agents} />
             )}
 
             {currentPage === 'lead-transfer' && user?.role === 'manager' && (
-              <LeadTransferPanel leads={leads} />
+              <LeadTransferPanel />
             )}
 
             {currentPage === 'hotels' && (user?.role === 'admin' || user?.role === 'manager') && (
