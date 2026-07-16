@@ -45,7 +45,7 @@ adminRouter.post('/agents/:id/screenshot-request', roleMiddleware(['admin']), ad
 // follow-up stats per agent
 adminRouter.get('/agents/follow-up-stats', roleMiddleware(['admin']), adminController.followUpStats);
 // revenue stats per agent
-adminRouter.get('/agents/revenue-stats', roleMiddleware(['admin']), adminController.revenueStats);
+adminRouter.get('/agents/revenue-stats', roleMiddleware(['admin','manager']), adminController.revenueStats);
 adminRouter.get('/quote-requests', roleMiddleware(['admin']), quoteRequestsController.listPending);
 adminRouter.post('/screen-captures/:requestId', roleMiddleware(['agent']), adminController.submitScreenCapture);
 // Issue reporting

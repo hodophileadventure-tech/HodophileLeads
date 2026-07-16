@@ -122,35 +122,33 @@ export const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+    <div className="space-y-6 px-4 md:px-6 lg:px-8">
+      <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat) => (
-          <Card key={stat.label} className={stat.color}>
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <Card key={stat.label} className={`${stat.color} shadow-sm`}>
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1 truncate">
               {stat.label}
             </p>
-            <p className="text-3xl font-bold">{stat.value}</p>
+            <p className="text-2xl md:text-3xl font-bold truncate">{stat.value}</p>
           </Card>
         ))}
       </div>
 
-      <Card className="bg-gradient-to-br from-emerald-50 to-slate-50 dark:from-emerald-950/40 dark:to-slate-900">
+      <Card className="bg-white dark:bg-slate-900 shadow-md rounded-lg p-5">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold">Monthly Target Tracker</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Easy target view for agent performance this month.
-            </p>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg md:text-xl font-bold">Monthly Target Tracker</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track confirmed revenue against the monthly goal.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex-shrink-0 flex gap-2">
             {breakdownOptions.map((item) => (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => setSelectedBreakdown(item.key)}
-                className={`rounded-full px-3 py-1 text-sm font-medium ${selectedBreakdown === item.key ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
+                className={`rounded-full px-3 py-1 text-sm font-medium ${selectedBreakdown === item.key ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
               >
                 {item.label}
               </button>
@@ -158,33 +156,33 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Monthly target</p>
-                <p className="text-3xl font-bold">{formatCurrency(monthlyTargetAchieved)} / {formatCurrency(monthlyTarget)}</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm text-slate-500 dark:text-slate-400">Monthly target</p>
+                <p className="text-2xl md:text-3xl font-bold truncate">{formatCurrency(monthlyTargetAchieved)} <span className="text-base font-normal text-slate-500">/</span> {formatCurrency(monthlyTarget)}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-slate-600 dark:text-slate-400">Remaining</p>
-                <p className="text-2xl font-semibold text-amber-600">{formatCurrency(monthlyTargetRemaining)}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Remaining</p>
+                <p className="text-xl md:text-2xl font-semibold text-amber-600">{formatCurrency(monthlyTargetRemaining)}</p>
               </div>
             </div>
 
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
-              <div className="h-3 rounded-full bg-emerald-500" style={{ width: `${monthlyTargetProgress}%` }} />
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3">
+              <div className="h-3 rounded-full bg-emerald-500 transition-all" style={{ width: `${monthlyTargetProgress}%` }} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+              <div className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800">
                 <p className="text-slate-500">Daily target</p>
                 <p className="font-semibold">{formatCurrency(dailyTarget)} / day</p>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+              <div className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800">
                 <p className="text-slate-500">Current pace</p>
                 <p className="font-semibold">{formatCurrency(currentPace)} / day</p>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+              <div className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800">
                 <p className="text-slate-500">Status</p>
                 <p className={`font-semibold ${paceStatus === 'On track' ? 'text-emerald-600' : 'text-amber-600'}`}>{paceStatus}</p>
               </div>
@@ -193,29 +191,31 @@ export const Dashboard: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="flex items-center justify-center">
-              <div className="relative flex h-28 w-28 items-center justify-center rounded-full" style={pieStyle}>
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-center">
+              <div className="relative flex h-36 w-36 items-center justify-center rounded-full shadow-inner" style={pieStyle}>
+                <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-center">
                   <div>
                     <p className="text-xs text-slate-500">Achieved</p>
-                    <p className="text-lg font-bold">{monthlyTargetProgress}%</p>
+                    <p className="text-lg md:text-xl font-bold">{monthlyTargetProgress}%</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 max-w-full overflow-hidden">
               <p className="text-sm font-semibold">{selectedBreakdownConfig.label} breakdown</p>
-              {breakdownSegments.map((segment) => (
-                <div key={segment.label} className="rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span>{segment.label}</span>
-                    <span className="font-semibold">{formatCurrency(segment.achieved)} / {formatCurrency(segment.target)}</span>
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-2">
+                {breakdownSegments.map((segment) => (
+                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 text-sm bg-white dark:bg-slate-800">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{segment.label}</span>
+                      <span className="font-semibold">{formatCurrency(segment.achieved)} / {formatCurrency(segment.target)}</span>
+                    </div>
+                    <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-700">
+                      <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.min(100, Math.round((segment.achieved / Math.max(1, segment.target)) * 100))}%` }} />
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">Remaining: {formatCurrency(segment.remaining)}</p>
                   </div>
-                  <div className="mt-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700">
-                    <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.min(100, Math.round((segment.achieved / Math.max(1, segment.target)) * 100))}%` }} />
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">Remaining: {formatCurrency(segment.remaining)}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>

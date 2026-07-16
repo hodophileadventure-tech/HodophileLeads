@@ -500,6 +500,44 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin 
         </Card>
       )}
 
+      { (isAdmin || true) && agents.length > 0 && (
+        <Card>
+          <h2 className="text-xl font-bold mb-4">Agents Targets</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {agents.map((a) => {
+              const rev = agentRevenue[a.id] || {};
+              const achieved = Number(rev.total_revenue || 0);
+              const target = 5_000_000;
+              const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
+              return (
+                <div key={a.id} className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{a.name || a.email}</p>
+                      <p className="text-xs text-slate-500">{a.email}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-slate-500">Target</p>
+                      <p className="font-bold">{formatCurrency(target)}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-slate-500">Achieved</p>
+                      <p className="font-semibold">{formatCurrency(achieved)}</p>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mt-2">
+                      <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${percent}%` }} />
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">{percent}%</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
       {isAdmin && adminOverview && (
         <Card>
           <h2 className="text-xl font-bold mb-4">Canceled Leads</h2>
