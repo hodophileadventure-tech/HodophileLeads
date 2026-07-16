@@ -11,13 +11,7 @@ import DailyReportsPage from './DailyReportsPage';
 import DeveloperPanel from './DeveloperPanel';
 import { TaskDashboard } from '../components/TaskDashboard';
 import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
-import { LeadList } from '../components/LeadCard';
-import { KanbanPipeline } from '../components/KanbanPipeline';
-import { LeadForm } from '../components/LeadForm';
-import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
-import PaymentsPanel from '../components/PaymentsPanel';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
-import { ManagerQuotationsPanel } from '../components/ManagerQuotationsPanel';
 import { HotelsPanel } from '../components/HotelsPanel';
 import AdminQuotationApprovalsPage from './AdminQuotationApprovalsPage';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
@@ -26,9 +20,9 @@ import { ItinerariesPanel } from '../components/ItinerariesPanel';
 import { LeadsPage } from './LeadsPage';
 import { QuickSummary } from '../components/QuickSummary';
 import LeadTransferPanel from '../components/LeadTransferPanel';
-import { Badge, Button, Modal, Spinner } from '../components/common';
+import { Button, Spinner } from '../components/common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiDateTime, formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, parseKarachiDateTimeToISOString, getLeadLifecycleState } from '../utils/helpers';
+import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer';
@@ -36,32 +30,6 @@ type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quote
  
 
 const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
-
-const CANCEL_LEAD_REASONS = [
-  'Budget constraints',
-  'Change of plans',
-  'Work commitments',
-  'Leave not approved',
-  'Family emergency',
-  'Medical issue',
-  'Friends/family cancelled',
-  'Unexpected expenses',
-  'Another agency offered a lower price',
-  'Got a better offer from elsewhere',
-  'Payment issues',
-  'Preferred dates unavailable',
-  'Weather concerns',
-  'Safety concerns',
-  'Visa delay/rejection',
-  'Passport/travel document issue',
-  'Trip postponed',
-  'Not ready to travel',
-  'Itinerary not suitable',
-  'Changed destination',
-  'Low quality Lead',
-  'Did tour on their own',
-  'No specific reason',
-];
 
 const readDismissedFollowUps = (): Record<string, number> => {
   try {
@@ -157,18 +125,6 @@ export const App: React.FC = () => {
       window.removeEventListener('lead-payment-pricing-updated', handleQuotationSaved as EventListener);
     };
   }, [selectedLead?.id]);
-  const [leadView, setLeadView] = useState<'list' | 'kanban'>('kanban');
-  const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
-  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
-  const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
-  const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
-  const [followUpNote, setFollowUpNote] = useState('');
-  const [followUpDateTime, setFollowUpDateTime] = useState('');
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [completionRemarks, setCompletionRemarks] = useState('');
-  const [showConfirmForm, setShowConfirmForm] = useState(false);
-  const [showCancelLeadModal, setShowCancelLeadModal] = useState(false);
-  const [cancelLeadReason, setCancelLeadReason] = useState('');
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
@@ -179,15 +135,6 @@ export const App: React.FC = () => {
   const handlePreviewGenerated = useCallback((dataUrl: string) => {
     setPreviewDataUrl(dataUrl);
   }, []);
-
-  const selectedLeadFollowUps = useMemo(() => {
-    if (!selectedLead) return [];
-    return followUps
-      .filter((item) => item.leadId === String(selectedLead.id) && item.status !== 'completed')
-      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-  }, [followUps, selectedLead]);
-
-  const nextPendingFollowUp = useMemo(() => selectedLeadFollowUps[0] || null, [selectedLeadFollowUps]);
 
   // Memoize leadData for quotation forms to prevent unnecessary re-renders
   const memoizedManagerQuotationLeadData = useMemo(() => {
@@ -300,172 +247,6 @@ export const App: React.FC = () => {
     }
   };
 
-  const completeFollowUpWithRemarks = async (item: FollowUp | null, remarks: string) => {
-    if (!item) return;
-    try {
-      await followUpsAPI.update(item.id, {
-        description: remarks,
-        status: 'completed'
-      });
-      setShowCompletionModal(false);
-      setCompletionRemarks('');
-      await loadFollowUps();
-      window.dispatchEvent(new Event('followups-updated'));
-    } catch (error) {
-      console.error('Failed to complete follow-up with remarks:', error);
-      alert('Failed to mark follow-up complete.');
-    }
-  };
-
-  const openFollowUpModal = (followUp?: FollowUp) => {
-    setEditingFollowUp(followUp || null);
-    setFollowUpTitle(followUp?.title || `Follow up with ${selectedLead?.clientName || 'client'}`);
-    setFollowUpNote(followUp?.description || '');
-    setFollowUpDateTime(
-      followUp?.dueDate
-        ? getKarachiLocalDateTimeString(new Date(followUp.dueDate))
-        : getKarachiLocalDateTimeString(new Date(Date.now() + 24 * 60 * 60 * 1000))
-    );
-    setShowFollowUpModal(true);
-  };
-
-  const deleteFollowUp = async (item: FollowUp) => {
-    if (!confirm('Delete this follow-up?')) return;
-    try {
-      await followUpsAPI.delete(item.id);
-      if (activeAlarm?.id === item.id) {
-        setActiveAlarm(null);
-      }
-      await loadFollowUps();
-      window.dispatchEvent(new Event('followups-updated'));
-    } catch (error) {
-      console.error('Failed to delete follow-up:', error);
-      alert('Failed to delete follow-up.');
-    }
-  };
-
-  const cancelFollowUp = async (item: FollowUp) => {
-    const reason = window.prompt('Reason for canceling this follow-up?')?.trim();
-    if (!reason) return;
-    try {
-      await followUpsAPI.cancel(item.id, reason);
-      if (activeAlarm?.id === item.id) {
-        setActiveAlarm(null);
-      }
-      await loadFollowUps();
-      window.dispatchEvent(new Event('followups-updated'));
-    } catch (error) {
-      console.error('Failed to cancel follow-up:', error);
-      alert('Failed to cancel follow-up.');
-    }
-  };
-
-  const cancelLead = async () => {
-    if (!selectedLead) return;
-    setCancelLeadReason('');
-    setShowCancelLeadModal(true);
-  };
-
-  const confirmCancelLead = async () => {
-    if (!selectedLead || !cancelLeadReason) return;
-    try {
-      const resp = await leadsAPI.cancel(String(selectedLead.id), cancelLeadReason);
-      setSelectedLead(resp.data);
-      await refreshLeads();
-      setShowCancelLeadModal(false);
-      setCancelLeadReason('');
-    } catch (error) {
-      console.error('Failed to cancel lead:', error);
-      alert('Failed to cancel lead.');
-    }
-  };
-
-  const markLeadAsSpam = async () => {
-    if (!selectedLead) return;
-    const confirmed = window.confirm(
-      `Mark lead ${selectedLead.clientName} as spam? This will preserve the lead record but change its status to spam.`
-    );
-    if (!confirmed) return;
-    try {
-      const resp = await leadsAPI.update(String(selectedLead.id), { status: 'spam', potential: false });
-      setSelectedLead(resp.data);
-      await refreshLeads();
-      alert('Lead marked as spam.');
-    } catch (error) {
-      console.error('Failed to mark lead as spam:', error);
-      alert('Failed to mark lead as spam.');
-    }
-  };
-
-  const deleteLead = async () => {
-    if (!selectedLead) return;
-    const confirmed = window.confirm(
-      `Are you sure you want to permanently delete this lead (${selectedLead.clientName})? This action cannot be undone.`
-    );
-    if (!confirmed) return;
-    try {
-      await leadsAPI.delete(String(selectedLead.id));
-      setSelectedLead(null);
-      await refreshLeads();
-      alert('Lead deleted successfully.');
-    } catch (error) {
-      console.error('Failed to delete lead:', error);
-      alert('Failed to delete lead.');
-    }
-  };
-
-  const saveFollowUp = async () => {
-    if (!selectedLead) return;
-    if (!followUpTitle.trim()) {
-      alert('Please enter a follow-up title.');
-      return;
-    }
-    if (!followUpDateTime) {
-      alert('Please choose a follow-up date and time.');
-      return;
-    }
-    if (!editingFollowUp && !followUpNote.trim()) {
-      alert('Please enter a note for the follow-up.');
-      return;
-    }
-
-    try {
-      if (!user) {
-        alert('Unable to save follow-up without a signed-in user.');
-        return;
-      }
-
-      const payload: Partial<FollowUp> = {
-        title: followUpTitle.trim(),
-        dueDate: parseKarachiDateTimeToISOString(followUpDateTime)
-      };
-
-      if (followUpNote.trim()) {
-        payload.description = followUpNote.trim();
-      }
-
-      if (editingFollowUp) {
-        await followUpsAPI.update(editingFollowUp.id, payload);
-      } else {
-        await followUpsAPI.create({
-          ...payload,
-          leadId: String(selectedLead.id),
-          assignedTo: String(user.id),
-          type: 'manual',
-          priority: 'high'
-        });
-      }
-
-      setShowFollowUpModal(false);
-      setEditingFollowUp(null);
-      await loadFollowUps();
-      window.dispatchEvent(new Event('followups-updated'));
-    } catch (error) {
-      console.error('Failed to save follow-up:', error);
-      alert('Failed to save follow-up.');
-    }
-  };
-
   const loadFollowUps = async () => {
     try {
       const response = await followUpsAPI.list();
@@ -485,11 +266,6 @@ export const App: React.FC = () => {
     const response = await leadsAPI.list(limit);
     setLeads(response.data);
     await loadFollowUps();
-  };
-
-  const moveLeadStage = async (leadId: string, stage: string) => {
-    await leadsAPI.updateStage(leadId, stage);
-    await refreshLeads();
   };
 
   useEffect(() => {
