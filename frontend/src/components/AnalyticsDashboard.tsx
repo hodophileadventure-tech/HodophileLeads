@@ -94,7 +94,7 @@ interface AdminOverview {
   }>;
 }
 
-export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin }) => {
+export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin, showAgentTargetsOnly }) => {
   const [pipeline, setPipeline] = useState<PipelineRow[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
