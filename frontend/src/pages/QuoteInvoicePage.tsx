@@ -222,8 +222,11 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
         position: 'absolute' as const,
         left: '-10000px',
         top: 0,
-        width: '900px',
-        pointerEvents: 'none' as const
+        width: '2550px',
+        height: '3300px',
+        opacity: 0,
+        pointerEvents: 'none' as const,
+        overflow: 'hidden' as const
       }
     : undefined;
 

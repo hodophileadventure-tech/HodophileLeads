@@ -58,6 +58,7 @@ export const AgentPanel: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled' | 'spam'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
+  const [loadingSelectedRequest, setLoadingSelectedRequest] = useState(false);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
@@ -336,16 +337,19 @@ export const AgentPanel: React.FC = () => {
       if (!requestId) return;
 
       const existing = quoteRequests.find((request) => request.id === requestId);
-      if (existing) {
+      if (existing && existing.documentData) {
         setSelectedRequest(existing);
         return;
       }
 
       try {
+        setLoadingSelectedRequest(true);
         const res = await quoteRequestsAPI.getById(requestId);
         setSelectedRequest(res.data);
       } catch (error) {
         console.error('Failed to load saved quote request from notification', error);
+      } finally {
+        setLoadingSelectedRequest(false);
       }
     };
 
@@ -355,9 +359,37 @@ export const AgentPanel: React.FC = () => {
     };
   }, [quoteRequests]);
 
+  const selectSavedRequest = async (request: QuoteRequest) => {
+    if (request.documentData && Object.keys(request.documentData).length > 0) {
+      setSelectedRequest(request);
+      return;
+    }
+
+    try {
+      setLoadingSelectedRequest(true);
+      const res = await quoteRequestsAPI.getById(request.id);
+      if (res.data.documentData && Object.keys(res.data.documentData).length > 0) {
+        setSelectedRequest(res.data);
+      } else {
+        setSelectedRequest(request);
+      }
+    } catch (error) {
+      console.error('Failed to load saved quote details', error);
+      setSelectedRequest(request);
+    } finally {
+      setLoadingSelectedRequest(false);
+    }
+  };
+
   useEffect(() => {
-    if (!selectedRequest || !quotePanelRef.current) return;
-    quotePanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!selectedRequest) return;
+    const timeout = window.setTimeout(() => {
+      if (!quotePanelRef.current) return;
+      requestAnimationFrame(() => {
+        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      });
+    }, 250);
+    return () => window.clearTimeout(timeout);
   }, [selectedRequest]);
 
   useEffect(() => {
@@ -895,6 +927,8 @@ export const AgentPanel: React.FC = () => {
           <p className="mt-4 text-sm text-rose-600">{quoteRequestError}</p>
         ) : quoteRequests.length === 0 ? (
           <p className="mt-4 text-sm text-slate-600">No saved quotations have been completed yet.</p>
+        ) : loadingQuoteRequests ? (
+          <p className="mt-4 text-sm text-slate-600">Loading saved quotations...</p>
         ) : (
           <div className="mt-4 space-y-3">
             {quoteRequests.map((request) => (
@@ -902,7 +936,8 @@ export const AgentPanel: React.FC = () => {
                 key={request.id}
                 type="button"
                 className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
-                onClick={() => setSelectedRequest(request)}
+                onClick={() => void selectSavedRequest(request)}
+                disabled={loadingSelectedRequest}
               >
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                   <div>
@@ -929,7 +964,7 @@ export const AgentPanel: React.FC = () => {
       </section>
 
       {selectedRequest && (
-        <section className="card mt-6" ref={quotePanelRef}>
+        <section id="selected-quote-panel" className="card mt-6" ref={quotePanelRef}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
             <div>
               <h2 className="text-2xl font-semibold">Saved {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>

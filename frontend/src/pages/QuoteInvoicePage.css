@@ -65,6 +65,13 @@ html, body {
   flex: 1 !important;
 }
 
+.quote-invoice-root.embedded .quote-invoice-preview {
+  width: 100% !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
 .quote-invoice-sidebar {
   display: flex;
   flex-direction: column;
