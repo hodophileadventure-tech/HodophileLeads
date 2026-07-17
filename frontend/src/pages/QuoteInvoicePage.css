@@ -205,12 +205,12 @@ html, body {
   width: 2550px;
   min-height: 3300px;
   overflow: hidden;
-  padding-top: 540px;
+  padding-top: 620px;
 }
 
 .pdf-header-image {
   position: absolute;
-  top: 80px;
+  top: 140px;
   left: 0;
   right: 0;
   width: 92%;
@@ -878,7 +878,7 @@ html, body {
 
 .pdf-footer-image {
   position: absolute;
-  bottom: 0;
+  bottom: -30px;
   left: 50%;
   transform: translateX(-50%);
   width: 2550px;
