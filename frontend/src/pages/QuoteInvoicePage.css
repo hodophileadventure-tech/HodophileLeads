@@ -293,9 +293,8 @@ html, body {
   font-size: 48px;
   font-weight: 700;
   line-height: 1.05;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .pdf-quotation-title {
@@ -444,7 +443,7 @@ html, body {
 }
 
 .pdf-quote-meta-row strong {
-  font-weight: 900;
+  font-weight: 500;
   font-size: 44px;
 }
 
@@ -564,7 +563,7 @@ html, body {
   align-items: flex-start;
   justify-content: center;
   min-height: 100%;
-  font-weight: 800;
+  font-weight: 500;
   font-size: 44px;
   line-height: 1.1;
   padding-top: 0;
