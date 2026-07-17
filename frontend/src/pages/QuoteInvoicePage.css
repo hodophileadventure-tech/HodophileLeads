@@ -251,9 +251,8 @@ html, body {
 .pdf-header-top {
   display: flex;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center; /* vertically center customer box and quote block */
   gap: 24px;
-  padding-top: 24px;
 }
 
 .pdf-quote-meta-block,
@@ -279,7 +278,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  align-items: flex-end;
+  align-items: center; /* center quote meta vertically with customer box */
   justify-content: flex-start;
   width: 100%;
   margin-left: auto;
