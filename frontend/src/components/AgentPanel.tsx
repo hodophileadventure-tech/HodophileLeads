@@ -61,7 +61,6 @@ export const AgentPanel: React.FC = () => {
   const [loadingSelectedRequest, setLoadingSelectedRequest] = useState(false);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
-  const selectedRequestScrollRef = useRef(false);
   const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
   const [quoteRequestError, setQuoteRequestError] = useState('');
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
@@ -339,7 +338,6 @@ export const AgentPanel: React.FC = () => {
 
       const existing = quoteRequests.find((request) => request.id === requestId);
       if (existing && existing.documentData) {
-        selectedRequestScrollRef.current = true;
         setPreviewDataUrl(null);
         setSelectedRequest(existing);
         return;
@@ -348,7 +346,6 @@ export const AgentPanel: React.FC = () => {
       try {
         setLoadingSelectedRequest(true);
         const res = await quoteRequestsAPI.getById(requestId);
-        selectedRequestScrollRef.current = true;
         setPreviewDataUrl(null);
         setSelectedRequest(res.data);
       } catch (error) {
@@ -366,7 +363,6 @@ export const AgentPanel: React.FC = () => {
 
   const selectSavedRequest = async (request: QuoteRequest) => {
     if (request.documentData && Object.keys(request.documentData).length > 0) {
-      selectedRequestScrollRef.current = true;
       setPreviewDataUrl(null);
       setSelectedRequest(request);
       return;
@@ -376,37 +372,20 @@ export const AgentPanel: React.FC = () => {
       setLoadingSelectedRequest(true);
       const res = await quoteRequestsAPI.getById(request.id);
       if (res.data.documentData && Object.keys(res.data.documentData).length > 0) {
-        selectedRequestScrollRef.current = true;
         setPreviewDataUrl(null);
         setSelectedRequest(res.data);
       } else {
-        selectedRequestScrollRef.current = true;
         setPreviewDataUrl(null);
         setSelectedRequest(request);
       }
     } catch (error) {
       console.error('Failed to load saved quote details', error);
-      selectedRequestScrollRef.current = true;
       setPreviewDataUrl(null);
       setSelectedRequest(request);
     } finally {
       setLoadingSelectedRequest(false);
     }
   };
-
-  useEffect(() => {
-    if (!selectedRequest || !quotePanelRef.current || !selectedRequestScrollRef.current) {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
-      requestAnimationFrame(() => {
-        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        selectedRequestScrollRef.current = false;
-      });
-    }, 200);
-    return () => window.clearTimeout(timeout);
-  }, [selectedRequest]);
 
   useEffect(() => {
     let mounted = true;
@@ -1030,8 +1009,6 @@ export const AgentPanel: React.FC = () => {
                   initialDocumentData={selectedRequest.documentData}
                   viewOnly={true}
                     generatePreviewOnMount
-                    embedded={true}
-                    hidePreview={true}
                     onPreviewGenerated={async (dataUrl) => {
                       try {
                         if (!dataUrl) {
