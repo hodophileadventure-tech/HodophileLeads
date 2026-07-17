@@ -170,9 +170,11 @@ export const dashboardController = {
         return res.status(400).json({ message: 'agentId is required' });
       }
 
-      // Parse dates
+      // Parse dates and ensure the range covers full days (start at 00:00:00, end at 23:59:59.999)
       const start = startDate ? new Date(String(startDate)) : new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+      if (startDate) start.setHours(0, 0, 0, 0);
       const end = endDate ? new Date(String(endDate)) : new Date();
+      if (endDate) end.setHours(23, 59, 59, 999);
 
       // Ensure valid dates
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
