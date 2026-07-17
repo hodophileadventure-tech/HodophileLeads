@@ -187,6 +187,9 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     [selectedLeadFollowUps]
   );
 
+  const newLeads = useMemo(() => filteredLeads.filter((lead) => getLeadLifecycleState(lead) === 'new'), [filteredLeads]);
+  const otherLeads = useMemo(() => filteredLeads.filter((lead) => getLeadLifecycleState(lead) !== 'new'), [filteredLeads]);
+
   // Count leads by status
   const statusCounts = useMemo(() => {
     return {
@@ -667,6 +670,11 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                   onSuccess={async (lead) => {
                     setSelectedLead(lead);
                     await onRefreshLeads();
+                    setTimeout(() => {
+                      if (leadDetailRef.current) {
+                        leadDetailRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 50);
                   }}
                 />
                 <Button variant="secondary" onClick={() => setSelectedLead(null)}>
@@ -898,7 +906,36 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
           {leadView === 'kanban' ? (
             <KanbanPipeline leads={filteredLeads} onSelectLead={setSelectedLead} onMoveStage={moveLeadStage} />
           ) : (
-            <LeadList leads={filteredLeads} onSelectLead={setSelectedLead} />
+            <div className="space-y-6">
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">New Leads</h3>
+                    <p className="text-sm text-slate-500">All leads currently in new state for easier follow-up.</p>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700">{newLeads.length}</span>
+                </div>
+                {newLeads.length === 0 ? (
+                  <p className="text-sm text-slate-500">No new leads found.</p>
+                ) : (
+                  <LeadList leads={newLeads} onSelectLead={setSelectedLead} startIndex={0} />
+                )}
+              </div>
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">Other Leads</h3>
+                    <p className="text-sm text-slate-500">All non-new leads in your current filter set.</p>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700">{otherLeads.length}</span>
+                </div>
+                {otherLeads.length === 0 ? (
+                  <p className="text-sm text-slate-500">No other leads found.</p>
+                ) : (
+                  <LeadList leads={otherLeads} onSelectLead={setSelectedLead} startIndex={newLeads.length} />
+                )}
+              </div>
+            </div>
           )}
         </section>
       </main>

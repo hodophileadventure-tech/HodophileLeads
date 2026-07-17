@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Lead } from '../types';
 import { LeadCard } from './LeadCard';
-import { getLeadLifecycleStyle } from '../utils/helpers';
+import { getLeadLifecycleStyle, getLeadLifecycleState } from '../utils/helpers';
 import { followUpsAPI } from '../utils/api-service';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
@@ -12,6 +12,7 @@ interface KanbanPipelineProps {
 }
 
 const COLUMNS: Array<{ key: string; label: string }> = [
+  { key: 'new_label', label: 'New Leads' },
   { key: 'new_lead', label: 'New Lead' },
   { key: 'availability_check', label: 'Availability Check' },
   { key: 'quoted', label: 'Quoted' },
@@ -44,6 +45,8 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
     return () => window.clearInterval(id);
   }, []);
 
+  const serialMap = useMemo(() => new Map(leads.map((lead, index) => [lead.id, index + 1])), [leads]);
+
   const grouped = useMemo(() => {
     const bucket: Record<string, Lead[]> = {};
     for (const col of COLUMNS) {
@@ -53,8 +56,13 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
     const visibleLeads = overdueOnly ? leads.filter((lead) => overdueLeadIds.includes(lead.id)) : leads;
 
     for (const lead of visibleLeads) {
+      const lifecycleState = getLeadLifecycleState(lead);
+      if (lifecycleState === 'new') {
+        bucket.new_label.push(lead);
+        continue;
+      }
       const stage = (lead.pipelineStage || (lead as any).pipeline_stage || 'new_lead') as string;
-      const target = bucket[stage] ? stage : 'new_lead';
+      const target = bucket[stage] ? stage : 'new_label';
       bucket[target].push(lead);
     }
 
@@ -78,7 +86,7 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
           Overdue Reminders ({overdueLeadIds.length})
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7 gap-4 min-w-[1200px] xl:min-w-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8 gap-4 min-w-[1200px] xl:min-w-0">
         {COLUMNS.map((column) => (
           <div
             key={column.key}
@@ -93,7 +101,7 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
               </span>
             </div>
             <div className="space-y-3">
-              {grouped[column.key].map((lead) => {
+                      {grouped[column.key].map((lead) => {
                 const lifecycle = getLeadLifecycleStyle(lead as any);
                 const wrapperClass = `${lifecycle.row} rounded-lg`;
                 const overdueClass = overdueLeadIds.includes(lead.id) ? 'animate-pulse ring-2 ring-red-500' : '';
@@ -104,7 +112,7 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
                     onDragStart={(e) => e.dataTransfer.setData('text/leadId', lead.id)}
                   >
                     <div className={`${wrapperClass} ${overdueClass}`.trim()}>
-                      <LeadCard lead={lead} onClick={() => onSelectLead?.(lead)} />
+                      <LeadCard serial={serialMap.get(lead.id)} lead={lead} onClick={() => onSelectLead?.(lead)} />
                     </div>
                   </div>
                 );
