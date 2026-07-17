@@ -25,19 +25,18 @@ html, body {
 
 /* When embedded in manager panel, adjust sizing */
 .quote-invoice-root.embedded {
-  min-height: unset !important;
   min-height: auto !important;
   background: transparent !important;
   padding: 0 !important;
   display: flex !important;
   flex-direction: column !important;
-  justify-content: unset !important;
+  justify-content: flex-start !important;
   align-items: stretch !important;
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
   height: auto !important;
-  overflow: visible !important;
+  overflow: auto !important;
 }
 
 .quote-invoice-shell {
@@ -61,7 +60,7 @@ html, body {
   margin: 0 !important;
   padding: 0 !important;
   height: auto !important;
-  overflow: visible !important;
+  overflow: auto !important;
   flex: 1 !important;
 }
 
@@ -79,7 +78,7 @@ html, body {
   min-width: 0;
 }
 
-/* When embedded, ensure sidebar scrolls internally */
+/* When embedded, ensure sidebar shows content properly */
 .quote-invoice-root.embedded .quote-invoice-sidebar {
   max-height: none !important;
   min-width: 0 !important;
@@ -88,6 +87,7 @@ html, body {
   overflow-x: hidden !important;
   flex: 1 !important;
   padding-right: 0 !important;
+  gap: 0 !important;
 }
 
 .quote-invoice-panel {

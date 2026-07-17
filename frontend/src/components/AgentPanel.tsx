@@ -1014,8 +1014,10 @@ export const AgentPanel: React.FC = () => {
           </div>
 
           {user?.role === 'agent' ? (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
-              <main className="col-span-1 md:col-span-9 overflow-y-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left: Quotation Form */}
+              <div className="flex flex-col">
+                <h3 className="font-semibold mb-4 text-lg">Quotation Details</h3>
                 <QuoteInvoicePage
                   key={selectedRequest.id}
                   leadId={selectedRequest.leadId}
@@ -1058,12 +1060,13 @@ export const AgentPanel: React.FC = () => {
                     }
                   }}
                 />
-              </main>
+              </div>
 
-              <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden min-h-0">
-                <div className="border rounded p-4 flex flex-col h-full min-h-0">
-                  <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                  <div className="flex-1 min-h-[320px] overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3 p-2">
+              {/* Right: Preview Panel */}
+              <div className="sticky top-0 h-fit">
+                <div className="border rounded-lg p-4 bg-slate-50 dark:bg-slate-900 space-y-3">
+                  <h3 className="font-semibold text-base">Preview</h3>
+                  <div className="flex items-center justify-center bg-white dark:bg-slate-800 rounded min-h-[500px] overflow-auto">
                     {previewDataUrl ? (
                       <img
                         src={previewDataUrl}
@@ -1075,7 +1078,7 @@ export const AgentPanel: React.FC = () => {
                       <div className="text-sm text-slate-500">Generating preview…</div>
                     )}
                   </div>
-                  <div className="flex flex-col gap-2 flex-shrink-0">
+                  <div className="flex flex-col gap-2">
                     <Button variant="secondary" size="sm" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</Button>
                     {previewDataUrl && (
                       <button
@@ -1103,7 +1106,7 @@ export const AgentPanel: React.FC = () => {
                     )}
                   </div>
                 </div>
-              </aside>
+              </div>
             </div>
           ) : (
             <QuoteInvoicePage
