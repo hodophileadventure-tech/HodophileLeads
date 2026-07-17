@@ -41,6 +41,7 @@ export const AgentPanel: React.FC = () => {
   const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
   const [completionRemarks, setCompletionRemarks] = useState('');
   const quotePanelRef = useRef<HTMLDivElement | null>(null);
+  const isGeneratingPreviewRef = useRef(false);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpNote, setFollowUpNote] = useState('');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
@@ -358,20 +359,24 @@ export const AgentPanel: React.FC = () => {
     };
   }, [quoteRequests]);
 
-  // Smooth scroll to selected quote panel when it's opened, with proper timing to avoid jerk
+  // Scroll to selected quote panel only after preview generation completes
+  // This prevents scroll conflicts with html2canvas rendering
   useEffect(() => {
     if (!selectedRequest || !quotePanelRef.current) return;
 
-    // Use requestAnimationFrame to ensure DOM is ready, then add a small delay for layout shift
-    const rafId = requestAnimationFrame(() => {
-      const timeoutId = window.setTimeout(() => {
-        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
-      return () => clearTimeout(timeoutId);
-    });
+    // Set a fallback scroll in case preview generation doesn't complete
+    const fallbackTimeoutId = window.setTimeout(() => {
+      try {
+        if (!isGeneratingPreviewRef.current) {
+          quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (err) {
+        console.warn('Fallback scroll failed:', err);
+      }
+    }, 3000); // Fallback after 3 seconds
 
-    return () => cancelAnimationFrame(rafId);
-  }, [selectedRequest]);
+    return () => clearTimeout(fallbackTimeoutId);
+  }, [selectedRequest?.id]);
 
   const openQuotePreview = (request: QuoteRequest) => {
     window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
@@ -1030,12 +1035,16 @@ export const AgentPanel: React.FC = () => {
                     address: '',
                   }}
                   initialDocumentData={selectedRequest.documentData}
+                  initialQuotationNumber={selectedRequest.quotationNumber}
                   viewOnly={true}
                   generatePreviewOnMount
                   onPreviewGenerated={async (dataUrl) => {
                     try {
+                      isGeneratingPreviewRef.current = true;
+                      
                       if (!dataUrl) {
                         setPreviewDataUrl(null);
+                        isGeneratingPreviewRef.current = false;
                         return;
                       }
 
@@ -1049,9 +1058,20 @@ export const AgentPanel: React.FC = () => {
                       }
 
                       setPreviewDataUrl(dataUrl);
+                      
+                      // Trigger scroll after preview is set
+                      setTimeout(() => {
+                        isGeneratingPreviewRef.current = false;
+                        try {
+                          quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } catch (err) {
+                          console.warn('Post-preview scroll failed:', err);
+                        }
+                      }, 100);
                     } catch (err) {
                       console.error('Failed to set preview data URL:', err);
                       setPreviewDataUrl(null);
+                      isGeneratingPreviewRef.current = false;
                     }
                   }}
                 />

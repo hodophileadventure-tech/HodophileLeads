@@ -342,25 +342,33 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   }, [data.destination]);
 
   useEffect(() => {
-    if (generatePreviewOnMount && previewRef.current && onPreviewGenerated) {
+    if (generatePreviewOnMount && previewRef.current && onPreviewGenerated && !hidePreview) {
+      // Add a delay to ensure the component is fully rendered before generating preview
       const generatePreview = async () => {
         try {
-          const canvas = await html2canvas(previewRef.current!, {
+          // Wait for layout to be calculated
+          await new Promise(resolve => setTimeout(resolve, 800));
+          
+          if (!previewRef.current) return;
+          
+          const canvas = await html2canvas(previewRef.current, {
             scale: 1,
             backgroundColor: '#ffffff',
             useCORS: true,
             allowTaint: false,
+            logging: false, // Disable logging to reduce overhead
           });
           const jpegData = canvas.toDataURL('image/jpeg', 0.95);
           onPreviewGenerated(jpegData);
         } catch (error) {
           console.error('Failed to generate preview:', error);
+          onPreviewGenerated(''); // Notify parent that generation failed
         }
       };
-      const timer = setTimeout(generatePreview, 500);
+      const timer = setTimeout(generatePreview, 200);
       return () => clearTimeout(timer);
     }
-  }, [generatePreviewOnMount, onPreviewGenerated, data, tableRows]);
+  }, [generatePreviewOnMount, onPreviewGenerated, hidePreview, _requestId]);
 
   // Debug: Log data state changes
   useEffect(() => {
