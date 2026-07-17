@@ -36,8 +36,8 @@ html, body {
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  height: 100% !important;
-  overflow: hidden !important;
+  height: auto !important;
+  overflow: visible !important;
 }
 
 .quote-invoice-shell {
@@ -60,8 +60,8 @@ html, body {
   align-items: stretch !important;
   margin: 0 !important;
   padding: 0 !important;
-  height: 100% !important;
-  overflow: hidden !important;
+  height: auto !important;
+  overflow: visible !important;
   flex: 1 !important;
 }
 
@@ -81,13 +81,13 @@ html, body {
 
 /* When embedded, ensure sidebar scrolls internally */
 .quote-invoice-root.embedded .quote-invoice-sidebar {
-  max-height: 100% !important;
+  max-height: none !important;
   min-width: 0 !important;
   width: 100% !important;
-  overflow-y: auto !important;
+  overflow-y: visible !important;
   overflow-x: hidden !important;
   flex: 1 !important;
-  padding-right: 8px !important;
+  padding-right: 0 !important;
 }
 
 .quote-invoice-panel {

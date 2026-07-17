@@ -41,7 +41,6 @@ export const AgentPanel: React.FC = () => {
   const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
   const [completionRemarks, setCompletionRemarks] = useState('');
   const quotePanelRef = useRef<HTMLDivElement | null>(null);
-  const isGeneratingPreviewRef = useRef(false);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpNote, setFollowUpNote] = useState('');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
@@ -364,18 +363,16 @@ export const AgentPanel: React.FC = () => {
   useEffect(() => {
     if (!selectedRequest || !quotePanelRef.current) return;
 
-    // Set a fallback scroll in case preview generation doesn't complete
-    const fallbackTimeoutId = window.setTimeout(() => {
+    // Use a simple, direct scroll without conflicts
+    const scrollTimer = window.setTimeout(() => {
       try {
-        if (!isGeneratingPreviewRef.current) {
-          quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (err) {
-        console.warn('Fallback scroll failed:', err);
+        console.warn('Scroll to panel failed:', err);
       }
-    }, 3000); // Fallback after 3 seconds
+    }, 1500); // Wait for all rendering to complete
 
-    return () => clearTimeout(fallbackTimeoutId);
+    return () => clearTimeout(scrollTimer);
   }, [selectedRequest?.id]);
 
   const openQuotePreview = (request: QuoteRequest) => {
@@ -1040,11 +1037,8 @@ export const AgentPanel: React.FC = () => {
                   generatePreviewOnMount
                   onPreviewGenerated={async (dataUrl) => {
                     try {
-                      isGeneratingPreviewRef.current = true;
-                      
                       if (!dataUrl) {
                         setPreviewDataUrl(null);
-                        isGeneratingPreviewRef.current = false;
                         return;
                       }
 
@@ -1058,20 +1052,9 @@ export const AgentPanel: React.FC = () => {
                       }
 
                       setPreviewDataUrl(dataUrl);
-                      
-                      // Trigger scroll after preview is set
-                      setTimeout(() => {
-                        isGeneratingPreviewRef.current = false;
-                        try {
-                          quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        } catch (err) {
-                          console.warn('Post-preview scroll failed:', err);
-                        }
-                      }, 100);
                     } catch (err) {
                       console.error('Failed to set preview data URL:', err);
                       setPreviewDataUrl(null);
-                      isGeneratingPreviewRef.current = false;
                     }
                   }}
                 />
