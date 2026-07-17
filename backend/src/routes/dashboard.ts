@@ -10,4 +10,5 @@ dashboardRouter.get('/stats', dashboardController.getStats);
 dashboardRouter.get('/pipeline', dashboardController.getPipeline);
 dashboardRouter.get('/analytics', roleMiddleware(['admin', 'manager']), dashboardController.getAnalytics);
 dashboardRouter.get('/agent-quick-summary', roleMiddleware(['admin', 'manager']), dashboardController.getAgentQuickSummary);
+dashboardRouter.get('/agent-summary-details', roleMiddleware(['admin', 'manager']), dashboardController.getAgentSummaryDetails);
 dashboardRouter.get('/health', dashboardController.getHealthScore);

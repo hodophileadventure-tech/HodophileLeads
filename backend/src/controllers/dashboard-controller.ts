@@ -226,5 +226,81 @@ export const dashboardController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async getAgentSummaryDetails(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { agentId, section, startDate, endDate } = req.query;
+
+      if (!canAccessAdminLikeAnalytics(req.user?.role)) {
+        return res.status(403).json({ message: 'Admin or Manager access required' });
+      }
+
+      if (!agentId || !section) {
+        return res.status(400).json({ message: 'agentId and section are required' });
+      }
+
+      const validSections = new Set([
+        'totalLeads',
+        'confirmedLeads',
+        'inProgressLeads',
+        'potentialLeads',
+        'newLeads',
+        'deadLeads',
+        'spamLeads',
+        'canceledLeads',
+        'panLeads'
+      ]);
+
+      if (!validSections.has(String(section))) {
+        return res.status(400).json({ message: 'Invalid section' });
+      }
+
+      const start = startDate ? new Date(String(startDate)) : new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+      if (startDate) start.setHours(0, 0, 0, 0);
+      const end = endDate ? new Date(String(endDate)) : new Date();
+      if (endDate) end.setHours(23, 59, 59, 999);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return res.status(400).json({ message: 'Invalid date format' });
+      }
+
+      const sectionFilters: Record<string, string> = {
+        totalLeads: 'TRUE',
+        confirmedLeads: `status = 'booked'`,
+        inProgressLeads: `status IN ('negotiation', 'interested', 'contacted')`,
+        potentialLeads: `potential = true AND status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted')`,
+        newLeads: `status = 'new' AND potential = false AND temperature IS DISTINCT FROM 'cold'`,
+        deadLeads: `(temperature = 'dead' OR status IN ('completed', 'canceled'))`,
+        spamLeads: `status = 'spam'`,
+        canceledLeads: `status = 'canceled'`,
+        panLeads: `temperature = 'cold' AND status = 'new' AND potential = false`
+      };
+
+      const result = await query(`
+        SELECT
+          id,
+          client_name,
+          phone,
+          destination,
+          status,
+          temperature,
+          canceled_reason,
+          agent_remarks,
+          remarks,
+          created_at,
+          updated_at
+        FROM leads l
+        WHERE l.agent_id = $1
+          AND (${sectionFilters[String(section)]})
+          AND ((l.created_at >= $2 AND l.created_at <= $3) OR (l.updated_at >= $2 AND l.updated_at <= $3))
+        ORDER BY l.updated_at DESC
+        LIMIT 200
+      `, [agentId, start.toISOString(), end.toISOString()]);
+
+      res.json(result.rows);
+    } catch (error) {
+      next(error);
+    }
   }
 };
