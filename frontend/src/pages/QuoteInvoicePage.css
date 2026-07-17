@@ -454,7 +454,7 @@ html, body {
 .pdf-table-wrapper {
   width: 90%;
   max-width: 2190px;
-  margin: 292px auto 120px; /* add bottom margin to increase gap above logos */
+  margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
   z-index: 3;
   display: flex;
   justify-content: center;
@@ -844,13 +844,14 @@ html, body {
 .pdf-logos-section {
   position: absolute;
   left: 50%;
-  bottom: 200px;
+  bottom: 160px;
   transform: translateX(-50%);
   width: 90%;
   max-width: 2190px;
   display: flex;
   justify-content: center;
-  padding: 24px 20px 0; /* increased top padding for extra spacing above logos */
+  padding: 40px 20px 0; /* increased top padding for visible white spacing above logos */
+  background: #ffffff;
 }
 
 .pdf-logos-container {
