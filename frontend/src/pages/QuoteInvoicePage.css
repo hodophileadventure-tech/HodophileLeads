@@ -844,13 +844,13 @@ html, body {
 .pdf-logos-section {
   position: absolute;
   left: 50%;
-  bottom: 240px;
+  bottom: 200px;
   transform: translateX(-50%);
   width: 90%;
   max-width: 2190px;
   display: flex;
   justify-content: center;
-  padding: 0 20px;
+  padding: 8px 20px 0; /* small top padding to add spacing above logos */
 }
 
 .pdf-logos-container {
