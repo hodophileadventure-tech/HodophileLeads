@@ -29,14 +29,11 @@ html, body {
   min-height: auto !important;
   background: transparent !important;
   padding: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: unset !important;
-  align-items: stretch !important;
+  display: block !important;
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
-  height: 100% !important;
+  height: auto !important;
   overflow: hidden !important;
 }
 
@@ -51,25 +48,39 @@ html, body {
 
 /* When embedded, use simple block layout */
 .quote-invoice-root.embedded .quote-invoice-shell {
-  display: flex !important;
-  flex-direction: column !important;
+  display: grid !important;
+  grid-template-columns: minmax(260px, 420px) 1fr minmax(220px, 360px) !important;
+  gap: 16px !important;
   max-width: 100% !important;
   width: 100% !important;
-  grid-template-columns: unset !important;
-  gap: 0 !important;
-  align-items: stretch !important;
+  align-items: start !important;
   margin: 0 !important;
   padding: 0 !important;
-  height: 100% !important;
-  overflow: hidden !important;
-  flex: 1 !important;
+  height: auto !important;
+  overflow: visible !important;
 }
 
 .quote-invoice-root.embedded .quote-invoice-preview {
   width: 100% !important;
   min-height: 0 !important;
   max-width: 100% !important;
-  overflow: hidden !important;
+  overflow: auto !important;
+}
+
+/* Scale down the PDF page and canvas to fit the available middle column when embedded */
+.quote-invoice-root.embedded .pdf-page,
+.quote-invoice-root.embedded .pdf-canvas,
+.quote-invoice-root.embedded .pdf-background {
+  width: 100% !important;
+  max-width: 820px !important;
+  min-height: 0 !important;
+  padding-top: 0 !important;
+}
+
+.quote-invoice-root.embedded .pdf-header-image,
+.quote-invoice-root.embedded .pdf-header-info-box {
+  left: 16px !important;
+  right: 16px !important;
 }
 
 .quote-invoice-sidebar {

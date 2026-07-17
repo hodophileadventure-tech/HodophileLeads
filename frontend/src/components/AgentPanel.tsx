@@ -998,6 +998,7 @@ export const AgentPanel: React.FC = () => {
                   requestId={selectedRequest.id}
                   requestType={selectedRequest.requestType}
                   requestStatus={selectedRequest.status as any}
+                  embedded={true}
                   leadData={{
                     clientName: selectedRequest.leadClientName,
                     phone: selectedRequest.leadPhone,
