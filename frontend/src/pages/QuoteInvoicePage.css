@@ -210,7 +210,7 @@ html, body {
 
 .pdf-header-image {
   position: absolute;
-  top: 20px;
+  top: 40px;
   left: 0;
   right: 0;
   width: 92%;
@@ -253,6 +253,7 @@ html, body {
   justify-content: flex-start;
   align-items: flex-start;
   gap: 24px;
+  padding-top: 24px;
 }
 
 .pdf-quote-meta-block,
