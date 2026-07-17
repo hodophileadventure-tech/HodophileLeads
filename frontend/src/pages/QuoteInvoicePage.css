@@ -844,7 +844,7 @@ html, body {
 .pdf-logos-section {
   position: absolute;
   left: 50%;
-  bottom: 210px;
+  bottom: 260px;
   transform: translateX(-50%);
   width: 90%;
   max-width: 2190px;
@@ -878,7 +878,7 @@ html, body {
 
 .pdf-footer-image {
   position: absolute;
-  bottom: -70px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 2550px;
