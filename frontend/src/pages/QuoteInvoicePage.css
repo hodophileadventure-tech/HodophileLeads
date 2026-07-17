@@ -28,15 +28,12 @@ html, body {
   min-height: auto !important;
   background: transparent !important;
   padding: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-start !important;
-  align-items: stretch !important;
+  display: block !important;
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
   height: auto !important;
-  overflow: auto !important;
+  overflow: visible !important;
 }
 
 .quote-invoice-shell {
@@ -50,18 +47,15 @@ html, body {
 
 /* When embedded, use simple block layout */
 .quote-invoice-root.embedded .quote-invoice-shell {
-  display: flex !important;
-  flex-direction: column !important;
+  display: block !important;
   max-width: 100% !important;
   width: 100% !important;
   grid-template-columns: unset !important;
   gap: 0 !important;
-  align-items: stretch !important;
   margin: 0 !important;
   padding: 0 !important;
   height: auto !important;
-  overflow: auto !important;
-  flex: 1 !important;
+  overflow: visible !important;
 }
 
 .quote-invoice-root.embedded .quote-invoice-preview {
@@ -81,13 +75,11 @@ html, body {
 /* When embedded, ensure sidebar shows content properly */
 .quote-invoice-root.embedded .quote-invoice-sidebar {
   max-height: none !important;
-  min-width: 0 !important;
+  min-width: auto !important;
   width: 100% !important;
-  overflow-y: visible !important;
-  overflow-x: hidden !important;
-  flex: 1 !important;
-  padding-right: 0 !important;
-  gap: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  gap: 20px !important;
 }
 
 .quote-invoice-panel {

@@ -358,22 +358,7 @@ export const AgentPanel: React.FC = () => {
     };
   }, [quoteRequests]);
 
-  // Scroll to selected quote panel only after preview generation completes
-  // This prevents scroll conflicts with html2canvas rendering
-  useEffect(() => {
-    if (!selectedRequest || !quotePanelRef.current) return;
-
-    // Use a simple, direct scroll without conflicts
-    const scrollTimer = window.setTimeout(() => {
-      try {
-        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch (err) {
-        console.warn('Scroll to panel failed:', err);
-      }
-    }, 1500); // Wait for all rendering to complete
-
-    return () => clearTimeout(scrollTimer);
-  }, [selectedRequest?.id]);
+  // No scroll effect - let content flow naturally and appear on page
 
   const openQuotePreview = (request: QuoteRequest) => {
     window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
@@ -1014,10 +999,59 @@ export const AgentPanel: React.FC = () => {
           </div>
 
           {user?.role === 'agent' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left: Quotation Form */}
-              <div className="flex flex-col">
-                <h3 className="font-semibold mb-4 text-lg">Quotation Details</h3>
+            <div className="space-y-6">
+              {/* Large Preview */}
+              <div className="border rounded-lg p-6 bg-slate-50 dark:bg-slate-900">
+                <h3 className="font-semibold text-xl mb-4">Document Preview</h3>
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 flex items-center justify-center">
+                  {previewDataUrl ? (
+                    <img
+                      src={previewDataUrl}
+                      alt="Quotation preview"
+                      className="w-full max-w-2xl"
+                      style={{ display: 'block' }}
+                    />
+                  ) : (
+                    <div className="py-20 text-center">
+                      <div className="text-slate-500 text-lg">Generating preview…</div>
+                      <div className="text-sm text-slate-400 mt-2">This may take a moment</div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 mt-4">
+                  <Button variant="secondary" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>
+                    Regenerate Preview
+                  </Button>
+                  {previewDataUrl && (
+                    <button
+                      className="btn-primary text-center text-sm py-3 px-4 rounded font-semibold"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(previewDataUrl);
+                          const blob = await res.blob();
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `${selectedRequest.requestType || 'quotation'}-preview.jpeg`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          URL.revokeObjectURL(url);
+                        } catch (err) {
+                          console.error('Failed to download preview:', err);
+                          alert('Failed to download preview image. Please try regenerating the preview.');
+                        }
+                      }}
+                    >
+                      Download as JPEG
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Quotation Details Form */}
+              <div className="border rounded-lg p-6 bg-white dark:bg-slate-900">
+                <h3 className="font-semibold text-xl mb-4">Quotation Details</h3>
                 <QuoteInvoicePage
                   key={selectedRequest.id}
                   leadId={selectedRequest.leadId}
@@ -1060,52 +1094,6 @@ export const AgentPanel: React.FC = () => {
                     }
                   }}
                 />
-              </div>
-
-              {/* Right: Preview Panel */}
-              <div className="sticky top-0 h-fit">
-                <div className="border rounded-lg p-4 bg-slate-50 dark:bg-slate-900 space-y-3">
-                  <h3 className="font-semibold text-base">Preview</h3>
-                  <div className="flex items-center justify-center bg-white dark:bg-slate-800 rounded min-h-[500px] overflow-auto">
-                    {previewDataUrl ? (
-                      <img
-                        src={previewDataUrl}
-                        alt="Quotation preview"
-                        className="max-h-full max-w-full object-contain rounded"
-                        style={{ display: 'block' }}
-                      />
-                    ) : (
-                      <div className="text-sm text-slate-500">Generating preview…</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Button variant="secondary" size="sm" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</Button>
-                    {previewDataUrl && (
-                      <button
-                        className="btn-primary text-center text-sm py-2 px-3 rounded"
-                        onClick={async () => {
-                          try {
-                            const res = await fetch(previewDataUrl);
-                            const blob = await res.blob();
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.download = `${selectedRequest.requestType || 'quotation'}-preview.jpeg`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            URL.revokeObjectURL(url);
-                          } catch (err) {
-                            console.error('Failed to download preview:', err);
-                            alert('Failed to download preview image. Please try regenerating the preview.');
-                          }
-                        }}
-                      >
-                        Download JPEG
-                      </button>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
