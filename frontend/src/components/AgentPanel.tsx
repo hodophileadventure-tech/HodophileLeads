@@ -920,7 +920,15 @@ export const AgentPanel: React.FC = () => {
 
       <section id="pending-section" style={{ scrollMarginTop: '120px' }}>
         <PendingQuotesPanel onSelectRequest={(request) => {
-          if (request) openQuotePreview(request);
+          if (request) {
+            // Use selectSavedRequest for created/saved quotes to show in the panel below
+            if (request.status === 'created' || request.status === 'saved') {
+              void selectSavedRequest(request);
+            } else {
+              // Use modal preview for pending quotes
+              openQuotePreview(request);
+            }
+          }
         }} />
       </section>
 
