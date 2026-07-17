@@ -690,7 +690,7 @@ export const AgentPanel: React.FC = () => {
           </button>
           <button
             onClick={() => {
-              const el = document.getElementById('saved-section');
+              const el = document.getElementById('created-section');
               if (el) {
                 requestAnimationFrame(() => {
                   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -699,7 +699,7 @@ export const AgentPanel: React.FC = () => {
             }}
             className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-800"
           >
-            ↓ Saved Quotes
+            ↓ Created Quotes
           </button>
         </div>
       </div>
@@ -930,21 +930,21 @@ export const AgentPanel: React.FC = () => {
         }} />
       </section>
 
-      <section id="saved-section" className="card" style={{ scrollMarginTop: '120px' }}>
+      <section id="created-section" className="card" style={{ scrollMarginTop: '120px' }}>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
           <div>
-            <h2 className="text-2xl font-semibold">Saved Quotations</h2>
+            <h2 className="text-2xl font-semibold">Created Quotations</h2>
             <p className="text-sm text-slate-600 dark:text-slate-400">View quotations your admin has completed for your leads.</p>
           </div>
         </div>
         {loadingQuoteRequests ? (
-          <p className="mt-4 text-sm text-slate-600">Loading saved quotations...</p>
+          <p className="mt-4 text-sm text-slate-600">Loading created quotations...</p>
         ) : quoteRequestError ? (
           <p className="mt-4 text-sm text-rose-600">{quoteRequestError}</p>
         ) : quoteRequests.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-600">No saved quotations have been completed yet.</p>
+          <p className="mt-4 text-sm text-slate-600">No created quotations have been completed yet.</p>
         ) : loadingQuoteRequests ? (
-          <p className="mt-4 text-sm text-slate-600">Loading saved quotations...</p>
+          <p className="mt-4 text-sm text-slate-600">Loading created quotations...</p>
         ) : (
           <div className="mt-4 space-y-3">
             {quoteRequests.map((request) => (
@@ -983,11 +983,11 @@ export const AgentPanel: React.FC = () => {
         <section id="selected-quote-panel" className="card mt-6" ref={quotePanelRef} style={{ scrollMarginTop: '120px' }}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
             <div>
-              <h2 className="text-2xl font-semibold">Saved {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
+              <h2 className="text-2xl font-semibold">Created {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
               <p className="text-sm text-slate-600 dark:text-slate-400">{user?.role === 'admin' ? 'Admin completed' : 'View'} this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
             </div>
             <Button variant="secondary" onClick={() => { setPreviewDataUrl(null); setSelectedRequest(null); }}>
-              Back to saved quotations
+              Back to created quotations
             </Button>
           </div>
 
