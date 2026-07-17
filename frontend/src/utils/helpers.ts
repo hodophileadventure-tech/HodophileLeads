@@ -89,8 +89,6 @@ export const getHealthScoreColor = (score: string): string => {
 };
 
 export const calculateLeadDataHealth = (lead: any): number => {
-  // IMMEDIATE FIRE - verify this function is being called
-  console.log('calculateLeadDataHealth called for:', lead.clientName || lead.client_name || 'unknown');
   
   let filledFields = 0;
   const totalWeightedFields = 15;

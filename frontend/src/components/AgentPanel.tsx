@@ -402,6 +402,28 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
+  // Always show created quotations in the side panel, regardless of user role
+  const viewCreatedQuotationInPanel = async (request: QuoteRequest) => {
+    console.log('📌 viewCreatedQuotationInPanel called with:', request.id, request.leadClientName);
+    try {
+      setLoadingSelectedRequest(true);
+      const res = await quoteRequestsAPI.getById(request.id);
+      const req = res?.data || request;
+      const mergedRequest = {
+        ...req,
+        documentData: req.documentData || request.documentData,
+      };
+      console.log('✅ Quote loaded, displaying in panel');
+      setPreviewDataUrl(null);
+      setSelectedRequest(mergedRequest);
+    } catch (error) {
+      console.error('❌ Failed to load quote for panel view', error);
+      setSelectedRequest(request);
+    } finally {
+      setLoadingSelectedRequest(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -819,7 +841,7 @@ export const AgentPanel: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        {filteredLeads.map((lead) => {
+        {useMemo(() => filteredLeads.map((lead) => {
           const lifecycle = getLeadLifecycleStyle(lead);
           const dataHealth = calculateLeadDataHealth(lead);
           const healthColor = getDataHealthColor(dataHealth);
@@ -897,7 +919,7 @@ export const AgentPanel: React.FC = () => {
               </div>
             </div>
           );
-        })}
+        }), [filteredLeads])}
       </div>
 
       {selectedLead && !showConfirmForm && (
@@ -990,8 +1012,8 @@ export const AgentPanel: React.FC = () => {
                         <div>{request.quotationNumber || request.documentData?.quoteNumber}</div>
                       </div>
                     ) : null}
-                    <Button variant="primary" size="sm" onClick={() => void selectSavedRequest(request)} disabled={loadingSelectedRequest}>
-                      View Document
+                    <Button variant="primary" size="sm" onClick={() => void viewCreatedQuotationInPanel(request)} disabled={loadingSelectedRequest}>
+                      View in Panel
                     </Button>
                   </div>
                 </div>
