@@ -365,10 +365,13 @@ export const AgentPanel: React.FC = () => {
   };
 
   const selectSavedRequest = async (request: QuoteRequest) => {
+    console.log('🔍 selectSavedRequest called with:', request.id, request.leadClientName);
     try {
       setLoadingSelectedRequest(true);
+      console.log('📥 Loading quote details...');
       const res = await quoteRequestsAPI.getById(request.id);
       const req = res?.data || request;
+      console.log('✅ Quote loaded:', req.id);
       
       // Ensure documentData is preserved from the original request if not returned by API
       const mergedRequest = {
@@ -377,15 +380,19 @@ export const AgentPanel: React.FC = () => {
       };
 
       if (user?.role === 'agent') {
+        console.log('👤 Agent role - setting selectedRequest');
         setPreviewDataUrl(null);
         setSelectedRequest(mergedRequest);
+        console.log('✅ selectedRequest set to:', mergedRequest.id);
         return;
       }
 
+      console.log('📺 Non-agent role - opening preview');
       openQuotePreview(mergedRequest);
     } catch (error) {
-      console.error('Failed to load saved quote details', error);
+      console.error('❌ Failed to load saved quote details', error);
       if (user?.role === 'agent') {
+        console.log('⚠️ Fallback: setting selectedRequest with original request');
         setSelectedRequest(request);
       } else {
         openQuotePreview(request);
@@ -987,23 +994,23 @@ export const AgentPanel: React.FC = () => {
       </section>
 
       {selectedRequest && (
-        <section id="selected-quote-panel" className="card mt-6" ref={quotePanelRef} style={{ scrollMarginTop: '120px' }}>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+        <section id="selected-quote-panel" className="mt-8 pt-8 border-t-2 border-slate-300 dark:border-slate-600" ref={quotePanelRef} style={{ scrollMarginTop: '120px' }}>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-semibold">Created {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">{user?.role === 'admin' ? 'Admin completed' : 'View'} this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
+              <h2 className="text-3xl font-bold">Created {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{user?.role === 'admin' ? 'Admin completed' : 'View'} this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
             </div>
             <Button variant="secondary" onClick={() => { setPreviewDataUrl(null); setSelectedRequest(null); }}>
-              Back to created quotations
+              ← Back to list
             </Button>
           </div>
 
           {user?.role === 'agent' ? (
             <div className="space-y-6">
               {/* Large Preview */}
-              <div className="border rounded-lg p-6 bg-slate-50 dark:bg-slate-900">
-                <h3 className="font-semibold text-xl mb-4">Document Preview</h3>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 flex items-center justify-center">
+              <div className="border-2 border-blue-500 rounded-lg p-6 bg-slate-50 dark:bg-slate-900">
+                <h3 className="font-semibold text-xl mb-4">📄 Document Preview</h3>
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 flex items-center justify-center min-h-[300px]">
                   {previewDataUrl ? (
                     <img
                       src={previewDataUrl}
@@ -1013,18 +1020,18 @@ export const AgentPanel: React.FC = () => {
                     />
                   ) : (
                     <div className="py-20 text-center">
-                      <div className="text-slate-500 text-lg">Generating preview…</div>
-                      <div className="text-sm text-slate-400 mt-2">This may take a moment</div>
+                      <div className="text-slate-500 text-lg">⏳ Generating preview…</div>
+                      <div className="text-sm text-slate-400 mt-2">Please wait, this may take a moment</div>
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
                   <Button variant="secondary" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>
-                    Regenerate Preview
+                    🔄 Regenerate Preview
                   </Button>
                   {previewDataUrl && (
                     <button
-                      className="btn-primary text-center text-sm py-3 px-4 rounded font-semibold"
+                      className="btn-primary text-center text-sm py-3 px-4 rounded font-semibold bg-yellow-400 hover:bg-yellow-500 text-black"
                       onClick={async () => {
                         try {
                           const res = await fetch(previewDataUrl);
@@ -1043,15 +1050,15 @@ export const AgentPanel: React.FC = () => {
                         }
                       }}
                     >
-                      Download as JPEG
+                      ⬇️ Download as JPEG
                     </button>
                   )}
                 </div>
               </div>
 
               {/* Quotation Details Form */}
-              <div className="border rounded-lg p-6 bg-white dark:bg-slate-900">
-                <h3 className="font-semibold text-xl mb-4">Quotation Details</h3>
+              <div className="border rounded-lg p-6 bg-white dark:bg-slate-900 shadow-lg">
+                <h3 className="font-semibold text-xl mb-4">📋 Quotation Details</h3>
                 <QuoteInvoicePage
                   key={selectedRequest.id}
                   leadId={selectedRequest.leadId}
