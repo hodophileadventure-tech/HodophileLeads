@@ -262,7 +262,8 @@ html, body {
 }
 
 .pdf-customer-box {
-  width: 560px;
+  width: auto;
+  max-width: 100%;
   min-width: 380px;
   padding: 32px 36px;
   border: 2px solid #111827;
@@ -283,15 +284,18 @@ html, body {
 
 .pdf-header-info-value {
   font-size: 36px;
-  font-weight: 800;
+  font-weight: 500;
   color: #111827;
   line-height: 1.15;
 }
 
 .pdf-customer-name {
   font-size: 48px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .pdf-quotation-title {
@@ -330,7 +334,7 @@ html, body {
 
 .pdf-quote-meta-row strong {
   justify-self: end;
-  font-weight: 900;
+  font-weight: 500;
   font-size: 32px;
 }
 
@@ -430,6 +434,7 @@ html, body {
   gap: 22px;
   font-size: 36px;
   color: #111827;
+  font-weight: 500;
 }
 
 .pdf-quote-meta-row span {
@@ -541,6 +546,7 @@ html, body {
 
 .pdf-main-table tbody tr td strong {
   font-size: 40px;
+  font-weight: 500;
 }
 
 .pdf-main-table th.text-right,
@@ -579,6 +585,7 @@ html, body {
   line-height: 1.45;
   color: #111827;
   margin-bottom: 18px;
+  font-weight: 600;
 }
 
 .pdf-content-cell {
