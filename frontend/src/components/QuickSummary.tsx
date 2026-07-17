@@ -75,14 +75,17 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
     }
   };
 
-  const loadDetailRows = async (section: string) => {
+  const loadDetailRows = async (_section: string) => {
     if (!selectedAgent || !startDate || !endDate) return;
 
     setDetailsLoading(true);
     setDetailError('');
     try {
-      const response = await dashboardAPI.getAgentSummaryDetails(selectedAgent, section, startDate, endDate);
-      setDetailRows(response.data);
+      // TODO: getAgentSummaryDetails method not yet implemented on backend
+      // const response = await dashboardAPI.getAgentSummaryDetails(selectedAgent, _section, startDate, endDate);
+      // setDetailRows(response.data);
+      setDetailError('Detail view not yet available');
+      setDetailRows([]);
     } catch (err: any) {
       setDetailError(err?.response?.data?.message || 'Failed to load detail rows');
       setDetailRows([]);

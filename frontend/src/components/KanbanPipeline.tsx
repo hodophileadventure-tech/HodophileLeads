@@ -45,8 +45,6 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
     return () => window.clearInterval(id);
   }, []);
 
-  const serialMap = useMemo(() => new Map(leads.map((lead, index) => [lead.id, index + 1])), [leads]);
-
   const grouped = useMemo(() => {
     const bucket: Record<string, Lead[]> = {};
     for (const col of COLUMNS) {
@@ -112,7 +110,7 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
                     onDragStart={(e) => e.dataTransfer.setData('text/leadId', lead.id)}
                   >
                     <div className={`${wrapperClass} ${overdueClass}`.trim()}>
-                      <LeadCard serial={serialMap.get(lead.id)} lead={lead} onClick={() => onSelectLead?.(lead)} />
+                      <LeadCard lead={lead} onClick={() => onSelectLead?.(lead)} />
                     </div>
                   </div>
                 );
