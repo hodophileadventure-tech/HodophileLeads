@@ -239,9 +239,9 @@ html, body {
   left: 180px;
   right: 180px;
   min-height: 360px;
-  background: #f3f3f3;
+  background: transparent;
   border-radius: 30px;
-  border: 1px solid #d1d5db;
+  border: none;
   padding: 42px 48px;
   display: grid;
   gap: 20px;
@@ -250,7 +250,7 @@ html, body {
 
 .pdf-header-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 24px;
 }
@@ -270,6 +270,8 @@ html, body {
   border-radius: 28px;
   display: grid;
   gap: 14px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .pdf-quote-right {
@@ -279,6 +281,7 @@ html, body {
   align-items: flex-end;
   justify-content: flex-start;
   width: 100%;
+  margin-left: auto;
 }
 
 .pdf-header-info-value {
