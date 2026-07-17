@@ -859,18 +859,30 @@ export const AgentPanel: React.FC = () => {
       </div>
 
       {selectedLead && !showConfirmForm && (
-        <LeadForm initialData={selectedLead as Partial<Lead>} onSuccess={() => {
-          // refresh
-          loadLeads();
-          setSelectedLead(null);
-        }} />
+        <LeadForm
+          initialData={selectedLead as Partial<Lead>}
+          initiallyOpen={Boolean(selectedLead)}
+          onSuccess={() => {
+            // refresh
+            loadLeads();
+            setSelectedLead(null);
+          }}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpenSearchLeadForm(false);
+              setSelectedLead(null);
+            }
+          }}
+        />
       )}
 
-      <PendingQuotesPanel onSelectRequest={(request) => {
-        setSelectedRequest(request);
-      }} />
+      <section id="pending-section">
+        <PendingQuotesPanel onSelectRequest={(request) => {
+          setSelectedRequest(request);
+        }} />
+      </section>
 
-      <section className="card">
+      <section id="saved-section" className="card">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
           <div>
             <h2 className="text-2xl font-semibold">Saved Quotations</h2>
@@ -948,6 +960,7 @@ export const AgentPanel: React.FC = () => {
                   viewOnly={true}
                     generatePreviewOnMount
                     embedded={true}
+                    hidePreview={true}
                     onPreviewGenerated={async (dataUrl) => {
                       try {
                         // If we receive a data: URL, convert it to a blob-backed object URL
@@ -989,16 +1002,16 @@ export const AgentPanel: React.FC = () => {
                 />
               </main>
 
-              <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden">
-                <div className="border rounded p-4 flex flex-col h-full">
+              <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden min-h-0">
+                <div className="border rounded p-4 flex flex-col h-full min-h-0">
                   <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                  <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
+                  <div className="flex-1 min-h-0 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
                     {previewDataUrl ? (
                       <img
                         src={previewDataUrl}
                         alt="Quotation preview"
                         className="max-h-full object-contain rounded"
-                        style={{ minWidth: '100%', maxWidth: 'none' }}
+                        style={{ width: 'auto', maxWidth: '100%', maxHeight: '100%', height: 'auto' }}
                       />
                     ) : (
                       <div className="text-sm text-slate-500">Generating preview…</div>
