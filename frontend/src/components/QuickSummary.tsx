@@ -41,6 +41,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<SummaryData | null>(null);
   const [error, setError] = useState('');
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   // Set default date range to last 90 days
   useEffect(() => {
@@ -59,6 +60,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
 
     setLoading(true);
     setError('');
+    setExpandedSection(null);
     try {
       const response = await dashboardAPI.getAgentQuickSummary(selectedAgent, startDate, endDate);
       setData(response.data);
@@ -165,39 +167,78 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
         <div className="space-y-8">
           {/* Summary Statistics */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'totalLeads' ? null : 'totalLeads')} className="text-left bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Total Leads</p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-300">{data.totalLeads}</p>
-            </div>
-            <div className="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
+            </button>
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'confirmedLeads' ? null : 'confirmedLeads')} className="text-left bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Confirmed</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-300">{data.confirmedLeads}</p>
-            </div>
-            <div className="bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-lg">
+            </button>
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'inProgressLeads' ? null : 'inProgressLeads')} className="text-left bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">In Progress</p>
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-300">{data.inProgressLeads}</p>
-            </div>
-            <div className="bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
+            </button>
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'potentialLeads' ? null : 'potentialLeads')} className="text-left bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Potential</p>
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-300">{data.potentialLeads}</p>
-            </div>
-            <div className="bg-sky-50 dark:bg-sky-900/30 p-3 rounded-lg">
+            </button>
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'newLeads' ? null : 'newLeads')} className="text-left bg-sky-50 dark:bg-sky-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">New</p>
               <p className="text-2xl font-bold text-sky-600 dark:text-sky-300">{data.newLeads}</p>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-900/30 p-3 rounded-lg">
+            </button>
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'deadLeads' ? null : 'deadLeads')} className="text-left bg-gray-50 dark:bg-gray-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Dead</p>
               <p className="text-2xl font-bold text-gray-600 dark:text-gray-300">{data.deadLeads}</p>
-            </div>
-            <div className="bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg">
+            </button>
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'spamLeads' ? null : 'spamLeads')} className="text-left bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Spam</p>
               <p className="text-2xl font-bold text-rose-600 dark:text-rose-300">{data.spamLeads}</p>
-            </div>
-            <div className="bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
+            </button>
+            <button type="button" onClick={() => setExpandedSection(expandedSection === 'canceledLeads' ? null : 'canceledLeads')} className="text-left bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Canceled</p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-300">{data.canceledLeads}</p>
-            </div>
+            </button>
           </div>
+
+          {expandedSection && (
+            <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-lg font-semibold capitalize">{expandedSection.replace(/([A-Z])/g, ' $1')}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Details for the selected summary metric</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setExpandedSection(null)}
+                  className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Metric</p>
+                  <p className="text-xl font-semibold mt-2">{expandedSection.replace(/([A-Z])/g, ' $1')}</p>
+                </div>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Value</p>
+                  <p className="text-xl font-semibold mt-2">
+                    {data[
+                      expandedSection as keyof SummaryData
+                    ]}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-slate-100 dark:bg-slate-950 rounded-lg">
+                <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  Use this panel to add a quick breakdown or actionable note for the selected summary item. For example, if you click Confirmed, show recent booked leads or next steps.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Pie Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
