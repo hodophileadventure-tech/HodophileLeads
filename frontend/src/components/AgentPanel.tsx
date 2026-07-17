@@ -948,32 +948,52 @@ export const AgentPanel: React.FC = () => {
         ) : (
           <div className="mt-4 space-y-3">
             {quoteRequests.map((request) => (
-              <button
+              <div
                 key={request.id}
-                type="button"
-                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
-                onClick={() => void selectSavedRequest(request)}
-                disabled={loadingSelectedRequest}
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
               >
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                  <div>
-                    <p className="font-semibold">{request.requestType === 'quotation' ? 'Quotation' : 'Invoice'} for {request.leadClientName || request.leadPhone}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Lead: {request.leadClientName || 'Unknown'} · {request.leadPhone}</p>
-                    {request.documentData?.quoteNumber && (
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Quote #: {request.quotationNumber || request.documentData?.quoteNumber}</p>
-                    )}
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  <div className="min-w-0 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 text-xs font-semibold uppercase">
+                        {request.requestType === 'quotation' ? 'Quotation' : 'Invoice'}
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 px-3 py-1 text-xs font-semibold uppercase">
+                        Created
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-lg truncate">{request.leadClientName || request.leadPhone}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Requested by: {request.requestedByName || 'Unknown'}</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-slate-600 dark:text-slate-300">
+                      <div>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Phone</p>
+                        <p className="font-medium mt-1">{request.leadPhone || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Destination</p>
+                        <p className="font-medium mt-1">{request.leadDestination || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Created</p>
+                        <p className="font-medium mt-1">{request.documentData?.date ? new Date(request.documentData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Requested: {new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(request.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-                    {['saved', 'created'].includes(request.status) && request.documentData?.date && (
-                      <p className="text-xs text-green-600 dark:text-green-400 mb-1">Created: {new Date(request.documentData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                    )}
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                      {request.status}
-                    </span>
+                  <div className="flex flex-col gap-3 items-start sm:items-end">
+                    {request.documentData?.quoteNumber ? (
+                      <div className="text-right text-sm text-slate-500 dark:text-slate-400">
+                        <div className="font-medium">Quote #</div>
+                        <div>{request.quotationNumber || request.documentData?.quoteNumber}</div>
+                      </div>
+                    ) : null}
+                    <Button variant="primary" size="sm" onClick={() => void selectSavedRequest(request)} disabled={loadingSelectedRequest}>
+                      View Document
+                    </Button>
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
