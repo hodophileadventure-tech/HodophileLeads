@@ -253,6 +253,7 @@ html, body {
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
+  flex-wrap: wrap;
 }
 
 .pdf-quote-meta-block,
@@ -575,8 +576,8 @@ html, body {
 }
 
 .pdf-package-title {
-  font-size: 64px;
-  font-weight: 800;
+  font-size: 55px;
+  font-weight: 600;
   margin-bottom: 18px;
   white-space: nowrap;
 }
