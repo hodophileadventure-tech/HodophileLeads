@@ -119,6 +119,9 @@ export const quoteRequestsController = {
       }
 
       try {
+        await leadsModel.touch(leadId);
+      } catch (_) {}
+      try {
         await logActivity({
           userId: req.user.id,
           entityType: 'quote_request',
@@ -337,6 +340,9 @@ export const quoteRequestsController = {
       }
 
       try {
+        await leadsModel.touch(existingRequest.leadId);
+      } catch (_) {}
+      try {
         await logActivity({
           userId: req.user.id,
           entityType: 'quote_request',
@@ -463,6 +469,9 @@ export const quoteRequestsController = {
       }
 
       try {
+        await leadsModel.touch(quoteRequest.leadId);
+      } catch (_) {}
+      try {
         await logActivity({
           userId: req.user.id,
           entityType: 'quote_request',
@@ -564,6 +573,7 @@ export const quoteRequestsController = {
           });
         } catch (_) {}
 
+      await leadsModel.touch(lead.id);
       res.status(201).json(newRequest);
     } catch (error) {
       next(error);
@@ -610,6 +620,9 @@ export const quoteRequestsController = {
         sendToUser(existingRequest.requestedBy, 'notification', notification);
       }
 
+      try {
+        await leadsModel.touch(quoteRequest.leadId);
+      } catch (_) {}
       try {
         await logActivity({
           userId: req.user.id,
@@ -846,6 +859,9 @@ export const quoteRequestsController = {
       }
 
       try {
+        await leadsModel.touch(quoteRequest.leadId);
+      } catch (_) {}
+      try {
         await logActivity({
           userId: req.user.id,
           entityType: 'quote_request',
@@ -943,6 +959,9 @@ export const quoteRequestsController = {
       }
 
       try {
+        await leadsModel.touch(quoteRequest.leadId);
+      } catch (_) {}
+      try {
         await logActivity({
           userId: req.user.id,
           entityType: 'quote_request',
@@ -1013,6 +1032,9 @@ export const quoteRequestsController = {
         invalidAcceptanceReason: null
       });
 
+      try {
+        await leadsModel.touch(existing.leadId);
+      } catch (_) {}
       try {
         await logActivity({
           userId: req.user.id,

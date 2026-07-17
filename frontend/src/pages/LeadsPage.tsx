@@ -8,6 +8,7 @@ import { LeadList } from '../components/LeadCard';
 import PaymentsPanel from '../components/PaymentsPanel';
 import type { Lead, FollowUp, PipelineStage } from '../types';
 import { 
+  formatDate,
   formatKarachiDateTime, 
   formatKarachiFollowUpReminder, 
   getLeadLifecycleState
@@ -571,6 +572,16 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                     <p className="text-sm text-slate-600 dark:text-slate-400">Source</p>
                     <p className="capitalize">{selectedLead.source || 'Direct'}</p>
                   </div>
+                  <div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Created</p>
+                    <p>{formatDate(selectedLead.createdAt)}</p>
+                  </div>
+                  {selectedLead.updatedAt && selectedLead.updatedAt !== selectedLead.createdAt && (
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Last Updated</p>
+                      <p>{formatDate(selectedLead.updatedAt)}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

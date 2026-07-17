@@ -346,7 +346,7 @@ export const leadsController = {
         size: file.size,
         uploadedBy: req.user?.id || null
       });
-
+      await leadsModel.touch(leadId);
       res.json({ attachment });
     } catch (error) {
       next(error);
@@ -389,6 +389,7 @@ export const leadsController = {
       }
 
       await attachmentsModel.delete(attachmentId);
+      await leadsModel.touch(leadId);
       res.json({ success: true });
     } catch (error) {
       next(error);

@@ -5,6 +5,13 @@ import { leadsModel } from '../models/Lead';
 import { validatePayload, paymentSchema } from '../utils/validation';
 import { logActivity } from '../utils/activity-log';
 
+const touchLead = async (leadId?: string) => {
+  if (!leadId) return;
+  try {
+    await leadsModel.touch(leadId);
+  } catch (_) {}
+};
+
 export const paymentsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
@@ -48,6 +55,7 @@ export const paymentsController = {
       }
 
       const item = await paymentsModel.create(payload);
+      await touchLead(payload.leadId);
       try {
         await logActivity({
           userId: req.user.id,
@@ -100,6 +108,7 @@ export const paymentsController = {
       if (!item) {
         return res.status(404).json({ message: 'Payment not found' });
       }
+      await touchLead(existingPayment.leadId);
       res.json(item);
     } catch (error) {
       next(error);
@@ -114,6 +123,7 @@ export const paymentsController = {
       if (!item) {
         return res.status(404).json({ message: 'Payment not found' });
       }
+      await touchLead(item.leadId);
       try {
         await logActivity({
           userId: req.user.id,
@@ -135,6 +145,7 @@ export const paymentsController = {
       if (!item) {
         return res.status(404).json({ message: 'Payment not found' });
       }
+      await touchLead(item.leadId);
       try {
         await logActivity({
           userId: req.user.id,

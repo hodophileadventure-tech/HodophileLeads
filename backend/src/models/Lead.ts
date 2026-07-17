@@ -114,6 +114,12 @@ export const leadsModel = {
     return result.rows.map(mapLeadRow);
   },
 
+  async touch(id: string, client?: any) {
+    const executor = client && typeof client.query === 'function' ? client.query.bind(client) : query;
+    const result = await executor('UPDATE leads SET updated_at = NOW() WHERE id = $1 RETURNING *', [id]);
+    return mapLeadRow(result.rows[0]);
+  },
+
   async create(data: Partial<Lead>) {
     // New leads always start as 'warm' (active)
     // They can only become 'dead' when explicitly marked

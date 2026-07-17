@@ -24,6 +24,9 @@ export const availabilityController = {
   async upsert(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const record = await availabilityModel.upsert(req.params.leadId, req.user.id, req.body || {});
+      try {
+        await leadsModel.touch(req.params.leadId);
+      } catch (_) {}
       res.json(record);
     } catch (error) {
       next(error);

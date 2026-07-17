@@ -70,6 +70,9 @@ export const followUpsController = {
       } catch (nerr) {
         console.error('[FollowUps] failed to create notification', nerr);
       }
+      try {
+        await leadsModel.touch(item.lead_id);
+      } catch (_) {}
       // log activity
       try {
         await logActivity({
@@ -99,6 +102,9 @@ export const followUpsController = {
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
+      try {
+        await leadsModel.touch(item.lead_id);
+      } catch (_) {}
       try {
         await logActivity({
           userId: req.user.id,
@@ -146,11 +152,14 @@ export const followUpsController = {
       
       console.log('Follow-up marked done:', item.id);
 
+      try {
+        await leadsModel.touch(item.lead_id);
+      } catch (_) {}
+
       // If remarks provided, update the associated lead's agent_remarks
       if (remarks && item.lead_id) {
         try {
           console.log('Updating lead:', item.lead_id, 'with remarks:', remarks);
-          const leadsModel = require('../models/Lead');
           const updatedLead = await leadsModel.update(item.lead_id, {
             agentRemarks: remarks
           });
@@ -184,6 +193,9 @@ export const followUpsController = {
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
+      try {
+        await leadsModel.touch(item.lead_id);
+      } catch (_) {}
       try {
         await logActivity({
           userId: req.user.id,
