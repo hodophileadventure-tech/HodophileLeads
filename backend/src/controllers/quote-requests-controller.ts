@@ -621,7 +621,7 @@ export const quoteRequestsController = {
       }
 
       try {
-        await leadsModel.touch(quoteRequest.leadId);
+        await leadsModel.touch(existingRequest.leadId);
       } catch (_) {}
       try {
         await logActivity({

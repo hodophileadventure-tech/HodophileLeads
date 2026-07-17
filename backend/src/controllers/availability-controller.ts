@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { availabilityModel } from '../models/Availability';
+import { leadsModel } from '../models/Lead';
 
 export const availabilityController = {
   async getByLead(req: AuthenticatedRequest, res: Response, next: NextFunction) {

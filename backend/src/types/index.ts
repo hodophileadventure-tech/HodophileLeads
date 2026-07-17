@@ -57,6 +57,7 @@ export interface Lead {
   hotelPreference?: string;
   hotelInfo?: LeadHotelInfo;
   hotelOptions?: LeadHotelInfo[];
+  agentRemarks?: string | null;
   createdAt: string;
   updatedAt: string;
   canceledReason?: string | null;
