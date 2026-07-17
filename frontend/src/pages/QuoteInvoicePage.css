@@ -293,8 +293,8 @@ html, body {
   font-size: 48px;
   font-weight: 700;
   line-height: 1.05;
-  word-wrap: break-word;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: visible;
 }
 
 .pdf-quotation-title {
@@ -465,8 +465,9 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  /* Reduce the description column so the package price column shifts left */
-  width: 40%;
+  /* Allow description column to expand based on content */
+  width: auto;
+  min-width: 40%;
 }
 
 .pdf-main-table col.col-price {
@@ -585,6 +586,7 @@ html, body {
   color: #111827;
   margin-bottom: 18px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .pdf-content-cell {
