@@ -234,7 +234,16 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
 
               <div className="mt-4 p-4 bg-slate-100 dark:bg-slate-950 rounded-lg">
                 <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  Use this panel to add a quick breakdown or actionable note for the selected summary item. For example, if you click Confirmed, show recent booked leads or next steps.
+                  {expandedSection === 'confirmedLeads' && 'Confirmed leads are the leads that moved to booked status during the selected date range. Use this to track recent booking conversions.'}
+                  {expandedSection === 'inProgressLeads' && 'In progress leads are actively being worked on by the agent, including negotiation, interested, and contacted leads. This helps identify current pipeline activity.'}
+                  {expandedSection === 'potentialLeads' && 'Potential leads are those marked as promising but not yet converted or fully engaged. These are good candidates for follow-up.'}
+                  {expandedSection === 'newLeads' && 'New leads are fresh opportunities created during the selected date range and not yet converted or marked as potential.'}
+                  {expandedSection === 'deadLeads' && 'Dead leads are those that are no longer active, either marked dead or closed as completed/canceled. Use this to monitor lost or disqualified opportunities.'}
+                  {expandedSection === 'spamLeads' && 'Spam leads are invalid or unwanted entries captured during the selected date range. They are excluded from conversion metrics.'}
+                  {expandedSection === 'canceledLeads' && 'Canceled leads are those explicitly canceled by the agent or customer. They are no longer active opportunities.'}
+                  {expandedSection === 'totalLeads' && 'Total leads is the full count of leads for this agent within the selected date range, including all statuses and temperatures.'}
+                  {expandedSection === 'panLeads' && 'Pan leads are cold leads that have been marked as non-potential and are not expected to convert soon. They help separate low-priority prospects.'}
+                  {!['confirmedLeads','inProgressLeads','potentialLeads','newLeads','deadLeads','spamLeads','canceledLeads','totalLeads','panLeads'].includes(expandedSection || '') && 'Select a summary section to see details.'}
                 </p>
               </div>
             </div>
