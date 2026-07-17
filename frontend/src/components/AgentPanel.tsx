@@ -61,6 +61,7 @@ export const AgentPanel: React.FC = () => {
   const [loadingSelectedRequest, setLoadingSelectedRequest] = useState(false);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
+  const selectedRequestScrollRef = useRef(false);
   const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
   const [quoteRequestError, setQuoteRequestError] = useState('');
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
@@ -338,6 +339,8 @@ export const AgentPanel: React.FC = () => {
 
       const existing = quoteRequests.find((request) => request.id === requestId);
       if (existing && existing.documentData) {
+        selectedRequestScrollRef.current = true;
+        setPreviewDataUrl(null);
         setSelectedRequest(existing);
         return;
       }
@@ -345,6 +348,8 @@ export const AgentPanel: React.FC = () => {
       try {
         setLoadingSelectedRequest(true);
         const res = await quoteRequestsAPI.getById(requestId);
+        selectedRequestScrollRef.current = true;
+        setPreviewDataUrl(null);
         setSelectedRequest(res.data);
       } catch (error) {
         console.error('Failed to load saved quote request from notification', error);
@@ -361,6 +366,8 @@ export const AgentPanel: React.FC = () => {
 
   const selectSavedRequest = async (request: QuoteRequest) => {
     if (request.documentData && Object.keys(request.documentData).length > 0) {
+      selectedRequestScrollRef.current = true;
+      setPreviewDataUrl(null);
       setSelectedRequest(request);
       return;
     }
@@ -369,12 +376,18 @@ export const AgentPanel: React.FC = () => {
       setLoadingSelectedRequest(true);
       const res = await quoteRequestsAPI.getById(request.id);
       if (res.data.documentData && Object.keys(res.data.documentData).length > 0) {
+        selectedRequestScrollRef.current = true;
+        setPreviewDataUrl(null);
         setSelectedRequest(res.data);
       } else {
+        selectedRequestScrollRef.current = true;
+        setPreviewDataUrl(null);
         setSelectedRequest(request);
       }
     } catch (error) {
       console.error('Failed to load saved quote details', error);
+      selectedRequestScrollRef.current = true;
+      setPreviewDataUrl(null);
       setSelectedRequest(request);
     } finally {
       setLoadingSelectedRequest(false);
@@ -382,13 +395,16 @@ export const AgentPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !quotePanelRef.current || !selectedRequestScrollRef.current) {
+      return;
+    }
+
     const timeout = window.setTimeout(() => {
-      if (!quotePanelRef.current) return;
       requestAnimationFrame(() => {
-        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        selectedRequestScrollRef.current = false;
       });
-    }, 250);
+    }, 200);
     return () => window.clearTimeout(timeout);
   }, [selectedRequest]);
 
@@ -663,9 +679,9 @@ export const AgentPanel: React.FC = () => {
             onClick={() => {
               const el = document.getElementById('pending-section');
               if (el) {
-                setTimeout(() => {
+                requestAnimationFrame(() => {
                   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
+                });
               }
             }}
             className="px-4 py-2 rounded-lg font-medium transition-colors bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-800"
@@ -676,9 +692,9 @@ export const AgentPanel: React.FC = () => {
             onClick={() => {
               const el = document.getElementById('saved-section');
               if (el) {
-                setTimeout(() => {
+                requestAnimationFrame(() => {
                   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
+                });
               }
             }}
             className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-800"
@@ -908,13 +924,13 @@ export const AgentPanel: React.FC = () => {
         />
       )}
 
-      <section id="pending-section">
+      <section id="pending-section" style={{ scrollMarginTop: '120px' }}>
         <PendingQuotesPanel onSelectRequest={(request) => {
           setSelectedRequest(request);
         }} />
       </section>
 
-      <section id="saved-section" className="card">
+      <section id="saved-section" className="card" style={{ scrollMarginTop: '120px' }}>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
           <div>
             <h2 className="text-2xl font-semibold">Saved Quotations</h2>
@@ -964,7 +980,7 @@ export const AgentPanel: React.FC = () => {
       </section>
 
       {selectedRequest && (
-        <section id="selected-quote-panel" className="card mt-6" ref={quotePanelRef}>
+        <section id="selected-quote-panel" className="card mt-6" ref={quotePanelRef} style={{ scrollMarginTop: '120px' }}>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
             <div>
               <h2 className="text-2xl font-semibold">Saved {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
@@ -998,13 +1014,11 @@ export const AgentPanel: React.FC = () => {
                     hidePreview={true}
                     onPreviewGenerated={async (dataUrl) => {
                       try {
-                        // If we receive a data: URL, convert it to a blob-backed object URL
                         if (!dataUrl) {
                           setPreviewDataUrl(null);
                           return;
                         }
 
-                        // Revoke previous object URL if any
                         try {
                           const prev = previewDataUrl;
                           if (prev && prev.startsWith('blob:')) {
@@ -1014,19 +1028,9 @@ export const AgentPanel: React.FC = () => {
                           // ignore
                         }
 
-                        if (dataUrl.startsWith('data:') || dataUrl.startsWith('blob:')) {
-                          // For data URLs, fetch and convert to blob then create object URL
-                          if (dataUrl.startsWith('data:')) {
-                            const res = await fetch(dataUrl);
-                            const blob = await res.blob();
-                            const obj = URL.createObjectURL(blob);
-                            setPreviewDataUrl(obj);
-                          } else {
-                            // already a blob URL
-                            setPreviewDataUrl(dataUrl);
-                          }
+                        if (dataUrl.startsWith('blob:') || dataUrl.startsWith('data:')) {
+                          setPreviewDataUrl(dataUrl);
                         } else {
-                          // fallback: set directly
                           setPreviewDataUrl(dataUrl);
                         }
                       } catch (err) {
@@ -1040,13 +1044,13 @@ export const AgentPanel: React.FC = () => {
               <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden min-h-0">
                 <div className="border rounded p-4 flex flex-col h-full min-h-0">
                   <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                  <div className="flex-1 min-h-0 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3">
+                  <div className="flex-1 min-h-[320px] overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3 p-2">
                     {previewDataUrl ? (
                       <img
                         src={previewDataUrl}
                         alt="Quotation preview"
-                        className="max-h-full object-contain rounded"
-                        style={{ width: 'auto', maxWidth: '100%', maxHeight: '100%', height: 'auto' }}
+                        className="max-h-full max-w-full object-contain rounded"
+                        style={{ display: 'block' }}
                       />
                     ) : (
                       <div className="text-sm text-slate-500">Generating preview…</div>
