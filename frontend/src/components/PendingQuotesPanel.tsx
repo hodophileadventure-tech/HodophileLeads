@@ -164,13 +164,13 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
             </p>
           </div>
           {isPending && (
-            <Button variant="primary" size="sm" onClick={() => onSelectRequest(request)}>
+            <Button variant="primary" size="sm" onClick={() => handleSelect(request, true)}>
               {actionLabel}
             </Button>
           )}
           {!isPending && (
             <>
-              <Button variant="primary" size="sm" onClick={() => onSelectRequest(request)}>
+              <Button variant="primary" size="sm" onClick={() => handleSelect(request, false)}>
                 {actionLabel}
               </Button>
               <Button
@@ -203,6 +203,11 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       </div>
     </div>
   );
+
+  const handleSelect = (request: QuoteRequest, isPending: boolean) => {
+    console.log('Selecting request:', request, 'isPending:', isPending);
+    onSelectRequest(request);
+  };
 
   const handleReRequest = async (requestId: string, notes: string) => {
     try {

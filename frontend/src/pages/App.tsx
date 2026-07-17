@@ -386,38 +386,6 @@ export const App: React.FC = () => {
   }, [dismissedFollowUps]);
 
   useEffect(() => {
-    const handleOpenQuotePreview = async (event: Event) => {
-      const detail = (event as CustomEvent<{ requestId?: string; request?: QuoteRequest } | undefined>)?.detail;
-      if (!detail) return;
-
-      let request = detail.request;
-      if (!request && detail.requestId) {
-        try {
-          const response = await quoteRequestsAPI.getById(detail.requestId);
-          request = response.data;
-        } catch (error) {
-          console.error('Failed to fetch quote request for preview:', error);
-          return;
-        }
-      }
-
-      if (!request) return;
-      setPreviewDataUrl(null);
-      setSelectedQuoteRequest(request);
-      setCurrentPage('quoteinvoice');
-    };
-
-    window.addEventListener('open-quote-preview', handleOpenQuotePreview as EventListener);
-    return () => window.removeEventListener('open-quote-preview', handleOpenQuotePreview as EventListener);
-  }, []);
-
-  useEffect(() => {
-    if (currentPage !== 'quoteinvoice' && selectedQuoteRequest) {
-      setSelectedQuoteRequest(null);
-    }
-  }, [currentPage, selectedQuoteRequest]);
-
-  useEffect(() => {
     const handleUnlock = () => primeAlarmAudio();
     window.addEventListener('pointerdown', handleUnlock, { once: true });
     window.addEventListener('keydown', handleUnlock, { once: true });
@@ -1071,60 +1039,17 @@ export const App: React.FC = () => {
               />
             )}
 
-            {currentPage === 'quoteinvoice' && (
+            {currentPage === 'quoteinvoice' && user?.role === 'admin' && (
               <div className="space-y-6">
-                {user?.role === 'admin' ? (
-                  <QuoteInvoicePage />
-                ) : selectedQuoteRequest ? (
-                  <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div>
-                        <h1 className="text-3xl font-bold">Quotation Preview</h1>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          View the generated document and download a JPEG of the quote.
-                        </p>
-                      </div>
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          setPreviewDataUrl(null);
-                          setSelectedQuoteRequest(null);
-                          setCurrentPage('agent');
-                        }}
-                      >
-                        ← Back to Agent Panel
-                      </Button>
-                    </div>
-                    <QuoteInvoicePage
-                      leadId={selectedQuoteRequest.leadId}
-                      requestId={selectedQuoteRequest.id}
-                      requestType={selectedQuoteRequest.requestType}
-                      requestStatus={selectedQuoteRequest.status as any}
-                      leadData={{
-                        clientName: selectedQuoteRequest.leadClientName,
-                        phone: selectedQuoteRequest.leadPhone,
-                        destination: selectedQuoteRequest.leadDestination,
-                        travelDates: selectedQuoteRequest.leadTravelDates,
-                        persons: selectedQuoteRequest.leadPersons,
-                        address: '',
-                      }}
-                      initialDocumentData={selectedQuoteRequest.documentData}
-                      initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                      viewOnly
-                      hideDocumentTabs
-                      generatePreviewOnMount
-                      onPreviewGenerated={(dataUrl) => {
-                        setPreviewDataUrl(dataUrl);
-                      }}
-                      headerTitle={`Preview ${selectedQuoteRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}`}
-                    />
-                  </div>
-                ) : (
-                  <section className="card">
-                    <h1 className="text-3xl font-bold">Access Denied</h1>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">You do not have permission to view quotes and invoices.</p>
-                  </section>
-                )}
+                <QuoteInvoicePage />
+              </div>
+            )}
+            {currentPage === 'quoteinvoice' && user?.role !== 'admin' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <h1 className="text-3xl font-bold">Access Denied</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">You do not have permission to view quotes and invoices.</p>
+                </section>
               </div>
             )}
 

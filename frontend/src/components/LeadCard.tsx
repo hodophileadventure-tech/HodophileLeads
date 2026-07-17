@@ -8,11 +8,10 @@ import { useDataStore } from '../context/store';
 
 interface LeadCardProps {
   lead: Lead;
-  serial?: number;
   onClick?: () => void;
 }
 
-export const LeadCard: React.FC<LeadCardProps> = ({ lead, serial, onClick }) => {
+export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
   const [tab, setTab] = React.useState<'overview' | 'availability'>('overview');
   const [availability, setAvailability] = React.useState<any>(null);
   const [health, setHealth] = React.useState<{ score: number; health: 'red' | 'yellow' | 'green' } | null>(null);
@@ -128,9 +127,6 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, serial, onClick }) => 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {serial != null && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">#{serial}</span>
-            )}
             <h3 className="font-semibold text-lg break-words">{lead.clientName}</h3>
             {(lead as any).islamabadStay && (
               <span className={`text-xs px-2 py-1 rounded font-medium ${(lead as any).islamabadStay === 'yes' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'}`}>
@@ -359,10 +355,9 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, serial, onClick }) => 
 interface LeadListProps {
   leads: Lead[];
   onSelectLead?: (lead: Lead) => void;
-  startIndex?: number;
 }
 
-export const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, startIndex = 0 }) => {
+export const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead }) => {
   if (leads.length === 0) {
     return (
       <div className="card text-center py-8">
@@ -373,8 +368,8 @@ export const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, startIn
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {leads.map((lead, index) => (
-        <LeadCard key={lead.id} lead={lead} serial={startIndex + index + 1} onClick={() => onSelectLead?.(lead)} />
+      {leads.map((lead) => (
+        <LeadCard key={lead.id} lead={lead} onClick={() => onSelectLead?.(lead)} />
       ))}
     </div>
   );
