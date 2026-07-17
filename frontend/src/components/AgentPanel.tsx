@@ -8,8 +8,6 @@ import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
-import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
-
 
 
 const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
@@ -57,10 +55,8 @@ export const AgentPanel: React.FC = () => {
   const [openSearchLeadForm, setOpenSearchLeadForm] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled' | 'spam'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
   const [loadingSelectedRequest, setLoadingSelectedRequest] = useState(false);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
-  const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
   const [quoteRequestError, setQuoteRequestError] = useState('');
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
@@ -338,16 +334,16 @@ export const AgentPanel: React.FC = () => {
 
       const existing = quoteRequests.find((request) => request.id === requestId);
       if (existing && existing.documentData) {
-        setPreviewDataUrl(null);
-        setSelectedRequest(existing);
+        openQuotePreview(existing);
         return;
       }
 
       try {
         setLoadingSelectedRequest(true);
         const res = await quoteRequestsAPI.getById(requestId);
-        setPreviewDataUrl(null);
-        setSelectedRequest(res.data);
+        if (res.data) {
+          openQuotePreview(res.data);
+        }
       } catch (error) {
         console.error('Failed to load saved quote request from notification', error);
       } finally {
@@ -361,27 +357,27 @@ export const AgentPanel: React.FC = () => {
     };
   }, [quoteRequests]);
 
+  const openQuotePreview = (request: QuoteRequest) => {
+    window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
+  };
+
   const selectSavedRequest = async (request: QuoteRequest) => {
     if (request.documentData && Object.keys(request.documentData).length > 0) {
-      setPreviewDataUrl(null);
-      setSelectedRequest(request);
+      openQuotePreview(request);
       return;
     }
 
     try {
       setLoadingSelectedRequest(true);
       const res = await quoteRequestsAPI.getById(request.id);
-      if (res.data.documentData && Object.keys(res.data.documentData).length > 0) {
-        setPreviewDataUrl(null);
-        setSelectedRequest(res.data);
+      if (res.data) {
+        openQuotePreview(res.data);
       } else {
-        setPreviewDataUrl(null);
-        setSelectedRequest(request);
+        openQuotePreview(request);
       }
     } catch (error) {
       console.error('Failed to load saved quote details', error);
-      setPreviewDataUrl(null);
-      setSelectedRequest(request);
+      openQuotePreview(request);
     } finally {
       setLoadingSelectedRequest(false);
     }
@@ -905,7 +901,7 @@ export const AgentPanel: React.FC = () => {
 
       <section id="pending-section" style={{ scrollMarginTop: '120px' }}>
         <PendingQuotesPanel onSelectRequest={(request) => {
-          setSelectedRequest(request);
+          if (request) openQuotePreview(request);
         }} />
       </section>
 
@@ -978,119 +974,6 @@ export const AgentPanel: React.FC = () => {
         )}
       </section>
 
-      {selectedRequest && (
-        <section id="selected-quote-panel" className="card mt-6" ref={quotePanelRef} style={{ scrollMarginTop: '120px' }}>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
-            <div>
-              <h2 className="text-2xl font-semibold">Created {selectedRequest.requestType === 'quotation' ? 'Quotation' : 'Invoice'}</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">{user?.role === 'admin' ? 'Admin completed' : 'View'} this document for {selectedRequest.leadClientName || selectedRequest.leadPhone}.</p>
-            </div>
-            <Button variant="secondary" onClick={() => { setPreviewDataUrl(null); setSelectedRequest(null); }}>
-              Back to created quotations
-            </Button>
-          </div>
-
-          {user?.role === 'agent' ? (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
-              <main className="col-span-1 md:col-span-9 overflow-y-auto">
-                  <QuoteInvoicePage
-                  leadId={selectedRequest.leadId}
-                  requestId={selectedRequest.id}
-                  requestType={selectedRequest.requestType}
-                  requestStatus={selectedRequest.status as any}
-                  leadData={{
-                    clientName: selectedRequest.leadClientName,
-                    phone: selectedRequest.leadPhone,
-                    destination: selectedRequest.leadDestination,
-                    travelDates: selectedRequest.leadTravelDates,
-                    persons: selectedRequest.leadPersons,
-                    address: '',
-                  }}
-                  initialDocumentData={selectedRequest.documentData}
-                  viewOnly={true}
-                    generatePreviewOnMount
-                    onPreviewGenerated={async (dataUrl) => {
-                      try {
-                        if (!dataUrl) {
-                          setPreviewDataUrl(null);
-                          return;
-                        }
-
-                        try {
-                          const prev = previewDataUrl;
-                          if (prev && prev.startsWith('blob:')) {
-                            URL.revokeObjectURL(prev);
-                          }
-                        } catch (e) {
-                          // ignore
-                        }
-
-                        if (dataUrl.startsWith('blob:') || dataUrl.startsWith('data:')) {
-                          setPreviewDataUrl(dataUrl);
-                        } else {
-                          setPreviewDataUrl(dataUrl);
-                        }
-                      } catch (err) {
-                        console.error('Failed to set preview data URL:', err);
-                        setPreviewDataUrl(null);
-                      }
-                    }}
-                />
-              </main>
-
-              <aside className="col-span-1 md:col-span-3 flex flex-col overflow-hidden min-h-0">
-                <div className="border rounded p-4 flex flex-col h-full min-h-0">
-                  <h3 className="font-semibold mb-3 text-base flex-shrink-0">Preview</h3>
-                  <div className="flex-1 min-h-[320px] overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded mb-3 p-2">
-                    {previewDataUrl ? (
-                      <img
-                        src={previewDataUrl}
-                        alt="Quotation preview"
-                        className="max-h-full max-w-full object-contain rounded"
-                        style={{ display: 'block' }}
-                      />
-                    ) : (
-                      <div className="text-sm text-slate-500">Generating preview…</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2 flex-shrink-0">
-                    <Button variant="secondary" size="sm" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</Button>
-                    {previewDataUrl && (
-                      <button
-                        className="btn-primary text-center text-sm py-2 px-3 rounded"
-                        onClick={async () => {
-                          try {
-                            const res = await fetch(previewDataUrl);
-                            const blob = await res.blob();
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.download = `${selectedRequest.requestType || 'quotation'}-preview.jpeg`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            URL.revokeObjectURL(url);
-                          } catch (err) {
-                            console.error('Failed to download preview:', err);
-                            alert('Failed to download preview image. Please try regenerating the preview.');
-                          }
-                        }}
-                      >
-                        Download JPEG
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </aside>
-            </div>
-          ) : (
-            <QuoteInvoicePage
-              leadId={selectedRequest.leadId}
-              requestId={selectedRequest.id}
-              requestType={selectedRequest.requestType}
-              requestStatus={selectedRequest.status as any}
-              initialDocumentData={selectedRequest.documentData}
-              viewOnly={user?.role !== 'admin'}
             />
           )}
         </section>
