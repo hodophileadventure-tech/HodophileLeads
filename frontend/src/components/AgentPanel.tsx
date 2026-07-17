@@ -367,14 +367,20 @@ export const AgentPanel: React.FC = () => {
       setLoadingSelectedRequest(true);
       const res = await quoteRequestsAPI.getById(request.id);
       const req = res?.data || request;
+      
+      // Ensure documentData is preserved from the original request if not returned by API
+      const mergedRequest = {
+        ...req,
+        documentData: req.documentData || request.documentData,
+      };
 
       if (user?.role === 'agent') {
         setPreviewDataUrl(null);
-        setSelectedRequest(req);
+        setSelectedRequest(mergedRequest);
         return;
       }
 
-      openQuotePreview(req);
+      openQuotePreview(mergedRequest);
     } catch (error) {
       console.error('Failed to load saved quote details', error);
       if (user?.role === 'agent') {
@@ -994,6 +1000,7 @@ export const AgentPanel: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-h-[75vh]">
               <main className="col-span-1 md:col-span-9 overflow-y-auto">
                 <QuoteInvoicePage
+                  key={selectedRequest.id}
                   leadId={selectedRequest.leadId}
                   requestId={selectedRequest.id}
                   requestType={selectedRequest.requestType}
