@@ -358,6 +358,21 @@ export const AgentPanel: React.FC = () => {
     };
   }, [quoteRequests]);
 
+  // Smooth scroll to selected quote panel when it's opened, with proper timing to avoid jerk
+  useEffect(() => {
+    if (!selectedRequest || !quotePanelRef.current) return;
+
+    // Use requestAnimationFrame to ensure DOM is ready, then add a small delay for layout shift
+    const rafId = requestAnimationFrame(() => {
+      const timeoutId = window.setTimeout(() => {
+        quotePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+      return () => clearTimeout(timeoutId);
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [selectedRequest]);
+
   const openQuotePreview = (request: QuoteRequest) => {
     window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
   };
