@@ -185,9 +185,8 @@ export const AgentPanel: React.FC = () => {
   const confirmCompleteFollowUp = async () => {
     if (!completionFollowUp) return;
     try {
-      console.log('Completing follow-up:', completionFollowUp.id, 'with remarks:', completionRemarks);
-      const response = await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
-      console.log('Follow-up completed successfully:', response);
+      await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
+      // completed
       
       const next = { ...readDismissedFollowUps(), [completionFollowUp.id]: Date.now() + 24 * 60 * 60 * 1000 };
       setDismissedFollowUps(next);
@@ -365,13 +364,10 @@ export const AgentPanel: React.FC = () => {
   };
 
   const selectSavedRequest = async (request: QuoteRequest) => {
-    console.log('🔍 selectSavedRequest called with:', request.id, request.leadClientName);
     try {
       setLoadingSelectedRequest(true);
-      console.log('📥 Loading quote details...');
       const res = await quoteRequestsAPI.getById(request.id);
       const req = res?.data || request;
-      console.log('✅ Quote loaded:', req.id);
       
       // Ensure documentData is preserved from the original request if not returned by API
       const mergedRequest = {
@@ -380,23 +376,16 @@ export const AgentPanel: React.FC = () => {
       };
 
       if (user?.role === 'agent') {
-        console.log('👤 Agent role - setting selectedRequest');
         setPreviewDataUrl(null);
         setSelectedRequest(mergedRequest);
-        console.log('✅ selectedRequest set to:', mergedRequest.id);
         return;
       }
 
-      console.log('📺 Non-agent role - opening preview');
       openQuotePreview(mergedRequest);
     } catch (error) {
       console.error('❌ Failed to load saved quote details', error);
-      if (user?.role === 'agent') {
-        console.log('⚠️ Fallback: setting selectedRequest with original request');
         setSelectedRequest(request);
-      } else {
-        openQuotePreview(request);
-      }
+      // fallback to opening preview for non-agent handled by caller
     } finally {
       setLoadingSelectedRequest(false);
     }
@@ -404,7 +393,6 @@ export const AgentPanel: React.FC = () => {
 
   // Always show created quotations in the side panel, regardless of user role
   const viewCreatedQuotationInPanel = async (request: QuoteRequest) => {
-    console.log('📌 viewCreatedQuotationInPanel called with:', request.id, request.leadClientName);
     try {
       setLoadingSelectedRequest(true);
       const res = await quoteRequestsAPI.getById(request.id);
@@ -413,7 +401,6 @@ export const AgentPanel: React.FC = () => {
         ...req,
         documentData: req.documentData || request.documentData,
       };
-      console.log('✅ Quote loaded, displaying in panel');
       setPreviewDataUrl(null);
       setSelectedRequest(mergedRequest);
     } catch (error) {

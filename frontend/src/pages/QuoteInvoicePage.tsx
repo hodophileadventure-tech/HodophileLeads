@@ -210,6 +210,33 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const [isSaved, setIsSaved] = useState(requestStatus === 'manager_pending' || requestStatus === 'admin_pending' || requestStatus === 'saved' || requestStatus === 'created' || requestStatus === 'approved' || requestStatus === 'rejected');
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const lastPreviewErrorTsRef = useRef<number>(0);
+
+  const safeHtml2canvas = async (element: HTMLElement) => {
+    return await html2canvas(element, {
+      scale: 1,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      onclone: (doc: Document) => {
+        try {
+          // Remove elements that commonly taint canvas
+          doc.querySelectorAll('video,iframe,object,embed,canvas').forEach((n) => n.remove());
+          // Hide external images that fail to load
+          doc.querySelectorAll('img').forEach((img) => {
+            try {
+              const i = img as HTMLImageElement;
+              if (i.src && i.src.startsWith('http') && !i.src.includes(window.location.hostname)) {
+                i.setAttribute('crossorigin', 'anonymous');
+              }
+              i.onerror = () => { try { (i as HTMLImageElement).style.display = 'none'; } catch {} };
+            } catch {}
+          });
+        } catch {}
+      }
+    });
+  };
 
   const displayQuoteNumber = data.quoteNumber || initialQuotationNumber || (isLoadingQuoteNumber ? 'Loading...' : '');
   const previewNumber = documentType === 'quotation' ? displayQuoteNumber : data.invoiceNumber;
@@ -268,18 +295,15 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   useEffect(() => {
     // If leadData is provided directly (from parent), use it
     if (_leadData) {
-      console.log('✅ Using provided lead data:', _leadData);
       setData((current) => hydrateLeadFields(current, _leadData));
       return;
     }
 
     // Otherwise, fetch using leadId
     if (_leadId) {
-      console.log('🔍 Fetching lead details for leadId:', _leadId);
       leadsAPI.getById(_leadId)
         .then((response) => {
           const lead = response.data;
-          console.log('✅ Lead data fetched:', lead);
 
           setData((current) => {
             // Only update if form hasn't been modified yet
@@ -309,7 +333,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
               transportationType: lead.transportPreference || '',
               travelDate: lead.travelDates?.from || new Date().toISOString().split('T')[0],
             };
-            console.log('📝 Updated form data:', updated);
             return updated;
           });
         })
@@ -350,18 +373,24 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
           await new Promise(resolve => setTimeout(resolve, 800));
           
           if (!previewRef.current) return;
-          
-          const canvas = await html2canvas(previewRef.current, {
-            scale: 1,
-            backgroundColor: '#ffffff',
-            useCORS: true,
-            allowTaint: false,
-            logging: false, // Disable logging to reduce overhead
-          });
-          const jpegData = canvas.toDataURL('image/jpeg', 0.95);
-          onPreviewGenerated(jpegData);
+          try {
+            const canvas = await safeHtml2canvas(previewRef.current);
+            const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+            onPreviewGenerated(jpegData);
+          } catch (err: any) {
+            const now = Date.now();
+            if (now - lastPreviewErrorTsRef.current > 30000) {
+              console.error('Failed to generate preview (suppressed):', err);
+              lastPreviewErrorTsRef.current = now;
+            }
+            onPreviewGenerated('');
+          }
         } catch (error) {
-          console.error('Failed to generate preview:', error);
+          const now = Date.now();
+          if (now - lastPreviewErrorTsRef.current > 30000) {
+            console.error('Failed to generate preview (outer):', error);
+            lastPreviewErrorTsRef.current = now;
+          }
           onPreviewGenerated(''); // Notify parent that generation failed
         }
       };
@@ -372,31 +401,31 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
 
   // Debug: Log data state changes
   useEffect(() => {
-    console.log('📝 Form data state updated:', {
-      packageName: data.packageName,
-      accommodationType: data.accommodationType,
-      transportationType: data.transportationType,
-      customerName: data.customerName,
-      price: data.price,
-      discount: data.discount,
-      advanceAmount: data.advanceAmount
-    });
+    // suppressed debug logs in production
   }, [data]);
 
   useEffect(() => {
     const handleGenerateQuotePreview = async () => {
       if (previewRef.current && onPreviewGenerated) {
         try {
-          const canvas = await html2canvas(previewRef.current, {
-            scale: 1,
-            backgroundColor: '#ffffff',
-            useCORS: true,
-            allowTaint: false,
-          });
-          const jpegData = canvas.toDataURL('image/jpeg', 0.95);
-          onPreviewGenerated(jpegData);
+          try {
+            const canvas = await safeHtml2canvas(previewRef.current);
+            const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+            onPreviewGenerated(jpegData);
+          } catch (err: any) {
+            const now = Date.now();
+            if (now - lastPreviewErrorTsRef.current > 30000) {
+              console.error('Failed to generate preview (on-demand):', err);
+              lastPreviewErrorTsRef.current = now;
+            }
+            onPreviewGenerated('');
+          }
         } catch (error) {
-          console.error('Failed to generate preview:', error);
+          const now = Date.now();
+          if (now - lastPreviewErrorTsRef.current > 30000) {
+            console.error('Failed to generate preview (outer on-demand):', error);
+            lastPreviewErrorTsRef.current = now;
+          }
         }
       }
     };
@@ -459,20 +488,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
   const canSendForApproval = !!_requestId && isSaved && requestStatus && (requestStatus === 'manager_pending' || requestStatus === 'saved') && user?.role === 'manager' && !viewOnly;
 
   useEffect(() => {
-    console.log('🔍 Send for Approval Debug:', {
-      _requestId,
-      isSaved,
-      requestStatus,
-      userRole: user?.role,
-      viewOnly,
-      condition1: !!_requestId,
-      condition2: isSaved,
-      condition3: !!requestStatus,
-      condition4: requestStatus === 'manager_pending' || requestStatus === 'saved',
-      condition5: user?.role === 'manager',
-      condition6: !viewOnly,
-      canSendForApproval
-    });
+    // debug info suppressed
   }, [_requestId, isSaved, requestStatus, user?.role, viewOnly, canSendForApproval]);
 
   const saveQuoteRequest = async () => {
@@ -549,12 +565,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
     if (!previewRef.current) return;
     try {
       setMessage('Generating JPEG...');
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        allowTaint: false,
-      });
+      const canvas = await safeHtml2canvas(previewRef.current);
       const jpegData = canvas.toDataURL('image/jpeg', 0.95);
       const filename = `${documentType === 'quotation' ? data.quoteNumber || 'Quotation' : data.invoiceNumber || 'Invoice'} - ${data.customerName || 'Client'}.jpeg`;
       const link = document.createElement('a');
@@ -565,7 +576,11 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
       document.body.removeChild(link);
       setMessage('JPEG generated successfully.');
     } catch (error) {
-      console.error(error);
+      const now = Date.now();
+      if (now - lastPreviewErrorTsRef.current > 30000) {
+        console.error('Failed to generate JPEG:', error);
+        lastPreviewErrorTsRef.current = now;
+      }
       setMessage('Failed to generate JPEG. Please try again.');
     }
   };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { quoteRequestsAPI } from '../utils/api-service';
 import type { QuoteRequest } from '../types';
 import { Button } from './common';
+import { useAuth } from '../context/AuthContext';
 
 interface PendingQuotesPanelProps {
   onSelectRequest: (request: QuoteRequest) => void;
@@ -68,7 +69,17 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       setSavedRequests(allRequests.filter((request) => ['saved', 'created'].includes(request.status)));
       return allRequests;
     } catch (err: any) {
-      console.error('Failed to load quote requests:', err);
+      // Throttle noisy error logging to avoid console spam when the API is unavailable
+      try {
+        const now = Date.now();
+        (loadRequests as any)._lastErrorTs = (loadRequests as any)._lastErrorTs || 0;
+        if (now - (loadRequests as any)._lastErrorTs > 30000) {
+          console.error('Failed to load quote requests:', err);
+          (loadRequests as any)._lastErrorTs = now;
+        }
+      } catch {
+        // ignore
+      }
       const errorMsg = err?.response?.data?.message || err?.message || 'Failed to load quote requests.';
       setError(errorMsg);
       setPendingRequests([]);
@@ -164,13 +175,13 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
             </p>
           </div>
           {isPending && (
-            <Button variant="primary" size="sm" onClick={() => handleSelect(request, true)}>
+            <Button variant="primary" size="sm" onClick={() => handleSelect(request)}>
               {actionLabel}
             </Button>
           )}
           {!isPending && (
             <>
-              <Button variant="primary" size="sm" onClick={() => handleSelect(request, false)}>
+              <Button variant="primary" size="sm" onClick={() => handleSelect(request)}>
                 {actionLabel}
               </Button>
               <Button
@@ -204,8 +215,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
     </div>
   );
 
-  const handleSelect = (request: QuoteRequest, isPending: boolean) => {
-    console.log('Selecting request:', request, 'isPending:', isPending);
+  const handleSelect = (request: QuoteRequest) => {
     onSelectRequest(request);
   };
 
@@ -219,6 +229,8 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
       alert('Failed to re-request quote. Please try again.');
     }
   };
+
+  const { user } = useAuth();
 
   if (loading) {
     return (
@@ -303,7 +315,8 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         )}
       </section>
 
-      <section id="saved-section" className="card" style={{ display: 'block' }}>
+      {user?.role !== 'admin' && (
+        <section id="saved-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-semibold">Created {selectedRequestType === 'invoice' ? 'Invoices' : 'Quotations'}</h2>
@@ -331,7 +344,8 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
             }).map((request) => renderRequestCard(request, 'View Document', false))}
           </div>
         )}
-      </section>
+        </section>
+      )}
     </div>
   );
 };

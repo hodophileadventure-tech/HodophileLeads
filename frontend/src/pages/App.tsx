@@ -6,6 +6,7 @@ import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { Dashboard } from '../components/Dashboard';
 import AgentPanel from '../components/AgentPanel';
+import CreatedQuotesPanel from '../components/CreatedQuotesPanel';
 import ReportIssuePage from './ReportIssuePage';
 import DailyReportsPage from './DailyReportsPage';
 import DeveloperPanel from './DeveloperPanel';
@@ -26,7 +27,7 @@ import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations';
 
  
 
@@ -441,6 +442,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
     ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
+    ...(user?.role === 'agent' ? [{ label: 'Created Quotations', href: 'created-quotations', icon: '💾' }] : []),
     { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
@@ -609,6 +611,19 @@ export const App: React.FC = () => {
               <div>
                 <h1 className="text-3xl font-bold mb-4">Agent Panel</h1>
                 <AgentPanel />
+              </div>
+            )}
+
+            {currentPage === 'created-quotations' && user?.role === 'agent' && (
+              <div>
+                <h1 className="text-3xl font-bold mb-4">Created Quotations</h1>
+                <CreatedQuotesPanel onOpen={(r) => {
+                  // Open in agent panel
+                  setCurrentPage('agent');
+                  window.setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('open-saved-quote', { detail: { requestId: r.id } }));
+                  }, 50);
+                }} />
               </div>
             )}
 
