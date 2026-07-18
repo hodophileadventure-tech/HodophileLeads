@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI, quoteRequestsAPI } from '../utils/api-service';
 import { LeadForm } from './LeadForm';
 import ConfirmedLeadForm from './ConfirmedLeadForm';
-import { PendingQuotesPanel } from './PendingQuotesPanel';
 import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
@@ -366,36 +365,6 @@ export const AgentPanel: React.FC = () => {
     window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
   };
 
-  const selectSavedRequest = async (request: QuoteRequest) => {
-    try {
-      setLoadingSelectedRequest(true);
-      const res = await quoteRequestsAPI.getById(request.id);
-      const req = res?.data || request;
-      
-      // Ensure documentData is preserved from the original request if not returned by API
-      const mergedRequest = {
-        ...req,
-        documentData: req.documentData || request.documentData,
-      };
-
-      if (user?.role === 'agent') {
-        setPreviewDataUrl(null);
-        setSelectedRequest(mergedRequest);
-        return;
-      }
-
-      openQuotePreview(mergedRequest);
-    } catch (error) {
-      console.error('❌ Failed to load saved quote details', error);
-        setSelectedRequest(request);
-      // fallback to opening preview for non-agent handled by caller
-    } finally {
-      setLoadingSelectedRequest(false);
-    }
-  };
-
-  // Always show created quotations in the side panel, regardless of user role
-  // viewCreatedQuotationInPanel removed — created quotations now live in Created Quotations tab
 
   useEffect(() => {
     let mounted = true;
@@ -661,38 +630,6 @@ export const AgentPanel: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Sticky Quote Navigation - On Top */}
-      <div className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-md rounded-lg">
-        <div className="flex items-center gap-2 p-4">
-          <button
-            onClick={() => {
-              const el = document.getElementById('pending-section');
-              if (el) {
-                requestAnimationFrame(() => {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-              }
-            }}
-            className="px-4 py-2 rounded-lg font-medium transition-colors bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 hover:bg-blue-200 dark:hover:bg-blue-800"
-          >
-            ↓ Pending Quotes
-          </button>
-          <button
-            onClick={() => {
-              const el = document.getElementById('created-section');
-              if (el) {
-                requestAnimationFrame(() => {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-              }
-            }}
-            className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-800"
-          >
-            ↓ Created Quotes
-          </button>
-        </div>
-      </div>
-
       <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
@@ -912,22 +849,6 @@ export const AgentPanel: React.FC = () => {
           }}
         />
       )}
-
-      <section id="pending-section" style={{ scrollMarginTop: '120px' }}>
-        <PendingQuotesPanel onSelectRequest={(request) => {
-          if (request) {
-            // Use selectSavedRequest for created/saved quotes to show in the panel below
-            if (request.status === 'created' || request.status === 'saved') {
-              void selectSavedRequest(request);
-            } else {
-              // Use modal preview for pending quotes
-              openQuotePreview(request);
-            }
-          }
-        }} />
-      </section>
-
-      {/* Created/saved quotations moved to Created Quotations tab — removed from AgentPanel */}
 
       {selectedRequest && (
         <section id="selected-quote-panel" className="mt-8 pt-8 border-t-2 border-slate-300 dark:border-slate-600" ref={quotePanelRef} style={{ scrollMarginTop: '120px' }}>

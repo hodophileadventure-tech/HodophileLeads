@@ -442,6 +442,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
     ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
+    ...(user?.role === 'agent' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
     ...(user?.role === 'agent' ? [{ label: 'Created Quotations', href: 'created-quotations', icon: '💾' }] : []),
     { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
@@ -730,7 +731,7 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'pending-quotes' && ['admin', 'manager'].includes(user?.role || '') && (
+            {currentPage === 'pending-quotes' && ['admin', 'manager', 'agent'].includes(user?.role || '') && (
               <div className="space-y-6">
                 {selectedQuoteRequest ? (
                   <div>
