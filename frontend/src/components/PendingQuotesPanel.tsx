@@ -315,7 +315,7 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
         )}
       </section>
 
-      {user?.role !== 'admin' && (
+      {user?.role !== 'admin' && user?.role !== 'agent' && (
         <section id="saved-section" className="card" style={{ display: 'block' }}>
         <div className="flex items-center justify-between mb-4">
           <div>

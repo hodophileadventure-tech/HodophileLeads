@@ -55,11 +55,14 @@ export const AgentPanel: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled' | 'spam'>('all');
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
-  const [loadingSelectedRequest, setLoadingSelectedRequest] = useState(false);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
-  const [loadingQuoteRequests, setLoadingQuoteRequests] = useState(false);
-  const [quoteRequestError, setQuoteRequestError] = useState('');
+  // These setters are intentionally no-ops for AgentPanel since loading/errors
+  // are handled inside the Created Quotations tab UI. Keep setters to avoid
+  // changing other call sites that expect them.
+  const setLoadingSelectedRequest = (_: boolean) => {};
+  const setLoadingQuoteRequests = (_: boolean) => {};
+  const setQuoteRequestError = (_: string) => {};
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
   const [screenShareError, setScreenShareError] = useState('');
   const [screenShareNotice, setScreenShareNotice] = useState('');
@@ -392,24 +395,7 @@ export const AgentPanel: React.FC = () => {
   };
 
   // Always show created quotations in the side panel, regardless of user role
-  const viewCreatedQuotationInPanel = async (request: QuoteRequest) => {
-    try {
-      setLoadingSelectedRequest(true);
-      const res = await quoteRequestsAPI.getById(request.id);
-      const req = res?.data || request;
-      const mergedRequest = {
-        ...req,
-        documentData: req.documentData || request.documentData,
-      };
-      setPreviewDataUrl(null);
-      setSelectedRequest(mergedRequest);
-    } catch (error) {
-      console.error('❌ Failed to load quote for panel view', error);
-      setSelectedRequest(request);
-    } finally {
-      setLoadingSelectedRequest(false);
-    }
-  };
+  // viewCreatedQuotationInPanel removed — created quotations now live in Created Quotations tab
 
   useEffect(() => {
     let mounted = true;
@@ -941,74 +927,7 @@ export const AgentPanel: React.FC = () => {
         }} />
       </section>
 
-      <section id="created-section" className="card" style={{ scrollMarginTop: '120px' }}>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold">Created Quotations</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">View quotations your admin has completed for your leads.</p>
-          </div>
-        </div>
-        {loadingQuoteRequests ? (
-          <p className="mt-4 text-sm text-slate-600">Loading created quotations...</p>
-        ) : quoteRequestError ? (
-          <p className="mt-4 text-sm text-rose-600">{quoteRequestError}</p>
-        ) : quoteRequests.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-600">No created quotations have been completed yet.</p>
-        ) : loadingQuoteRequests ? (
-          <p className="mt-4 text-sm text-slate-600">Loading created quotations...</p>
-        ) : (
-          <div className="mt-4 space-y-3">
-            {quoteRequests.map((request) => (
-              <div
-                key={request.id}
-                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-              >
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="min-w-0 space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 text-xs font-semibold uppercase">
-                        {request.requestType === 'quotation' ? 'Quotation' : 'Invoice'}
-                      </span>
-                      <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 px-3 py-1 text-xs font-semibold uppercase">
-                        Created
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-lg truncate">{request.leadClientName || request.leadPhone}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Requested by: {request.requestedByName || 'Unknown'}</p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-slate-600 dark:text-slate-300">
-                      <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Phone</p>
-                        <p className="font-medium mt-1">{request.leadPhone || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Destination</p>
-                        <p className="font-medium mt-1">{request.leadDestination || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">Created</p>
-                        <p className="font-medium mt-1">{request.documentData?.date ? new Date(request.documentData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3 items-start sm:items-end">
-                    {request.documentData?.quoteNumber ? (
-                      <div className="text-right text-sm text-slate-500 dark:text-slate-400">
-                        <div className="font-medium">Quote #</div>
-                        <div>{request.quotationNumber || request.documentData?.quoteNumber}</div>
-                      </div>
-                    ) : null}
-                    <Button variant="primary" size="sm" onClick={() => void viewCreatedQuotationInPanel(request)} disabled={loadingSelectedRequest}>
-                      View in Panel
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      {/* Created/saved quotations moved to Created Quotations tab — removed from AgentPanel */}
 
       {selectedRequest && (
         <section id="selected-quote-panel" className="mt-8 pt-8 border-t-2 border-slate-300 dark:border-slate-600" ref={quotePanelRef} style={{ scrollMarginTop: '120px' }}>
