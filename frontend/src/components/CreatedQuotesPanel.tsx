@@ -13,7 +13,7 @@ const CreatedQuotesPanel: React.FC<{ onOpen: (r: QuoteRequest) => void }> = ({ o
     const load = async () => {
       try {
         setLoading(true);
-        const res = await quoteRequestsAPI.list();
+        const res = await quoteRequestsAPI.listPending();
         if (!mounted) return;
         setItems((res.data || []).filter((r: QuoteRequest) => ['saved', 'created'].includes(r.status)));
         setError(null);

@@ -464,10 +464,14 @@ export const App: React.FC = () => {
         <Navbar onNotificationClick={async (notification) => {
           try {
             if (notification?.type === 'quote_saved' && notification.payload?.requestId) {
-              setCurrentPage('agent');
-              window.setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('open-saved-quote', { detail: { requestId: notification.payload.requestId } }));
-              }, 0);
+              const requestId = notification.payload.requestId;
+              try {
+                const res = await quoteRequestsAPI.getById(requestId);
+                setSelectedQuoteRequest(res.data || { id: requestId } as any);
+              } catch (err) {
+                setSelectedQuoteRequest({ id: requestId, leadId: notification.payload?.leadId, requestType: notification.payload?.requestType } as any);
+              }
+              setCurrentPage('created-quotations');
               return;
             }
 
