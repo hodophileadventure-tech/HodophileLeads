@@ -208,6 +208,16 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
+  const dedupeLeads = (items: Lead[]) => {
+    if (!Array.isArray(items)) return [];
+    return items.filter((lead, index, arr) => {
+      const id = String(lead.id ?? '');
+      return id
+        ? arr.findIndex((item) => String(item.id ?? '') === id) === index
+        : index === arr.lastIndexOf(lead);
+    });
+  };
+
   const loadLeads = async (filters?: { phone?: string; startDate?: string; endDate?: string }) => {
     try {
       const res = await leadsAPI.list(undefined, {
@@ -215,7 +225,7 @@ export const AgentPanel: React.FC = () => {
         startDate: filters?.startDate ?? (appliedDateRange.startDate || undefined),
         endDate: filters?.endDate ?? (appliedDateRange.endDate || undefined)
       });
-      setLeads(res.data || []);
+      setLeads(dedupeLeads(res.data || []));
     } catch (err) {
       console.error(err);
     }
@@ -426,13 +436,13 @@ export const AgentPanel: React.FC = () => {
   const handleNewLead = (lead: Lead) => {
     setLeads((prev) => {
       if (!lead.id) {
-        return [lead, ...prev];
+        return dedupeLeads([lead, ...prev]);
       }
       const existingIndex = prev.findIndex((item) => item.id === lead.id);
       if (existingIndex >= 0) {
-        return prev.map((item) => (item.id === lead.id ? lead : item));
+        return dedupeLeads(prev.map((item) => (item.id === lead.id ? lead : item)));
       }
-      return [lead, ...prev];
+      return dedupeLeads([lead, ...prev]);
     });
   };
 
@@ -494,7 +504,7 @@ export const AgentPanel: React.FC = () => {
         const results: Lead[] = res.data || [];
         if (results.length > 0) {
           setSelectedLead(results[0]);
-          setLeads(results);
+          setLeads(dedupeLeads(results));
         } else {
           setSelectedLead({ phone: searchQuery } as any);
         }

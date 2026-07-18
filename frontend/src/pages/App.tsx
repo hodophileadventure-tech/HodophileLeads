@@ -613,10 +613,7 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'agent' && (
-              <div>
-                <h1 className="text-3xl font-bold mb-4">Agent Panel</h1>
-                <AgentPanel />
-              </div>
+              <AgentPanel />
             )}
 
             {currentPage === 'created-quotations' && user?.role === 'agent' && (
@@ -721,13 +718,6 @@ export const App: React.FC = () => {
                 <section className="card">
                   <AnalyticsDashboard isAdmin={user.role === 'admin'} showAgentTargetsOnly={user.role === 'manager'} />
                 </section>
-              </div>
-            )}
-
-            {currentPage === 'agent' && (
-              <div>
-                <h1 className="text-3xl font-bold mb-4">Agent Panel</h1>
-                <AgentPanel />
               </div>
             )}
 
@@ -880,7 +870,7 @@ export const App: React.FC = () => {
                             setCurrentPage('pending-quotes');
                           }}
                           onClose={() => setSelectedQuoteRequest(null)}
-                          viewOnly={false}
+                          viewOnly={user?.role === 'agent'}
                           generatePreviewOnMount
                           onPreviewGenerated={handlePreviewGenerated}
                           hidePreview={true}

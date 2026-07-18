@@ -176,13 +176,13 @@ export const PendingQuotesPanel: React.FC<PendingQuotesPanelProps> = ({ onSelect
           </div>
           {isPending && (
             <Button variant="primary" size="sm" onClick={() => handleSelect(request)}>
-              {actionLabel}
+              {user?.role === 'agent' ? 'View Request' : actionLabel}
             </Button>
           )}
           {!isPending && (
             <>
               <Button variant="primary" size="sm" onClick={() => handleSelect(request)}>
-                {actionLabel}
+                {user?.role === 'agent' ? 'View Document' : actionLabel}
               </Button>
               <Button
                 variant="secondary"
