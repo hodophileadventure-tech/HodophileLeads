@@ -617,13 +617,71 @@ export const App: React.FC = () => {
             {currentPage === 'created-quotations' && user?.role === 'agent' && (
               <div>
                 <h1 className="text-3xl font-bold mb-4">Created Quotations</h1>
-                <CreatedQuotesPanel onOpen={(r) => {
-                  // Open in agent panel
-                  setCurrentPage('agent');
-                  window.setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('open-saved-quote', { detail: { requestId: r.id } }));
-                  }, 50);
-                }} />
+                {selectedQuoteRequest ? (
+                  <div>
+                    <Button variant="secondary" onClick={() => { setPreviewDataUrl(null); setSelectedQuoteRequest(null); }} className="mb-4">← Back to Created</Button>
+
+                    <div className="grid grid-cols-3 gap-6 min-h-[60vh] w-full">
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 overflow-y-auto min-w-0">
+                        <h3 className="font-semibold mb-4 text-sm">Lead Details</h3>
+                        <div className="space-y-3 text-sm">
+                          <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">CLIENT INFO</p>
+                            <div className="mt-2 space-y-2">
+                              <div>
+                                <p className="text-xs text-slate-500">Name</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadClientName || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Phone</p>
+                                <p className="font-medium">{selectedQuoteRequest.leadPhone || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Request Type</p>
+                                <p className="font-medium text-xs">{selectedQuoteRequest.requestType}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </aside>
+
+                      <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0">
+                        <QuoteInvoicePage
+                          key={selectedQuoteRequest.id}
+                          leadId={selectedQuoteRequest.leadId}
+                          requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
+                          requestStatus={selectedQuoteRequest.status as any}
+                          initialDocumentData={selectedQuoteRequest.documentData}
+                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                          viewOnly={true}
+                          generatePreviewOnMount
+                          onPreviewGenerated={handlePreviewGenerated}
+                          hidePreview={true}
+                        />
+                      </main>
+
+                      <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0">
+                        <h3 className="font-semibold mb-3 text-base">Preview</h3>
+                        <div className="flex-1 overflow-auto flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded mb-3">
+                          {previewDataUrl ? (
+                            <img src={previewDataUrl} alt="Quotation preview" className="max-h-full object-contain rounded" style={{ width: 'auto', maxWidth: '240px', maxHeight: '100%' }} />
+                          ) : (
+                            <div className="text-sm text-slate-500">Generating preview…</div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          {previewDataUrl && (
+                            <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
+                          )}
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                ) : (
+                  <CreatedQuotesPanel onOpen={(r) => { setSelectedQuoteRequest(r); }} />
+                )}
               </div>
             )}
 
