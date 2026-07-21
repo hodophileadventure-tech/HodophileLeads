@@ -270,8 +270,13 @@ export const leadsModel = {
       'pipeline_stage'
     ]);
 
+    console.log('[Lead.update] normalizedData keys:', Object.keys(normalizedData));
+    console.log('[Lead.update] pipelineStage value:', normalizedData.pipelineStage);
+
     Object.entries(normalizedData).forEach(([key, value]) => {
+      console.log(`[Lead.update] Processing key: ${key}, value: ${value}, type: ${typeof value}`);
       if (value === undefined) {
+        console.log(`[Lead.update] Skipping ${key}: value is undefined`);
         return;
       }
 
@@ -293,6 +298,7 @@ export const leadsModel = {
         fields.push(`destinations = $${paramCount}`);
         params.push(typeof value === 'string' ? value : JSON.stringify(value));
       } else if (key === 'pipelineStage') {
+        console.log(`[Lead.update] Handling pipelineStage with value: ${value}`);
         if (value === 'confirmed') {
           fields.push(`lead_outcome = $${paramCount}`);
           params.push('confirmed');
@@ -304,6 +310,7 @@ export const leadsModel = {
 
           fields.push(`pipeline_stage = $${paramCount}`);
           params.push('confirmed');
+          console.log(`[Lead.update] Added confirmed fields, paramCount now: ${paramCount + 1}`);
         } else if (value === 'completed') {
           fields.push(`status = $${paramCount}`);
           params.push('completed');
@@ -367,6 +374,10 @@ export const leadsModel = {
       }
       paramCount++;
     });
+
+    console.log('[Lead.update] After processing all keys - fields count:', fields.length);
+    console.log('[Lead.update] Fields:', fields);
+    console.log('[Lead.update] Params:', params);
 
     if (fields.length === 0) {
       throw new Error('No valid lead fields were provided for update');
