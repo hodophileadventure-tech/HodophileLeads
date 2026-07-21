@@ -171,7 +171,13 @@ const confirmLeadAndEnqueue = async (leadId: string, updateData: Partial<any>) =
   try {
     await client.query('BEGIN');
     const lead = await leadsModel.update(leadId, updateData, client);
-    await enqueueConfirmedLeadNotification(lead, client);
+
+    try {
+      await enqueueConfirmedLeadNotification(lead, client);
+    } catch (notificationError) {
+      console.error('[LeadsController] Failed to enqueue confirmed lead notification', notificationError);
+    }
+
     await client.query('COMMIT');
     return lead;
   } catch (error) {
