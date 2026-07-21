@@ -465,6 +465,18 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] ✅ potential column added successfully');
     }
 
+    const b2bColumnCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'is_b2b'
+    `);
+    const b2bColumnExists = b2bColumnCheckResult.rows?.[0]?.count > 0;
+
+    if (!b2bColumnExists) {
+      console.log('[MIGRATION] Adding is_b2b column to leads table...');
+      await query(`ALTER TABLE leads ADD COLUMN is_b2b BOOLEAN DEFAULT FALSE`);
+      console.log('[MIGRATION] ✅ is_b2b column added successfully');
+    }
+
     await query('ALTER TABLE leads DROP CONSTRAINT IF EXISTS valid_status');
     await query(`
       ALTER TABLE leads ADD CONSTRAINT valid_status CHECK (

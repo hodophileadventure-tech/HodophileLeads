@@ -254,6 +254,7 @@ export const leadsModel = {
       'potential',
       'created_at',
       'lead_outcome',
+      'is_b2b',
       'special_requests',
       'transport_preference',
       'hotel_preference',
@@ -350,6 +351,9 @@ export const leadsModel = {
       } else if (key === 'createdAt') {
         fields.push(`created_at = $${paramCount}`);
         params.push(value);
+      } else if (key === 'isB2b') {
+        fields.push(`is_b2b = $${paramCount}`);
+        params.push(value);
       } else if (key !== 'id') {
         let dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
         if (key === 'clientName' || key === 'name') dbKey = 'client_name';
@@ -362,6 +366,10 @@ export const leadsModel = {
       }
       paramCount++;
     });
+
+    if (fields.length === 0) {
+      throw new Error('No valid lead fields were provided for update');
+    }
 
     params.push(id);
 
