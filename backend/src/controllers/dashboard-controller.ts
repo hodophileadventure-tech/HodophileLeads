@@ -19,6 +19,8 @@ export const calculateMonthlyTargetProgress = (achievedAmount: number | string, 
 
 export const canAccessAdminLikeAnalytics = (role?: string) => role === 'admin' || role === 'manager';
 
+export const canAccessOwnAnalytics = (role?: string) => role === 'agent';
+
 export const getLeadScopeAgentId = (role?: string, userId?: string) => {
   return role === 'agent' ? userId : undefined;
 };
@@ -162,11 +164,13 @@ export const dashboardController = {
     try {
       const { agentId, startDate, endDate } = req.query;
 
-      if (!canAccessAdminLikeAnalytics(req.user?.role)) {
-        return res.status(403).json({ message: 'Admin or Manager access required' });
+      if (!canAccessAdminLikeAnalytics(req.user?.role) && !canAccessOwnAnalytics(req.user?.role)) {
+        return res.status(403).json({ message: 'Analytics access required' });
       }
 
-      if (!agentId) {
+      const resolvedAgentId = req.user?.role === 'agent' ? req.user?.id : agentId ? String(agentId) : undefined;
+
+      if (!resolvedAgentId) {
         return res.status(400).json({ message: 'agentId is required' });
       }
 
@@ -204,7 +208,7 @@ export const dashboardController = {
           (l.created_at >= $2 AND l.created_at <= $3) OR
           (l.updated_at >= $2 AND l.updated_at <= $3)
         )
-      `, [agentId, start.toISOString(), end.toISOString()]);
+      `, [resolvedAgentId, start.toISOString(), end.toISOString()]);
 
       const stats = result.rows[0] || {};
 
@@ -232,11 +236,13 @@ export const dashboardController = {
     try {
       const { agentId, section, startDate, endDate } = req.query;
 
-      if (!canAccessAdminLikeAnalytics(req.user?.role)) {
-        return res.status(403).json({ message: 'Admin or Manager access required' });
+      if (!canAccessAdminLikeAnalytics(req.user?.role) && !canAccessOwnAnalytics(req.user?.role)) {
+        return res.status(403).json({ message: 'Analytics access required' });
       }
 
-      if (!agentId || !section) {
+      const resolvedAgentId = req.user?.role === 'agent' ? req.user?.id : agentId ? String(agentId) : undefined;
+
+      if (!resolvedAgentId || !section) {
         return res.status(400).json({ message: 'agentId and section are required' });
       }
 
@@ -296,7 +302,7 @@ export const dashboardController = {
           AND ((l.created_at >= $2 AND l.created_at <= $3) OR (l.updated_at >= $2 AND l.updated_at <= $3))
         ORDER BY l.updated_at DESC
         LIMIT 200
-      `, [agentId, start.toISOString(), end.toISOString()]);
+      `, [resolvedAgentId, start.toISOString(), end.toISOString()]);
 
       res.json(result.rows);
     } catch (error) {

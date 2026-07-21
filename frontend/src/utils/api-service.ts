@@ -78,6 +78,9 @@ export const dashboardAPI = {
   getHealthScore: () => apiClient.get('/dashboard/health'),
   getAgentQuickSummary: (agentId: string, startDate?: string, endDate?: string) => apiClient.get('/dashboard/agent-quick-summary', {
     params: { agentId, startDate, endDate }
+  }),
+  getAgentSummaryDetails: (agentId: string, section: string, startDate?: string, endDate?: string) => apiClient.get('/dashboard/agent-summary-details', {
+    params: { agentId, section, startDate, endDate }
   })
 };
 

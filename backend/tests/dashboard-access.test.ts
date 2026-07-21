@@ -1,10 +1,11 @@
-import { canAccessAdminLikeAnalytics, getLeadScopeAgentId } from '../src/controllers/dashboard-controller';
+import { canAccessAdminLikeAnalytics, canAccessOwnAnalytics, getLeadScopeAgentId } from '../src/controllers/dashboard-controller';
 
 describe('dashboard access helpers', () => {
-  it('allows managers and admins to view admin-style analytics', () => {
+  it('allows admins and managers to view admin-style analytics, while agents stay self-scoped', () => {
     expect(canAccessAdminLikeAnalytics('admin')).toBe(true);
     expect(canAccessAdminLikeAnalytics('manager')).toBe(true);
     expect(canAccessAdminLikeAnalytics('agent')).toBe(false);
+    expect(canAccessOwnAnalytics('agent')).toBe(true);
   });
 
   it('scopes dashboard stats to the current agent for agent role only', () => {

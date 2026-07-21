@@ -5,6 +5,7 @@ import LeadTransferPanel from './LeadTransferPanel';
 import { dashboardAPI, adminAPI } from '../utils/api-service';
 import type { Lead } from '../types';
 import { formatCurrency, formatKarachiDateTime } from '../utils/helpers';
+import { useAuth } from '../context/AuthContext';
 
 interface AnalyticsDashboardProps {
   isAdmin: boolean;
@@ -124,6 +125,30 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
     error?: string;
     capturedAt?: string;
   } | null>(null);
+  const { user } = useAuth();
+  const [selfReportStartDate, setSelfReportStartDate] = useState('');
+  const [selfReportEndDate, setSelfReportEndDate] = useState('');
+  const [selfReportLoading, setSelfReportLoading] = useState(false);
+  const [selfReportError, setSelfReportError] = useState('');
+  const [selfReportData, setSelfReportData] = useState<{
+    confirmedLeads: number;
+    inProgressLeads: number;
+    potentialLeads: number;
+    newLeads: number;
+    deadLeads: number;
+    spamLeads: number;
+    canceledLeads: number;
+    panLeads: number;
+    totalLeads: number;
+    totalFollowups: number;
+    completedFollowups: number;
+    pastDueFollowups: number;
+    activeFollowups: number;
+  } | null>(null);
+  const [selfReportSection, setSelfReportSection] = useState<string | null>(null);
+  const [selfReportDetails, setSelfReportDetails] = useState<any[]>([]);
+  const [selfReportDetailsLoading, setSelfReportDetailsLoading] = useState(false);
+  const [selfReportDetailsError, setSelfReportDetailsError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,6 +174,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
 
     fetchData();
   }, [isAdmin]);
+
+  useEffect(() => {
+    const today = new Date();
+    const ninetyDaysAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+    setSelfReportEndDate(today.toISOString().split('T')[0]);
+    setSelfReportStartDate(ninetyDaysAgo.toISOString().split('T')[0]);
+  }, []);
 
   const totals = useMemo(() => {
     const statusTotals: Record<string, number> = {};
@@ -338,6 +370,45 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
     return map;
   }, [adminOverview]);
 
+  const handleSelfReport = async () => {
+    if (!user?.id || !selfReportStartDate || !selfReportEndDate) {
+      setSelfReportError('Please select a date range to view your report.');
+      return;
+    }
+
+    setSelfReportLoading(true);
+    setSelfReportError('');
+    setSelfReportSection(null);
+    setSelfReportDetails([]);
+
+    try {
+      const response = await dashboardAPI.getAgentQuickSummary(user.id, selfReportStartDate, selfReportEndDate);
+      setSelfReportData(response.data || null);
+    } catch (err: any) {
+      setSelfReportError(err?.response?.data?.message || 'Failed to load your analytics report.');
+      setSelfReportData(null);
+    } finally {
+      setSelfReportLoading(false);
+    }
+  };
+
+  const loadSelfReportDetails = async (section: string) => {
+    if (!user?.id || !selfReportStartDate || !selfReportEndDate) return;
+
+    setSelfReportDetailsLoading(true);
+    setSelfReportDetailsError('');
+    setSelfReportSection(section);
+    try {
+      const response = await dashboardAPI.getAgentSummaryDetails(user.id, section, selfReportStartDate, selfReportEndDate);
+      setSelfReportDetails(Array.isArray(response.data) ? response.data : []);
+    } catch (err: any) {
+      setSelfReportDetailsError(err?.response?.data?.message || 'Failed to load matched leads.');
+      setSelfReportDetails([]);
+    } finally {
+      setSelfReportDetailsLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -402,6 +473,129 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
 
       {isAdmin && agents.length > 0 && (
         <QuickSummary agents={agents} />
+      )}
+
+      {!isAdmin && (
+        <Card>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="text-xl font-bold">My Lead Report</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Choose a date range and inspect your confirmed, in-progress, potential, and new leads.</p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div>
+                <label className="block text-sm font-medium mb-1">Start date</label>
+                <input type="date" value={selfReportStartDate} onChange={(e) => setSelfReportStartDate(e.target.value)} className="input-field w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">End date</label>
+                <input type="date" value={selfReportEndDate} onChange={(e) => setSelfReportEndDate(e.target.value)} className="input-field w-full" />
+              </div>
+              <Button onClick={handleSelfReport} loading={selfReportLoading}>Generate Report</Button>
+            </div>
+          </div>
+
+          {selfReportError && (
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">
+              {selfReportError}
+            </div>
+          )}
+
+          {selfReportData && (
+            <div className="mt-6 space-y-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button type="button" onClick={() => loadSelfReportDetails('confirmedLeads')} className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-left dark:border-emerald-800 dark:bg-emerald-950/40">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Confirmed</p>
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{selfReportData.confirmedLeads}</p>
+                </button>
+                <button type="button" onClick={() => loadSelfReportDetails('inProgressLeads')} className="rounded-lg border border-sky-200 bg-sky-50 p-3 text-left dark:border-sky-800 dark:bg-sky-950/40">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">In Progress</p>
+                  <p className="text-2xl font-bold text-sky-600 dark:text-sky-300">{selfReportData.inProgressLeads}</p>
+                </button>
+                <button type="button" onClick={() => loadSelfReportDetails('potentialLeads')} className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-left dark:border-violet-800 dark:bg-violet-950/40">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Potential</p>
+                  <p className="text-2xl font-bold text-violet-600 dark:text-violet-300">{selfReportData.potentialLeads}</p>
+                </button>
+                <button type="button" onClick={() => loadSelfReportDetails('newLeads')} className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-left dark:border-blue-800 dark:bg-blue-950/40">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">New</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-300">{selfReportData.newLeads}</p>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button type="button" onClick={() => loadSelfReportDetails('canceledLeads')} className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-left dark:border-rose-800 dark:bg-rose-950/40">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Canceled</p>
+                  <p className="text-2xl font-bold text-rose-600 dark:text-rose-300">{selfReportData.canceledLeads}</p>
+                </button>
+                <button type="button" onClick={() => loadSelfReportDetails('deadLeads')} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-left dark:border-slate-800 dark:bg-slate-900/40">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Dead</p>
+                  <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">{selfReportData.deadLeads}</p>
+                </button>
+                <button type="button" onClick={() => loadSelfReportDetails('panLeads')} className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-left dark:border-amber-800 dark:bg-amber-950/40">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Pan</p>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">{selfReportData.panLeads}</p>
+                </button>
+                <button type="button" onClick={() => loadSelfReportDetails('totalLeads')} className="rounded-lg border border-slate-300 bg-white p-3 text-left dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Total Leads</p>
+                  <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{selfReportData.totalLeads}</p>
+                </button>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+                <div className="flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-400">
+                  <span>Follow-ups: {selfReportData.totalFollowups}</span>
+                  <span>Completed: {selfReportData.completedFollowups}</span>
+                  <span>Past due: {selfReportData.pastDueFollowups}</span>
+                  <span>Active: {selfReportData.activeFollowups}</span>
+                </div>
+              </div>
+
+              {selfReportSection && (
+                <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg font-semibold">{selfReportSection.replace(/([A-Z])/g, ' $1')}</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Leads matching the selected category in your chosen range.</p>
+                    </div>
+                    <button type="button" onClick={() => setSelfReportSection(null)} className="text-sm text-slate-600 dark:text-slate-300">Close</button>
+                  </div>
+
+                  {selfReportDetailsLoading ? (
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Loading leads...</p>
+                  ) : selfReportDetailsError ? (
+                    <p className="text-sm text-red-600 dark:text-red-300">{selfReportDetailsError}</p>
+                  ) : selfReportDetails.length === 0 ? (
+                    <p className="text-sm text-slate-600 dark:text-slate-400">No matching leads found.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {selfReportDetails.map((lead) => (
+                        <div key={lead.id} className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="font-semibold">{lead.client_name || 'Unnamed lead'}</p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400">{lead.phone || '—'} • {lead.destination || '—'}</p>
+                            </div>
+                            <div className="text-sm text-slate-500 dark:text-slate-400">
+                              <span className="mr-3 capitalize">{lead.status || 'unknown'}</span>
+                              <span className="capitalize">{lead.temperature || 'unknown'}</span>
+                            </div>
+                          </div>
+                          {(lead.canceled_reason || lead.agent_remarks || lead.remarks) && (
+                            <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                              {lead.canceled_reason && <p><span className="font-medium">Canceled:</span> {lead.canceled_reason}</p>}
+                              {lead.agent_remarks && <p><span className="font-medium">Agent remarks:</span> {lead.agent_remarks}</p>}
+                              {lead.remarks && <p><span className="font-medium">Remarks:</span> {lead.remarks}</p>}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </Card>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
