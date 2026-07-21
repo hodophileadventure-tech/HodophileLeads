@@ -249,6 +249,7 @@ export const leadsModel = {
       'address',
       'gender',
       'age',
+      'agent_id',
       'agent_remarks',
       'remarks',
       'potential',
