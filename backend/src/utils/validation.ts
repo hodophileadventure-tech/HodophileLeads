@@ -52,6 +52,7 @@ export const leadSchema = Joi.object({
   agentRemarks: Joi.string().allow('').optional(),
   remarks: Joi.string().allow('').optional(),
   potential: Joi.boolean().optional(),
+  isB2b: Joi.boolean().optional(),
   source: Joi.string().valid('facebook', 'instagram', 'whatsapp', 'direct').optional(),
   canceledReason: Joi.string().allow('').optional(),
   canceledBy: Joi.string().optional(),

@@ -41,6 +41,7 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [vehicle, setVehicle] = useState(lead.transportPreference || '');
+  const [isB2b, setIsB2b] = useState(false);
   const [total, setTotal] = useState(0);
   const [advance, setAdvance] = useState(0);
   const [method, setMethod] = useState('cash');
@@ -64,12 +65,56 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
           }]
     );
     setVehicle(lead.transportPreference || '');
+    setIsB2b(false);
     setValidationError(null);
   }, [lead]);
 
   const handleSave = async () => {
-    // Validate required fields for ALL leads - both new and existing confirmed
     setValidationError(null);
+
+    if (isB2b) {
+      if (!selectedFile) {
+        setValidationError('Please upload the customer invoice before confirming this B2B lead.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const form = new FormData();
+        form.append('file', selectedFile);
+        await (leadsAPI as any).uploadConfirmation(lead.id as string, form);
+
+        const updatePayload: Partial<Lead> = {
+          leadOutcome: 'confirmed',
+          status: 'booked',
+          pipelineStage: 'confirmed',
+          potential: false,
+          ...(isB2b ? ({ isB2b: true } as any) : {})
+        };
+
+        const bookedResponse = await leadsAPI.update(lead.id as string, updatePayload);
+        const finalLead = bookedResponse.data as Lead;
+
+        let refreshedLead = finalLead;
+        try {
+          const refreshed = await leadsAPI.getById(lead.id as string);
+          refreshedLead = refreshed.data as Lead;
+        } catch {
+          // ignore refresh errors
+        }
+
+        onSaved?.(refreshedLead);
+        window.dispatchEvent(new Event('dashboard-refresh'));
+        onClose();
+      } catch (err: any) {
+        console.error(err);
+        const message = err?.response?.data?.message || err?.message || 'Failed to confirm B2B lead.';
+        setValidationError(message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     // Check if at least one hotel option has required fields (hotelName, roomType, checkIn, checkOut)
     // Note: roomPrice is NOT mandatory
@@ -79,7 +124,6 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
 
     if (!hasValidHotel) {
       setValidationError('Lead is not confirmed. Please fill the hotel fields (name, room type, check-in, and check-out dates are required)');
-      // If lead was already confirmed, unconfirm it
       if (lead.leadOutcome === 'confirmed' || lead.status === 'booked' || lead.pipelineStage === 'confirmed') {
         try {
           await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted' } as any);
@@ -90,10 +134,8 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       return;
     }
 
-    // Check if transport/vehicle is filled
     if (!vehicle || vehicle.trim() === '') {
       setValidationError('Lead is not confirmed. Please fill the transport field');
-      // If lead was already confirmed, unconfirm it
       if (lead.leadOutcome === 'confirmed' || lead.status === 'booked' || lead.pipelineStage === 'confirmed') {
         try {
           await leadsAPI.update(lead.id as string, { leadOutcome: null, status: 'contacted' } as any);
@@ -136,23 +178,14 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
         potential: false
       };
 
-      // Update lead fields and confirm in one request
       const bookedResponse = await leadsAPI.update(lead.id as string, updatePayload);
       const finalLead = bookedResponse.data as Lead;
 
-      // If a file was selected, upload it as multipart to keep files off the JSON payload
       if (selectedFile) {
         try {
           const form = new FormData();
           form.append('file', selectedFile);
           await (leadsAPI as any).uploadConfirmation(lead.id as string, form);
-          // refresh lead from API to get attachments/metadata
-          try {
-            const refreshed = await leadsAPI.getById(lead.id as string);
-            onSaved?.(refreshed.data as Lead);
-          } catch {
-            // ignore refresh errors
-          }
         } catch (e) {
           console.error('File upload failed', e);
         }
@@ -161,16 +194,6 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
       if (total > 0 && advance > 0) {
         const dueDate = hotelOptions[0]?.checkIn || new Date().toISOString();
         await paymentsAPI.create({ leadId: lead.id, amount: advance, method, status: 'pending', dueDate, notes: 'Advance on confirmation' } as any);
-      }
-
-      if (selectedFile) {
-        try {
-          const form = new FormData();
-          form.append('file', selectedFile);
-          await (leadsAPI as any).uploadConfirmation(lead.id as string, form);
-        } catch (e) {
-          console.error('File upload failed', e);
-        }
       }
 
       let refreshedLead = finalLead;
@@ -211,7 +234,24 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
         </div>
       )}
       <div className="space-y-3">
-        {hotelOptions.map((option, index) => (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/60">
+          <label className="flex items-start gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            <input
+              type="checkbox"
+              checked={isB2b}
+              onChange={(e) => setIsB2b(e.target.checked)}
+              className="mt-1 h-4 w-4"
+            />
+            <span>
+              B2B confirmation
+              <span className="mt-1 block text-xs font-normal text-slate-500 dark:text-slate-400">
+                Leave this unchecked to require hotel and transport details. Tick it only to confirm with a customer invoice upload.
+              </span>
+            </span>
+          </label>
+        </div>
+
+        {!isB2b && hotelOptions.map((option, index) => (
           <div key={index} className="p-3 border rounded-lg">
             <div className="flex items-center justify-between gap-3 mb-3">
               <p className="font-medium">Hotel Option {index + 1}</p>
@@ -272,16 +312,18 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
             </div>
           </div>
         ))}
-        <button
-          type="button"
-          className="text-sm text-slate-700 hover:text-slate-900"
-          onClick={() => setHotelOptions((prev) => [...prev, { hotelName: '', roomType: '', roomPrice: 0, checkIn: '', checkOut: '' }])}
-        >
-          + Add another hotel option
-        </button>
+        {!isB2b && (
+          <button
+            type="button"
+            className="text-sm text-slate-700 hover:text-slate-900"
+            onClick={() => setHotelOptions((prev) => [...prev, { hotelName: '', roomType: '', roomPrice: 0, checkIn: '', checkOut: '' }])}
+          >
+            + Add another hotel option
+          </button>
+        )}
 
         <div>
-          <label className="block text-sm font-medium mb-1">Hotel Confirmation (optional)</label>
+          <label className="block text-sm font-medium mb-1">{isB2b ? 'Customer Invoice' : 'Hotel Confirmation (optional)'}</label>
           <input
             type="file"
             accept="image/jpeg,image/png,application/pdf"
@@ -306,29 +348,33 @@ export const ConfirmedLeadForm: React.FC<Props> = ({ lead, isOpen, onClose, onSa
           {fileError && <div className="text-sm text-red-500 mt-1">{fileError}</div>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Vehicle</label>
-          <input className="input-field" value={vehicle} onChange={(e) => setVehicle(e.target.value)} />
-        </div>
+        {!isB2b && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Vehicle</label>
+            <input className="input-field" value={vehicle} onChange={(e) => setVehicle(e.target.value)} />
+          </div>
+        )}
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Total</label>
-            <input type="number" className="input-field" value={total} onChange={(e) => setTotal(parseFloat(e.target.value || '0'))} />
+        {!isB2b && (
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Total</label>
+              <input type="number" className="input-field" value={total} onChange={(e) => setTotal(parseFloat(e.target.value || '0'))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Advance</label>
+              <input type="number" className="input-field" value={advance} onChange={(e) => setAdvance(parseFloat(e.target.value || '0'))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Method</label>
+              <select className="input-field" value={method} onChange={(e) => setMethod(e.target.value)}>
+                <option value="cash">Cash</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="card">Card</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Advance</label>
-            <input type="number" className="input-field" value={advance} onChange={(e) => setAdvance(parseFloat(e.target.value || '0'))} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Method</label>
-            <select className="input-field" value={method} onChange={(e) => setMethod(e.target.value)}>
-              <option value="cash">Cash</option>
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="card">Card</option>
-            </select>
-          </div>
-        </div>
+        )}
       </div>
     </Modal>
   );

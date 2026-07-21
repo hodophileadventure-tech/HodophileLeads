@@ -145,11 +145,15 @@ const normalizeConfirmationData = (lead: any, payload: any) => {
     ...lead,
     ...(payload.hotelInfo !== undefined ? { hotelInfo: payload.hotelInfo } : {}),
     ...(payload.hotelOptions !== undefined ? { hotelOptions: payload.hotelOptions } : {}),
-    ...(payload.transportPreference !== undefined ? { transportPreference: payload.transportPreference } : {})
+    ...(payload.transportPreference !== undefined ? { transportPreference: payload.transportPreference } : {}),
+    ...(payload.isB2b !== undefined ? { isB2b: payload.isB2b } : {})
   };
 };
 
 const isLeadReadyForConfirmation = (lead: any) => {
+  if (lead?.isB2b === true) {
+    return true;
+  }
   const hotelInfo = lead.hotelInfo || lead.hotel_info || null;
   const hotelOptions = lead.hotelOptions || lead.hotel_options;
   const transportPreference = lead.transportPreference || lead.transport_preference;
