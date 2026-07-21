@@ -151,7 +151,7 @@ const normalizeConfirmationData = (lead: any, payload: any) => {
 };
 
 const isLeadReadyForConfirmation = (lead: any) => {
-  if (lead?.isB2b === true) {
+  if (lead?.isB2b === true || lead?.is_b2b === true) {
     return true;
   }
   const hotelInfo = lead.hotelInfo || lead.hotel_info || null;
