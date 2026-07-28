@@ -20,7 +20,7 @@ export interface LeadQueryFilterResult {
   params: any[];
 }
 
-const allowedStatuses = new Set(['new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam']);
+const allowedStatuses = new Set(['new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam', 'potential', 'in_progress']);
 
 export const buildLeadQueryFilters = (options: LeadQueryFilterOptions, startIndex = 1): LeadQueryFilterResult => {
   const clauses: string[] = [];
@@ -71,8 +71,14 @@ export const buildLeadExportFilters = (options: LeadExportFilterOptions): LeadEx
   const params: any[] = [];
 
   if (statusFilter) {
-    clauses.push('l.status = $1');
-    params.push(statusFilter);
+    if (statusFilter === 'potential') {
+      clauses.push("l.potential = true AND l.status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted')");
+    } else if (statusFilter === 'in_progress') {
+      clauses.push("l.status IN ('negotiation', 'interested', 'contacted')");
+    } else {
+      clauses.push('l.status = $1');
+      params.push(statusFilter);
+    }
   }
 
   if (startDate) {

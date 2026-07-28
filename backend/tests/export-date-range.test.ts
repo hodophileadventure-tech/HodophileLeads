@@ -35,4 +35,18 @@ describe('buildLeadExportFilters', () => {
     expect(result.whereClause).toBe('WHERE l.status = $1');
     expect(result.params).toEqual(['contacted']);
   });
+
+  test('builds a potential-lead filter for export', () => {
+    const result = buildLeadExportFilters({ status: 'potential' });
+
+    expect(result.whereClause).toBe("WHERE l.potential = true AND l.status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted')");
+    expect(result.params).toEqual([]);
+  });
+
+  test('builds an in-progress lead filter for export', () => {
+    const result = buildLeadExportFilters({ status: 'in_progress' });
+
+    expect(result.whereClause).toBe("WHERE l.status IN ('negotiation', 'interested', 'contacted')");
+    expect(result.params).toEqual([]);
+  });
 });
