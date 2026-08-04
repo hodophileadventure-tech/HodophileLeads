@@ -27,6 +27,10 @@
           "description": "Environment type",
           "default": "production"
         },
+        "NPM_CONFIG_PRODUCTION": {
+          "description": "Install dev dependencies during build so TypeScript can compile",
+          "default": "false"
+        },
         "DATABASE_URL": {
           "description": "PostgreSQL connection string from database service"
         },
@@ -62,6 +66,10 @@
       "envVariables": {
         "VITE_API_BASE_URL": {
           "description": "Backend API base URL (use /api for same-domain, or full URL for cross-domain)"
+        },
+        "NPM_CONFIG_PRODUCTION": {
+          "description": "Install dev dependencies during build so Vite can compile",
+          "default": "false"
         }
       }
     }

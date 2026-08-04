@@ -177,12 +177,21 @@ app.use(errorHandler);
 
 // Start server after DB init and worker start
 const start = async () => {
-  await initDatabase();
-  // start background workers
-  startFollowUpWorker();
-  startReportWorker();
-  startOutboxWorker();
-  startScreenCaptureCleanup();
+  try {
+    await initDatabase();
+  } catch (err) {
+    console.error('Database initialization failed during startup:', err);
+  }
+
+  try {
+    // start background workers
+    startFollowUpWorker();
+    startReportWorker();
+    startOutboxWorker();
+    startScreenCaptureCleanup();
+  } catch (err) {
+    console.error('Failed to start background workers:', err);
+  }
 
   const server = createServer(app);
   // init websocket server
