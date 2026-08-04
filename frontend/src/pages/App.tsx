@@ -1264,27 +1264,29 @@ export const App: React.FC = () => {
                       </aside>
 
                       {/* Middle: Quotation Form */}
-                      <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0 overflow-hidden flex flex-col" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
-                        <QuoteInvoicePage
-                          key={selectedQuoteRequest.id}
-                          leadId={selectedQuoteRequest.leadId}
-                          embedded={true}
-                          leadData={memoizedManagerQuotationLeadData}
-                          requestId={selectedQuoteRequest.id}
-                          requestType={selectedQuoteRequest.requestType}
-                          requestStatus={selectedQuoteRequest.status as any}
-                          initialDocumentData={selectedQuoteRequest.documentData}
-                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                          onSaved={() => {
-                            setSelectedQuoteRequest(null);
-                            setCurrentPage('manager-quotations');
-                          }}
-                          onClose={() => setSelectedQuoteRequest(null)}
-                          viewOnly={false}
-                          generatePreviewOnMount
-                          onPreviewGenerated={handlePreviewGenerated}
-                          hidePreview={true}
-                        />
+                      <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0 overflow-hidden flex flex-col" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%', maxHeight: 'calc(100vh - 8rem)' }}>
+                        <div className="flex-1 overflow-y-auto pr-2">
+                          <QuoteInvoicePage
+                            key={selectedQuoteRequest.id}
+                            leadId={selectedQuoteRequest.leadId}
+                            embedded={true}
+                            leadData={memoizedManagerQuotationLeadData}
+                            requestId={selectedQuoteRequest.id}
+                            requestType={selectedQuoteRequest.requestType}
+                            requestStatus={selectedQuoteRequest.status as any}
+                            initialDocumentData={selectedQuoteRequest.documentData}
+                            initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                            onSaved={() => {
+                              setSelectedQuoteRequest(null);
+                              setCurrentPage('manager-quotations');
+                            }}
+                            onClose={() => setSelectedQuoteRequest(null)}
+                            viewOnly={false}
+                            generatePreviewOnMount
+                            onPreviewGenerated={handlePreviewGenerated}
+                            hidePreview={true}
+                          />
+                        </div>
                       </main>
 
                       {/* Right: Preview */}
