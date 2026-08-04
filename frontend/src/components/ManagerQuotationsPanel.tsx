@@ -116,6 +116,19 @@ export const ManagerQuotationsPanel: React.FC<ManagerQuotationsPanelProps> = ({ 
           <span className="text-gray-600">Type:</span>
           <p className="font-medium capitalize">{request.requestType}</p>
         </div>
+        <div className="col-span-2">
+          <span className="text-gray-600">Requested:</span>
+          <p className="font-medium">
+            {request.createdAt ? new Date(request.createdAt).toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            }) : 'N/A'}
+          </p>
+        </div>
       </div>
 
       {request.leadRemarks && (
