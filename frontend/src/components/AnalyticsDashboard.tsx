@@ -422,48 +422,46 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Analytics</h1>
-          {isAdmin && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <label className="text-sm text-slate-600 dark:text-slate-400">Export leads:</label>
-              <input
-                type="date"
-                className="input-field w-auto"
-                value={exportStartDate}
-                onChange={(e) => setExportStartDate(e.target.value)}
-                placeholder="Start date"
-              />
-              <input
-                type="date"
-                className="input-field w-auto"
-                value={exportEndDate}
-                onChange={(e) => setExportEndDate(e.target.value)}
-                placeholder="End date"
-              />
-              <select
-                className="input-field w-auto"
-                value={exportStatus}
-                onChange={(e) => setExportStatus(e.target.value)}
-              >
-                <option value="all">All</option>
-                <option value="new">New</option>
-                <option value="contacted">Contacted</option>
-                <option value="interested">Interested</option>
-                <option value="negotiation">Negotiation</option>
-                <option value="in_progress">In Progress</option>
-                <option value="potential">Potential</option>
-                <option value="booked">Booked</option>
-                <option value="completed">Completed</option>
-                <option value="canceled">Canceled</option>
-                <option value="spam">Spam</option>
-              </select>
-              <Button size="sm" variant="secondary" onClick={() => handleExportLeads('xlsx')} loading={exportLoading}>
-                Excel
-              </Button>
-              <Button size="sm" onClick={() => handleExportLeads('txt')} loading={exportLoading}>
-                TXT
-              </Button>
-            </div>
-          )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <label className="text-sm text-slate-600 dark:text-slate-400">Export leads:</label>
+            <input
+              type="date"
+              className="input-field w-auto"
+              value={exportStartDate}
+              onChange={(e) => setExportStartDate(e.target.value)}
+              placeholder="Start date"
+            />
+            <input
+              type="date"
+              className="input-field w-auto"
+              value={exportEndDate}
+              onChange={(e) => setExportEndDate(e.target.value)}
+              placeholder="End date"
+            />
+            <select
+              className="input-field w-auto"
+              value={exportStatus}
+              onChange={(e) => setExportStatus(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="interested">Interested</option>
+              <option value="negotiation">Negotiation</option>
+              <option value="in_progress">In Progress</option>
+              <option value="potential">Potential</option>
+              <option value="booked">Booked</option>
+              <option value="completed">Completed</option>
+              <option value="canceled">Canceled</option>
+              <option value="spam">Spam</option>
+            </select>
+            <Button size="sm" variant="secondary" onClick={() => handleExportLeads('xlsx')} loading={exportLoading}>
+              Excel
+            </Button>
+            <Button size="sm" onClick={() => handleExportLeads('txt')} loading={exportLoading}>
+              TXT
+            </Button>
+          </div>
         </div>
       </div>
 

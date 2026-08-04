@@ -36,16 +36,16 @@ adminRouter.get('/leads/export', roleMiddleware(['admin']), adminController.expo
 adminRouter.post('/leads/:id/transfer', roleMiddleware(['admin']), adminController.transferLead);
  
 // Agents management
-adminRouter.get('/agents', roleMiddleware(['admin']), adminController.listAgents);
-adminRouter.get('/agents/:id/leads', roleMiddleware(['admin']), adminController.getAgentLeads);
+adminRouter.get('/agents', roleMiddleware(['admin', 'manager']), adminController.listAgents);
+adminRouter.get('/agents/:id/leads', roleMiddleware(['admin', 'manager']), adminController.getAgentLeads);
 adminRouter.put('/agents/:id', roleMiddleware(['admin']), adminController.updateAgent);
 adminRouter.delete('/agents/:id', roleMiddleware(['admin']), adminController.deleteAgent);
 adminRouter.post('/agents/:id/reset-password', roleMiddleware(['admin']), adminController.resetAgentPassword);
 adminRouter.post('/agents/:id/screenshot-request', roleMiddleware(['admin']), adminController.requestAgentScreenshot);
 // follow-up stats per agent
-adminRouter.get('/agents/follow-up-stats', roleMiddleware(['admin']), adminController.followUpStats);
+adminRouter.get('/agents/follow-up-stats', roleMiddleware(['admin', 'manager']), adminController.followUpStats);
 // revenue stats per agent
-adminRouter.get('/agents/revenue-stats', roleMiddleware(['admin','manager']), adminController.revenueStats);
+adminRouter.get('/agents/revenue-stats', roleMiddleware(['admin', 'manager']), adminController.revenueStats);
 adminRouter.get('/quote-requests', roleMiddleware(['admin']), quoteRequestsController.listPending);
 adminRouter.post('/screen-captures/:requestId', roleMiddleware(['agent']), adminController.submitScreenCapture);
 // Issue reporting
