@@ -36,6 +36,13 @@ describe('buildLeadExportFilters', () => {
     expect(result.params).toEqual(['contacted']);
   });
 
+  test('builds a status filter with a start index offset', () => {
+    const result = buildLeadExportFilters({ status: 'contacted', startDate: '2026-06-24' }, 2);
+
+    expect(result.whereClause).toBe('WHERE l.status = $2 AND l.created_at::date >= $3::date');
+    expect(result.params).toEqual(['contacted', '2026-06-24']);
+  });
+
   test('builds a potential-lead filter for export', () => {
     const result = buildLeadExportFilters({ status: 'potential' });
 

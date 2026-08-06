@@ -54,7 +54,7 @@ export const buildLeadQueryFilters = (options: LeadQueryFilterOptions, startInde
   };
 };
 
-export const buildLeadExportFilters = (options: LeadExportFilterOptions): LeadExportFilterResult => {
+export const buildLeadExportFilters = (options: LeadExportFilterOptions, startIndex = 1): LeadExportFilterResult => {
   const statusParam = String(options.status || '').trim().toLowerCase();
   const startDate = String(options.startDate || '').trim();
   const endDate = String(options.endDate || '').trim();
@@ -69,6 +69,7 @@ export const buildLeadExportFilters = (options: LeadExportFilterOptions): LeadEx
 
   const clauses: string[] = [];
   const params: any[] = [];
+  let index = startIndex;
 
   if (statusFilter) {
     if (statusFilter === 'potential') {
@@ -76,18 +77,20 @@ export const buildLeadExportFilters = (options: LeadExportFilterOptions): LeadEx
     } else if (statusFilter === 'in_progress') {
       clauses.push("l.status IN ('negotiation', 'interested', 'contacted')");
     } else {
-      clauses.push('l.status = $1');
+      clauses.push(`l.status = $${index}`);
       params.push(statusFilter);
+      index += 1;
     }
   }
 
   if (startDate) {
-    clauses.push(`l.created_at::date >= $${params.length + 1}::date`);
+    clauses.push(`l.created_at::date >= $${index}::date`);
     params.push(startDate);
+    index += 1;
   }
 
   if (endDate) {
-    clauses.push(`l.created_at::date <= $${params.length + 1}::date`);
+    clauses.push(`l.created_at::date <= $${index}::date`);
     params.push(endDate);
   }
 

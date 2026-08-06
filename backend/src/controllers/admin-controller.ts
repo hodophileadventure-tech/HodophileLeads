@@ -51,15 +51,22 @@ export const adminController = {
       const endDate = String(req.query.endDate || '').trim();
       const exportType = String(req.query.type || 'xlsx').trim().toLowerCase();
 
-      let filterResult;
-      try {
-        filterResult = buildLeadExportFilters({ status: statusParam, startDate, endDate });
-      } catch (error) {
-        return res.status(400).json({ message: error instanceof Error ? error.message : 'Invalid export filter' });
+      const statusFilter = statusParam && statusParam !== 'all' ? statusParam : undefined;
+      const isAgent = req.user?.role === 'agent';
+      const agentParams: any[] = [];
+      let agentClause = '';
+
+      if (isAgent) {
+        agentClause = `l.agent_id = $1`;
+        agentParams.push(req.user.id);
       }
 
-      const { whereClause, params } = filterResult;
-      const statusFilter = statusParam && statusParam !== 'all' ? statusParam : undefined;
+      const filterResult = buildLeadExportFilters({ status: statusFilter, startDate, endDate }, agentParams.length + 1);
+      const whereClause = agentClause
+        ? filterResult.whereClause
+          ? `WHERE ${agentClause} AND ${filterResult.whereClause.replace(/^WHERE\s*/i, '')}`
+          : `WHERE ${agentClause}`
+        : filterResult.whereClause;
 
       const result = await query(`
         SELECT
@@ -93,7 +100,7 @@ export const adminController = {
         ) f ON f.lead_id = l.id
         ${whereClause}
         ORDER BY u.name ASC, l.status ASC, l.temperature ASC, l.created_at DESC
-      `, params);
+      `, [...agentParams, ...filterResult.params]);
 
       const rows = Array.isArray(result.rows) ? result.rows : [];
       const headers = [
