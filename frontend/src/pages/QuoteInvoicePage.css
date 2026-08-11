@@ -454,13 +454,13 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 18%;
-  min-width: 18%;
+  width: 16%;
+  min-width: 16%;
 }
 
 .pdf-main-table col.col-summary {
-  width: 22%;
-  min-width: 22%;
+  width: 14%;
+  min-width: 14%;
 }
 
 .pdf-main-table thead th {
@@ -498,6 +498,13 @@ html, body {
   padding: 0;
   border-top: 2px solid #111827;
   border-left: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.pdf-main-table td.pdf-price-cell,
+.pdf-main-table td.pdf-person-cell,
+.pdf-main-table td.pdf-amount-cell {
+  text-align: right;
+  vertical-align: top;
 }
 
 /* Make numeric cell values right-aligned and block-level for consistent spacing */
