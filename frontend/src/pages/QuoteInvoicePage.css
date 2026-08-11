@@ -448,28 +448,28 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 34%;
-  min-width: 34%;
+  width: 30%;
+  min-width: 30%;
 }
 
 .pdf-main-table col.col-price {
-  width: 20%;
-  min-width: 20%;
+  width: 18%;
+  min-width: 18%;
 }
 
 .pdf-main-table col.col-person {
-  width: 20%;
-  min-width: 20%;
+  width: 18%;
+  min-width: 18%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 20%;
-  min-width: 20%;
+  width: 22%;
+  min-width: 22%;
 }
 
 .pdf-main-table col.col-summary {
-  width: 6%;
-  min-width: 6%;
+  width: 12%;
+  min-width: 12%;
 }
 
 .pdf-main-table thead th {
@@ -495,25 +495,25 @@ html, body {
 
 /* Ensure numeric columns' headers align with their values */
 .pdf-main-table thead th:nth-child(2),
-.pdf-main-table thead th:nth-child(3),
 .pdf-main-table thead th:nth-child(4) {
+  text-align: right;
+}
+
+.pdf-main-table thead th:nth-child(3) {
   text-align: center;
 }
 
 .pdf-main-table td.pdf-price-cell,
 .pdf-main-table td.pdf-amount-cell {
-  text-align: center;
+  white-space: nowrap;
+  text-align: right;
 }
 
-/* Make numeric cell values center-aligned and block-level for consistent alignment */
+/* Make numeric cell values right-aligned and block-level for consistent spacing */
 .pdf-price-cell strong,
 .pdf-amount-cell strong {
   display: block;
-  text-align: center;
-  line-height: 1;
-}
-
-.pdf-main-table tbody tr.pdf-empty-row td {
+  text-align: right;
   min-height: 80px;
   border-top: none;
 }
