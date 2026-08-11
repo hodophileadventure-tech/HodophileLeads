@@ -506,16 +506,15 @@ html, body {
 }
 
 .pdf-main-table td.pdf-price-cell,
-.pdf-main-table td.pdf-amount-cell {
+.pdf-main-table td.pdf-amount-cell,
+.pdf-main-table td.pdf-summary-placeholder {
   text-align: right;
 }
 
 .pdf-main-table td.pdf-summary-placeholder {
-  width: 0;
   padding: 0;
   border-top: 2px solid #111827;
   border-left: 1px solid rgba(17, 24, 39, 0.08);
-  overflow: hidden;
 }
 
 /* Make numeric cell values right-aligned and block-level for consistent spacing */
@@ -525,7 +524,7 @@ html, body {
   text-align: right;
   width: 100%;
   line-height: 1.1;
-
+}
 .pdf-main-table tbody tr td:first-child {
   border-left: none;
 }
@@ -550,7 +549,6 @@ html, body {
   min-width: 0;
   max-width: 0;
   overflow: hidden;
-}
 }
 
 .pdf-main-table th.text-center,
