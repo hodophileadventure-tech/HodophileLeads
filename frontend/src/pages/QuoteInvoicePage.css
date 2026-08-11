@@ -469,20 +469,23 @@ html, body {
 .pdf-main-table col.col-desc {
   /* Allow description column to expand when package description is longer */
   width: auto;
-  min-width: 50%;
+  min-width: 52%;
 }
 
 .pdf-main-table col.col-price {
-  /* Reduce price column width so description can remain distinct */
-  width: 16%;
+  width: 18%;
 }
 
 .pdf-main-table col.col-person {
-  width: 18%;
+  width: 16%;
 }
 
 .pdf-main-table col.col-amount {
   width: 14%;
+}
+
+.pdf-main-table col.col-summary {
+  width: 10%;
 }
 
 .pdf-main-table thead th {
@@ -508,9 +511,14 @@ html, body {
   text-align: center;
 }
 
-/* Ensure numeric columns' headers align with their values */
 .pdf-main-table thead th:nth-child(4) {
+  padding-right: 24px;
   text-align: right;
+}
+
+.pdf-main-table thead th:nth-child(5) {
+  text-align: right;
+  padding-left: 12px;
 }
 
 .pdf-main-table td.pdf-price-cell,
@@ -828,32 +836,43 @@ html, body {
 .pdf-summary-section {
   width: 100%;
   max-width: 460px;
-  padding: 24px;
-  border-left: 2px solid transparent;
-  background: transparent;
+  padding: 18px 22px;
+  border-left: 1px solid #d1d5db;
+  background: #f9fafb;
   display: block;
   box-shadow: none;
 }
 
 .pdf-summary-section table.pdf-summary {
   width: 100%;
+  border-collapse: collapse;
   border: none;
   margin: 0;
 }
 
-.pdf-summary-section .pdf-summary-row {
-  padding: 14px 0;
+.pdf-summary-section tr {
+  border-bottom: 1px solid #d1d5db;
+}
+
+.pdf-summary-section tr:last-child {
+  border-bottom: none;
+}
+
+.pdf-summary-section td {
+  padding: 10px 0;
 }
 
 .pdf-summary-section .label {
   font-size: 28px;
   color: #111827;
   width: auto;
+  font-weight: 700;
 }
 
 .pdf-summary-section .value {
   text-align: right;
   font-size: 32px;
+  font-weight: 800;
 }
 
 .pdf-summary-row {
