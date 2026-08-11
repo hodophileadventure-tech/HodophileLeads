@@ -760,6 +760,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                       <col className="col-price" />
                       <col className="col-person" />
                       <col className="col-amount" />
+                      <col className="col-summary" />
                     </colgroup>
                     <thead>
                       <tr>
@@ -767,6 +768,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         <th>Package Price</th>
                         <th className="text-center">No. of Person(s)</th>
                         <th>Amount</th>
+                        <th className="text-right"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -796,6 +798,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         <td className="pdf-amount-cell text-right">
                           <strong>{formatAmount(parseNumber(data.price) * parseNumber(data.persons))}</strong>
                         </td>
+                        <td className="pdf-summary-placeholder"></td>
                       </tr>
                       <tr className="pdf-footer-row">
                         <td colSpan={4}>
@@ -808,27 +811,29 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                             </div>
                           </div>
                         </td>
+                        <td>
+                          <div className="pdf-summary-section">
+                            <table className="pdf-summary">
+                              <tbody>
+                                <tr>
+                                  <td className="label">Subtotal</td>
+                                  <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
+                                </tr>
+                                <tr>
+                                  <td className="label">Total Amount Paid</td>
+                                  <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
+                                </tr>
+                                <tr>
+                                  <td className="label">{summaryBalanceLabel}</td>
+                                  <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
-                  <div className="pdf-summary-section">
-                    <table className="pdf-summary">
-                      <tbody>
-                        <tr>
-                          <td className="label">Subtotal</td>
-                          <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
-                        </tr>
-                        <tr>
-                          <td className="label">Total Amount Paid</td>
-                          <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
-                        </tr>
-                        <tr>
-                          <td className="label">{summaryBalanceLabel}</td>
-                          <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
                 </div>
                 <div className="pdf-logos-section">
                   <div className="pdf-logos-container">

@@ -455,10 +455,7 @@ html, body {
   max-width: 2190px;
   margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
   z-index: 3;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 460px;
-  gap: 24px;
-  justify-content: center;
+  display: block;
 }
 
 .pdf-main-table {
@@ -832,9 +829,31 @@ html, body {
   width: 100%;
   max-width: 460px;
   padding: 24px;
-  border: 1px solid #111827;
-  background: rgba(255, 255, 255, 0.95);
-  align-self: start;
+  border-left: 2px solid transparent;
+  background: transparent;
+  display: block;
+  box-shadow: none;
+}
+
+.pdf-summary-section table.pdf-summary {
+  width: 100%;
+  border: none;
+  margin: 0;
+}
+
+.pdf-summary-section .pdf-summary-row {
+  padding: 14px 0;
+}
+
+.pdf-summary-section .label {
+  font-size: 28px;
+  color: #111827;
+  width: auto;
+}
+
+.pdf-summary-section .value {
+  text-align: right;
+  font-size: 32px;
 }
 
 .pdf-summary-row {
