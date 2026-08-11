@@ -214,14 +214,16 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-300">{data.inProgressLeads}</p>
             </button>
             <button type="button" onClick={() => {
-                  const next = expandedSection === 'completedLeads' ? null : 'completedLeads';
-                  setExpandedSection(next);
-                  if (next) loadDetailRows(next);
-                }} className="text-left bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg">
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Completed</p>
-                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{data.completedLeads}</p>
-                </button>
-                <button type="button" onClick={() => {
+              const next = expandedSection === 'completedLeads' ? null : 'completedLeads';
+              setExpandedSection(next);
+              if (next) loadDetailRows(next);
+            }} className="text-left bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg">
+              <p className="text-xs text-slate-600 dark:text-slate-400">Completed</p>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{data.completedLeads}</p>
+            </button>
+            <button type="button" onClick={() => {
+              const next = expandedSection === 'spamLeads' ? null : 'spamLeads';
+              setExpandedSection(next);
               if (next) loadDetailRows(next);
             }} className="text-left bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Spam</p>
