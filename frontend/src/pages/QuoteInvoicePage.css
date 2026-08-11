@@ -442,24 +442,24 @@ html, body {
 .pdf-main-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: auto;
+  table-layout: fixed;
   border: 2px solid #111827;
   margin: 0 auto 16px;
 }
 
 .pdf-main-table col.col-desc {
-  width: 42%;
-  min-width: 42%;
+  width: 44%;
+  min-width: 44%;
 }
 
 .pdf-main-table col.col-price {
-  width: 17%;
-  min-width: 17%;
+  width: 18%;
+  min-width: 18%;
 }
 
 .pdf-main-table col.col-person {
-  width: 17%;
-  min-width: 17%;
+  width: 16%;
+  min-width: 16%;
 }
 
 .pdf-main-table col.col-amount {
@@ -468,8 +468,8 @@ html, body {
 }
 
 .pdf-main-table col.col-summary {
-  width: 9%;
-  min-width: 9%;
+  width: 7%;
+  min-width: 7%;
 }
 
 .pdf-main-table thead th {
