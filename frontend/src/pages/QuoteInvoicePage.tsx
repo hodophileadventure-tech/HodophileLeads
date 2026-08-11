@@ -768,7 +768,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         <th>Package Price</th>
                         <th className="text-center">No. of Person(s)</th>
                         <th>Amount</th>
-                        <th></th>
+                        <th className="text-right"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -811,25 +811,23 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                             </div>
                           </div>
                         </td>
-                        <td className="pdf-summary-cell">
-                          <div className="pdf-summary-section">
-                            <table className="pdf-summary">
-                              <tbody>
-                                <tr>
-                                  <td className="label">Subtotal</td>
-                                  <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
-                                </tr>
-                                <tr>
-                                  <td className="label">Total Amount Paid</td>
-                                  <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
-                                </tr>
-                                <tr>
-                                  <td className="label">{summaryBalanceLabel}</td>
-                                  <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
+                        <td>
+                          <table className="pdf-summary">
+                            <tbody>
+                              <tr>
+                                <td className="label">Subtotal</td>
+                                <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
+                              </tr>
+                              <tr>
+                                <td className="label">Total Amount Paid</td>
+                                <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
+                              </tr>
+                              <tr>
+                                <td className="label">{summaryBalanceLabel}</td>
+                                <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </td>
                       </tr>
                     </tbody>

@@ -173,29 +173,26 @@ html, body {
 }
 
 .quote-invoice-preview {
-  width: min(100%, 794px);
-  max-width: 100%;
-  margin: 0 auto;
+  width: 2550px;
+  min-height: 3300px;
   position: relative;
-  overflow: visible;
+  overflow: auto;
 }
 
 .pdf-page {
-  width: 100%;
-  max-width: 794px;
-  aspect-ratio: 1 / 1.4142;
-  min-height: 1123px;
+  width: 2550px;
+  min-height: 3300px;
   background: #f2f2f2;
   border: 1px solid #d1d5db;
   box-shadow: 0 24px 64px rgba(15, 23, 36, 0.16);
-  display: block;
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .pdf-canvas {
-  width: 100%;
-  height: 100%;
+  width: 2550px;
+  min-height: 3300px;
   background: #ffffff;
   position: relative;
   overflow: hidden;
@@ -204,19 +201,21 @@ html, body {
 
 .pdf-background {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 2550px;
+  min-height: 3300px;
   overflow: hidden;
-  padding: 18px 26px 78px;
+  padding-top: 620px;
 }
 
 .pdf-header-image {
   position: absolute;
-  top: 16px;
-  left: 26px;
-  right: 26px;
-  width: auto;
-  height: 118px;
+  top: 140px;
+  left: 0;
+  right: 0;
+  width: 92%;
+  max-width: 2200px;
+  height: 270px;
+  margin: 0 auto;
   z-index: 2;
   overflow: hidden;
   display: flex;
@@ -235,16 +234,16 @@ html, body {
 
 .pdf-header-info-box {
   position: absolute;
-  top: 150px;
-  left: 26px;
-  right: 26px;
-  min-height: 0;
+  top: 440px;
+  left: 180px;
+  right: 180px;
+  min-height: 360px;
   background: transparent;
-  border-radius: 24px;
+  border-radius: 30px;
   border: none;
-  padding: 0;
+  padding: 42px 48px;
   display: grid;
-  gap: 16px;
+  gap: 20px;
   z-index: 3;
 }
 
@@ -252,25 +251,25 @@ html, body {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  gap: 18px;
-  padding-top: 10px;
+  gap: 24px;
+  padding-top: 24px;
 }
 
 .pdf-quote-meta-block,
 .pdf-customer-box {
   display: grid;
-  gap: 12px;
+  gap: 18px;
 }
 
 .pdf-customer-box {
   width: auto;
-  min-width: 240px;
-  padding: 16px 18px;
+  min-width: 380px;
+  padding: 32px 36px;
   border: 2px solid #111827;
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 28px;
   display: grid;
-  gap: 8px;
+  gap: 14px;
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -278,7 +277,7 @@ html, body {
 .pdf-quote-right {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   align-items: flex-end;
   justify-content: flex-start;
   width: 100%;
@@ -286,14 +285,14 @@ html, body {
 }
 
 .pdf-header-info-value {
-  font-size: 18px;
+  font-size: 36px;
   font-weight: 500;
   color: #111827;
   line-height: 1.15;
 }
 
 .pdf-customer-name {
-  font-size: 22px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1.05;
   white-space: nowrap;
@@ -302,21 +301,21 @@ html, body {
 }
 
 .pdf-quotation-title {
-  font-size: 32px;
+  font-size: 88px;
   font-weight: 800;
   color: #fcc000;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 0.95;
   max-width: 100%;
-  margin-bottom: 4px;
+  margin-bottom: 24px;
 }
 
 .pdf-quote-meta-row {
   display: grid;
-  grid-template-columns: 84px 10px minmax(100px, 1fr);
-  gap: 6px;
-  font-size: 14px;
+  grid-template-columns: 160px 24px minmax(160px, 1fr);
+  gap: 12px;
+  font-size: 28px;
   color: #111827;
   align-items: center;
 }
@@ -324,13 +323,21 @@ html, body {
 .pdf-quote-meta-row span {
   opacity: 0.85;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 24px;
+}
+
+.pdf-quote-meta-row span:first-child {
+  justify-self: start;
+}
+
+.pdf-quote-meta-row span:nth-child(2) {
+  justify-self: center;
 }
 
 .pdf-quote-meta-row strong {
   justify-self: end;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 32px;
 }
 
 .pdf-content-inner {
@@ -357,21 +364,21 @@ html, body {
 .pdf-package-info-line {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  font-size: 13px;
+  gap: 14px;
+  font-size: 28px;
   line-height: 1.2;
-  padding: 4px 0;
+  padding: 6px 0;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
   color: #111827;
-  flex: 0 0 140px;
+  /* Increase label column and keep label text on a single line */
+  flex: 0 0 420px;
   white-space: nowrap;
-  padding-right: 8px;
-  font-size: 13px;
+  padding-right: 18px;
+  font-size: 34px;
   line-height: 1.15;
-  text-align: right;
 }
 
 .pdf-package-info-line span {
@@ -379,15 +386,35 @@ html, body {
   color: #111827;
   font-weight: 700;
   flex: 1 1 auto;
-  font-size: 13px;
+  font-size: 34px;
   line-height: 1.25;
   text-align: left;
-  padding-left: 4px;
+}
+
+/* Group spacing for package info lines */
+.pdf-package-info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* spacing between rows */
+}
+
+/* Prevent label wrapping and add small padding between label and value */
+.pdf-package-info-line strong {
+  text-align: right;
+  padding-right: 10px;
+  /* Keep labels on a single line for these key headings */
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.pdf-package-info-line span {
+  padding-left: 6px;
 }
 
 .pdf-package-info-group {
   display: grid;
-  gap: 8px;
+  gap: 14px;
 }
 
 .pdf-main-table thead th:last-child {
@@ -395,17 +422,38 @@ html, body {
 }
 
 .pdf-left-box {
-  min-height: 180px;
-  padding: 12px 0 0;
+  min-height: 280px;
+  padding: 20px;
 }
 
 .pdf-left-box .pdf-notes {
-  margin-top: 8px;
+  margin-top: 10px;
+}
+
+.pdf-quote-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 22px;
+  font-size: 36px;
+  color: #111827;
+  font-weight: 500;
+}
+
+.pdf-quote-meta-row span {
+  opacity: 0.9;
+  font-weight: 700;
+  font-size: 32px;
+}
+
+.pdf-quote-meta-row strong {
+  font-weight: 500;
+  font-size: 44px;
 }
 
 .pdf-table-wrapper {
-  width: 100%;
-  margin: 278px 0 0;
+  width: 90%;
+  max-width: 2190px;
+  margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
   z-index: 3;
   display: flex;
   justify-content: center;
@@ -416,16 +464,18 @@ html, body {
   border-collapse: collapse;
   table-layout: fixed;
   border: 2px solid #111827;
-  margin: 0 auto 10px;
+  margin: 0 auto 16px;
 }
 
 .pdf-main-table col.col-desc {
+  /* Allow description column to expand when package description is longer */
   width: auto;
-  min-width: 38%;
+  min-width: 50%;
 }
 
 .pdf-main-table col.col-price {
-  width: 20%;
+  /* Reduce price column width so description can remain distinct */
+  width: 16%;
 }
 
 .pdf-main-table col.col-person {
@@ -433,22 +483,31 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 18%;
+  width: 20%;
 }
 
 .pdf-main-table thead th {
-  padding: 10px 12px;
-  font-size: 12px;
+  padding: 22px 20px;
+  font-size: 36px;
   font-weight: 800;
   border-bottom: 2px solid #111827;
   text-align: left;
   color: #111827;
   background: #f3f3f3;
-  height: 42px;
+  height: 72px;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
+.pdf-main-table thead th:nth-child(2) {
+  padding-right: 24px;
+}
+
+.pdf-main-table thead th:nth-child(3) {
+  padding-left: 14px;
+}
+
+/* Ensure numeric columns' headers align with their values */
 .pdf-main-table thead th:nth-child(2),
 .pdf-main-table thead th:nth-child(3),
 .pdf-main-table thead th:nth-child(4) {
@@ -460,6 +519,7 @@ html, body {
   text-align: center;
 }
 
+/* Make numeric cell values center-aligned and block-level for consistent alignment */
 .pdf-price-cell strong,
 .pdf-amount-cell strong {
   display: block;
@@ -467,19 +527,28 @@ html, body {
   line-height: 1;
 }
 
+.pdf-main-table tbody tr.pdf-empty-row td {
+  min-height: 80px;
+  border-top: none;
+}
+
+.pdf-main-table tbody tr:first-child td {
+  min-height: auto;
+}
+
 .pdf-main-table tbody tr td {
   border-top: 2px solid #111827;
   border-left: none;
   border-right: none;
   vertical-align: top;
-  font-size: 13px;
+  font-size: 32px;
   color: #111827;
-  padding: 10px 12px;
+  padding: 20px 22px;
   height: auto;
 }
 
 .pdf-main-table tbody tr td strong {
-  font-size: 15px;
+  font-size: 40px;
   font-weight: 500;
 }
 
@@ -499,7 +568,7 @@ html, body {
   justify-content: center;
   min-height: 100%;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 44px;
   line-height: 1.1;
   padding-top: 0;
 }
@@ -509,35 +578,38 @@ html, body {
 }
 
 .pdf-package-title {
-  font-size: 18px;
+  font-size: 55px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 18px;
   white-space: nowrap;
 }
 
 .pdf-package-description {
-  font-size: 14px;
-  line-height: 1.35;
+  font-size: 42px;
+  line-height: 1.45;
   color: #111827;
-  margin-bottom: 8px;
+  margin-bottom: 18px;
   font-weight: 600;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .pdf-content-cell {
-  min-height: 220px;
+  min-height: 340px;
   position: relative;
-  padding: 12px;
+  padding: 28px;
   display: grid;
-  gap: 12px;
+  gap: 20px;
 }
 
 .pdf-package-details {
   display: grid;
-  gap: 12px;
+  gap: 20px;
 }
 
 .pdf-package-name {
-  font-size: 16px;
+  font-size: 36px;
   font-weight: 800;
   color: #111827;
 }
@@ -545,104 +617,220 @@ html, body {
 .pdf-package-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .pdf-package-meta-grid > div {
   display: grid;
-  gap: 4px;
+  gap: 8px;
 }
 
 .pdf-meta-label {
-  font-size: 11px;
+  font-size: 20px;
   color: #111827;
   opacity: 0.8;
 }
 
 .pdf-meta-value {
-  font-size: 13px;
+  font-size: 28px;
   font-weight: 800;
   color: #111827;
   text-align: right;
 }
 
 .pdf-notes {
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 34px;
+  line-height: 1.7;
   color: #111827;
   font-weight: 600;
 }
 
 .pdf-package-includes-box {
-  line-height: 1.45;
+  line-height: 1.7;
 }
 
 .pdf-notes .notes-title {
-  font-size: 13px;
+  font-size: 32px;
   font-weight: 800;
   text-decoration: underline;
-  margin-bottom: 6px;
+  margin-bottom: 14px;
+}
+
+.pdf-left-box {
+  min-height: 280px;
+  border: none;
 }
 
 .pdf-summary {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  margin-top: 8px;
+  margin-top: 16px;
 }
 
 .pdf-summary td {
   border: none;
-  padding: 6px 8px;
-  font-size: 13px;
+  padding: 14px 14px;
+  font-size: 36px;
   text-align: left;
-  vertical-align: top;
 }
 
 .pdf-summary td strong {
-  font-size: 14px;
+  font-size: 38px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 55%;
-  padding-right: 8px;
 }
 
 .pdf-summary .value {
-  width: 45%;
   text-align: right;
   font-weight: 800;
-  font-size: 13px;
-}
-
-.pdf-summary .value strong {
-  display: inline-block;
-  min-width: 100%;
-  text-align: right;
+  font-size: 36px;
 }
 
 .pdf-footer-row td {
   border-top: none;
 }
 
-.pdf-summary-section {
-  position: static;
-  width: auto;
-  padding: 10px 12px;
-  border: 1px solid #111827;
-  background: rgba(255, 255, 255, 0.95);
-  margin-top: 8px;
+.pdf-body-notes {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 2px solid #111827;
+  border-top: none;
+  min-height: 220px;
+}
+
+.pdf-body-notes .pdf-notes-heading {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.pdf-body-notes .pdf-note-line {
+  font-size: 18px;
+  line-height: 1.7;
+  color: #111827;
+}
+
+.pdf-footer-table {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.pdf-footer-left {
+  min-height: 250px;
+  border: 2px solid #111827;
+}
+
+.pdf-footer-right {
+  display: grid;
+  gap: 0;
+  border: 2px solid #111827;
+  border-radius: 0;
+  overflow: hidden;
 }
 
 .pdf-summary-row {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
   align-items: center;
-  font-size: 12px;
+  padding: 24px 28px;
+  border-bottom: 1px solid #111827;
+  font-size: 20px;
+  font-weight: 600;
   color: #111827;
-  padding: 6px 0;
+}
+
+.pdf-summary-row:last-child {
+  border-bottom: none;
+}
+
+.pdf-summary-row-total {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.pdf-notes-heading {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.pdf-note-line {
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: #111827;
+}
+
+.pdf-note-line span {
+  font-weight: 800;
+  margin-right: 8px;
+}
+
+.pdf-package-includes-title {
+  margin: 26px 0 16px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.pdf-package-includes-list {
+  margin: 0;
+  padding-left: 26px;
+  list-style: none;
+  display: grid;
+  gap: 14px;
+  font-size: 24px;
+  line-height: 1.5;
+}
+
+.pdf-package-includes-list li::before {
+  content: '•';
+  margin-right: 8px;
+  color: #111827;
+  font-weight: 800;
+}
+
+.pdf-package-validity {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.pdf-summary-panel {
+  background: #ffffff;
+  padding: 26px 24px;
+  border: 1px solid #111827;
+  border-radius: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.pdf-summary-section {
+  position: absolute;
+  top: 1920px;
+  right: 180px;
+  width: 460px;
+  padding: 24px;
+  border: 1px solid #111827;
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 3;
+}
+
+.pdf-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  font-size: 22px;
+  color: #111827;
+  padding: 10px 0;
   border-bottom: 1px solid #d1d5db;
 }
 
@@ -651,19 +839,20 @@ html, body {
 }
 
 .pdf-summary-row-total {
-  font-size: 13px;
+  font-size: 24px;
   font-weight: 800;
 }
 
 .pdf-logos-section {
   position: absolute;
-  left: 26px;
-  right: 26px;
-  bottom: 58px;
-  width: auto;
+  left: 50%;
+  bottom: 260px;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 2190px;
   display: flex;
   justify-content: center;
-  padding: 10px 0 0;
+  padding: 40px 20px 0; /* increased top padding for visible white spacing above logos */
   background: #ffffff;
 }
 
@@ -671,7 +860,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 40px;
   width: 100%;
 }
 
@@ -679,22 +868,23 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 54px;
+  height: 200px;
   width: auto;
 }
 
 .pdf-logo-item img {
-  max-height: 54px;
-  max-width: 88px;
+  max-height: 200px;
+  max-width: 280px;
   object-fit: contain;
 }
 
 .pdf-footer-image {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2550px;
+  height: 192px;
   z-index: 2;
 }
 
