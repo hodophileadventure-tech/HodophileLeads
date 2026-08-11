@@ -468,14 +468,14 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  /* Allow description column to expand based on content */
+  /* Allow description column to expand when package description is longer */
   width: auto;
-  min-width: 40%;
+  min-width: 50%;
 }
 
 .pdf-main-table col.col-price {
-  /* Increase the price column so it sits further left and adds space before the person column */
-  width: 26%;
+  /* Reduce price column width so description can remain distinct */
+  width: 16%;
 }
 
 .pdf-main-table col.col-person {
@@ -590,6 +590,9 @@ html, body {
   color: #111827;
   margin-bottom: 18px;
   font-weight: 600;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .pdf-content-cell {
