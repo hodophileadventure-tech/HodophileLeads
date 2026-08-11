@@ -448,28 +448,28 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 30%;
-  min-width: 30%;
+  width: 40%;
+  min-width: 40%;
 }
 
 .pdf-main-table col.col-price {
-  width: 18%;
-  min-width: 18%;
+  width: 16%;
+  min-width: 16%;
 }
 
 .pdf-main-table col.col-person {
-  width: 18%;
-  min-width: 18%;
+  width: 14%;
+  min-width: 14%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 22%;
-  min-width: 22%;
+  width: 20%;
+  min-width: 20%;
 }
 
 .pdf-main-table col.col-summary {
-  width: 12%;
-  min-width: 12%;
+  width: 10%;
+  min-width: 10%;
 }
 
 .pdf-main-table thead th {
@@ -504,7 +504,8 @@ html, body {
 }
 
 .pdf-main-table td.pdf-price-cell,
-.pdf-main-table td.pdf-amount-cell {
+.pdf-main-table td.pdf-amount-cell,
+.pdf-main-table td.pdf-summary-placeholder {
   white-space: nowrap;
   text-align: right;
 }
@@ -514,24 +515,14 @@ html, body {
 .pdf-amount-cell strong {
   display: block;
   text-align: right;
-  min-height: 80px;
-  border-top: none;
+  width: 100%;
+  line-height: 1.1;
 }
 
-.pdf-main-table tbody tr:first-child td {
-  min-height: auto;
-}
-
-.pdf-main-table tbody tr td {
+.pdf-main-table td.pdf-summary-placeholder {
+  padding: 0;
   border-top: 2px solid #111827;
   border-left: 1px solid rgba(17, 24, 39, 0.08);
-  border-right: none;
-  vertical-align: top;
-  font-size: 32px;
-  color: #111827;
-  padding: 20px 18px;
-  height: auto;
-  min-width: 0;
 }
 
 .pdf-main-table tbody tr td:first-child {
@@ -568,9 +559,8 @@ html, body {
 }
 
 .pdf-person-value {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  display: inline-flex;
+  align-items: center;
   min-height: 100%;
   font-weight: 500;
   font-size: 44px;
@@ -580,28 +570,64 @@ html, body {
 
 .pdf-description-cell {
   text-align: left;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   max-width: 100%;
 }
 
 .pdf-package-title {
   font-size: 55px;
   font-weight: 600;
-  margin-bottom: 18px;
-  white-space: normal;
-  word-break: break-word;
+  margin-bottom: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-package-description {
   font-size: 42px;
-  line-height: 1.45;
+  line-height: 1.2;
   color: #111827;
-  margin-bottom: 18px;
+  margin: 0;
   font-weight: 600;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-package-info-group {
+  display: flex;
+  gap: 24px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.pdf-package-info-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.pdf-package-info-line strong {
+  font-weight: 800;
+  color: #111827;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-package-info-line span {
+  opacity: 1;
+  color: #111827;
+  font-weight: 700;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-content-cell {
