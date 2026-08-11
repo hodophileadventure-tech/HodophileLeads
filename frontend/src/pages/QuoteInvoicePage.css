@@ -483,7 +483,11 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 12%;
+  width: 10%;
+}
+
+.pdf-main-table col.col-summary {
+  width: 8%;
 }
 
 .pdf-main-table thead th {
@@ -518,6 +522,13 @@ html, body {
 .pdf-main-table td.pdf-amount-cell {
   text-align: right;
   padding-right: 12px;
+}
+
+.pdf-summary-placeholder {
+  border: none;
+  padding: 0;
+  min-width: 0;
+  background: transparent;
 }
 
 .pdf-main-table td.pdf-price-cell {
