@@ -430,26 +430,6 @@ html, body {
   margin-top: 10px;
 }
 
-.pdf-quote-meta-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 22px;
-  font-size: 36px;
-  color: #111827;
-  font-weight: 500;
-}
-
-.pdf-quote-meta-row span {
-  opacity: 0.9;
-  font-weight: 700;
-  font-size: 32px;
-}
-
-.pdf-quote-meta-row strong {
-  font-weight: 500;
-  font-size: 44px;
-}
-
 .pdf-table-wrapper {
   width: 90%;
   max-width: 2190px;
