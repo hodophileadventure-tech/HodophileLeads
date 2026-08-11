@@ -455,7 +455,8 @@ html, body {
   max-width: 2190px;
   margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
   z-index: 3;
-  display: block;
+  display: flex;
+  justify-content: center;
 }
 
 .pdf-main-table {
@@ -469,49 +470,20 @@ html, body {
 .pdf-main-table col.col-desc {
   /* Allow description column to expand when package description is longer */
   width: auto;
-  min-width: 52%;
+  min-width: 50%;
 }
 
 .pdf-main-table col.col-price {
-  width: 18%;
-  min-width: 180px;
+  /* Reduce price column width so description can remain distinct */
+  width: 16%;
 }
 
 .pdf-main-table col.col-person {
-  width: 16%;
-  min-width: 140px;
+  width: 14%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 14%;
-  min-width: 150px;
-}
-
-.pdf-main-table col.col-summary {
-  width: 280px;
-  min-width: 280px;
-}
-
-.pdf-main-table td.pdf-summary-placeholder,
-.pdf-main-table td.pdf-summary-cell {
-  width: 280px;
-  padding: 0;
-  vertical-align: top;
-}
-
-.pdf-summary-section {
-  width: 100%;
-  max-width: 280px;
-  padding: 18px 22px;
-  border-left: 1px solid #d1d5db;
-  background: #f9fafb;
-  display: block;
-  box-shadow: none;
-}
-
-.pdf-summary-section table.pdf-summary {
-  width: 100%;
-  margin-top: 0;
+  width: 20%;
 }
 
 .pdf-main-table thead th {
@@ -529,44 +501,29 @@ html, body {
 
 .pdf-main-table thead th:nth-child(2) {
   padding-right: 24px;
-  text-align: right;
 }
 
 .pdf-main-table thead th:nth-child(3) {
-  padding-left: 40px;
-  text-align: center;
+  padding-left: 14px;
 }
 
+/* Ensure numeric columns' headers align with their values */
+.pdf-main-table thead th:nth-child(2),
+.pdf-main-table thead th:nth-child(3),
 .pdf-main-table thead th:nth-child(4) {
-  padding-right: 24px;
-  text-align: right;
-}
-
-.pdf-main-table thead th:nth-child(5) {
-  padding: 0;
+  text-align: center;
 }
 
 .pdf-main-table td.pdf-price-cell,
 .pdf-main-table td.pdf-amount-cell {
-  text-align: right;
-  padding-right: 12px;
+  text-align: center;
 }
 
-.pdf-main-table td.pdf-summary-cell {
-  padding: 0;
-  vertical-align: top;
-  background: transparent;
-}
-
-.pdf-main-table td.pdf-price-cell {
-  padding-left: 12px;
-}
-
-/* Make numeric cell values right-aligned and block-level for consistent alignment */
+/* Make numeric cell values center-aligned and block-level for consistent alignment */
 .pdf-price-cell strong,
 .pdf-amount-cell strong {
   display: block;
-  text-align: right;
+  text-align: center;
   line-height: 1;
 }
 
@@ -713,10 +670,10 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 12px 12px;
+  padding: 14px 14px;
   font-size: 36px;
   text-align: left;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .pdf-summary td strong {
@@ -737,7 +694,8 @@ html, body {
 }
 
 .pdf-summary .value strong {
-  display: block;
+  display: inline-block;
+  min-width: 100%;
   text-align: right;
 }
 
@@ -865,45 +823,14 @@ html, body {
 }
 
 .pdf-summary-section {
-  width: 100%;
-  max-width: 460px;
-  padding: 18px 22px;
-  border-left: 1px solid #d1d5db;
-  background: #f9fafb;
-  display: block;
-  box-shadow: none;
-}
-
-.pdf-summary-section table.pdf-summary {
-  width: 100%;
-  border-collapse: collapse;
-  border: none;
-  margin: 0;
-}
-
-.pdf-summary-section tr {
-  border-bottom: 1px solid #d1d5db;
-}
-
-.pdf-summary-section tr:last-child {
-  border-bottom: none;
-}
-
-.pdf-summary-section td {
-  padding: 10px 0;
-}
-
-.pdf-summary-section .label {
-  font-size: 28px;
-  color: #111827;
-  width: auto;
-  font-weight: 700;
-}
-
-.pdf-summary-section .value {
-  text-align: right;
-  font-size: 32px;
-  font-weight: 800;
+  position: absolute;
+  top: 1920px;
+  right: 180px;
+  width: 460px;
+  padding: 24px;
+  border: 1px solid #111827;
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 3;
 }
 
 .pdf-summary-row {
