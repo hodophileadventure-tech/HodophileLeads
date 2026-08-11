@@ -509,9 +509,12 @@ html, body {
 
 /* Ensure numeric columns' headers align with their values */
 .pdf-main-table thead th:nth-child(2),
-.pdf-main-table thead th:nth-child(3),
-.pdf-main-table thead th:nth-child(4) {
+.pdf-main-table thead th:nth-child(3) {
   text-align: center;
+}
+
+.pdf-main-table thead th:nth-child(4) {
+  text-align: right;
 }
 
 .pdf-main-table td.pdf-price-cell,
