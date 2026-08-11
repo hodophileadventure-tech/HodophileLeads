@@ -442,7 +442,7 @@ html, body {
 .pdf-main-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
   border: 2px solid #111827;
   margin: 0 auto 16px;
 }
@@ -529,8 +529,9 @@ html, body {
   vertical-align: top;
   font-size: 32px;
   color: #111827;
-  padding: 20px 22px;
+  padding: 20px 18px;
   height: auto;
+  min-width: 0;
 }
 
 .pdf-main-table tbody tr td:first-child {
@@ -542,7 +543,13 @@ html, body {
 }
 
 .pdf-main-table tbody tr td:not(:first-child) {
-  padding-left: 14px;
+  padding-left: 12px;
+}
+
+.pdf-main-table tbody tr td.pdf-price-cell,
+.pdf-main-table tbody tr td.pdf-person-cell,
+.pdf-main-table tbody tr td.pdf-amount-cell {
+  white-space: nowrap;
 }
 
 .pdf-main-table tbody tr td strong {
@@ -579,7 +586,8 @@ html, body {
   font-size: 55px;
   font-weight: 600;
   margin-bottom: 18px;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .pdf-package-description {
