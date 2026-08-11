@@ -474,18 +474,22 @@ html, body {
 
 .pdf-main-table col.col-price {
   width: 18%;
+  min-width: 180px;
 }
 
 .pdf-main-table col.col-person {
   width: 16%;
+  min-width: 140px;
 }
 
 .pdf-main-table col.col-amount {
   width: 14%;
+  min-width: 150px;
 }
 
 .pdf-main-table col.col-summary {
-  width: 10%;
+  width: 280px;
+  min-width: 280px;
 }
 
 .pdf-main-table thead th {
@@ -517,14 +521,24 @@ html, body {
 }
 
 .pdf-main-table thead th:nth-child(5) {
-  text-align: right;
-  padding-left: 12px;
+  padding: 0;
 }
 
 .pdf-main-table td.pdf-price-cell,
 .pdf-main-table td.pdf-amount-cell {
   text-align: right;
   padding-right: 12px;
+}
+
+.pdf-main-table td.pdf-summary-cell {
+  padding: 0;
+  vertical-align: top;
+  background: transparent;
+}
+
+.pdf-main-table td.pdf-summary-cell {
+  padding: 0;
+  vertical-align: top;
 }
 
 .pdf-main-table td.pdf-price-cell {
