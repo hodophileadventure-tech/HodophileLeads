@@ -455,7 +455,9 @@ html, body {
   max-width: 2190px;
   margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
   z-index: 3;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  gap: 24px;
   justify-content: center;
 }
 
@@ -475,7 +477,7 @@ html, body {
 
 .pdf-main-table col.col-price {
   /* Reduce price column width so description can remain distinct */
-  width: 14%;
+  width: 16%;
 }
 
 .pdf-main-table col.col-person {
@@ -483,11 +485,7 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 10%;
-}
-
-.pdf-main-table col.col-summary {
-  width: 8%;
+  width: 14%;
 }
 
 .pdf-main-table thead th {
@@ -522,13 +520,6 @@ html, body {
 .pdf-main-table td.pdf-amount-cell {
   text-align: right;
   padding-right: 12px;
-}
-
-.pdf-summary-placeholder {
-  border: none;
-  padding: 0;
-  min-width: 0;
-  background: transparent;
 }
 
 .pdf-main-table td.pdf-price-cell {
@@ -838,14 +829,12 @@ html, body {
 }
 
 .pdf-summary-section {
-  position: absolute;
-  top: 1920px;
-  right: 180px;
-  width: 460px;
+  width: 100%;
+  max-width: 460px;
   padding: 24px;
   border: 1px solid #111827;
-  background: rgba(255, 255, 255, 0.92);
-  z-index: 3;
+  background: rgba(255, 255, 255, 0.95);
+  align-self: start;
 }
 
 .pdf-summary-row {
