@@ -448,18 +448,18 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 45%;
-  min-width: 45%;
+  width: 42%;
+  min-width: 42%;
 }
 
 .pdf-main-table col.col-price {
-  width: 16%;
-  min-width: 16%;
+  width: 17%;
+  min-width: 17%;
 }
 
 .pdf-main-table col.col-person {
-  width: 14%;
-  min-width: 14%;
+  width: 17%;
+  min-width: 17%;
 }
 
 .pdf-main-table col.col-amount {
@@ -468,8 +468,8 @@ html, body {
 }
 
 .pdf-main-table col.col-summary {
-  width: 10%;
-  min-width: 10%;
+  width: 9%;
+  min-width: 9%;
 }
 
 .pdf-main-table thead th {
@@ -524,13 +524,25 @@ html, body {
 
 .pdf-main-table tbody tr td {
   border-top: 2px solid #111827;
-  border-left: none;
+  border-left: 1px solid rgba(17, 24, 39, 0.08);
   border-right: none;
   vertical-align: top;
   font-size: 32px;
   color: #111827;
   padding: 20px 22px;
   height: auto;
+}
+
+.pdf-main-table tbody tr td:first-child {
+  border-left: none;
+}
+
+.pdf-main-table tbody tr td:last-child {
+  border-right: none;
+}
+
+.pdf-main-table tbody tr td:not(:first-child) {
+  padding-left: 14px;
 }
 
 .pdf-main-table tbody tr td strong {
