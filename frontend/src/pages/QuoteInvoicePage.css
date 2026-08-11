@@ -517,6 +517,11 @@ html, body {
 .pdf-main-table td.pdf-price-cell,
 .pdf-main-table td.pdf-amount-cell {
   text-align: right;
+  padding-right: 12px;
+}
+
+.pdf-main-table td.pdf-price-cell {
+  padding-left: 12px;
 }
 
 /* Make numeric cell values right-aligned and block-level for consistent alignment */
