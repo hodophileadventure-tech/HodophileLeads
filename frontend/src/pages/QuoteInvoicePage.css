@@ -448,28 +448,28 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 44%;
-  min-width: 44%;
+  width: 34%;
+  min-width: 34%;
 }
 
 .pdf-main-table col.col-price {
-  width: 18%;
-  min-width: 18%;
+  width: 20%;
+  min-width: 20%;
 }
 
 .pdf-main-table col.col-person {
-  width: 16%;
-  min-width: 16%;
+  width: 20%;
+  min-width: 20%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 15%;
-  min-width: 15%;
+  width: 20%;
+  min-width: 20%;
 }
 
 .pdf-main-table col.col-summary {
-  width: 7%;
-  min-width: 7%;
+  width: 6%;
+  min-width: 6%;
 }
 
 .pdf-main-table thead th {
@@ -580,6 +580,9 @@ html, body {
 
 .pdf-description-cell {
   text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .pdf-package-title {
