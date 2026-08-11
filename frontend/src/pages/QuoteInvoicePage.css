@@ -675,10 +675,10 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 14px 14px;
+  padding: 12px 12px;
   font-size: 36px;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .pdf-summary td strong {
@@ -699,8 +699,7 @@ html, body {
 }
 
 .pdf-summary .value strong {
-  display: inline-block;
-  min-width: 100%;
+  display: block;
   text-align: right;
 }
 
