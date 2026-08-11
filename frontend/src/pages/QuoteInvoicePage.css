@@ -492,6 +492,28 @@ html, body {
   min-width: 280px;
 }
 
+.pdf-main-table td.pdf-summary-placeholder,
+.pdf-main-table td.pdf-summary-cell {
+  width: 280px;
+  padding: 0;
+  vertical-align: top;
+}
+
+.pdf-summary-section {
+  width: 100%;
+  max-width: 280px;
+  padding: 18px 22px;
+  border-left: 1px solid #d1d5db;
+  background: #f9fafb;
+  display: block;
+  box-shadow: none;
+}
+
+.pdf-summary-section table.pdf-summary {
+  width: 100%;
+  margin-top: 0;
+}
+
 .pdf-main-table thead th {
   padding: 22px 20px;
   font-size: 36px;
@@ -534,11 +556,6 @@ html, body {
   padding: 0;
   vertical-align: top;
   background: transparent;
-}
-
-.pdf-main-table td.pdf-summary-cell {
-  padding: 0;
-  vertical-align: top;
 }
 
 .pdf-main-table td.pdf-price-cell {
