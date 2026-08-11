@@ -516,14 +516,14 @@ html, body {
 
 .pdf-main-table td.pdf-price-cell,
 .pdf-main-table td.pdf-amount-cell {
-  text-align: center;
+  text-align: right;
 }
 
-/* Make numeric cell values center-aligned and block-level for consistent alignment */
+/* Make numeric cell values right-aligned and block-level for consistent alignment */
 .pdf-price-cell strong,
 .pdf-amount-cell strong {
   display: block;
-  text-align: center;
+  text-align: right;
   line-height: 1;
 }
 
