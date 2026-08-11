@@ -10,6 +10,7 @@ interface QuickSummaryProps {
 interface SummaryData {
   confirmedLeads: number;
   inProgressLeads: number;
+  completedLeads: number;
   potentialLeads: number;
   deadLeads: number;
   newLeads: number;
@@ -81,11 +82,8 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
     setDetailsLoading(true);
     setDetailError('');
     try {
-      // TODO: getAgentSummaryDetails method not yet implemented on backend
-      // const response = await dashboardAPI.getAgentSummaryDetails(selectedAgent, _section, startDate, endDate);
-      // setDetailRows(response.data);
-      setDetailError('Detail view not yet available');
-      setDetailRows([]);
+      const response = await dashboardAPI.getAgentSummaryDetails(selectedAgent, _section, startDate, endDate);
+      setDetailRows(response.data || []);
     } catch (err: any) {
       setDetailError(err?.response?.data?.message || 'Failed to load detail rows');
       setDetailRows([]);
@@ -97,6 +95,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
   const leadsData = data ? [
     { name: 'Confirmed', value: data.confirmedLeads, color: COLORS.confirmed },
     { name: 'In Progress', value: data.inProgressLeads, color: COLORS.inProgress },
+    { name: 'Completed', value: data.completedLeads, color: COLORS.completed },
     { name: 'Potential', value: data.potentialLeads, color: COLORS.potential },
     { name: 'New', value: data.newLeads, color: '#60a5fa' },
     { name: 'Dead', value: data.deadLeads, color: '#6b7280' },
@@ -215,32 +214,14 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-300">{data.inProgressLeads}</p>
             </button>
             <button type="button" onClick={() => {
-              const next = expandedSection === 'potentialLeads' ? null : 'potentialLeads';
-              setExpandedSection(next);
-              if (next) loadDetailRows(next);
-            }} className="text-left bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
-              <p className="text-xs text-slate-600 dark:text-slate-400">Potential</p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-300">{data.potentialLeads}</p>
-            </button>
-            <button type="button" onClick={() => {
-              const next = expandedSection === 'newLeads' ? null : 'newLeads';
-              setExpandedSection(next);
-              if (next) loadDetailRows(next);
-            }} className="text-left bg-sky-50 dark:bg-sky-900/30 p-3 rounded-lg">
-              <p className="text-xs text-slate-600 dark:text-slate-400">New</p>
-              <p className="text-2xl font-bold text-sky-600 dark:text-sky-300">{data.newLeads}</p>
-            </button>
-            <button type="button" onClick={() => {
-              const next = expandedSection === 'deadLeads' ? null : 'deadLeads';
-              setExpandedSection(next);
-              if (next) loadDetailRows(next);
-            }} className="text-left bg-gray-50 dark:bg-gray-900/30 p-3 rounded-lg">
-              <p className="text-xs text-slate-600 dark:text-slate-400">Dead</p>
-              <p className="text-2xl font-bold text-gray-600 dark:text-gray-300">{data.deadLeads}</p>
-            </button>
-            <button type="button" onClick={() => {
-              const next = expandedSection === 'spamLeads' ? null : 'spamLeads';
-              setExpandedSection(next);
+                  const next = expandedSection === 'completedLeads' ? null : 'completedLeads';
+                  setExpandedSection(next);
+                  if (next) loadDetailRows(next);
+                }} className="text-left bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Completed</p>
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{data.completedLeads}</p>
+                </button>
+                <button type="button" onClick={() => {
               if (next) loadDetailRows(next);
             }} className="text-left bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Spam</p>
@@ -308,9 +289,10 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                           {expandedSection === 'inProgressLeads' && 'Leads currently in contact, interest, or negotiation stages.'}
                           {expandedSection === 'potentialLeads' && 'Promising leads marked as potential but not yet converted.'}
                           {expandedSection === 'newLeads' && 'Fresh leads created in the selected date range.'}
-                          {expandedSection === 'deadLeads' && 'Leads marked dead or closed as completed/canceled.'}
+                          {expandedSection === 'deadLeads' && 'Leads with temperature dead that are not completed or canceled.'}
                           {expandedSection === 'spamLeads' && 'Leads flagged as spam during the selected date range.'}
                           {expandedSection === 'canceledLeads' && 'Leads explicitly canceled with cancellation details.'}
+                          {expandedSection === 'completedLeads' && 'Leads marked as completed in the selected date range.'}
                           {expandedSection === 'totalLeads' && 'All leads that match the selected date range and agent.'}
                           {expandedSection === 'panLeads' && 'Cold leads marked as not potential and likely low-priority.'}
                         </p>
