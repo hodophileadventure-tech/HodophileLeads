@@ -312,12 +312,12 @@ html, body {
 }
 
 .pdf-quote-meta-row {
-  display: grid;
-  grid-template-columns: 160px 24px minmax(160px, 1fr);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   font-size: 28px;
   color: #111827;
-  align-items: center;
 }
 
 .pdf-quote-meta-row span {
@@ -326,16 +326,7 @@ html, body {
   font-size: 24px;
 }
 
-.pdf-quote-meta-row span:first-child {
-  justify-self: start;
-}
-
-.pdf-quote-meta-row span:nth-child(2) {
-  justify-self: center;
-}
-
 .pdf-quote-meta-row strong {
-  justify-self: end;
   font-weight: 500;
   font-size: 32px;
 }
@@ -468,10 +459,8 @@ html, body {
 }
 
 .pdf-main-table col.col-summary {
-  width: 0;
-  min-width: 0;
-  max-width: 0;
-  padding: 0;
+  width: 22%;
+  min-width: 22%;
 }
 
 .pdf-main-table thead th {
@@ -503,12 +492,6 @@ html, body {
 
 .pdf-main-table thead th:nth-child(3) {
   text-align: center;
-}
-
-.pdf-main-table td.pdf-price-cell,
-.pdf-main-table td.pdf-amount-cell,
-.pdf-main-table td.pdf-summary-placeholder {
-  text-align: right;
 }
 
 .pdf-main-table td.pdf-summary-placeholder {
@@ -545,10 +528,7 @@ html, body {
 
 .pdf-main-table tbody tr td.pdf-summary-placeholder {
   padding: 0;
-  width: 0;
-  min-width: 0;
-  max-width: 0;
-  overflow: hidden;
+  vertical-align: top;
 }
 
 .pdf-main-table th.text-center,
