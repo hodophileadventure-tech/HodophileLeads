@@ -306,6 +306,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                         <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                           <tr>
                             <th className="px-3 py-2">Lead</th>
+                            <th className="px-3 py-2">Created Date</th>
                             <th className="px-3 py-2">Phone</th>
                             <th className="px-3 py-2">Status</th>
                             <th className="px-3 py-2">Temperature</th>
@@ -317,6 +318,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                           {detailRows.map((row, index) => (
                             <tr key={`${row.id}-${index}`} className="border-b border-slate-200 dark:border-slate-700">
                               <td className="px-3 py-2">{row.client_name || 'Unknown'}</td>
+                              <td className="px-3 py-2">{row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</td>
                               <td className="px-3 py-2">{row.phone || '-'}</td>
                               <td className="px-3 py-2 capitalize">{row.status || '-'}</td>
                               <td className="px-3 py-2 capitalize">{row.temperature || '-'}</td>
