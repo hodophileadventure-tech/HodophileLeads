@@ -17,11 +17,13 @@ import { paymentsRouter } from './routes/payments';
 import { quoteRequestsRouter } from './routes/quote-requests';
 import { reportsRouter } from './routes/reports';
 import hotelsRouter from './routes/hotels';
+import tasksRouter from './routes/tasks';
 import { errorHandler } from './middleware/auth';
 import { initDatabase } from './utils/database';
 import { startFollowUpWorker } from './workers/followUpWorker';
 import { startReportWorker } from './workers/reportWorker';
 import { startOutboxWorker } from './workers/outboxWorker';
+import { startTaskOverdueWorker } from './workers/taskOverdueWorker';
 import { createServer } from 'http';
 import { initWebsocket } from './utils/wsServer';
 import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
@@ -101,6 +103,7 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/itineraries', itinerariesRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/payments', paymentsRouter);
+app.use('/api/tasks', tasksRouter);
 app.use('/api', hotelsRouter);
 
 // Health check
@@ -189,6 +192,7 @@ const start = async () => {
     startReportWorker();
     startOutboxWorker();
     startScreenCaptureCleanup();
+    startTaskOverdueWorker();
   } catch (err) {
     console.error('Failed to start background workers:', err);
   }
