@@ -220,7 +220,7 @@ export const taskModel = {
         AND is_overdue = false
       RETURNING id
     `);
-    return result.rowCount;
+    return result.rowCount || 0;
   },
 
   async cancel(

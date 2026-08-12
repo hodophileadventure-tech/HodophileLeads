@@ -6,7 +6,8 @@ import { taskModel } from '../models/Task';
 import { taskSubmissionModel } from '../models/TaskSubmission';
 import { taskCommentModel } from '../models/TaskComment';
 import { taskActivityLogModel } from '../models/TaskActivityLog';
-import { notificationModel } from '../models/Notification';
+import { notificationsModel } from '../models/Notification';
+import { query } from '../utils/database';
 import type {
   Task,
   TaskStatus,
@@ -43,7 +44,7 @@ export class TaskService {
     });
 
     // Send notification to assignee
-    await notificationModel.create({
+    await notificationsModel.create({
       user_id: data.assigned_to,
       entity_type: 'task',
       entity_id: task.id,
@@ -72,10 +73,12 @@ export class TaskService {
 
     const updated = await taskModel.updateStatus(taskId, 'in_progress', userId);
 
-    // Set started_at timestamp
-    await taskModel.update(taskId, {
-      start_date: new Date().toISOString()
-    });
+    // Set started_at timestamp via direct query
+    const now = new Date().toISOString();
+    await query(
+      `UPDATE tasks SET started_at = $1 WHERE id = $2`,
+      [now, taskId]
+    );
 
     // Log activity
     await taskActivityLogModel.create({
@@ -137,7 +140,7 @@ export class TaskService {
     );
 
     // Notify creator/admin
-    await notificationModel.create({
+    await notificationsModel.create({
       user_id: task.created_by,
       entity_type: 'task',
       entity_id: taskId,
@@ -198,7 +201,7 @@ export class TaskService {
     );
 
     // Notify assignee
-    await notificationModel.create({
+    await notificationsModel.create({
       user_id: task.assigned_to,
       entity_type: 'task',
       entity_id: taskId,
@@ -263,7 +266,7 @@ export class TaskService {
     );
 
     // Notify assignee
-    await notificationModel.create({
+    await notificationsModel.create({
       user_id: task.assigned_to,
       entity_type: 'task',
       entity_id: taskId,
@@ -300,7 +303,7 @@ export class TaskService {
     );
 
     // Notify assignee
-    await notificationModel.create({
+    await notificationsModel.create({
       user_id: cancelled.assigned_to,
       entity_type: 'task',
       entity_id: taskId,

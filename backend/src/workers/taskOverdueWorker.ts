@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { taskModel } from '../models/Task';
-import { notificationModel } from '../models/Notification';
+import { notificationsModel } from '../models/Notification';
 import { query } from '../utils/database';
 
 export const startTaskOverdueWorker = () => {
@@ -35,7 +35,7 @@ export const startTaskOverdueWorker = () => {
         `);
 
         for (const task of overdueNotifications.rows) {
-          await notificationModel.create({
+          await notificationsModel.create({
             user_id: task.assigned_to,
             entity_type: 'task',
             entity_id: task.id,
