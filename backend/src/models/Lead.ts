@@ -74,7 +74,7 @@ const mapLeadRow = (row: any) => {
 };
 
 export const leadsModel = {
-  async findAll(agentId?: string | null, limit = 50, offset = 0, filters: { phone?: string; startDate?: string; endDate?: string } = {}) {
+  async findAll(agentId?: string | null, limit = 50, offset = 0, filters: { phone?: string; startDate?: string; endDate?: string; status?: string } = {}) {
     const clauses: string[] = [];
     const params: any[] = [];
 
