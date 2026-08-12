@@ -269,10 +269,8 @@ export const App: React.FC = () => {
   };
 
   const refreshLeads = async () => {
-    // Limit to 500 leads initially (sufficient for most agent workloads)
-    // Agents can use filters/search for specific leads
-    const limit = 500;
-    const response = await leadsAPI.list(limit);
+    // Request full list (limit=0) so UI shows all leads
+    const response = await leadsAPI.list(0);
     setLeads(response.data);
     await loadFollowUps();
   };
@@ -293,9 +291,8 @@ export const App: React.FC = () => {
 
     const fetchLeads = async () => {
       try {
-        // Limit to 500 leads for better performance (can be adjusted per role)
-        const limit = 500;
-        const response = await leadsAPI.list(limit);
+        // Request full list (limit=0) so UI shows all leads
+        const response = await leadsAPI.list(0);
         setLeads(response.data);
         await loadFollowUps();
         

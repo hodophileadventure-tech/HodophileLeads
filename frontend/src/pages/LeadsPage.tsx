@@ -13,7 +13,6 @@ import {
   getLeadLifecycleState
 } from '../utils/helpers';
 
-const PAGE_LIMIT = 500;
 
 const CANCEL_LEAD_REASONS = [
   'Budget constraints',
@@ -78,9 +77,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
   const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
-  const [tabLeads, setTabLeads] = useState<Record<string, Lead[]>>(() => ({ all: leads }));
-  const [tabHasMore, setTabHasMore] = useState<Record<string, boolean>>(() => ({ all: (leads || []).length >= PAGE_LIMIT }));
-  const [tabLoading, setTabLoading] = useState<Record<string, boolean>>(() => ({}));
+  // UI now expects the parent to supply the full `leads` list;
+  // client-side filtering will be applied for tabs.
 
   React.useEffect(() => {
     if (!selectedLead || !leadDetailRef.current) return;
@@ -118,11 +116,10 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   };
 
   const filteredLeads = useMemo(() => {
-    const baseLeads = activeFilter === 'all' ? leads : (tabLeads[activeFilter] || []);
-    let result = [...baseLeads];
+    let result = [...leads];
 
-    // Apply status client-side only if backend did not filter (fallback)
-    if (activeFilter !== 'all' && (!tabLeads[activeFilter] || tabLeads[activeFilter].length === 0)) {
+    // Apply status filter
+    if (activeFilter !== 'all') {
       result = result.filter((lead) => {
         const lifecycle = getLeadLifecycleState(lead);
 
@@ -181,49 +178,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     return result;
   }, [leads, activeFilter, leadSearchQuery, appliedDateRange, locationFilter, travelMonthFilter, tourTypeFilters]);
 
-  React.useEffect(() => {
-    let cancelled = false;
-    const loadTab = async () => {
-      if (activeFilter === 'all') return;
-      if (tabLeads[activeFilter]) return; // already loaded
-      try {
-        setTabLoading((s) => ({ ...s, [activeFilter]: true }));
-        const limit = PAGE_LIMIT;
-        // pass status only for filters that map directly to backend statuses
-        const supportedStatus = ['new', 'potential', 'in_progress', 'confirmed', 'cancelled', 'spam'];
-        const statusParam = supportedStatus.includes(activeFilter) ? activeFilter : undefined;
-        const resp = await leadsAPI.list(limit, statusParam ? { status: statusParam } : undefined);
-        if (cancelled) return;
-        setTabLeads((prev) => ({ ...prev, [activeFilter]: resp.data }));
-        setTabHasMore((prev) => ({ ...prev, [activeFilter]: (resp.data || []).length >= PAGE_LIMIT }));
-        setTabLoading((s) => ({ ...s, [activeFilter]: false }));
-      } catch (err) {
-        console.error('Failed to load leads for tab', activeFilter, err);
-        setTabLoading((s) => ({ ...s, [activeFilter]: false }));
-      }
-    };
-    void loadTab();
-    return () => { cancelled = true; };
-  }, [activeFilter, tabLeads]);
-
-  const loadMoreForActiveTab = async () => {
-    const key = activeFilter;
-    const current = tabLeads[key] || [];
-    const offset = current.length;
-    try {
-      setTabLoading((s) => ({ ...s, [key]: true }));
-      const supportedStatus = ['new', 'potential', 'in_progress', 'confirmed', 'cancelled', 'spam'];
-      const statusParam = supportedStatus.includes(key) ? key : undefined;
-      const resp = await leadsAPI.list(PAGE_LIMIT, statusParam ? { status: statusParam } : undefined, offset);
-      const fetched = resp.data || [];
-      setTabLeads((prev) => ({ ...prev, [key]: [...(prev[key] || []), ...fetched] }));
-      setTabHasMore((prev) => ({ ...prev, [key]: fetched.length >= PAGE_LIMIT }));
-    } catch (err) {
-      console.error('Failed to load more leads for tab', key, err);
-    } finally {
-      setTabLoading((s) => ({ ...s, [key]: false }));
-    }
-  };
+  
 
   const selectedLeadFollowUps = useMemo(
     () => followUps.filter((fu) => String(fu.leadId) === String(selectedLead?.id)),
@@ -941,17 +896,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
             <LeadList leads={filteredLeads} onSelectLead={setSelectedLead} />
           )}
         </section>
-        {tabHasMore[activeFilter] && (
-          <div className="flex justify-center mt-4">
-            <button
-              className="px-4 py-2 rounded bg-slate-200 dark:bg-slate-700"
-              onClick={() => void loadMoreForActiveTab()}
-              disabled={tabLoading[activeFilter]}
-            >
-              {tabLoading[activeFilter] ? 'Loading…' : 'Load more'}
-            </button>
-          </div>
-        )}
+        
       </main>
     </div>
   );
