@@ -35,7 +35,8 @@ export const dashboardController = {
           SELECT
             COUNT(*)::int as total_leads,
             COUNT(*) FILTER (WHERE temperature = 'hot')::int as hot_leads,
-            COUNT(*) FILTER (WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW()) AND status = 'booked')::int as bookings_this_month,
+              COUNT(*) FILTER (WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW()) AND status = 'booked')::int as bookings_this_month,
+              COUNT(*) FILTER (WHERE status = 'booked' OR lead_outcome = 'confirmed' OR pipeline_stage = 'confirmed')::int as total_confirmed,
             COALESCE(SUM(CASE WHEN status = 'booked' THEN budget ELSE 0 END), 0)::numeric as total_revenue
           FROM leads
           ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
@@ -76,6 +77,7 @@ export const dashboardController = {
         totalLeads: parseInt(stats?.total_leads) || 0,
         hotLeads: parseInt(stats?.hot_leads) || 0,
         bookingsThisMonth: parseInt(stats?.bookings_this_month) || 0,
+        totalConfirmed: parseInt(stats?.total_confirmed) || 0,
         totalRevenue: confirmedRevenue,
         monthlyTarget: targetSummary.monthlyTarget,
         monthlyTargetAchieved: targetSummary.monthlyTargetAchieved,

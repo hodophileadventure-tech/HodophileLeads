@@ -111,7 +111,8 @@ export const Dashboard: React.FC = () => {
     },
     {
       label: 'Confirmed Leads',
-      value: stats.bookingsThisMonth || 0,
+      // Show total confirmed leads (align with Leads view)
+      value: stats.totalConfirmed || stats.bookingsThisMonth || 0,
       color: 'bg-green-100 dark:bg-green-900'
     },
     {
