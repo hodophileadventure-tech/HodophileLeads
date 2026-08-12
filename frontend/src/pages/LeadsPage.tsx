@@ -74,6 +74,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [completionRemarks, setCompletionRemarks] = useState('');
   const [showCancelLeadModal, setShowCancelLeadModal] = useState(false);
   const [cancelLeadReason, setCancelLeadReason] = useState('');
+  const [cancelLeadReasonDetail, setCancelLeadReasonDetail] = useState('');
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
   const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
@@ -315,12 +316,14 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const confirmCancelLead = async () => {
     if (!selectedLead) return;
     try {
-      await leadsAPI.update(String(selectedLead.id), {
-        status: 'canceled',
-        canceledReason: cancelLeadReason,
-      });
+      const combinedReason = cancelLeadReasonDetail
+        ? `${cancelLeadReason} - ${cancelLeadReasonDetail}`
+        : cancelLeadReason;
+
+      await leadsAPI.cancel(String(selectedLead.id), combinedReason);
       setShowCancelLeadModal(false);
       setCancelLeadReason('');
+      setCancelLeadReasonDetail('');
       setSelectedLead(null);
       await onRefreshLeads();
     } catch (error) {
@@ -833,6 +836,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
             onClose={() => {
               setShowCancelLeadModal(false);
               setCancelLeadReason('');
+              setCancelLeadReasonDetail('');
             }}
             title="Cancel Lead"
             footer={
@@ -842,6 +846,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                   onClick={() => {
                     setShowCancelLeadModal(false);
                     setCancelLeadReason('');
+                    setCancelLeadReasonDetail('');
                   }}
                 >
                   Close
@@ -870,6 +875,15 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Cancellation Notes</label>
+                <textarea
+                  className="input-field w-full min-h-[120px]"
+                  value={cancelLeadReasonDetail}
+                  onChange={(e) => setCancelLeadReasonDetail(e.target.value)}
+                  placeholder="Write more details about why this lead is being canceled..."
+                />
               </div>
             </div>
           </Modal>

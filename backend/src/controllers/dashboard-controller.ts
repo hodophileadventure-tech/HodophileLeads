@@ -290,18 +290,27 @@ export const dashboardController = {
 
       const result = await query(`
         SELECT
-          id,
-          client_name,
-          phone,
-          destination,
-          status,
-          temperature,
-          canceled_reason,
-          agent_remarks,
-          remarks,
-          created_at,
-          updated_at
+          l.id,
+          l.client_name,
+          l.phone,
+          l.destination,
+          l.status,
+          l.temperature,
+          l.canceled_reason,
+          l.agent_remarks,
+          l.remarks,
+          l.created_at,
+          l.updated_at,
+          fu.title AS follow_up_title,
+          fu.description AS follow_up_description
         FROM leads l
+        LEFT JOIN LATERAL (
+          SELECT title, description
+          FROM follow_ups
+          WHERE lead_id = l.id
+          ORDER BY due_date ASC NULLS LAST, created_at DESC
+          LIMIT 1
+        ) fu ON true
         WHERE l.agent_id = $1
           AND (${sectionFilters[String(section)]})
           AND ((l.created_at >= $2 AND l.created_at <= $3) OR (l.updated_at >= $2 AND l.updated_at <= $3))
