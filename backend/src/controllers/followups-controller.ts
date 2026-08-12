@@ -27,20 +27,12 @@ export const followUpsController = {
           return res.status(403).json({ message: 'You do not have access to this lead' });
         }
         const rows = await followUpsModel.findByLead(String(leadId));
-        console.log('[DEBUG Controller] Follow-ups by lead:', rows.length, 'First item fields:', Object.keys(rows[0] || {}));
         return res.json(rows);
       }
 
       const rows = req.user.role === 'admin' || req.user.role === 'manager'
         ? await followUpsModel.findAll(status ? String(status) : undefined)
         : await followUpsModel.findAllByAssignee(req.user.id, status ? String(status) : undefined);
-      
-      console.log('[DEBUG Controller] All follow-ups count:', rows.length);
-      console.log('[DEBUG Controller] First follow-up fields:', Object.keys(rows[0] || {}));
-      if (rows[0]) {
-        console.log('[DEBUG Controller] First follow-up created_by:', rows[0].created_by);
-        console.log('[DEBUG Controller] First follow-up created_by_name:', rows[0].created_by_name);
-      }
       
       res.json(rows);
     } catch (error) {
@@ -143,14 +135,11 @@ export const followUpsController = {
   async complete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { remarks } = req.body as { remarks?: string };
-      console.log('Complete follow-up request:', req.params.id, 'remarks:', remarks);
       
       const item = await followUpsModel.markDone(req.params.id);
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
-      
-      console.log('Follow-up marked done:', item.id);
 
       try {
         await leadsModel.touch(item.lead_id);
@@ -159,11 +148,9 @@ export const followUpsController = {
       // If remarks provided, update the associated lead's agent_remarks
       if (remarks && item.lead_id) {
         try {
-          console.log('Updating lead:', item.lead_id, 'with remarks:', remarks);
           const updatedLead = await leadsModel.update(item.lead_id, {
             agentRemarks: remarks
           });
-          console.log('Lead updated with remarks:', updatedLead?.id, 'agentRemarks:', updatedLead?.agentRemarks);
         } catch (err) {
           console.error('Failed to update lead remarks:', err);
         }

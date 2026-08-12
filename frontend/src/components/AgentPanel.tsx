@@ -44,7 +44,6 @@ export const AgentPanel: React.FC = () => {
   const [followUpNote, setFollowUpNote] = useState('');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
-  const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'phone' | 'agent'>('phone');
   const [dateRangeStart, setDateRangeStart] = useState('');
@@ -82,7 +81,6 @@ export const AgentPanel: React.FC = () => {
     if (!item) return;
     const dueAt = new Date(item.dueDate).getTime();
     const next = { ...readDismissedFollowUps(), [item.id]: Number.isFinite(dueAt) ? dueAt : Date.now() + 60 * 60 * 1000 };
-    setDismissedFollowUps(next);
     writeDismissedFollowUps(next);
     stopAlarmAudio();
     setActiveAlarm(null);
@@ -191,7 +189,6 @@ export const AgentPanel: React.FC = () => {
       // completed
       
       const next = { ...readDismissedFollowUps(), [completionFollowUp.id]: Date.now() + 24 * 60 * 60 * 1000 };
-      setDismissedFollowUps(next);
       writeDismissedFollowUps(next);
       setActiveAlarm(null);
       setShowCompletionRemarkModal(false);
@@ -374,45 +371,6 @@ export const AgentPanel: React.FC = () => {
   const openQuotePreview = (request: QuoteRequest) => {
     window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
   };
-
-
-  useEffect(() => {
-    let mounted = true;
-
-    const checkFollowUps = async () => {
-      try {
-        const response = await followUpsAPI.list();
-        if (!mounted) return;
-        const now = Date.now();
-        const oneHourMs = 60 * 60 * 1000;
-        const soonest = (response.data || [])
-          .map(normalizeFollowUp)
-          .filter((item) => item.status !== 'completed')
-          .filter((item) => (dismissedFollowUps[item.id] || 0) < Date.now())
-          .filter((item) => {
-            const dueAt = new Date(item.dueDate).getTime();
-            return dueAt > now && dueAt - now <= oneHourMs;
-          })
-          .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
-
-        if (soonest && (!activeAlarm || activeAlarm.id !== soonest.id)) {
-          setActiveAlarm(soonest);
-        }
-        if (!soonest && activeAlarm) {
-          setActiveAlarm(null);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    void checkFollowUps();
-    const id = window.setInterval(() => { void checkFollowUps(); }, 30000);
-    return () => {
-      mounted = false;
-      window.clearInterval(id);
-    };
-  }, [activeAlarm, dismissedFollowUps]);
 
   useEffect(() => {
     if (!activeAlarm) {
