@@ -1,6 +1,6 @@
 import type { LeadTemperature } from '../types';
 
-export type LeadLifecycleState = 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'new' | 'spam';
+export type LeadLifecycleState = 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'new' | 'spam' | 'cancelled';
 
 /**
  * Calculate lead temperature based on engagement metrics
@@ -202,6 +202,7 @@ export const getLeadLifecycleState = (lead: {
   if (lead.potential) return 'potential';
   if (lead.leadOutcome === 'confirmed') return 'confirmed';
   if (lead.status === 'spam') return 'spam';
+  if (lead.status === 'canceled') return 'cancelled';
   // Only use temperature value if explicitly set to 'dead' - don't auto-set from status
   if (lead.temperature === 'dead') return 'dead';
   if (lead.pipelineStage === 'confirmed' || lead.status === 'booked') return 'confirmed';
@@ -337,6 +338,12 @@ export const getLeadLifecycleStyle = (lead: {
       ring: 'ring-slate-300/70 dark:ring-slate-600/50',
       row: 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800',
       label: 'New'
+    },
+    cancelled: {
+      badge: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+      ring: 'ring-red-400/70 dark:ring-red-500/50',
+      row: 'border-red-300 bg-red-50/70 dark:border-red-800 dark:bg-red-950/20',
+      label: 'Cancelled'
     }
   };
 

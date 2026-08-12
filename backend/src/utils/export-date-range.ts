@@ -8,7 +8,9 @@ export interface LeadQueryFilterOptions {
   phone?: string;
   startDate?: string;
   endDate?: string;
+  status?: string;
 }
+
 
 export interface LeadExportFilterResult {
   whereClause: string;
@@ -30,6 +32,7 @@ export const buildLeadQueryFilters = (options: LeadQueryFilterOptions, startInde
   const phone = String(options.phone || '').trim();
   const startDate = String(options.startDate || '').trim();
   const endDate = String(options.endDate || '').trim();
+  const statusParam = String((options as any).status || '').trim().toLowerCase();
 
   if (phone) {
     clauses.push(`l.phone ILIKE $${index}`);
@@ -46,6 +49,25 @@ export const buildLeadQueryFilters = (options: LeadQueryFilterOptions, startInde
   if (endDate) {
     clauses.push(`l.created_at::date <= $${index}::date`);
     params.push(endDate);
+  }
+
+  // support status filtering for leads list (lazy-loaded subsections)
+  if (statusParam && statusParam !== 'all') {
+    // map frontend 'cancelled' to DB 'canceled' if necessary
+    const statusNormalized = statusParam === 'cancelled' ? 'canceled' : statusParam;
+    if (!allowedStatuses.has(statusNormalized)) {
+      // ignore unknown statuses to avoid throwing from list endpoint
+    } else {
+      if (statusNormalized === 'potential') {
+        clauses.push("l.potential = true AND l.status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted')");
+      } else if (statusNormalized === 'in_progress') {
+        clauses.push("l.status IN ('negotiation', 'interested', 'contacted')");
+      } else {
+        clauses.push(`l.status = $${index}`);
+        params.push(statusNormalized);
+        index += 1;
+      }
+    }
   }
 
   return {

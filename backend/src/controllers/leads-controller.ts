@@ -192,13 +192,13 @@ export const leadsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const defaultLimit = 10000; // 10k leads max (covers most cases)
-      const { limit = defaultLimit, offset = 0, startDate, endDate, phone } = req.query as any;
+      const { limit = defaultLimit, offset = 0, startDate, endDate, phone, status } = req.query as any;
       const scopeAgentId = req.user.role === 'agent' ? String(req.user.id) : undefined;
       const leads = await leadsModel.findAll(
         scopeAgentId,
         Number(limit) || defaultLimit,
         Number(offset) || 0,
-        { startDate, endDate, phone }
+        { startDate, endDate, phone, status }
       );
       res.json(leads);
     } catch (error) {

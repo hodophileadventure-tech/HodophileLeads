@@ -13,6 +13,8 @@ import {
   getLeadLifecycleState
 } from '../utils/helpers';
 
+const PAGE_LIMIT = 500;
+
 const CANCEL_LEAD_REASONS = [
   'Budget constraints',
   'Change of plans',
@@ -39,7 +41,7 @@ const CANCEL_LEAD_REASONS = [
   'No specific reason',
 ];
 
-type StatusFilter = 'all' | 'active' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'canceled' | 'spam';
+type StatusFilter = 'all' | 'active' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'cancelled' | 'spam' | 'new';
 
 interface LeadsPageProps {
   leads: Lead[];
@@ -76,6 +78,9 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
   const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
+  const [tabLeads, setTabLeads] = useState<Record<string, Lead[]>>(() => ({ all: leads }));
+  const [tabHasMore, setTabHasMore] = useState<Record<string, boolean>>(() => ({ all: (leads || []).length >= PAGE_LIMIT }));
+  const [tabLoading, setTabLoading] = useState<Record<string, boolean>>(() => ({}));
 
   React.useEffect(() => {
     if (!selectedLead || !leadDetailRef.current) return;
@@ -113,16 +118,16 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   };
 
   const filteredLeads = useMemo(() => {
-    let result = [...leads];
+    const baseLeads = activeFilter === 'all' ? leads : (tabLeads[activeFilter] || []);
+    let result = [...baseLeads];
 
-    // Apply status filter
-    if (activeFilter !== 'all') {
+    // Apply status client-side only if backend did not filter (fallback)
+    if (activeFilter !== 'all' && (!tabLeads[activeFilter] || tabLeads[activeFilter].length === 0)) {
       result = result.filter((lead) => {
-        const status = String((lead as any).status || '').toLowerCase();
         const lifecycle = getLeadLifecycleState(lead);
 
-        if (activeFilter === 'canceled') return status === 'canceled';
-        if (activeFilter === 'spam') return status === 'spam';
+        if (activeFilter === 'cancelled') return lifecycle === 'cancelled';
+        if (activeFilter === 'spam') return lifecycle === 'spam';
         if (activeFilter === 'active') return lifecycle === 'confirmed' || lifecycle === 'in_progress';
         return lifecycle === activeFilter;
       });
@@ -176,6 +181,50 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     return result;
   }, [leads, activeFilter, leadSearchQuery, appliedDateRange, locationFilter, travelMonthFilter, tourTypeFilters]);
 
+  React.useEffect(() => {
+    let cancelled = false;
+    const loadTab = async () => {
+      if (activeFilter === 'all') return;
+      if (tabLeads[activeFilter]) return; // already loaded
+      try {
+        setTabLoading((s) => ({ ...s, [activeFilter]: true }));
+        const limit = PAGE_LIMIT;
+        // pass status only for filters that map directly to backend statuses
+        const supportedStatus = ['new', 'potential', 'in_progress', 'confirmed', 'cancelled', 'spam'];
+        const statusParam = supportedStatus.includes(activeFilter) ? activeFilter : undefined;
+        const resp = await leadsAPI.list(limit, statusParam ? { status: statusParam } : undefined);
+        if (cancelled) return;
+        setTabLeads((prev) => ({ ...prev, [activeFilter]: resp.data }));
+        setTabHasMore((prev) => ({ ...prev, [activeFilter]: (resp.data || []).length >= PAGE_LIMIT }));
+        setTabLoading((s) => ({ ...s, [activeFilter]: false }));
+      } catch (err) {
+        console.error('Failed to load leads for tab', activeFilter, err);
+        setTabLoading((s) => ({ ...s, [activeFilter]: false }));
+      }
+    };
+    void loadTab();
+    return () => { cancelled = true; };
+  }, [activeFilter, tabLeads]);
+
+  const loadMoreForActiveTab = async () => {
+    const key = activeFilter;
+    const current = tabLeads[key] || [];
+    const offset = current.length;
+    try {
+      setTabLoading((s) => ({ ...s, [key]: true }));
+      const supportedStatus = ['new', 'potential', 'in_progress', 'confirmed', 'cancelled', 'spam'];
+      const statusParam = supportedStatus.includes(key) ? key : undefined;
+      const resp = await leadsAPI.list(PAGE_LIMIT, statusParam ? { status: statusParam } : undefined, offset);
+      const fetched = resp.data || [];
+      setTabLeads((prev) => ({ ...prev, [key]: [...(prev[key] || []), ...fetched] }));
+      setTabHasMore((prev) => ({ ...prev, [key]: fetched.length >= PAGE_LIMIT }));
+    } catch (err) {
+      console.error('Failed to load more leads for tab', key, err);
+    } finally {
+      setTabLoading((s) => ({ ...s, [key]: false }));
+    }
+  };
+
   const selectedLeadFollowUps = useMemo(
     () => followUps.filter((fu) => String(fu.leadId) === String(selectedLead?.id)),
     [followUps, selectedLead]
@@ -198,8 +247,9 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       in_progress: leads.filter((lead) => getLeadLifecycleState(lead) === 'in_progress').length,
       dead: leads.filter((lead) => getLeadLifecycleState(lead) === 'dead').length,
       confirmed: leads.filter((lead) => getLeadLifecycleState(lead) === 'confirmed').length,
-      canceled: leads.filter((lead) => String((lead as any).status || '').toLowerCase() === 'canceled').length,
-      spam: leads.filter((lead) => String((lead as any).status || '').toLowerCase() === 'spam').length,
+      cancelled: leads.filter((lead) => getLeadLifecycleState(lead) === 'cancelled').length,
+      spam: leads.filter((lead) => getLeadLifecycleState(lead) === 'spam').length,
+      new: leads.filter((lead) => getLeadLifecycleState(lead) === 'new').length,
     };
   }, [leads]);
 
@@ -365,7 +415,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     { key: 'in_progress', label: `In Progress (${statusCounts.in_progress})`, color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
     { key: 'dead', label: `Dead (${statusCounts.dead})`, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200' },
     { key: 'confirmed', label: `Confirmed (${statusCounts.confirmed})`, color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' },
-    { key: 'canceled', label: `Canceled (${statusCounts.canceled})`, color: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-200' },
+    { key: 'new', label: `New (${statusCounts.new})`, color: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200' },
+    { key: 'cancelled', label: `Cancelled (${statusCounts.cancelled})`, color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
     { key: 'spam', label: `Spam (${statusCounts.spam})`, color: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200' },
   ];
 
@@ -890,6 +941,17 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
             <LeadList leads={filteredLeads} onSelectLead={setSelectedLead} />
           )}
         </section>
+        {tabHasMore[activeFilter] && (
+          <div className="flex justify-center mt-4">
+            <button
+              className="px-4 py-2 rounded bg-slate-200 dark:bg-slate-700"
+              onClick={() => void loadMoreForActiveTab()}
+              disabled={tabLoading[activeFilter]}
+            >
+              {tabLoading[activeFilter] ? 'Loading…' : 'Load more'}
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

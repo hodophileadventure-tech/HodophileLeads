@@ -2,12 +2,14 @@ import apiClient from './api';
 import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix, QuoteRequest } from '../types';
 
 export const leadsAPI = {
-  list: (limit?: number, filters?: { phone?: string; startDate?: string; endDate?: string }) => apiClient.get<Lead[]>('/leads', {
+  list: (limit?: number, filters?: { phone?: string; startDate?: string; endDate?: string; status?: string }, offset?: number) => apiClient.get<Lead[]>('/leads', {
     params: {
       ...(limit ? { limit } : {}),
       ...(filters?.phone ? { phone: filters.phone } : {}),
       ...(filters?.startDate ? { startDate: filters.startDate } : {}),
-      ...(filters?.endDate ? { endDate: filters.endDate } : {})
+      ...(filters?.endDate ? { endDate: filters.endDate } : {}),
+      ...(filters?.status ? { status: filters.status } : {}),
+      ...(offset ? { offset } : {}),
     }
   }),
   getById: (id: string) => apiClient.get<Lead>(`/leads/${id}`),
