@@ -88,8 +88,17 @@ export const leadsModel = {
     params.push(...leadFilters.params);
 
     const whereClause = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '';
-    const sql = `SELECT * FROM leads l${whereClause} ORDER BY l.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(limit, offset);
+    let sql = `SELECT * FROM leads l${whereClause} ORDER BY l.created_at DESC`;
+
+    // support limit=0 to mean no LIMIT (return all rows). If limit > 0, use LIMIT/OFFSET.
+    if (limit && Number(limit) > 0) {
+      sql += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+      params.push(limit, offset);
+    } else if (offset && Number(offset) > 0) {
+      // no limit, but offset specified
+      sql += ` OFFSET $${params.length + 1}`;
+      params.push(offset);
+    }
 
     const result = await query(sql, params);
     return result.rows.map(mapLeadRow);
