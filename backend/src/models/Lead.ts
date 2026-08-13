@@ -3,6 +3,32 @@ import type { Lead } from '../types';
 import { profileModel } from './Profile';
 import { buildLeadQueryFilters } from '../utils/export-date-range';
 
+// Cache for has_progressed column existence to avoid repeated checks
+let hasProgressedColumnExists: boolean | null = null;
+
+const checkHasProgressedColumn = async (): Promise<boolean> => {
+  if (hasProgressedColumnExists !== null) {
+    return hasProgressedColumnExists;
+  }
+  
+  try {
+    await query(`
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND table_name = 'leads'
+          AND column_name = 'has_progressed'
+      ) AS exists
+    `);
+    hasProgressedColumnExists = true;
+    return true;
+  } catch (e) {
+    hasProgressedColumnExists = false;
+    return false;
+  }
+};
+
 const mapLeadRow = (row: any) => {
   if (!row) return row;
 
@@ -229,33 +255,21 @@ export const leadsModel = {
 
     const normalizedData: any = { ...data };
     
-    // Track if has_progressed column exists
-    let hasProgressedColumnExists = true;
+    // Check if has_progressed column exists (use cached value if available)
+    const hasProgressedColumnExists = await checkHasProgressedColumn();
     
-    // Fetch current lead to check for status changes (gracefully handle missing has_progressed column)
+    // Fetch current lead to check for status changes (only if has_progressed exists and not in transaction)
     let currentLead: any = null;
-    if (normalizedData.status) {
+    if (normalizedData.status && hasProgressedColumnExists && !client) {
       try {
         const currentResult = await executor('SELECT id, status, has_progressed FROM leads WHERE id = $1', [id]);
         currentLead = currentResult.rows[0];
       } catch (e: any) {
-        // has_progressed column might not exist in legacy databases
-        if (e?.code === '42703') {
-          console.log('[Lead.update] has_progressed column not found, using legacy update');
-          hasProgressedColumnExists = false;
-          try {
-            const currentResult = await executor('SELECT id, status FROM leads WHERE id = $1', [id]);
-            currentLead = currentResult.rows[0];
-          } catch (e2) {
-            console.warn('[Lead.update] Could not fetch current lead for status check', e2);
-          }
-        } else {
-          console.warn('[Lead.update] Could not fetch current lead for status check', e);
-        }
+        console.warn('[Lead.update] Could not fetch current lead for status check', e?.message);
       }
     }
 
-    // Validate status transition (only if has_progressed column exists)
+    // Validate status transition (only if has_progressed column exists and we have current lead)
     if (normalizedData.status && currentLead && 'has_progressed' in currentLead && hasProgressedColumnExists) {
       const oldStatus = currentLead.status;
       const newStatus = normalizedData.status;
