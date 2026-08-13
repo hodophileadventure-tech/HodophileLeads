@@ -35,6 +35,7 @@ COPY backend/package*.json ./
 RUN npm install --omit=dev
 COPY --from=backend-build /build/backend/dist ./dist
 COPY backend/scripts ./scripts
+COPY database ./database
 
 # Copy frontend build to backend/public for serving via Express.static()
 COPY --from=frontend-build /build/frontend/dist ./public
