@@ -152,10 +152,12 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
 
       // Map selected leadStatus into payload fields
       const status = (formData as any).leadStatus || 'new';
-      if (status === 'potential') {
-        payload.potential = true;
-      } else {
+      
+      // Reset potential flag unless explicitly setting to potential
+      if (status !== 'potential') {
         payload.potential = false;
+      } else {
+        payload.potential = true;
       }
 
       if (status === 'dead') {
@@ -167,8 +169,14 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         (payload as any).status = 'booked';
       } else if (status === 'in_progress') {
         (payload as any).status = 'contacted';
-      } else if (status === 'new' || status === 'potential') {
+      } else if (status === 'new') {
+        // Truly new lead - keep status=new but ensure potential=false
         (payload as any).status = 'new';
+        payload.potential = false;
+      } else if (status === 'potential') {
+        // Potential lead - keep status=new but set potential=true
+        (payload as any).status = 'new';
+        payload.potential = true;
       }
 
       if (initialData?.id) {
