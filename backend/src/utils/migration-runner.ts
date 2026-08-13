@@ -42,23 +42,12 @@ async function getExecutedMigrations(): Promise<Set<string>> {
  * Get migration files from directory
  */
 function getMigrationFiles(): Migration[] {
-  // Try multiple possible paths (dev and production)
-  const possiblePaths = [
-    path.join(__dirname, '..', '..', 'database', 'migrations'),  // Dev: src/utils -> backend/database/migrations
-    path.join(__dirname, '..', '..', '..', 'database', 'migrations'), // Prod: dist/utils -> backend/database/migrations
-    '/app/database/migrations' // Docker production path
-  ];
+  // In production (Docker), this resolves to /app/database/migrations
+  // In development, this resolves to backend/database/migrations
+  const migrationsDir = path.join(__dirname, '..', '..', 'database', 'migrations');
 
-  let migrationsDir = '';
-  for (const tryPath of possiblePaths) {
-    if (fs.existsSync(tryPath)) {
-      migrationsDir = tryPath;
-      break;
-    }
-  }
-
-  if (!migrationsDir) {
-    console.warn(`[Migration] Migrations directory not found. Tried paths: ${possiblePaths.join(', ')}`);
+  if (!fs.existsSync(migrationsDir)) {
+    console.warn(`[Migration] Migrations directory not found: ${migrationsDir}`);
     return [];
   }
 
