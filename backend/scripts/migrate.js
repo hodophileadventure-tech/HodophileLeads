@@ -36,25 +36,38 @@ async function migrate() {
     `);
     console.log('✅ Users table created');
 
-    await client.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS valid_role');
-    await client.query("ALTER TABLE users ADD CONSTRAINT valid_role CHECK (role IN ('admin', 'agent', 'manager'))");
+    // Check if role column exists - skip old schema ops if Phase 2 schema
+    const columnCheck = await client.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name='users' AND column_name='role'
+    `);
+
+    if (columnCheck.rows.length > 0) {
+      // Old schema - role column exists
+      await client.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS valid_role');
+      await client.query("ALTER TABLE users ADD CONSTRAINT valid_role CHECK (role IN ('admin', 'agent', 'manager'))");
+      
+      await client.query(`
+        INSERT INTO users (email, name, password, role)
+        VALUES ($1, $2, $3, 'admin')
+        ON CONFLICT (email) DO NOTHING
+      `, [DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD_HASH]);
+      console.log('✅ Default admin ensured');
+
+      await client.query(`
+        INSERT INTO users (email, name, password, role)
+        VALUES ($1, $2, $3, 'agent')
+        ON CONFLICT (email) DO NOTHING
+      `, [DEFAULT_AGENT_EMAIL, DEFAULT_AGENT_NAME, DEFAULT_AGENT_PASSWORD_HASH]);
+      console.log('✅ Default agent ensured');
+    } else {
+      // Phase 2 schema - skip old schema operations
+      console.log('⊘ Skipping old schema operations (Phase 2 schema detected)');
+    }
+
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP');
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_logout_at TIMESTAMP');
     console.log('✅ Users login audit columns ensured');
-
-    await client.query(`
-      INSERT INTO users (email, name, password, role)
-      VALUES ($1, $2, $3, 'admin')
-      ON CONFLICT (email) DO NOTHING
-    `, [DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD_HASH]);
-    console.log('✅ Default admin ensured');
-
-    await client.query(`
-      INSERT INTO users (email, name, password, role)
-      VALUES ($1, $2, $3, 'agent')
-      ON CONFLICT (email) DO NOTHING
-    `, [DEFAULT_AGENT_EMAIL, DEFAULT_AGENT_NAME, DEFAULT_AGENT_PASSWORD_HASH]);
-    console.log('✅ Default agent ensured');
 
     // 2. Client Profiles Table (no dependencies)
     await client.query(`
