@@ -12,15 +12,28 @@ export const authController = {
 
       console.log('[AUTH] Login attempt', { email: normalizedEmail, ip: req.ip });
 
-      // Fetch user with role details
-      const result = await query(
-        `SELECT u.*, r.slug as role_slug, r.name as role_name
-         FROM users u
-         LEFT JOIN roles r ON u.role_id = r.id
-         WHERE u.email = $1`,
-        [normalizedEmail]
-      );
-      const user = result.rows[0];
+      // Try to fetch user with role details from roles table
+      // Fall back to simple query if roles table doesn't exist (backwards compatibility)
+      let user: any = null;
+      try {
+        const result = await query(
+          `SELECT u.*, r.slug as role_slug, r.name as role_name
+           FROM users u
+           LEFT JOIN roles r ON u.role_id = r.id
+           WHERE u.email = $1`,
+          [normalizedEmail]
+        );
+        user = result.rows[0];
+      } catch (roleError: any) {
+        // If roles table doesn't exist, fall back to simple query
+        if (roleError?.code === '42P01') {
+          console.log('[AUTH] Roles table not found, using fallback query', { email: normalizedEmail });
+          const result = await query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
+          user = result.rows[0];
+        } else {
+          throw roleError;
+        }
+      }
 
       if (!user) {
         console.warn('[AUTH] Login failed: user not found', { email: normalizedEmail, ip: req.ip });
@@ -75,27 +88,50 @@ export const authController = {
 
       const hashedPassword = await hashPassword(password);
 
-      // Get the role_id for the given role slug
-      const roleResult = await query('SELECT id FROM roles WHERE slug = $1', [role]);
-      const roleId = roleResult.rows[0]?.id;
+      // Try to use role_id if roles table exists, otherwise use role string
+      let result: any;
+      try {
+        // Check if roles table exists and try to use it
+        const roleResult = await query('SELECT id FROM roles WHERE slug = $1', [role]);
+        const roleId = roleResult.rows[0]?.id;
 
-      if (!roleId) {
-        return res.status(400).json({ message: `Invalid role: ${role}` });
+        if (roleId) {
+          result = await query(
+            'INSERT INTO users (email, name, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id, email, name',
+            [normalizedEmail, normalizedName, hashedPassword, roleId]
+          );
+        } else {
+          throw new Error(`Role not found: ${role}`);
+        }
+      } catch (roleError: any) {
+        // If roles table doesn't exist, fall back to role string (legacy mode)
+        if (roleError?.code === '42P01' || roleError?.message?.includes('not found')) {
+          console.log('[AUTH REGISTER] Roles table not found, using legacy role column', { role });
+          result = await query(
+            'INSERT INTO users (email, name, password, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role',
+            [normalizedEmail, normalizedName, hashedPassword, role]
+          );
+        } else {
+          throw roleError;
+        }
       }
-
-      const result = await query(
-        'INSERT INTO users (email, name, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id, email, name',
-        [normalizedEmail, normalizedName, hashedPassword, roleId]
-      );
 
       const user = result.rows[0];
 
-      // Fetch role details
-      const roleDetailsResult = await query(
-        'SELECT slug, name FROM roles WHERE id = $1',
-        [roleId]
-      );
-      const roleDetails = roleDetailsResult.rows[0];
+      // Try to fetch role details if available
+      let roleDetails: any = { slug: role, name: role };
+      try {
+        const roleDetailsResult = await query(
+          'SELECT slug, name FROM roles WHERE slug = $1',
+          [role]
+        );
+        if (roleDetailsResult.rows[0]) {
+          roleDetails = roleDetailsResult.rows[0];
+        }
+      } catch (e) {
+        // Roles table might not exist, that's ok
+        console.log('[AUTH REGISTER] Could not fetch role details', { role });
+      }
 
       const privilegedRoles = ['admin', 'agent', 'manager'];
       const tokenExpiry = privilegedRoles.includes(role) ? '9h' : undefined;

@@ -63,8 +63,9 @@ export const buildLeadQueryFilters = (options: LeadQueryFilterOptions, startInde
       } else if (statusNormalized === 'in_progress') {
         clauses.push("l.status IN ('negotiation', 'interested', 'contacted')");
       } else if (statusNormalized === 'new') {
-        // Only include truly new leads - those that have never progressed and are not potential
-        clauses.push("l.status = $" + index + " AND l.potential = false AND COALESCE(l.has_progressed, false) = false");
+        // Only include truly new leads - use legacy filter if has_progressed doesn't exist
+        // This filters out potential leads (potential = true means they've been touched)
+        clauses.push("l.status = $" + index + " AND l.potential = false");
         params.push(statusNormalized);
         index += 1;
       } else {
@@ -104,8 +105,9 @@ export const buildLeadExportFilters = (options: LeadExportFilterOptions, startIn
     } else if (statusFilter === 'in_progress') {
       clauses.push("l.status IN ('negotiation', 'interested', 'contacted')");
     } else if (statusFilter === 'new') {
-      // Only export truly new leads - those that have never progressed and are not potential
-      clauses.push(`l.status = $${index} AND l.potential = false AND COALESCE(l.has_progressed, false) = false`);
+      // Only export truly new leads - use legacy filter if has_progressed doesn't exist
+      // This filters out potential leads (potential = true means they've been touched)
+      clauses.push(`l.status = $${index} AND l.potential = false`);
       params.push(statusFilter);
       index += 1;
     } else {

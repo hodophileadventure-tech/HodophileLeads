@@ -229,19 +229,30 @@ export const leadsModel = {
 
     const normalizedData: any = { ...data };
     
-    // Fetch current lead to check for status changes
+    // Fetch current lead to check for status changes (gracefully handle missing has_progressed column)
     let currentLead: any = null;
     if (normalizedData.status) {
       try {
         const currentResult = await executor('SELECT id, status, has_progressed FROM leads WHERE id = $1', [id]);
         currentLead = currentResult.rows[0];
-      } catch (e) {
-        console.warn('[Lead.update] Could not fetch current lead for status check', e);
+      } catch (e: any) {
+        // has_progressed column might not exist in legacy databases
+        if (e?.code === '42703') {
+          console.log('[Lead.update] has_progressed column not found, using legacy update');
+          try {
+            const currentResult = await executor('SELECT id, status FROM leads WHERE id = $1', [id]);
+            currentLead = currentResult.rows[0];
+          } catch (e2) {
+            console.warn('[Lead.update] Could not fetch current lead for status check', e2);
+          }
+        } else {
+          console.warn('[Lead.update] Could not fetch current lead for status check', e);
+        }
       }
     }
 
-    // Validate status transition
-    if (normalizedData.status && currentLead) {
+    // Validate status transition (only if has_progressed column exists)
+    if (normalizedData.status && currentLead && 'has_progressed' in currentLead) {
       const oldStatus = currentLead.status;
       const newStatus = normalizedData.status;
       const hasProgressed = currentLead.has_progressed === true;
@@ -257,6 +268,9 @@ export const leadsModel = {
         normalizedData.has_progressed = true;
         console.log('[Lead.update] Auto-marking lead as progressed', { leadId: id, oldStatus, newStatus });
       }
+    } else if (normalizedData.has_progressed !== undefined) {
+      // Remove has_progressed if column doesn't exist
+      delete normalizedData.has_progressed;
     }
 
     if (normalizedData.pipelineStage) {
