@@ -87,22 +87,14 @@ export const adminController = {
           l.canceled_reason,
           l.canceled_at,
           COALESCE(f.follow_up_count, 0) AS follow_up_count,
-          COALESCE(f.canceled_followups, 0) AS canceled_followups,
-          COALESCE(f.follow_ups_details, '[]'::text) AS follow_ups_details
+          COALESCE(f.canceled_followups, 0) AS canceled_followups
         FROM leads l
         LEFT JOIN users u ON u.id = l.agent_id
         LEFT JOIN (
           SELECT
             lead_id,
             COUNT(*) AS follow_up_count,
-            COUNT(*) FILTER (WHERE status = 'canceled') AS canceled_followups,
-            json_agg(json_build_object(
-              'scheduled_date', to_char(due_date, 'YYYY-MM-DD'),
-              'title', title,
-              'description', description,
-              'status', status,
-              'completed_at', CASE WHEN status = 'completed' THEN to_char(completed_at, 'YYYY-MM-DD') ELSE null END
-            ) ORDER BY due_date ASC) AS follow_ups_details
+            COUNT(*) FILTER (WHERE status = 'canceled') AS canceled_followups
           FROM follow_ups
           GROUP BY lead_id
         ) f ON f.lead_id = l.id
@@ -111,6 +103,28 @@ export const adminController = {
       `, [...agentParams, ...filterResult.params]);
 
       const rows = Array.isArray(result.rows) ? result.rows : [];
+      
+      // Fetch follow-up details for each lead
+      for (const row of rows) {
+        try {
+          const followUpsResult = await query(`
+            SELECT
+              title,
+              description,
+              due_date,
+              status,
+              completed_at
+            FROM follow_ups
+            WHERE lead_id = $1
+            ORDER BY due_date ASC
+          `, [row.id]);
+          
+          row.follow_ups_details = followUpsResult.rows || [];
+        } catch (e) {
+          row.follow_ups_details = [];
+        }
+      }
+      
       const headers = [
         'Lead ID',
         'Client Name',
@@ -134,21 +148,16 @@ export const adminController = {
       const normalizedStatusLabel = statusFilter || 'all';
 
       // Helper function to format follow-ups details for display
-      const formatFollowUpDetails = (detailsJson: string) => {
-        try {
-          const details = JSON.parse(detailsJson || '[]');
-          if (!Array.isArray(details) || details.length === 0) return '';
-          return details
-            .map((fu: any) => {
-              let item = `${fu.title} (${fu.scheduled_date})`;
-              if (fu.description) item += ` - ${fu.description}`;
-              if (fu.completed_at) item += ` [Completed: ${fu.completed_at}]`;
-              return item;
-            })
-            .join(' | ');
-        } catch {
-          return '';
-        }
+      const formatFollowUpDetails = (followUps: any[]) => {
+        if (!Array.isArray(followUps) || followUps.length === 0) return '';
+        return followUps
+          .map((fu: any) => {
+            let item = `${fu.title} (${new Date(fu.due_date).toISOString().split('T')[0]})`;
+            if (fu.description) item += ` - ${fu.description}`;
+            if (fu.status === 'completed' && fu.completed_at) item += ` [Completed: ${new Date(fu.completed_at).toISOString().split('T')[0]}]`;
+            return item;
+          })
+          .join(' | ');
       };
 
       if (exportType === 'txt') {
@@ -169,7 +178,7 @@ export const adminController = {
           row.canceled_at,
           String(Number(row.follow_up_count || 0)),
           String(Number(row.canceled_followups || 0)),
-          formatFollowUpDetails(row.follow_ups_details)
+          formatFollowUpDetails(row.follow_ups_details || [])
         ].map((value) => (value ?? '').toString().replace(/\t/g, ' ')).join('\t'));
 
         const headerLine = headers.join('\t');
