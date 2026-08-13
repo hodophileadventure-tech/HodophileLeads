@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import { adminController } from '../controllers/admin-controller';
 import { quoteRequestsController } from '../controllers/quote-requests-controller';
+import { adminRoleUserController } from '../controllers/admin-role-user-controller';
 
 export const adminRouter = Router();
 
@@ -54,3 +55,54 @@ adminRouter.post('/issues', issueUpload.single('attachment'), adminController.cr
 adminRouter.get('/issues', roleMiddleware(['admin', 'manager', 'agent']), adminController.listIssues);
 adminRouter.put('/issues/:id', roleMiddleware(['admin']), adminController.updateIssue);
 adminRouter.post('/issues/:id/attachments', roleMiddleware(['admin']), issueUpload.single('attachment'), adminController.uploadIssueAttachment);
+
+// ============================================================================
+// ROLE MANAGEMENT (Admin Only)
+// ============================================================================
+
+// Create new role
+adminRouter.post('/roles', roleMiddleware(['admin']), adminRoleUserController.createRole);
+
+// List all roles
+adminRouter.get('/roles', roleMiddleware(['admin']), adminRoleUserController.listRoles);
+
+// Get specific role with permissions
+adminRouter.get('/roles/:id', roleMiddleware(['admin']), adminRoleUserController.getRole);
+
+// Update role
+adminRouter.put('/roles/:id', roleMiddleware(['admin']), adminRoleUserController.updateRole);
+
+// Delete role
+adminRouter.delete('/roles/:id', roleMiddleware(['admin']), adminRoleUserController.deleteRole);
+
+// Assign permissions to role
+adminRouter.post('/roles/:roleId/permissions', roleMiddleware(['admin']), adminRoleUserController.assignPermissions);
+
+// ============================================================================
+// USER MANAGEMENT (Admin Only)
+// ============================================================================
+
+// Create new user
+adminRouter.post('/users', roleMiddleware(['admin']), adminRoleUserController.createUser);
+
+// List all users
+adminRouter.get('/users', roleMiddleware(['admin']), adminRoleUserController.listUsers);
+
+// Get specific user
+adminRouter.get('/users/:id', roleMiddleware(['admin']), adminRoleUserController.getUser);
+
+// Update user
+adminRouter.put('/users/:id', roleMiddleware(['admin']), adminRoleUserController.updateUser);
+
+// Delete user
+adminRouter.delete('/users/:id', roleMiddleware(['admin']), adminRoleUserController.deleteUser);
+
+// Assign role to user
+adminRouter.post('/users/:id/assign-role', roleMiddleware(['admin']), adminRoleUserController.assignRole);
+
+// ============================================================================
+// PERMISSIONS MANAGEMENT
+// ============================================================================
+
+// List all available permissions
+adminRouter.get('/permissions', roleMiddleware(['admin']), adminRoleUserController.listPermissions);
