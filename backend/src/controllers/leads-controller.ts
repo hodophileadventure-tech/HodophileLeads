@@ -314,14 +314,6 @@ export const leadsController = {
         lead = await leadsModel.update(req.params.id, payload);
       }
 
-      if (lead && (lead.status === 'booked' || lead.leadOutcome === 'confirmed' || lead.pipelineStage === 'confirmed') && !isLeadReadyForConfirmation(lead)) {
-        lead = await leadsModel.update(req.params.id, {
-          status: 'contacted',
-          leadOutcome: null,
-          pipelineStage: 'contacted'
-        } as any);
-      }
-
       if (!lead) {
         console.log('[LeadsController] Lead not found:', req.params.id);
         return res.status(404).json({ message: 'Lead not found' });
