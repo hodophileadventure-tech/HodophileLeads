@@ -288,6 +288,15 @@ async function migrate() {
     `);
     console.log('✅ Notifications table created');
 
+    // Add missing columns to notifications table
+    await client.query(`
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS entity_type VARCHAR(50)
+    `);
+    await client.query(`
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS entity_id UUID
+    `);
+    console.log('✅ Notifications table enhanced with entity_type and entity_id columns');
+
     // 10. Quote Requests Table (depends on leads, users)
     await client.query(`
       CREATE TABLE IF NOT EXISTS quote_requests (
