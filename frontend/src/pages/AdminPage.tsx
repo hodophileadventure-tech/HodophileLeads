@@ -31,12 +31,7 @@ interface User {
   created_at: string;
 }
 
-interface Permission {
-  id: string;
-  resource: string;
-  action: string;
-  display_name: string;
-}
+
 
 // ============================================================================
 // Role Management Tab

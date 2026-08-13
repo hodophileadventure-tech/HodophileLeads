@@ -15,13 +15,30 @@
  * ```
  */
 
-import React from 'react';
+import { ReactNode, FC } from 'react';
+
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role_slug?: string;
+  role?: string;
+}
+
+interface LayoutProps {
+  user: User;
+  children: ReactNode;
+}
 
 // ============================================================================
 // Sales Team UI Component
 // ============================================================================
 
-function SalesTeamLayout({ user, children }) {
+function SalesTeamLayout({ user, children }: LayoutProps) {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar Navigation */}
@@ -74,7 +91,7 @@ function SalesTeamLayout({ user, children }) {
 // Content Creator UI Component
 // ============================================================================
 
-function ContentCreatorLayout({ user, children }) {
+function ContentCreatorLayout({ user, children }: LayoutProps) {
   return (
     <div className="flex h-screen bg-gray-900">
       {/* Sidebar Navigation */}
@@ -127,7 +144,7 @@ function ContentCreatorLayout({ user, children }) {
 // Video Editor UI Component
 // ============================================================================
 
-function VideoEditorLayout({ user, children }) {
+function VideoEditorLayout({ user, children }: LayoutProps) {
   return (
     <div className="flex h-screen bg-gray-900">
       {/* Sidebar Navigation */}
@@ -179,7 +196,7 @@ function VideoEditorLayout({ user, children }) {
 // Admin Panel UI Component
 // ============================================================================
 
-function AdminLayout({ user, children }) {
+function AdminLayout({ user, children }: LayoutProps) {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar Navigation */}
@@ -232,11 +249,11 @@ function AdminLayout({ user, children }) {
 // Main Router Component - Returns correct UI based on role
 // ============================================================================
 
-export function RoleBasedLayout({ user, children }) {
+export function RoleBasedLayout({ user, children }: LayoutProps) {
   const roleSlug = user?.role_slug || user?.role || 'agent';
 
   // Map role to layout
-  const layoutMap = {
+  const layoutMap: Record<string, FC<LayoutProps>> = {
     admin: AdminLayout,
     'sales executive': SalesTeamLayout,
     agent: SalesTeamLayout,
@@ -255,39 +272,23 @@ export function RoleBasedLayout({ user, children }) {
 // Example Usage in App.tsx
 // ============================================================================
 
-/*
-import { useAuth } from './hooks/useAuth';
-import { RoleBasedLayout } from './components/RoleBasedLayout';
-
-function App() {
-  const { user, loading } = useAuth();
-
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <Redirect to="/login" />;
-
-  return (
-    <RoleBasedLayout user={user}>
-      <Routes>
-        {/* Sales Agent Routes */}
-        <Route path="/dashboard" element={<SalesDashboard />} />
-        <Route path="/leads" element={<LeadsList />} />
-        <Route path="/tasks" element={<TasksList />} />
-
-        {/* Content Creator Routes */}
-        <Route path="/content/dashboard" element={<ContentDashboard />} />
-        <Route path="/content/projects" element={<ContentProjects />} />
-
-        {/* Video Editor Routes */}
-        <Route path="/editor" element={<VideoEditor />} />
-        <Route path="/editor/projects" element={<EditorProjects />} />
-
-        {/* Admin Routes */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<UserManagement />} />
-      </Routes>
-    </RoleBasedLayout>
-  );
-}
-*/
+// Usage:
+// import { RoleBasedLayout } from './components/RoleBasedLayout';
+//
+// function App() {
+//   const { user } = useAuth();
+//   return (
+//     <RoleBasedLayout user={user}>
+//       <Routes>
+//         <Route path="/dashboard" element={<SalesDashboard />} />
+//         <Route path="/leads" element={<LeadsList />} />
+//         <Route path="/tasks" element={<TasksList />} />
+//         <Route path="/content/dashboard" element={<ContentDashboard />} />
+//         <Route path="/editor" element={<VideoEditor />} />
+//         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+//       </Routes>
+//     </RoleBasedLayout>
+//   );
+// }
 
 export { SalesTeamLayout, ContentCreatorLayout, VideoEditorLayout, AdminLayout };
