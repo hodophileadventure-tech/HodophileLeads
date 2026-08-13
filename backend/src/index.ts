@@ -20,6 +20,7 @@ import hotelsRouter from './routes/hotels';
 import tasksRouter from './routes/tasks';
 import { errorHandler } from './middleware/auth';
 import { initDatabase } from './utils/database';
+import { runMigrations } from './utils/migration-runner';
 import { startFollowUpWorker } from './workers/followUpWorker';
 import { startReportWorker } from './workers/reportWorker';
 import { startOutboxWorker } from './workers/outboxWorker';
@@ -180,6 +181,13 @@ app.use(errorHandler);
 
 // Start server after DB init and worker start
 const start = async () => {
+  try {
+    // Run migrations first (creates schema if needed)
+    await runMigrations();
+  } catch (err) {
+    console.error('Migration runner failed during startup:', err);
+  }
+
   try {
     await initDatabase();
   } catch (err) {
