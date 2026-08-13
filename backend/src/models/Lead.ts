@@ -43,6 +43,7 @@ const mapLeadRow = (row: any) => {
     agentRemarks: row.agent_remarks || row.agentRemarks || null,
     remarks: row.remarks || null,
     potential: typeof row.potential === 'boolean' ? row.potential : (row.potential === 't' || row.potential === 'true'),
+    hasProgressed: typeof row.has_progressed === 'boolean' ? row.has_progressed : (row.has_progressed === 't' || row.has_progressed === 'true' || row.hasProgressed),
     travelDates: row.travelDates || row.travel_dates || (row.travel_date ? { from: row.travel_date, to: row.travel_date } : undefined),
     hotelInfo,
     hotelOptions,
@@ -227,6 +228,37 @@ export const leadsModel = {
     let paramCount = 1;
 
     const normalizedData: any = { ...data };
+    
+    // Fetch current lead to check for status changes
+    let currentLead: any = null;
+    if (normalizedData.status) {
+      try {
+        const currentResult = await executor('SELECT id, status, has_progressed FROM leads WHERE id = $1', [id]);
+        currentLead = currentResult.rows[0];
+      } catch (e) {
+        console.warn('[Lead.update] Could not fetch current lead for status check', e);
+      }
+    }
+
+    // Validate status transition
+    if (normalizedData.status && currentLead) {
+      const oldStatus = currentLead.status;
+      const newStatus = normalizedData.status;
+      const hasProgressed = currentLead.has_progressed === true;
+
+      // Prevent reverting to 'new' if lead has already progressed
+      if (newStatus === 'new' && hasProgressed) {
+        console.warn('[Lead.update] Preventing status revert to "new" for progressed lead', { leadId: id, oldStatus, newStatus });
+        delete normalizedData.status;
+      }
+
+      // Auto-mark as progressed if changing from 'new' to something else
+      if (oldStatus === 'new' && newStatus !== 'new' && !hasProgressed) {
+        normalizedData.has_progressed = true;
+        console.log('[Lead.update] Auto-marking lead as progressed', { leadId: id, oldStatus, newStatus });
+      }
+    }
+
     if (normalizedData.pipelineStage) {
       // Avoid duplicate SQL assignments when pipelineStage already maps to status/lead_outcome.
       delete normalizedData.leadOutcome;
@@ -276,7 +308,8 @@ export const leadsModel = {
       'initial_price',
       'latest_revised_price',
       'actual_price',
-      'pipeline_stage'
+      'pipeline_stage',
+      'has_progressed'
     ]);
 
     console.log('[Lead.update] normalizedData keys:', Object.keys(normalizedData));
