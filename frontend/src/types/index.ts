@@ -20,6 +20,8 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
+  role_slug?: string;
+  role_name?: string;
   avatar?: string;
   createdAt: string;
   lastLoginAt?: string | null;

@@ -12,7 +12,14 @@ export const authController = {
 
       console.log('[AUTH] Login attempt', { email: normalizedEmail, ip: req.ip });
 
-      const result = await query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
+      // Fetch user with role details
+      const result = await query(
+        `SELECT u.*, r.slug as role_slug, r.name as role_name
+         FROM users u
+         LEFT JOIN roles r ON u.role_id = r.id
+         WHERE u.email = $1`,
+        [normalizedEmail]
+      );
       const user = result.rows[0];
 
       if (!user) {
@@ -32,7 +39,7 @@ export const authController = {
 
       await query('UPDATE users SET updated_at = NOW() WHERE id = $1', [user.id]);
 
-      console.log('[AUTH] Login succeeded', { email: user.email, role: user.role, ip: req.ip });
+      console.log('[AUTH] Login succeeded', { email: user.email, role: user.role, roleSlug: user.role_slug, ip: req.ip });
 
       // Issue shorter-lived tokens for elevated/internal roles
       const privilegedRoles = ['admin', 'agent', 'manager'];
@@ -50,7 +57,9 @@ export const authController = {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
+          role_slug: user.role_slug || user.role, // fallback to role if no role_slug
+          role_name: user.role_name || user.role
         }
       });
     } catch (error) {
@@ -66,20 +75,35 @@ export const authController = {
 
       const hashedPassword = await hashPassword(password);
 
+      // Get the role_id for the given role slug
+      const roleResult = await query('SELECT id FROM roles WHERE slug = $1', [role]);
+      const roleId = roleResult.rows[0]?.id;
+
+      if (!roleId) {
+        return res.status(400).json({ message: `Invalid role: ${role}` });
+      }
+
       const result = await query(
-        'INSERT INTO users (email, name, password, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role',
-        [normalizedEmail, normalizedName, hashedPassword, role]
+        'INSERT INTO users (email, name, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id, email, name',
+        [normalizedEmail, normalizedName, hashedPassword, roleId]
       );
 
       const user = result.rows[0];
 
+      // Fetch role details
+      const roleDetailsResult = await query(
+        'SELECT slug, name FROM roles WHERE id = $1',
+        [roleId]
+      );
+      const roleDetails = roleDetailsResult.rows[0];
+
       const privilegedRoles = ['admin', 'agent', 'manager'];
-      const tokenExpiry = privilegedRoles.includes(user.role) ? '9h' : undefined;
+      const tokenExpiry = privilegedRoles.includes(role) ? '9h' : undefined;
 
       const token = generateToken({
         id: user.id,
         email: user.email,
-        role: user.role
+        role: role
       }, tokenExpiry);
 
       res.status(201).json({
@@ -88,7 +112,9 @@ export const authController = {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: role,
+          role_slug: roleDetails?.slug || role,
+          role_name: roleDetails?.name || role
         }
       });
     } catch (error: any) {

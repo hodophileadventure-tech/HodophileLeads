@@ -23,11 +23,12 @@ import { LeadsPage } from './LeadsPage';
 import { QuickSummary } from '../components/QuickSummary';
 import LeadTransferPanel from '../components/LeadTransferPanel';
 import { Button, Spinner } from '../components/common';
+import AdminPage from './AdminPage';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard';
 
  
 
@@ -430,6 +431,7 @@ export const App: React.FC = () => {
     { label: 'Leads', href: 'leads', icon: '🧾' },
     { label: 'Follow-ups', href: 'followups', icon: '🕒' },
     { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
+    ...(user?.role === 'admin' ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
     ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
@@ -1329,6 +1331,32 @@ export const App: React.FC = () => {
 
             {currentPage === 'hotels' && (user?.role === 'admin' || user?.role === 'manager') && (
               <HotelsPanel />
+            )}
+
+            {currentPage === 'admin-users' && user?.role === 'admin' && (
+              <AdminPage />
+            )}
+
+            {currentPage === 'admin-dashboard' && user?.role === 'admin' && (
+              <div className="space-y-6">
+                <section className="card">
+                  <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    System administration and user management
+                  </p>
+                </section>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setCurrentPage('admin-users')}
+                    className="card hover:bg-blue-50 dark:hover:bg-blue-950/20 cursor-pointer transition"
+                  >
+                    <h3 className="font-semibold mb-2">👥 User & Role Management</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      Create users, assign roles, manage permissions
+                    </p>
+                  </button>
+                </div>
+              </div>
             )}
 
             {activeAlarm && (
