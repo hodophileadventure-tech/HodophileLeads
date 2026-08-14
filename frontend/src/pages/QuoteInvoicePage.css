@@ -680,7 +680,7 @@ html, body {
 .pdf-summary .label {
   font-weight: 800;
   text-align: left;
-  width: 59%;
+  width: 53%;
   padding-right: 12px;
   white-space: normal;
   word-break: break-word;
@@ -692,11 +692,10 @@ html, body {
   text-align: right;
   font-weight: 800;
   font-size: 28px;
-  width: 41%;
+  width: 47%;
   padding-left: 8px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
 }
 
 .pdf-summary td strong {
