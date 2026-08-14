@@ -674,15 +674,17 @@ html, body {
   border: none;
   padding: 14px 14px;
   font-size: 36px;
-  text-align: left;
+  vertical-align: middle;
 }
 
 .pdf-summary td strong {
   font-size: 38px;
+  font-weight: 800;
 }
 
 .pdf-summary .label {
   font-weight: 800;
+  text-align: left;
 }
 
 .pdf-summary .value {
