@@ -676,7 +676,7 @@ html, body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 60%;
+  width: 62%;
   text-align: left;
   word-break: break-word;
   line-height: 1.4;
@@ -686,7 +686,7 @@ html, body {
   text-align: right;
   font-weight: 800;
   font-size: 36px;
-  width: 40%;
+  width: 38%;
   padding-left: 20px;
 }
 
