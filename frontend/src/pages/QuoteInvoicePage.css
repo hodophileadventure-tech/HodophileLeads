@@ -308,8 +308,8 @@ body {
 }
 
 .pdf-customer-name {
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 34px;
+  font-weight: 900;
   line-height: 1.1;
   white-space: nowrap;
   color: #111827;
@@ -606,7 +606,7 @@ body {
   color: #111827;
   text-align: left;
   white-space: nowrap;
-  padding-right: 4px;
+  padding-right: 0;
   font-size: 16px;
   line-height: 1.35;
 }
@@ -614,11 +614,12 @@ body {
 .pdf-package-info-line span {
   display: block;
   color: #111827;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   line-height: 1.35;
   text-align: left;
   padding-left: 0;
+  margin-left: 0;
 }
 
 /* =========================================================
