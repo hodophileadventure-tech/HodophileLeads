@@ -659,8 +659,7 @@ html, body {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  margin: 0;
-  font-size: 32px;
+  margin-top: 16px;
 }
 
 .pdf-summary tbody tr {
@@ -673,48 +672,27 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 20px 16px;
-  line-height: 1.2;
-  vertical-align: middle;
-  font-size: 32px;
+  padding: 14px 14px;
+  font-size: 36px;
   text-align: left;
 }
 
 .pdf-summary td strong {
-  font-weight: 800;
-  font-size: 32px;
+  font-size: 38px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  text-align: left;
-  width: auto;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
-  font-size: 32px;
-  width: auto;
+  font-size: 36px;
 }
 
 .pdf-footer-row td {
   border-top: none;
-  vertical-align: top;
-  padding: 24px;
-}
-
-.pdf-footer-row td:last-child {
-  padding: 20px;
-  border: none;
-}
-
-.pdf-summary {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  margin: 0;
-  font-size: 32px;
 }
 
 .pdf-body-notes {
