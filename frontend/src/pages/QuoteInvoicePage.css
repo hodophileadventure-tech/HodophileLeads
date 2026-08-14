@@ -364,20 +364,20 @@ html, body {
 .pdf-package-info-line {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  font-size: 26px;
-  line-height: 1.2;
-  padding: 5px 0;
+  gap: 14px;
+  font-size: 28px;
+  line-height: 1.3;
+  padding: 6px 0;
 }
 
 .pdf-package-info-line strong {
   font-weight: 800;
   color: #111827;
   /* Increase label column and keep label text on a single line */
-  flex: 0 0 380px;
+  flex: 0 0 400px;
   white-space: nowrap;
-  padding-right: 16px;
-  font-size: 32px;
+  padding-right: 18px;
+  font-size: 34px;
   line-height: 1.15;
 }
 
@@ -386,8 +386,8 @@ html, body {
   color: #111827;
   font-weight: 700;
   flex: 1 1 auto;
-  font-size: 32px;
-  line-height: 1.25;
+  font-size: 34px;
+  line-height: 1.3;
   text-align: left;
 }
 
@@ -395,7 +395,7 @@ html, body {
 .pdf-package-info-group {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* spacing between rows */
+  gap: 14px; /* spacing between rows */
 }
 
 /* Prevent label wrapping and add small padding between label and value */
@@ -414,7 +414,7 @@ html, body {
 
 .pdf-package-info-group {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .pdf-main-table thead th:last-child {
@@ -484,14 +484,14 @@ html, body {
 }
 
 .pdf-main-table thead th {
-  padding: 20px 18px;
-  font-size: 34px;
+  padding: 22px 20px;
+  font-size: 36px;
   font-weight: 800;
   border-bottom: 2px solid #111827;
   text-align: left;
   color: #111827;
   background: #f3f3f3;
-  height: 66px;
+  height: 70px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -538,14 +538,14 @@ html, body {
   border-left: none;
   border-right: none;
   vertical-align: top;
-  font-size: 30px;
+  font-size: 32px;
   color: #111827;
-  padding: 18px 20px;
+  padding: 20px 22px;
   height: auto;
 }
 
 .pdf-main-table tbody tr td strong {
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 500;
 }
 
@@ -575,18 +575,18 @@ html, body {
 }
 
 .pdf-package-title {
-  font-size: 52px;
+  font-size: 58px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
 .pdf-package-description {
-  font-size: 38px;
-  line-height: 1.45;
+  font-size: 42px;
+  line-height: 1.5;
   color: #111827;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   font-weight: 600;
 }
 
@@ -634,7 +634,7 @@ html, body {
 }
 
 .pdf-notes {
-  font-size: 32px;
+  font-size: 34px;
   line-height: 1.7;
   color: #111827;
   font-weight: 600;
@@ -645,14 +645,14 @@ html, body {
 }
 
 .pdf-notes .notes-title {
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 800;
   text-decoration: underline;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .pdf-left-box {
-  min-height: 240px;
+  min-height: 260px;
   border: none;
 }
 
@@ -665,13 +665,13 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 12px 8px;
-  font-size: 34px;
+  padding: 14px 10px;
+  font-size: 36px;
   text-align: left;
 }
 
 .pdf-summary td strong {
-  font-size: 36px;
+  font-size: 38px;
 }
 
 .pdf-summary .label {
@@ -683,7 +683,7 @@ html, body {
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
-  font-size: 34px;
+  font-size: 36px;
   width: 40%;
   padding-left: 4px;
 }
@@ -772,20 +772,20 @@ html, body {
 }
 
 .pdf-package-includes-title {
-  margin: 20px 0 14px;
-  font-size: 26px;
+  margin: 22px 0 16px;
+  font-size: 28px;
   font-weight: 800;
   color: #111827;
 }
 
 .pdf-package-includes-list {
   margin: 0;
-  padding-left: 22px;
+  padding-left: 24px;
   list-style: none;
   display: grid;
-  gap: 10px;
-  font-size: 22px;
-  line-height: 1.5;
+  gap: 12px;
+  font-size: 24px;
+  line-height: 1.6;
 }
 
 .pdf-package-includes-list li::before {
