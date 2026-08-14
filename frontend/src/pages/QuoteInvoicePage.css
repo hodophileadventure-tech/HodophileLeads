@@ -658,15 +658,17 @@ html, body {
 .pdf-summary {
   width: 100%;
   border-collapse: collapse;
-  table-layout: auto;
+  table-layout: fixed;
   margin-top: 16px;
 }
 
 .pdf-summary td {
   border: none;
-  padding: 16px 20px;
+  padding: 14px 14px;
   font-size: 36px;
   text-align: left;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .pdf-summary td strong {
@@ -675,16 +677,14 @@ html, body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 55%;
-  padding-right: 30px;
+  width: 50%;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
   font-size: 36px;
-  width: 45%;
-  padding-left: 30px;
+  width: 50%;
 }
 
 .pdf-footer-row td {
