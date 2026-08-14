@@ -691,11 +691,12 @@ html, body {
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
-  font-size: 32px;
+  font-size: 28px;
   width: 41%;
-  padding-left: 12px;
+  padding-left: 8px;
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-summary td strong {
