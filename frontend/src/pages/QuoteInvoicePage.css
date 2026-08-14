@@ -672,33 +672,37 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 14px 14px;
-  font-size: 36px;
+  padding: 14px 8px;
+  font-size: 32px;
   vertical-align: middle;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-summary .label {
   font-weight: 800;
   text-align: left;
   width: 55%;
-  padding-right: 10px;
+  padding-right: 16px;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
-  font-size: 36px;
+  font-size: 32px;
   width: 45%;
-  padding-left: 10px;
+  padding-left: 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .pdf-summary td strong {
-  font-size: 38px;
+  font-size: 32px;
   font-weight: 800;
-  display: block;
-  text-align: right;
+  white-space: nowrap;
+  display: inline;
 }
 
 .pdf-footer-row td {
