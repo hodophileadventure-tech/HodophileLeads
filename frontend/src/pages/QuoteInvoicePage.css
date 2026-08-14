@@ -658,13 +658,13 @@ html, body {
 .pdf-summary {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
   margin-top: 16px;
 }
 
 .pdf-summary td {
   border: none;
-  padding: 14px 14px;
+  padding: 16px 20px;
   font-size: 36px;
   text-align: left;
 }
@@ -675,12 +675,16 @@ html, body {
 
 .pdf-summary .label {
   font-weight: 800;
+  width: 55%;
+  padding-right: 30px;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
   font-size: 36px;
+  width: 45%;
+  padding-left: 30px;
 }
 
 .pdf-footer-row td {
