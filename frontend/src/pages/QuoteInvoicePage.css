@@ -676,7 +676,6 @@ html, body {
   padding: 14px 8px;
   font-size: 32px;
   vertical-align: middle;
-  white-space: nowrap;
 }
 
 .pdf-summary .label {
@@ -684,15 +683,20 @@ html, body {
   text-align: left;
   flex: 0 0 auto;
   padding-right: 16px;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
   font-size: 32px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   padding-left: 16px;
-  margin-left: auto;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 .pdf-summary td strong {
