@@ -667,8 +667,6 @@ html, body {
   padding: 14px 14px;
   font-size: 36px;
   text-align: left;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
 }
 
 .pdf-summary td strong {
@@ -677,14 +675,14 @@ html, body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 50%;
+  width: 60%;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
   font-size: 36px;
-  width: 50%;
+  width: 40%;
 }
 
 .pdf-footer-row td {
