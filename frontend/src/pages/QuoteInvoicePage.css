@@ -675,22 +675,30 @@ html, body {
   padding: 14px 14px;
   font-size: 36px;
   vertical-align: middle;
-}
-
-.pdf-summary td strong {
-  font-size: 38px;
-  font-weight: 800;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .pdf-summary .label {
   font-weight: 800;
   text-align: left;
+  width: 55%;
+  padding-right: 10px;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
   font-size: 36px;
+  width: 45%;
+  padding-left: 10px;
+}
+
+.pdf-summary td strong {
+  font-size: 38px;
+  font-weight: 800;
+  display: block;
+  text-align: right;
 }
 
 .pdf-footer-row td {
