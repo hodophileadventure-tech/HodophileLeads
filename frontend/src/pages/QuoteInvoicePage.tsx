@@ -826,24 +826,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                             </tbody>
                           </table>
                         </td>
-                        <td>
-                          <table className="pdf-summary">
-                            <tbody>
-                              <tr>
-                                <td className="label">Subtotal</td>
-                                <td className="value"><strong>{subtotalValue.toLocaleString('en-US')}</strong></td>
-                              </tr>
-                              <tr>
-                                <td className="label">Total Amount Paid</td>
-                                <td className="value"><strong>{advanceValue.toLocaleString('en-US')}</strong></td>
-                              </tr>
-                              <tr>
-                                <td className="label">{summaryBalanceLabel}</td>
-                                <td className="value"><strong>{balanceValue.toLocaleString('en-US')}</strong></td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </td>
                       </tr>
                     </tbody>
                   </table>
