@@ -451,8 +451,8 @@ html, body {
 }
 
 .pdf-table-wrapper {
-  width: 90%;
-  max-width: 2190px;
+  width: 92%;
+  max-width: 2200px;
   margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
   z-index: 3;
   display: flex;
@@ -468,15 +468,15 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  width: 50%;
+  width: 52%;
 }
 
 .pdf-main-table col.col-price {
-  width: 17%;
+  width: 16%;
 }
 
 .pdf-main-table col.col-person {
-  width: 17%;
+  width: 16%;
 }
 
 .pdf-main-table col.col-amount {
@@ -578,7 +578,8 @@ html, body {
   font-size: 55px;
   font-weight: 600;
   margin-bottom: 18px;
-  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .pdf-package-description {
