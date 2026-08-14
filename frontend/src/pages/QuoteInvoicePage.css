@@ -664,35 +664,23 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 12px 8px;
-  font-size: 32px;
+  padding: 14px 14px;
+  font-size: 36px;
   text-align: left;
-  vertical-align: top;
-  overflow: hidden;
 }
 
 .pdf-summary td strong {
-  font-size: 32px;
+  font-size: 38px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 50%;
-  text-align: left;
-  word-break: break-word;
-  line-height: 1.4;
-  padding-right: 8px;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
-  font-size: 32px;
-  width: 50%;
-  padding-left: 8px;
-  padding-right: 8px;
-  white-space: nowrap;
-  overflow: hidden;
+  font-size: 36px;
 }
 
 .pdf-footer-row td {
