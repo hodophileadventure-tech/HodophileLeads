@@ -307,19 +307,20 @@ body {
   white-space: nowrap;
 }
 
-.pdf-customer-name {
-  font-size: 42px;
-  font-weight: 900;
-  line-height: 1.1;
-  white-space: nowrap;
-  color: #111827;
-}
-
 .pdf-header-info-value {
   font-size: 18px;
   font-weight: 500;
   color: #111827;
   line-height: 1.2;
+}
+
+.pdf-customer-box .pdf-customer-name {
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: #111827;
+  margin: 0;
 }
 
 /* =========================================================
