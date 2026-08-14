@@ -811,8 +811,8 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         <td>
                           <table className="pdf-summary">
                             <colgroup>
-                              <col style={{ width: '65%' }} />
-                              <col style={{ width: '35%' }} />
+                              <col style={{ width: '55%' }} />
+                              <col style={{ width: '45%' }} />
                             </colgroup>
                             <tbody>
                               <tr>
