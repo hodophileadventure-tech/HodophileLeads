@@ -760,7 +760,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                       <col className="col-price" />
                       <col className="col-person" />
                       <col className="col-amount" />
-                      <col className="col-summary" />
                     </colgroup>
                     <thead>
                       <tr>
@@ -768,7 +767,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         <th>Package Price</th>
                         <th className="text-center">No. of Person(s)</th>
                         <th>Amount</th>
-                        <th className="text-right">Summary</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -798,7 +796,6 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         <td className="pdf-amount-cell text-right">
                           <strong>{formatAmount(parseNumber(data.price) * parseNumber(data.persons))}</strong>
                         </td>
-                        <td className="pdf-summary-placeholder"></td>
                       </tr>
                       <tr className="pdf-footer-row">
                         <td colSpan={4}>
