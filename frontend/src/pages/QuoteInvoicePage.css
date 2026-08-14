@@ -366,8 +366,8 @@ html, body {
   align-items: baseline;
   gap: 10px;
   font-size: 25px;
-  line-height: 1.4;
-  padding: 3px 0;
+  line-height: 1.45;
+  padding: 4px 0;
 }
 
 .pdf-package-info-line strong {
@@ -395,7 +395,7 @@ html, body {
 .pdf-package-info-group {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* spacing between rows */
+  gap: 10px; /* slight extra breathing room */
 }
 
 /* Prevent label wrapping and add small padding between label and value */
@@ -414,7 +414,7 @@ html, body {
 
 .pdf-package-info-group {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .pdf-main-table thead th:last-child {
@@ -540,7 +540,7 @@ html, body {
   vertical-align: top;
   font-size: 28px;
   color: #111827;
-  padding: 14px 14px;
+  padding: 16px 14px;
   height: auto;
 }
 
@@ -577,16 +577,16 @@ html, body {
 .pdf-package-title {
   font-size: 48px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
 .pdf-package-description {
   font-size: 37px;
-  line-height: 1.35;
+  line-height: 1.4;
   color: #111827;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-weight: 600;
 }
 
@@ -635,13 +635,13 @@ html, body {
 
 .pdf-notes {
   font-size: 30px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: #111827;
   font-weight: 600;
 }
 
 .pdf-package-includes-box {
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .pdf-notes .notes-title {
@@ -652,7 +652,7 @@ html, body {
 }
 
 .pdf-left-box {
-  min-height: 220px;
+  min-height: 230px;
   border: none;
 }
 
@@ -665,7 +665,7 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 10px 6px;
+  padding: 12px 6px;
   font-size: 32px;
   text-align: left;
 }
