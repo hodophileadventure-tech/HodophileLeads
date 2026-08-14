@@ -452,7 +452,7 @@ html, body {
 
 .pdf-table-wrapper {
   width: 92%;
-  max-width: 2200px;
+  max-width: 1150px;
   margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
   z-index: 3;
   display: flex;
