@@ -658,29 +658,34 @@ html, body {
 .pdf-summary {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
   margin-top: 16px;
+  font-size: 32px;
 }
 
 .pdf-summary td {
   border: none;
-  padding: 14px 14px;
-  font-size: 36px;
+  padding: 18px 0;
   text-align: left;
+  line-height: 1.2;
 }
 
 .pdf-summary td strong {
-  font-size: 38px;
+  font-weight: 800;
+  font-size: 32px;
 }
 
 .pdf-summary .label {
   font-weight: 800;
+  padding-right: 20px;
+  width: 55%;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 800;
-  font-size: 36px;
+  font-size: 32px;
+  width: 45%;
 }
 
 .pdf-footer-row td {
