@@ -308,7 +308,7 @@ body {
 }
 
 .pdf-customer-name {
-  font-size: 34px;
+  font-size: 38px;
   font-weight: 900;
   line-height: 1.1;
   white-space: nowrap;
@@ -587,15 +587,15 @@ body {
 
 .pdf-package-info-group {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pdf-package-info-line {
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  align-items: start;
-  column-gap: 8px;
-  font-size: 16px;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 18px;
+  font-size: 18px;
   line-height: 1.35;
   padding: 2px 0;
 }
@@ -606,8 +606,9 @@ body {
   color: #111827;
   text-align: left;
   white-space: nowrap;
+  min-width: 260px;
   padding-right: 0;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.35;
 }
 
@@ -615,11 +616,12 @@ body {
   display: block;
   color: #111827;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.35;
   text-align: left;
   padding-left: 0;
   margin-left: 0;
+  word-break: break-word;
 }
 
 /* =========================================================
