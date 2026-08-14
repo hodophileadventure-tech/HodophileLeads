@@ -658,12 +658,13 @@ html, body {
 .pdf-summary {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
   margin-top: 16px;
 }
 
 .pdf-summary tbody tr {
   border-bottom: 2px solid #111827;
+  display: flex;
 }
 
 .pdf-summary tbody tr:last-child {
@@ -676,14 +677,12 @@ html, body {
   font-size: 32px;
   vertical-align: middle;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .pdf-summary .label {
   font-weight: 800;
   text-align: left;
-  width: 55%;
+  flex: 0 0 auto;
   padding-right: 16px;
 }
 
@@ -691,18 +690,15 @@ html, body {
   text-align: right;
   font-weight: 800;
   font-size: 32px;
-  width: 45%;
+  flex: 1 1 auto;
   padding-left: 16px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  margin-left: auto;
 }
 
 .pdf-summary td strong {
   font-size: 32px;
   font-weight: 800;
   white-space: nowrap;
-  display: inline;
 }
 
 .pdf-footer-row td {
