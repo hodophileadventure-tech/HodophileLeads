@@ -664,7 +664,7 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 14px 14px;
+  padding: 14px 8px;
   font-size: 36px;
   text-align: left;
 }
@@ -676,6 +676,7 @@ html, body {
 .pdf-summary .label {
   font-weight: 800;
   width: 60%;
+  padding-right: 4px;
 }
 
 .pdf-summary .value {
@@ -683,6 +684,7 @@ html, body {
   font-weight: 800;
   font-size: 36px;
   width: 40%;
+  padding-left: 4px;
 }
 
 .pdf-footer-row td {
