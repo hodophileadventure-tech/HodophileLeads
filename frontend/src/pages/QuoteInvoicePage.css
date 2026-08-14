@@ -468,22 +468,19 @@ html, body {
 }
 
 .pdf-main-table col.col-desc {
-  /* Allow description column to expand based on content */
-  width: auto;
-  min-width: 40%;
+  width: 50%;
 }
 
 .pdf-main-table col.col-price {
-  /* Increase the price column so it sits further left and adds space before the person column */
-  width: 26%;
+  width: 17%;
 }
 
 .pdf-main-table col.col-person {
-  width: 14%;
+  width: 17%;
 }
 
 .pdf-main-table col.col-amount {
-  width: 20%;
+  width: 16%;
 }
 
 .pdf-main-table thead th {
@@ -507,23 +504,23 @@ html, body {
   padding-left: 14px;
 }
 
-/* Ensure numeric columns' headers align with their values */
+/* Numeric columns right-aligned */
 .pdf-main-table thead th:nth-child(2),
-.pdf-main-table thead th:nth-child(3),
 .pdf-main-table thead th:nth-child(4) {
-  text-align: center;
+  text-align: right;
+  padding-right: 24px;
 }
 
 .pdf-main-table td.pdf-price-cell,
 .pdf-main-table td.pdf-amount-cell {
-  text-align: center;
+  text-align: right;
+  padding-right: 24px;
 }
 
-/* Make numeric cell values center-aligned and block-level for consistent alignment */
+/* Numeric cell values styling */
 .pdf-price-cell strong,
 .pdf-amount-cell strong {
-  display: block;
-  text-align: center;
+  font-weight: 700;
   line-height: 1;
 }
 
