@@ -680,7 +680,7 @@ html, body {
 .pdf-summary .label {
   font-weight: 800;
   text-align: left;
-  width: 56%;
+  width: 59%;
   padding-right: 12px;
   white-space: normal;
   word-break: break-word;
@@ -692,7 +692,7 @@ html, body {
   text-align: right;
   font-weight: 800;
   font-size: 32px;
-  width: 44%;
+  width: 41%;
   padding-left: 12px;
   white-space: nowrap;
   overflow: visible;
