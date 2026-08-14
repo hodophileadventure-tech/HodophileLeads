@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 :root {
   color-scheme: light;
@@ -9,10 +9,15 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
+
+/* =========================================================
+   MAIN QUOTATION APPLICATION
+   ========================================================= */
 
 .quote-invoice-root {
   min-height: 100vh;
@@ -23,7 +28,7 @@ html, body {
   align-items: flex-start;
 }
 
-/* When embedded in manager panel, adjust sizing */
+/* Embedded mode inside manager panel */
 .quote-invoice-root.embedded {
   min-height: auto !important;
   background: transparent !important;
@@ -36,6 +41,10 @@ html, body {
   overflow: visible !important;
 }
 
+/* =========================================================
+   APPLICATION SHELL
+   ========================================================= */
+
 .quote-invoice-shell {
   width: 100%;
   max-width: 1600px;
@@ -45,7 +54,6 @@ html, body {
   align-items: start;
 }
 
-/* When embedded, use simple block layout */
 .quote-invoice-root.embedded .quote-invoice-shell {
   display: block !important;
   max-width: 100% !important;
@@ -58,12 +66,9 @@ html, body {
   overflow: visible !important;
 }
 
-.quote-invoice-root.embedded .quote-invoice-preview {
-  width: 100% !important;
-  min-height: 0 !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
-}
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
 
 .quote-invoice-sidebar {
   display: flex;
@@ -72,7 +77,6 @@ html, body {
   min-width: 0;
 }
 
-/* When embedded, ensure sidebar shows content properly */
 .quote-invoice-root.embedded .quote-invoice-sidebar {
   max-height: none !important;
   min-width: auto !important;
@@ -82,6 +86,10 @@ html, body {
   gap: 20px !important;
 }
 
+/* =========================================================
+   SIDEBAR PANELS
+   ========================================================= */
+
 .quote-invoice-panel {
   background: #ffffff;
   border: 1px solid #d1d5db;
@@ -90,7 +98,6 @@ html, body {
   box-shadow: 0 12px 40px rgba(15, 23, 36, 0.08);
 }
 
-/* Ensure panel doesn't cause overflow issues when embedded */
 .quote-invoice-root.embedded .quote-invoice-panel {
   flex-shrink: 0;
   margin-bottom: 0 !important;
@@ -124,6 +131,7 @@ html, body {
   font-weight: 400;
   color: #111827;
   background: #f9fafb;
+  font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .quote-invoice-panel textarea {
@@ -159,6 +167,7 @@ html, body {
   font-weight: 800;
   font-size: 14px;
   cursor: pointer;
+  font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .quote-invoice-panel .btn-primary:hover {
@@ -172,16 +181,33 @@ html, body {
   line-height: 1.5;
 }
 
+/* =========================================================
+   QUOTATION PREVIEW
+   ========================================================= */
+
 .quote-invoice-preview {
-  width: 2550px;
-  min-height: 3300px;
+  width: 1584px;
+  height: 2048px;
+  min-height: 2048px;
   position: relative;
-  overflow: auto;
+  overflow: hidden;
 }
 
+.quote-invoice-root.embedded .quote-invoice-preview {
+  width: 100% !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* =========================================================
+   A4 PAGE
+   ========================================================= */
+
 .pdf-page {
-  width: 2550px;
-  min-height: 3300px;
+  width: 1584px;
+  height: 2048px;
+  min-height: 2048px;
   background: #f2f2f2;
   border: 1px solid #d1d5db;
   box-shadow: 0 24px 64px rgba(15, 23, 36, 0.16);
@@ -191,8 +217,9 @@ html, body {
 }
 
 .pdf-canvas {
-  width: 2550px;
-  min-height: 3300px;
+  width: 1584px;
+  height: 2048px;
+  min-height: 2048px;
   background: #ffffff;
   position: relative;
   overflow: hidden;
@@ -201,20 +228,25 @@ html, body {
 
 .pdf-background {
   position: relative;
-  width: 2550px;
-  min-height: 3300px;
+  width: 1584px;
+  height: 2048px;
+  min-height: 2048px;
   overflow: hidden;
-  padding-top: 620px;
+  padding-top: 380px;
 }
+
+/* =========================================================
+   HEADER / HODOPHILE LOGO
+   ========================================================= */
 
 .pdf-header-image {
   position: absolute;
-  top: 140px;
+  top: 70px;
   left: 0;
   right: 0;
   width: 92%;
-  max-width: 2200px;
-  height: 270px;
+  max-width: 1450px;
+  height: 170px;
   margin: 0 auto;
   z-index: 2;
   overflow: hidden;
@@ -232,91 +264,99 @@ html, body {
   object-fit: contain;
 }
 
+/* =========================================================
+   HEADER INFORMATION AREA
+   ========================================================= */
+
 .pdf-header-info-box {
   position: absolute;
-  top: 440px;
-  left: 180px;
-  right: 180px;
-  min-height: 360px;
+  top: 330px;
+  left: 115px;
+  right: 115px;
+  min-height: 220px;
   background: transparent;
-  border-radius: 30px;
+  border-radius: 0;
   border: none;
-  padding: 42px 48px;
-  display: grid;
-  gap: 20px;
+  padding: 20px 0;
+  display: block;
   z-index: 3;
 }
 
 .pdf-header-top {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
-  padding-top: 24px;
+  gap: 30px;
+  padding-top: 0;
 }
 
-.pdf-quote-meta-block,
-.pdf-customer-box {
-  display: grid;
-  gap: 18px;
-}
+/* =========================================================
+   CUSTOMER BOX
+   ========================================================= */
 
 .pdf-customer-box {
-  width: auto;
-  min-width: 380px;
-  padding: 32px 36px;
+  width: 360px;
+  min-width: 360px;
+  padding: 22px 26px;
   border: 2px solid #111827;
   background: #ffffff;
-  border-radius: 28px;
+  border-radius: 18px;
   display: grid;
-  gap: 14px;
+  gap: 8px;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-.pdf-quote-right {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  align-items: flex-end;
-  justify-content: flex-start;
-  width: 100%;
-  margin-left: auto;
+.pdf-customer-name {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: #111827;
 }
 
 .pdf-header-info-value {
-  font-size: 36px;
+  font-size: 18px;
   font-weight: 500;
   color: #111827;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 
-.pdf-customer-name {
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 1.05;
-  white-space: nowrap;
-  overflow: visible;
+/* =========================================================
+   QUOTATION META / RIGHT SIDE
+   ========================================================= */
+
+.pdf-quote-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  justify-content: flex-start;
   width: auto;
+  margin-left: auto;
 }
 
 .pdf-quotation-title {
-  font-size: 88px;
+  font-size: 54px;
   font-weight: 800;
   color: #fcc000;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  line-height: 0.95;
-  max-width: 100%;
-  margin-bottom: 24px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.pdf-quote-meta-block {
+  display: grid;
+  gap: 8px;
 }
 
 .pdf-quote-meta-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  gap: 22px;
-  font-size: 36px;
+  gap: 18px;
+  font-size: 18px;
   color: #111827;
   font-weight: 500;
 }
@@ -324,90 +364,22 @@ html, body {
 .pdf-quote-meta-row span {
   opacity: 0.9;
   font-weight: 700;
-  font-size: 32px;
+  font-size: 15px;
 }
 
 .pdf-quote-meta-row strong {
   font-weight: 500;
-  font-size: 44px;
+  font-size: 18px;
 }
 
-.pdf-content-inner {
-  display: grid;
-  grid-template-columns: 1.8fr 1fr;
-  gap: 32px;
-  align-items: start;
-}
-
-.pdf-content-left {
-  display: grid;
-  gap: 16px;
-}
-
-.pdf-content-right {
-  display: grid;
-  gap: 14px;
-  padding: 18px;
-  border: 2px solid #111827;
-  border-radius: 18px;
-  background: #f8f8f8;
-}
-
-.pdf-package-info-group {
-  display: grid;
-  gap: 10px;
-}
-
-.pdf-package-info-line {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  align-items: start;
-  column-gap: 10px;
-  font-size: 30px;
-  line-height: 1.3;
-  padding: 4px 0;
-}
-
-.pdf-package-info-line strong {
-  display: block;
-  font-weight: 800;
-  color: #111827;
-  text-align: right;
-  white-space: nowrap;
-  padding-right: 10px;
-  font-size: 30px;
-  line-height: 1.15;
-}
-
-.pdf-package-info-line span {
-  display: block;
-  opacity: 1;
-  color: #111827;
-  font-weight: 700;
-  font-size: 30px;
-  line-height: 1.3;
-  text-align: left;
-  padding-left: 6px;
-}
-
-.pdf-main-table thead th:last-child {
-  text-align: right;
-}
-
-.pdf-left-box {
-  min-height: 230px;
-  padding: 20px;
-  border: none;
-}
-
-.pdf-left-box .pdf-notes {
-  margin-top: 10px;
-}
+/* =========================================================
+   TABLE AREA
+   ========================================================= */
 
 .pdf-table-wrapper {
-  width: 92%;
-  max-width: 2200px;
-  margin: 292px auto 220px; /* add more bottom margin to increase gap above logos */
+  width: 86%;
+  max-width: none;
+  margin: 235px auto 0;
   z-index: 3;
   display: flex;
   justify-content: center;
@@ -417,16 +389,20 @@ html, body {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  border: 2px solid #111827;
-  margin: 0 auto 16px;
+  border: 1px solid #111827;
+  margin: 0;
 }
 
+/* =========================================================
+   TABLE COLUMNS
+   ========================================================= */
+
 .pdf-main-table col.col-desc {
-  width: 52%;
+  width: 50%;
 }
 
 .pdf-main-table col.col-price {
-  width: 17%;
+  width: 18%;
 }
 
 .pdf-main-table col.col-person {
@@ -434,73 +410,61 @@ html, body {
 }
 
 .pdf-main-table col.col-amount {
-  width: 15%;
+  width: 16%;
 }
 
+/* =========================================================
+   TABLE HEADER
+   ========================================================= */
+
 .pdf-main-table thead th {
-  padding: 10px 10px;
-  font-size: 30px;
+  padding: 10px 12px;
+  font-size: 15px;
   font-weight: 800;
-  border-bottom: 2px solid #111827;
+  border-bottom: 1px solid #111827;
   text-align: left;
   color: #111827;
   background: #f3f3f3;
-  height: 54px;
+  height: 42px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
 }
 
-.pdf-main-table thead th:nth-child(2) {
-  padding-right: 24px;
-}
-
-.pdf-main-table thead th:nth-child(3) {
-  padding-left: 14px;
-}
-
-/* Numeric columns right-aligned */
 .pdf-main-table thead th:nth-child(2),
 .pdf-main-table thead th:nth-child(4) {
   text-align: right;
-  padding-right: 24px;
+  padding-right: 18px;
 }
 
-.pdf-main-table td.pdf-price-cell,
-.pdf-main-table td.pdf-amount-cell {
-  text-align: right;
-  padding-right: 24px;
+.pdf-main-table thead th:nth-child(3) {
+  text-align: center;
+  padding-left: 8px;
 }
 
-/* Numeric cell values styling */
-.pdf-price-cell strong,
-.pdf-amount-cell strong {
-  font-weight: 700;
-  line-height: 1;
+/* =========================================================
+   TABLE BODY
+   ========================================================= */
+
+.pdf-main-table tbody tr td {
+  border-top: 1px solid #111827;
+  vertical-align: top;
+  font-size: 15px;
+  color: #111827;
+  padding: 12px;
 }
 
-.pdf-main-table tbody tr.pdf-empty-row td {
-  min-height: 80px;
-  border-top: none;
+.pdf-main-table tbody tr td strong {
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .pdf-main-table tbody tr:first-child td {
   min-height: auto;
 }
 
-.pdf-main-table tbody tr td {
-  border-top: 2px solid #111827;
-  border-left: none;
-  border-right: none;
-  vertical-align: top;
-  font-size: 28px;
-  color: #111827;
-  padding: 16px 14px;
-  height: auto;
-}
-
-.pdf-main-table tbody tr td strong {
-  font-size: 36px;
-  font-weight: 500;
+.pdf-main-table tbody tr.pdf-empty-row td {
+  min-height: 50px;
+  border-top: none;
 }
 
 .pdf-main-table th.text-right,
@@ -513,101 +477,283 @@ html, body {
   text-align: center;
 }
 
+/* =========================================================
+   PRICE / AMOUNT CELLS
+   ========================================================= */
+
+.pdf-main-table td.pdf-price-cell,
+.pdf-main-table td.pdf-amount-cell {
+  text-align: right;
+  padding-right: 18px;
+}
+
+.pdf-price-cell strong,
+.pdf-amount-cell strong {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+/* =========================================================
+   PERSON VALUE
+   ========================================================= */
+
 .pdf-person-value {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  min-height: 100%;
   font-weight: 500;
-  font-size: 44px;
-  line-height: 1.1;
+  font-size: 18px;
+  line-height: 1.15;
   padding-top: 0;
 }
+
+/* =========================================================
+   DESCRIPTION CELL
+   ========================================================= */
 
 .pdf-description-cell {
   text-align: left;
 }
 
-.pdf-package-title {
-  font-size: 48px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.pdf-package-description {
-  font-size: 37px;
-  line-height: 1.4;
-  color: #111827;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
 .pdf-content-cell {
-  min-height: 340px;
+  min-height: 215px;
   position: relative;
-  padding: 28px;
+  padding: 16px;
   display: grid;
-  gap: 20px;
+  gap: 10px;
 }
 
 .pdf-package-details {
   display: grid;
-  gap: 20px;
+  gap: 8px;
+}
+
+.pdf-package-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  line-height: 1.15;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  color: #111827;
+}
+
+.pdf-package-description {
+  font-size: 16px;
+  line-height: 1.35;
+  color: #111827;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .pdf-package-name {
-  font-size: 36px;
+  font-size: 18px;
   font-weight: 800;
   color: #111827;
 }
 
+/* =========================================================
+   PACKAGE META INFORMATION
+   ========================================================= */
+
 .pdf-package-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 12px;
 }
 
 .pdf-package-meta-grid > div {
   display: grid;
-  gap: 8px;
+  gap: 4px;
 }
 
 .pdf-meta-label {
-  font-size: 20px;
+  font-size: 11px;
   color: #111827;
   opacity: 0.8;
 }
 
 .pdf-meta-value {
-  font-size: 28px;
+  font-size: 14px;
   font-weight: 800;
   color: #111827;
-  text-align: right;
+  text-align: left;
 }
 
-.pdf-notes {
-  font-size: 30px;
-  line-height: 1.7;
+/* =========================================================
+   PACKAGE INFO LINES
+   ========================================================= */
+
+.pdf-package-info-group {
+  display: grid;
+  gap: 2px;
+}
+
+.pdf-package-info-line {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 8px;
+  font-size: 14px;
+  line-height: 1.3;
+  padding: 2px 0;
+}
+
+.pdf-package-info-line strong {
+  display: block;
+  font-weight: 700;
+  color: #111827;
+  text-align: left;
+  white-space: nowrap;
+  padding-right: 4px;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.pdf-package-info-line span {
+  display: block;
   color: #111827;
   font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: left;
+  padding-left: 0;
 }
 
-.pdf-package-includes-box {
-  line-height: 1.8;
+/* =========================================================
+   NOTES
+   ========================================================= */
+
+.pdf-notes {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #111827;
+  font-weight: 500;
 }
 
 .pdf-notes .notes-title {
-  font-size: 28px;
+  font-size: 14px;
   font-weight: 800;
   text-decoration: underline;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
+.pdf-body-notes {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #111827;
+  border-top: none;
+  min-height: 120px;
+}
+
+.pdf-body-notes .pdf-notes-heading {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.pdf-body-notes .pdf-note-line {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #111827;
+}
+
+.pdf-notes-heading {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.pdf-note-line {
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #111827;
+}
+
+.pdf-note-line span {
+  font-weight: 800;
+  margin-right: 6px;
+}
+
+/* =========================================================
+   PACKAGE INCLUDES
+   ========================================================= */
+
 .pdf-left-box {
-  min-height: 230px;
+  min-height: 150px;
+  padding: 14px 16px;
   border: none;
+}
+
+.pdf-left-box .pdf-notes {
+  margin-top: 6px;
+}
+
+.pdf-package-includes-box {
+  line-height: 1.5;
+}
+
+.pdf-package-includes-title {
+  margin: 4px 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.pdf-package-includes-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pdf-package-includes-list li {
+  color: #111827;
+}
+
+.pdf-package-includes-list li::before {
+  content: '•';
+  margin-right: 6px;
+  color: #111827;
+  font-weight: 800;
+}
+
+.pdf-package-validity {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* =========================================================
+   SUMMARY / TOTALS
+   ========================================================= */
+
+.pdf-content-inner {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.pdf-content-left {
+  display: grid;
+  gap: 10px;
+}
+
+.pdf-content-right {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #111827;
+  border-radius: 0;
+  background: #f8f8f8;
 }
 
 .pdf-summary {
@@ -621,30 +767,30 @@ html, body {
 
 .pdf-summary td {
   border: none;
-  padding: 12px 10px;
-  font-size: 30px;
+  padding: 7px 8px;
+  font-size: 13px;
   text-align: left;
   color: #111827;
   vertical-align: middle;
 }
 
 .pdf-summary td strong {
-  font-size: 32px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 60%;
-  padding-right: 6px;
+  width: 58%;
+  padding-right: 4px;
 }
 
 .pdf-summary .value {
   text-align: right;
-  font-weight: 800;
-  font-size: 32px;
-  width: 40%;
-  padding-left: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  width: 42%;
+  padding-left: 4px;
   white-space: nowrap;
 }
 
@@ -652,86 +798,20 @@ html, body {
   border-top: none;
 }
 
-.pdf-body-notes {
-  margin-top: 24px;
-  padding: 18px 20px;
-  border: 2px solid #111827;
-  border-top: none;
-  min-height: 220px;
-}
-
-.pdf-body-notes .pdf-notes-heading {
-  margin-bottom: 16px;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.pdf-body-notes .pdf-note-line {
-  font-size: 18px;
-  line-height: 1.7;
-  color: #111827;
-}
-
-.pdf-notes-heading {
-  font-size: 18px;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 12px;
-}
-
-.pdf-note-line {
-  margin-bottom: 10px;
-  font-size: 18px;
-  color: #111827;
-}
-
-.pdf-note-line span {
-  font-weight: 800;
-  margin-right: 8px;
-}
-
-.pdf-package-includes-title {
-  margin: 14px 0 10px;
-  font-size: 24px;
-  font-weight: 800;
-  color: #111827;
-}
-
-.pdf-package-includes-list {
-  margin: 0;
-  padding-left: 20px;
-  list-style: none;
-  display: grid;
-  gap: 8px;
-  font-size: 21px;
-  line-height: 1.5;
-}
-
-.pdf-package-includes-list li::before {
-  content: '•';
-  margin-right: 8px;
-  color: #111827;
-  font-weight: 800;
-}
-
-.pdf-package-validity {
-  margin-top: 16px;
-  font-size: 18px;
-  font-weight: 800;
-  color: #111827;
-}
+/* =========================================================
+   LOGOS
+   ========================================================= */
 
 .pdf-logos-section {
   position: absolute;
   left: 50%;
-  bottom: 260px;
+  bottom: 105px;
   transform: translateX(-50%);
-  width: 90%;
-  max-width: 2190px;
+  width: 88%;
+  max-width: none;
   display: flex;
   justify-content: center;
-  padding: 40px 20px 0; /* increased top padding for visible white spacing above logos */
+  padding: 20px 10px 0;
   background: #ffffff;
 }
 
@@ -739,7 +819,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 40px;
+  gap: 30px;
   width: 100%;
 }
 
@@ -747,23 +827,27 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
+  height: 100px;
   width: auto;
 }
 
 .pdf-logo-item img {
-  max-height: 200px;
-  max-width: 280px;
+  max-height: 95px;
+  max-width: 145px;
   object-fit: contain;
 }
+
+/* =========================================================
+   FOOTER IMAGE
+   ========================================================= */
 
 .pdf-footer-image {
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 2550px;
-  height: 192px;
+  width: 1584px;
+  height: 74px;
   z-index: 2;
 }
 
@@ -773,11 +857,19 @@ html, body {
   object-fit: cover;
 }
 
+/* =========================================================
+   PREVIEW HINT
+   ========================================================= */
+
 .pdf-preview-hint {
   margin-top: 18px;
   font-size: 12px;
   color: #6b7280;
 }
+
+/* =========================================================
+   QUOTATION TABS
+   ========================================================= */
 
 .quote-tabs {
   display: flex;
@@ -793,6 +885,7 @@ html, body {
   cursor: pointer;
   font-weight: 700;
   font-size: 13px;
+  font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .quote-tab.active {
@@ -800,6 +893,10 @@ html, body {
   border-color: #fcc000;
   color: #000000;
 }
+
+/* =========================================================
+   RESPONSIVE APPLICATION VIEW
+   ========================================================= */
 
 @media (max-width: 1320px) {
   .quote-invoice-shell {
@@ -809,5 +906,64 @@ html, body {
   .quote-invoice-preview {
     margin-top: 24px;
     justify-self: center;
+  }
+}
+
+/* =========================================================
+   PRINT / PDF
+   ========================================================= */
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .quote-invoice-root {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    display: block !important;
+  }
+
+  .quote-invoice-sidebar {
+    display: none !important;
+  }
+
+  .quote-invoice-shell {
+    display: block !important;
+    width: 1584px !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .quote-invoice-preview {
+    width: 1584px !important;
+    height: 2048px !important;
+    min-height: 2048px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .pdf-page,
+  .pdf-canvas,
+  .pdf-background {
+    width: 1584px !important;
+    height: 2048px !important;
+    min-height: 2048px !important;
+  }
+
+  .pdf-page {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
   }
 }
