@@ -751,21 +751,20 @@ body {
 .pdf-content-right {
   display: grid;
   gap: 10px;
-  padding: 6px 24px;
+  padding: 6px 12px;
   border: 1px solid #111827;
   border-radius: 0;
   background: #f8f8f8;
 }
 
 .pdf-summary {
-  width: 94%;
+  width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   margin-top: 0;
   margin-right: 0;
   border: none;
   background: transparent;
-  overflow: visible;
 }
 
 .pdf-summary td {
@@ -788,21 +787,19 @@ body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 45%;
-  padding-right: 20px;
-  padding-left: 0;
+  width: 40%;
+  padding-right: 12px;
+  padding-left: 8px;
 }
 
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
   font-size: 21px;
-  width: 55%;
-  padding-left: 20px;
-  padding-right: 16px;
+  width: 60%;
+  padding-left: 12px;
+  padding-right: 12px;
   white-space: nowrap;
-  word-spacing: normal;
-  overflow: hidden;
 }
 
 .pdf-footer-row td {
