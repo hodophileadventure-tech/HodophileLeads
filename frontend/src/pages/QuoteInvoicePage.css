@@ -738,7 +738,7 @@ body {
 
 .pdf-content-inner {
   display: grid;
-  grid-template-columns: 1.8fr 1fr;
+  grid-template-columns: 1.2fr 1.8fr;
   gap: 18px;
   align-items: start;
 }
@@ -751,10 +751,11 @@ body {
 .pdf-content-right {
   display: grid;
   gap: 10px;
-  padding: 6px 12px;
+  padding: 10px 14px;
   border: 1px solid #111827;
   border-radius: 0;
   background: #f8f8f8;
+  min-width: 0;
 }
 
 .pdf-summary {
