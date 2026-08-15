@@ -702,7 +702,7 @@ body {
 
 .pdf-package-includes-title {
   margin: 4px 0 8px;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 800;
   color: #111827;
 }
@@ -713,7 +713,7 @@ body {
   list-style: none;
   display: grid;
   gap: 5px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.35;
 }
 
