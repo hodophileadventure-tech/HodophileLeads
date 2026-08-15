@@ -592,10 +592,13 @@ body {
 }
 
 .pdf-package-info-line {
-  display: block;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  align-items: baseline;
+  column-gap: 40px;
   font-size: 23px;
   line-height: 1.35;
-  padding: 2px 0;
+  padding: 8px 0;
   margin-bottom: 12px;
 }
 
@@ -606,7 +609,6 @@ body {
   text-align: left;
   font-size: 23px;
   line-height: 1.35;
-  margin-bottom: 4px;
 }
 
 .pdf-package-info-line span {
@@ -617,6 +619,7 @@ body {
   line-height: 1.35;
   text-align: left;
   word-break: break-word;
+  padding-left: 0;
 }
 
 /* =========================================================
