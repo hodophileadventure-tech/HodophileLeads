@@ -592,13 +592,11 @@ body {
 }
 
 .pdf-package-info-line {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  align-items: baseline;
-  column-gap: 18px;
+  display: block;
   font-size: 23px;
   line-height: 1.35;
   padding: 2px 0;
+  margin-bottom: 12px;
 }
 
 .pdf-package-info-line strong {
@@ -606,11 +604,9 @@ body {
   font-weight: 700;
   color: #111827;
   text-align: left;
-  white-space: nowrap;
-  min-width: 260px;
-  padding-right: 0;
   font-size: 23px;
   line-height: 1.35;
+  margin-bottom: 4px;
 }
 
 .pdf-package-info-line span {
@@ -620,8 +616,6 @@ body {
   font-size: 23px;
   line-height: 1.35;
   text-align: left;
-  padding-left: 0;
-  margin-left: 0;
   word-break: break-word;
 }
 
