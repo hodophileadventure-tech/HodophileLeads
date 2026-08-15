@@ -788,20 +788,22 @@ body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 30%;
-  padding-right: 40px;
+  width: 25%;
+  padding-right: 0;
   padding-left: 8px;
+  text-align: left;
 }
 
 .pdf-summary .value {
   text-align: left;
   font-weight: 700;
   font-size: 21px;
-  width: 70%;
-  padding-left: 40px;
+  width: 75%;
+  padding-left: 60px;
   padding-right: 8px;
   white-space: nowrap;
-  min-width: 150px;
+  min-width: 200px;
+  border-left: 8px solid transparent;
 }
 
 .pdf-footer-row td {
