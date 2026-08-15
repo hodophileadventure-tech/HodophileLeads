@@ -799,8 +799,7 @@ body {
   font-size: 21px;
   width: 42%;
   padding-left: 4px;
-  overflow: hidden;
-  word-break: break-word;
+  white-space: nowrap;
 }
 
 .pdf-footer-row td {
