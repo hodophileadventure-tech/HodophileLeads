@@ -315,7 +315,7 @@ body {
 }
 
 .pdf-customer-box .pdf-customer-name {
-  font-size: 42px;
+  font-size: 36px;
   font-weight: 600;
   line-height: 1.1;
   white-space: nowrap;
@@ -702,7 +702,7 @@ body {
 
 .pdf-package-includes-title {
   margin: 4px 0 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: #111827;
 }
@@ -713,7 +713,7 @@ body {
   list-style: none;
   display: grid;
   gap: 5px;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.35;
 }
 
@@ -772,7 +772,7 @@ body {
 .pdf-summary td {
   border: none;
   padding: 7px 8px;
-  font-size: 15px;
+  font-size: 14px;
   text-align: left;
   color: #111827;
   vertical-align: middle;
@@ -783,7 +783,7 @@ body {
 }
 
 .pdf-summary td strong {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -796,7 +796,7 @@ body {
 .pdf-summary .value {
   text-align: right;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   width: 42%;
   padding-left: 4px;
   white-space: nowrap;
