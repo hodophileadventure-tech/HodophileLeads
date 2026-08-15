@@ -141,7 +141,8 @@ export const reportsAPI = {
   apiClient.post(`/admin/issues/${issueId}/attachments`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 
 (adminAPI as any).getAgents = () => apiClient.get('/admin/agents');
-(adminAPI as any).getAgentLeads = (agentId: string) => apiClient.get(`/admin/agents/${agentId}/leads`);
+(adminAPI as any).getAgentLeads = (agentId: string, status?: string) => 
+  apiClient.get(`/admin/agents/${agentId}/leads`, { params: status ? { status } : {} });
 (adminAPI as any).updateAgent = (agentId: string, data: any) => apiClient.put(`/admin/agents/${agentId}`, data);
 (adminAPI as any).resetAgentPassword = (agentId: string) => apiClient.post(`/admin/agents/${agentId}/reset-password`);
 (adminAPI as any).requestAgentScreenshot = (agentId: string) => apiClient.post(`/admin/agents/${agentId}/screenshot-request`, {});

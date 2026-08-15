@@ -512,13 +512,24 @@ export const adminController = {
   async getAgentLeads(req: any, res: any, next: any) {
     try {
       const agentId = req.params.id;
+      const { status } = req.query;
+
+      // Build dynamic query based on filters
+      let whereClause = 'WHERE l.agent_id = $1';
+      const params: any[] = [agentId];
+
+      if (status && status !== 'all') {
+        whereClause += ' AND l.status = $2';
+        params.push(status);
+      }
+
       const result = await query(`
         SELECT l.*, u.name AS agent_name, u.email AS agent_email
         FROM leads l
         JOIN users u ON u.id = l.agent_id
-        WHERE l.agent_id = $1
+        ${whereClause}
         ORDER BY l.created_at DESC
-      `, [agentId]);
+      `, params);
       res.json({ leads: result.rows });
     } catch (err) {
       next(err);

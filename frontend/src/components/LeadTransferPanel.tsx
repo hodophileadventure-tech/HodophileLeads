@@ -10,9 +10,12 @@ interface Agent {
   role: string;
 }
 
+const LEAD_STATUSES = ['new', 'contacted', 'interested', 'negotiation', 'booked', 'completed', 'canceled', 'spam'] as const;
+
 const LeadTransferPanel: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [agentLeads, setAgentLeads] = useState<Lead[]>([]);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [targetAgentId, setTargetAgentId] = useState<string>('');
@@ -52,7 +55,8 @@ const LeadTransferPanel: React.FC = () => {
 
       setLoadingLeads(true);
       try {
-        const response = await (adminAPI as any).getAgentLeads(selectedAgentId);
+        const statusParam = selectedStatus !== 'all' ? selectedStatus : undefined;
+        const response = await (adminAPI as any).getAgentLeads(selectedAgentId, statusParam);
         setAgentLeads(response.data.leads || []);
         setSelectedLeadIds([]); // Reset selected leads
         setError('');
@@ -66,7 +70,7 @@ const LeadTransferPanel: React.FC = () => {
     };
 
     loadAgentLeads();
-  }, [selectedAgentId]);
+  }, [selectedAgentId, selectedStatus]);
 
   const getSelectedLeads = () => {
     return agentLeads.filter(lead => selectedLeadIds.includes(String(lead.id)));
@@ -123,8 +127,9 @@ const LeadTransferPanel: React.FC = () => {
       
       setSuccess(`${selectedLeadIds.length} lead${selectedLeadIds.length > 1 ? 's' : ''} transferred successfully from ${getSourceAgentName()} to ${getTargetAgentName()}`);
       
-      // Reload leads for the source agent
-      const response = await (adminAPI as any).getAgentLeads(selectedAgentId);
+      // Reload leads for the source agent with current status filter
+      const statusParam = selectedStatus !== 'all' ? selectedStatus : undefined;
+      const response = await (adminAPI as any).getAgentLeads(selectedAgentId, statusParam);
       setAgentLeads(response.data.leads || []);
       
       // Reset form
@@ -147,7 +152,7 @@ const LeadTransferPanel: React.FC = () => {
       <div>
         <h2 className="text-2xl font-bold">Transfer Lead Between Agents</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-          Select an agent, choose a lead from their list, and transfer it to another agent.
+          Select an agent, filter by lead status (new, in progress, confirmed, etc), choose leads, and transfer them to another agent.
         </p>
       </div>
 
@@ -192,6 +197,30 @@ const LeadTransferPanel: React.FC = () => {
               </select>
             )}
           </div>
+
+          {/* Lead Status Filter */}
+          {selectedAgentId && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Filter by Lead Status
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Statuses</option>
+                {LEAD_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Showing leads with status: <span className="font-medium">{selectedStatus === 'all' ? 'all' : selectedStatus}</span>
+              </p>
+            </div>
+          )}
 
           {/* Lead Selection */}
           {selectedAgentId && (
