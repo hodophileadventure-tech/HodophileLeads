@@ -787,8 +787,8 @@ body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 40%;
-  padding-right: 12px;
+  width: 35%;
+  padding-right: 24px;
   padding-left: 8px;
 }
 
@@ -796,9 +796,9 @@ body {
   text-align: right;
   font-weight: 700;
   font-size: 21px;
-  width: 60%;
-  padding-left: 12px;
-  padding-right: 12px;
+  width: 65%;
+  padding-left: 24px;
+  padding-right: 8px;
   white-space: nowrap;
 }
 
