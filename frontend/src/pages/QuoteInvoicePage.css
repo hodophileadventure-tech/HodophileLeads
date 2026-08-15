@@ -561,12 +561,12 @@ body {
 .pdf-package-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 24px;
 }
 
 .pdf-package-meta-grid > div {
   display: grid;
-  gap: 4px;
+  gap: 8px;
 }
 
 .pdf-meta-label {
@@ -588,7 +588,7 @@ body {
 
 .pdf-package-info-group {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .pdf-package-info-line {
