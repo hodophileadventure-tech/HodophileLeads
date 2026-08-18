@@ -1046,6 +1046,75 @@ export const adminController = {
     }
   },
 
+  async revertLeadTransfer(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const leadId = req.params.id;
+
+      // Check if lead exists
+      const leadResult = await query('SELECT * FROM leads WHERE id = $1', [leadId]);
+      if (!leadResult.rows[0]) {
+        return res.status(404).json({ message: 'Lead not found' });
+      }
+
+      const lead = leadResult.rows[0];
+
+      // Get the previous agent from audit logs (find the last LEAD_TRANSFERRED action)
+      const auditResult = await query(
+        `SELECT changes FROM audit_logs 
+         WHERE entity_id = $1 AND action = 'LEAD_TRANSFERRED' AND entity_type = 'lead'
+         ORDER BY created_at DESC 
+         LIMIT 1`,
+        [leadId]
+      );
+
+      if (!auditResult.rows[0]) {
+        return res.status(400).json({ message: 'No transfer history found for this lead' });
+      }
+
+      const previousTransfer = auditResult.rows[0].changes;
+      const previousAgentId = previousTransfer?.fromAgentId;
+
+      if (!previousAgentId) {
+        return res.status(400).json({ message: 'Unable to determine previous agent' });
+      }
+
+      // Check if previous agent still exists
+      const previousAgentResult = await query("SELECT id FROM users WHERE id = $1 AND role = 'agent'", [previousAgentId]);
+      if (!previousAgentResult.rows[0]) {
+        return res.status(400).json({ message: 'Previous agent no longer exists in the system' });
+      }
+
+      // Revert the transfer (move back to previous agent)
+      const updateResult = await query(
+        'UPDATE leads SET agent_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+        [previousAgentId, leadId]
+      );
+
+      // Log the activity
+      await logActivity({
+        userId: req.user?.id as string,
+        action: 'LEAD_TRANSFER_REVERTED',
+        entityType: 'lead',
+        entityId: leadId,
+        changes: {
+          fromAgentId: lead.agent_id,
+          toAgentId: previousAgentId,
+          clientName: lead.client_name,
+          email: lead.email,
+          phone: lead.phone
+        }
+      });
+
+      res.json({ 
+        success: true, 
+        lead: updateResult.rows[0],
+        message: `Lead transfer reverted successfully back to previous agent` 
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async redFlags(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const overdueFollowUps = await followUpsModel.findOverdue();

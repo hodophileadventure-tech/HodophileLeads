@@ -175,6 +175,8 @@ export const quoteRequestsAPI = {
   apiClient.post('/auth/register', data);
 (adminAPI as any).transferLead = (leadId: string, targetAgentId: string) => 
   apiClient.post(`/admin/leads/${leadId}/transfer`, { targetAgentId });
+(adminAPI as any).revertLeadTransfer = (leadId: string) => 
+  apiClient.post(`/admin/leads/${leadId}/transfer/revert`, {});
 
 export const notificationsAPI = {
   list: () => apiClient.get('/notifications'),

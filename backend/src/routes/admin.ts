@@ -35,6 +35,7 @@ adminRouter.get('/red-flags', roleMiddleware(['admin']), adminController.redFlag
 adminRouter.get('/overview', roleMiddleware(['admin', 'manager']), adminController.overview);
 adminRouter.get('/leads/export', roleMiddleware(['admin', 'manager', 'agent']), adminController.exportLeadsSpreadsheet);
 adminRouter.post('/leads/:id/transfer', roleMiddleware(['admin', 'manager']), adminController.transferLead);
+adminRouter.post('/leads/:id/transfer/revert', roleMiddleware(['admin', 'manager']), adminController.revertLeadTransfer);
  
 // Agents management
 adminRouter.get('/agents', roleMiddleware(['admin', 'manager']), adminController.listAgents);

@@ -25,6 +25,9 @@ const LeadTransferPanel: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [transferring, setTransferring] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [activeTab, setActiveTab] = useState<'transfer' | 'revert'>('transfer');
+  const [revertLeadId, setRevertLeadId] = useState<string>('');
+  const [reverting, setReverting] = useState(false);
 
   // Load agents
   useEffect(() => {
@@ -147,13 +150,70 @@ const LeadTransferPanel: React.FC = () => {
     }
   };
 
+  const handleRevertTransfer = async () => {
+    if (!revertLeadId) {
+      setError('Please enter a lead ID');
+      return;
+    }
+
+    setReverting(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await (adminAPI as any).revertLeadTransfer(revertLeadId);
+      setSuccess(`✓ Lead transfer reverted successfully. Lead moved back to ${result.data.lead?.agent_id ? 'previous agent' : 'original agent'}`);
+      setRevertLeadId('');
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (err: any) {
+      console.error('Failed to revert transfer:', err);
+      setError(err?.response?.data?.message || 'Failed to revert lead transfer. The lead may not have a transfer history.');
+    } finally {
+      setReverting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Transfer Lead Between Agents</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-          Select an agent, filter by lead status (new, in progress, confirmed, etc), choose leads, and transfer them to another agent.
+          Select an agent, filter by lead status (new, in progress, confirmed, etc), choose leads, and transfer them to another agent. Or revert a previous transfer.
         </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-slate-300 dark:border-slate-600">
+        <button
+          onClick={() => {
+            setActiveTab('transfer');
+            setError('');
+            setSuccess('');
+          }}
+          className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+            activeTab === 'transfer'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          🔄 Transfer Leads
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('revert');
+            setError('');
+            setSuccess('');
+          }}
+          className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+            activeTab === 'revert'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          ↩️ Revert Transfer
+        </button>
       </div>
 
       {error && (
@@ -168,7 +228,9 @@ const LeadTransferPanel: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Transfer Tab */}
+      {activeTab === 'transfer' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Source Agent & Lead Selection */}
         <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
           <h3 className="font-semibold text-lg">Source Agent & Lead</h3>
@@ -363,6 +425,45 @@ const LeadTransferPanel: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
+
+      {/* Revert Tab */}
+      {activeTab === 'revert' && (
+        <div className="max-w-md mx-auto p-6 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Revert Lead Transfer</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              Enter the Lead ID to revert its transfer back to the previous agent. The system will look up the transfer history and move it back.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Lead ID or Phone Number
+            </label>
+            <input
+              type="text"
+              value={revertLeadId}
+              onChange={(e) => setRevertLeadId(e.target.value)}
+              placeholder="Enter lead ID or phone number..."
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <Button
+            onClick={handleRevertTransfer}
+            disabled={!revertLeadId || reverting}
+            variant="primary"
+            className="w-full"
+          >
+            {reverting ? 'Reverting...' : '↩️ Revert Transfer'}
+          </Button>
+
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-4">
+            💡 <strong>Note:</strong> This will move the lead back to its previous agent based on the transfer history. Only the most recent transfer will be reverted.
+          </p>
+        </div>
+      )}
 
       {/* Confirmation Modal */}
       {showConfirmation && (
