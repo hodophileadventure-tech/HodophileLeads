@@ -196,6 +196,12 @@ export const ensureRoleAndPermissionTables = async (): Promise<void> => {
 
     console.log(`[SCHEMA INIT] Missing RBAC tables: ${missingTables.join(', ')} - repairing schema`);
 
+    try {
+      await query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+    } catch (extensionError: any) {
+      console.warn('[SCHEMA INIT] Could not enable pgcrypto for RBAC repair:', extensionError.message || extensionError);
+    }
+
     const migrationPath = resolveProjectAssetPath('database', 'migrations', '2026-08-12-001-create-roles-system.sql');
     if (!fs.existsSync(migrationPath)) {
       console.warn('[SCHEMA INIT] RBAC migration file not found:', migrationPath);
