@@ -1058,21 +1058,29 @@ export const adminController = {
 
       const lead = leadResult.rows[0];
 
-      // Get the previous agent from audit logs (find the last LEAD_TRANSFERRED action)
+      // Find the transfer event that matches the lead's current owner. This keeps revert working
+      // even when the lead was transferred multiple times over time and the last transfer isn't the
+      // only relevant historical movement.
       const auditResult = await query(
         `SELECT changes FROM audit_logs 
          WHERE entity_id = $1 AND action = 'LEAD_TRANSFERRED' AND entity_type = 'lead'
-         ORDER BY created_at DESC 
-         LIMIT 1`,
+         ORDER BY created_at DESC`,
         [leadId]
       );
 
-      if (!auditResult.rows[0]) {
+      const transferHistory = (auditResult.rows || [])
+        .map((row: any) => row.changes)
+        .filter(Boolean);
+
+      const matchingTransfer = transferHistory.find((change: any) =>
+        String(change.toAgentId ?? '') === String(lead.agent_id)
+      ) || transferHistory[0];
+
+      if (!matchingTransfer) {
         return res.status(400).json({ message: 'No transfer history found for this lead' });
       }
 
-      const previousTransfer = auditResult.rows[0].changes;
-      const previousAgentId = previousTransfer?.fromAgentId;
+      const previousAgentId = matchingTransfer.fromAgentId;
 
       if (!previousAgentId) {
         return res.status(400).json({ message: 'Unable to determine previous agent' });

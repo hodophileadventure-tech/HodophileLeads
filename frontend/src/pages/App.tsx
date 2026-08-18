@@ -22,13 +22,14 @@ import { ItinerariesPanel } from '../components/ItinerariesPanel';
 import { LeadsPage } from './LeadsPage';
 import { QuickSummary } from '../components/QuickSummary';
 import LeadTransferPanel from '../components/LeadTransferPanel';
+import GitHistoryPanel from '../components/GitHistoryPanel';
 import { Button, Spinner } from '../components/common';
 import AdminPage from './AdminPage';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history';
 
  
 

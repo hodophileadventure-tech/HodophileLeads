@@ -1,5 +1,6 @@
 import express from 'express';
 import { adminRouter } from '../src/routes/admin';
+import { adminController } from '../src/controllers/admin-controller';
 import { verifyToken } from '../src/utils/auth';
 import { query } from '../src/utils/database';
 
@@ -10,6 +11,10 @@ jest.mock('../src/utils/auth', () => ({
 jest.mock('../src/utils/database', () => ({
   query: jest.fn(),
   getClient: jest.fn()
+}));
+
+jest.mock('../src/utils/activity-log', () => ({
+  logActivity: jest.fn().mockResolvedValue({})
 }));
 
 describe('admin agents route', () => {
@@ -48,5 +53,45 @@ describe('admin agents route', () => {
         server.close((err) => (err ? reject(err) : resolve()));
       });
     }
+  });
+
+  it('reverts a lead to the previous owner from the most recent matching transfer event', async () => {
+    const lead = {
+      id: 'lead-1',
+      agent_id: 'agent-b',
+      client_name: 'Jane Smith',
+      email: 'jane@example.com',
+      phone: '5551234'
+    };
+
+    (query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [lead] })
+      .mockResolvedValueOnce({
+        rows: [
+          { changes: { fromAgentId: 'agent-c', toAgentId: 'agent-d' } },
+          { changes: { fromAgentId: 'agent-a', toAgentId: 'agent-b' } }
+        ]
+      })
+      .mockResolvedValueOnce({ rows: [{ id: 'agent-a' }] })
+      .mockResolvedValueOnce({ rows: [{ ...lead, agent_id: 'agent-a' }] });
+
+    const req: any = {
+      params: { id: 'lead-1' },
+      user: { id: 'manager-1', role: 'manager' }
+    };
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn()
+    };
+    const next = jest.fn();
+
+    await adminController.revertLeadTransfer(req, res, next);
+
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(query).toHaveBeenNthCalledWith(4, expect.stringContaining('UPDATE leads SET agent_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *'), ['agent-a', 'lead-1']);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
+      lead: expect.objectContaining({ agent_id: 'agent-a' })
+    }));
   });
 });

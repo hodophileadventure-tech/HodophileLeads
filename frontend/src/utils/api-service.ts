@@ -183,6 +183,13 @@ export const notificationsAPI = {
   markRead: (id: string) => apiClient.patch(`/notifications/${id}/read`)
 };
 
+export const gitAPI = {
+  getCommitHistory: () => apiClient.get('/git/commits'),
+  getCommitDetails: (hash: string) => apiClient.get(`/git/commits/${hash}`),
+  getCurrentCommit: () => apiClient.get('/git/current'),
+  revertToCommit: (hash: string) => apiClient.post('/git/revert', { hash })
+};
+
 export const authAPI = {
   changePassword: (currentPassword: string, newPassword: string) => 
     apiClient.post('/auth/change-password', { currentPassword, newPassword })
