@@ -264,11 +264,16 @@ export const quoteRequestsController = {
 
         updatedRequest = await quoteRequestsModel.update(requestId, updatePayload, client);
 
-        if (isQuotation && !existingRequest.acceptedAt) {
+        if ((isQuotation || existingRequest.requestType === 'invoice') && !existingRequest.acceptedAt) {
           try {
-            await syncLeadQuotationPricing(existingRequest.leadId, savedDocumentData, { markAccepted: false }, client);
+            await syncLeadQuotationPricing(
+              existingRequest.leadId,
+              savedDocumentData,
+              { markAccepted: existingRequest.requestType === 'invoice' },
+              client
+            );
           } catch (syncError) {
-            console.error('[Quotation Save] Failed to sync lead pricing after save, continuing with saved quotation:', syncError);
+            console.error('[Quotation Save] Failed to sync lead pricing after save, continuing with saved document:', syncError);
           }
         }
 
@@ -709,8 +714,13 @@ export const quoteRequestsController = {
           managerNotes
         }, client);
 
-        if (quoteRequest.requestType === 'quotation' && !quoteRequest.acceptedAt) {
-          await syncLeadQuotationPricing(quoteRequest.leadId, savedDocumentData, { markAccepted: false }, client);
+        if ((quoteRequest.requestType === 'quotation' || quoteRequest.requestType === 'invoice') && !quoteRequest.acceptedAt) {
+          await syncLeadQuotationPricing(
+            quoteRequest.leadId,
+            savedDocumentData,
+            { markAccepted: quoteRequest.requestType === 'invoice' },
+            client
+          );
         }
 
         await client.query('COMMIT');
@@ -873,8 +883,8 @@ export const quoteRequestsController = {
         return res.status(404).json({ message: 'Quote request not found' });
       }
 
-      if (quoteRequest.requestType !== 'quotation') {
-        return res.status(400).json({ message: 'Only quotations can be marked as accepted' });
+      if (quoteRequest.requestType !== 'quotation' && quoteRequest.requestType !== 'invoice') {
+        return res.status(400).json({ message: 'Only quotations or invoices can be marked as accepted' });
       }
 
       if (quoteRequest.acceptedAt) {
@@ -915,7 +925,7 @@ export const quoteRequestsController = {
           });
         } catch (_) {}
 
-        return res.status(422).json({ message: 'Accepted quotation subtotal is missing or invalid', status: 'invalid_for_acceptance' });
+        return res.status(422).json({ message: 'Accepted invoice/quotation subtotal is missing or invalid', status: 'invalid_for_acceptance' });
       }
 
       const client = await getClient();

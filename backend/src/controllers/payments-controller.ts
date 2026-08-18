@@ -4,6 +4,40 @@ import { paymentsModel } from '../models/Payment';
 import { leadsModel } from '../models/Lead';
 import { validatePayload, paymentSchema } from '../utils/validation';
 import { logActivity } from '../utils/activity-log';
+import { query } from '../utils/database';
+
+const resolveAcceptedLeadPrice = async (leadId: string, lead: any) => {
+  try {
+    const invoiceResult = await query(
+      `SELECT document_data
+       FROM quote_requests
+       WHERE lead_id = $1
+         AND request_type = 'invoice'
+         AND accepted_at IS NOT NULL
+       ORDER BY accepted_at DESC, updated_at DESC
+       LIMIT 1`,
+      [leadId]
+    );
+
+    const invoiceDocument = invoiceResult.rows?.[0]?.document_data || invoiceResult.rows?.[0]?.documentData || null;
+    const invoiceSubtotal = invoiceDocument ? Number(String(invoiceDocument.subtotal ?? invoiceDocument.total ?? invoiceDocument.totalDue ?? invoiceDocument.grandTotal ?? '0').replace(/[^0-9.\-]/g, '')) : NaN;
+    if (invoiceDocument && Number.isFinite(invoiceSubtotal) && invoiceSubtotal > 0) {
+      return invoiceSubtotal;
+    }
+  } catch (error) {
+    console.warn('[Payments] Failed to resolve accepted invoice subtotal for lead:', leadId, error);
+  }
+
+  return Number(
+    (lead as any)?.actualPrice ??
+    (lead as any)?.actual_price ??
+    (lead as any)?.latestRevisedPrice ??
+    (lead as any)?.latest_revised_price ??
+    (lead as any)?.initialPrice ??
+    (lead as any)?.initial_price ??
+    0
+  );
+};
 
 const touchLead = async (leadId?: string) => {
   if (!leadId) return;
@@ -30,15 +64,7 @@ export const paymentsController = {
     try {
       const payload = validatePayload(paymentSchema, req.body);
       const lead = await leadsModel.findById(payload.leadId);
-      const actualPrice = Number(
-        (lead as any)?.actualPrice ??
-        (lead as any)?.actual_price ??
-        (lead as any)?.latestRevisedPrice ??
-        (lead as any)?.latest_revised_price ??
-        (lead as any)?.initialPrice ??
-        (lead as any)?.initial_price ??
-        0
-      );
+      const actualPrice = await resolveAcceptedLeadPrice(payload.leadId, lead);
       if (!actualPrice || actualPrice <= 0) {
         console.warn('[Payments] Rejected deposit creation because lead has no accepted actual price.', {
           leadId: payload.leadId,
@@ -76,22 +102,14 @@ export const paymentsController = {
       const existingPayment = await paymentsModel.findById(req.params.id);
       if (existingPayment) {
         const lead = await leadsModel.findById(existingPayment.leadId);
-        const actualPrice = Number(
-          (lead as any)?.actualPrice ??
-          (lead as any)?.actual_price ??
-          (lead as any)?.latestRevisedPrice ??
-          (lead as any)?.latest_revised_price ??
-          (lead as any)?.initialPrice ??
-          (lead as any)?.initial_price ??
-          0
-        );
+        const actualPrice = await resolveAcceptedLeadPrice(existingPayment.leadId, lead);
         if (actualPrice <= 0) {
           console.warn('[Payments] Rejected deposit update because lead has no accepted actual price.', {
             paymentId: req.params.id,
             leadId: existingPayment.leadId,
             userId: req.user.id
           });
-          return res.status(400).json({ message: 'Accepted quotation is required before recording deposits' });
+          return res.status(400).json({ message: 'Accepted quotation or invoice is required before recording deposits' });
         }
 
         const currentPayments = await paymentsModel.findAllByLead(existingPayment.leadId);

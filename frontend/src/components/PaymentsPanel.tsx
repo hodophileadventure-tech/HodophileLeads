@@ -166,7 +166,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
               try {
                 setFormError('');
                 if (actualPrice == null || actualPrice <= 0) {
-                  setFormError('Accepted quotation is required before recording deposits.');
+                  setFormError('Accepted quotation or invoice is required before recording deposits.');
                   return;
                 }
 
@@ -178,7 +178,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
 
                 const nextTotal = totalDeposits + proposedAmount;
                 if (nextTotal > Number(actualPrice)) {
-                  setFormError(`Deposit cannot exceed the accepted quotation actual price of PKR ${Number(actualPrice).toLocaleString()}.`);
+                  setFormError(`Deposit cannot exceed the accepted invoice/quotation actual price of PKR ${Number(actualPrice).toLocaleString()}.`);
                   return;
                 }
 
