@@ -86,9 +86,20 @@ export const dashboardAPI = {
   })
 };
 
+export const tasksAPI = {
+  list: () => apiClient.get('/tasks'),
+  create: (data: { title: string; description?: string; assigned_to: string; start_date?: string; deadline: string; priority?: 'low' | 'medium' | 'high' }) => apiClient.post('/tasks', data),
+  start: (taskId: string) => apiClient.post(`/tasks/${taskId}/start`, {}),
+  submit: (taskId: string, data?: { submission_notes?: string }) => apiClient.post(`/tasks/${taskId}/submit`, data || {}),
+  approve: (taskId: string, data?: { review_notes?: string }) => apiClient.post(`/tasks/${taskId}/approve`, data || {}),
+  requestRevision: (taskId: string, data: { review_notes: string }) => apiClient.post(`/tasks/${taskId}/request-revision`, data),
+  cancel: (taskId: string, reason: string) => apiClient.post(`/tasks/${taskId}/cancel`, { cancellation_reason: reason })
+};
+
 export const adminAPI = {
   getRedFlags: () => apiClient.get('/admin/red-flags'),
   getOverview: () => apiClient.get('/admin/overview'),
+  getUsers: () => apiClient.get('/admin/users'),
   exportLeadsSpreadsheet: (status?: string, startDate?: string, endDate?: string) => apiClient.get('/admin/leads/export', {
     params: {
       ...(status && status !== 'all' ? { status } : {}),

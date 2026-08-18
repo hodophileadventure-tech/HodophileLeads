@@ -138,7 +138,7 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
       ) : (
         <div className="space-y-3">
           {payments.map((payment) => {
-            const proofUrl = resolveAssetUrl(payment.proofUrl || (payment as any).proof_url, import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api');
+            const proofUrl = resolveAssetUrl(payment.proofUrl || (payment as any).proof_url, import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api'));
             return (
               <div key={payment.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex flex-wrap justify-between gap-3">
                 <div>

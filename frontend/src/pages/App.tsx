@@ -11,6 +11,7 @@ import ReportIssuePage from './ReportIssuePage';
 import DailyReportsPage from './DailyReportsPage';
 import DeveloperPanel from './DeveloperPanel';
 import { TaskDashboard } from '../components/TaskDashboard';
+import { CreativeWorkPanel } from '../components/CreativeWorkPanel';
 import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 import { PendingQuotesPanel } from '../components/PendingQuotesPanel';
 import { HotelsPanel } from '../components/HotelsPanel';
@@ -424,29 +425,37 @@ export const App: React.FC = () => {
     return leads.find((lead) => String(lead.id) === String(activeAlarm.leadId)) || null;
   }, [activeAlarm, leads]);
 
-  const navItems = [
-    { label: 'Dashboard', href: 'dashboard', icon: '📊' },
-    { label: 'Leads', href: 'leads', icon: '🧾' },
-    { label: 'Follow-ups', href: 'followups', icon: '🕒' },
-    { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
-    ...(user?.role === 'admin' ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
-    ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
-    ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
-    ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
-    ...(user?.role === 'admin' ? [{ label: 'Pending Invoices', href: 'pending-invoices', icon: '🧾' }] : []),
-    ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
-    ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
-    ...(user?.role === 'manager' ? [{ label: 'Quick Summary', href: 'quick-summary', icon: '📋' }] : []),
-    ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
-    ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
-    { label: 'Agent Panel', href: 'agent', icon: '🧭' },
-    ...(user?.role === 'agent' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
-    ...(user?.role === 'agent' ? [{ label: 'Created Quotations', href: 'created-quotations', icon: '💾' }] : []),
-    { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
-    ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
-    ...(user?.role === 'admin' ? [{ label: 'Git History', href: 'git-history', icon: '🧾' }] : []),
-    { label: 'Analytics', href: 'analytics', icon: '📈' }
-  ];
+  const isCreativeRole = ['content_creator', 'video_editor', 'content creator', 'video editor'].includes(String(user?.role || ''));
+
+  const navItems = isCreativeRole
+    ? [
+        { label: 'Workspace', href: 'dashboard', icon: '🎬' },
+        { label: 'My Tasks', href: 'dashboard', icon: '✅' },
+        { label: 'Report Issue', href: 'report-issue', icon: '🐞' }
+      ]
+    : [
+        { label: 'Dashboard', href: 'dashboard', icon: '📊' },
+        { label: 'Leads', href: 'leads', icon: '🧾' },
+        { label: 'Follow-ups', href: 'followups', icon: '🕒' },
+        { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
+        ...(user?.role === 'admin' ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Pending Invoices', href: 'pending-invoices', icon: '🧾' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
+        ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
+        ...(user?.role === 'manager' ? [{ label: 'Quick Summary', href: 'quick-summary', icon: '📋' }] : []),
+        ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
+        ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
+        { label: 'Agent Panel', href: 'agent', icon: '🧭' },
+        ...(user?.role === 'agent' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
+        ...(user?.role === 'agent' ? [{ label: 'Created Quotations', href: 'created-quotations', icon: '💾' }] : []),
+        { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
+        ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Git History', href: 'git-history', icon: '🧾' }] : []),
+        { label: 'Analytics', href: 'analytics', icon: '📈' }
+      ];
 
   if (!user) return null;
 
@@ -554,39 +563,45 @@ export const App: React.FC = () => {
             )}
             {currentPage === 'dashboard' && (
               <div className="space-y-6">
-                <section className="card">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                      <h1 className="text-3xl font-bold">Dashboard</h1>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        Your sales performance, pipeline health, and task summary all in one place.
-                      </p>
-                    </div>
-                  </div>
-                </section>
-                          {selectedLead && selectedLead.status === 'canceled' && selectedLead.canceledReason && (
-                            <div>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">Canceled Reason</p>
-                              <p className="text-sm text-rose-700 dark:text-rose-200">{selectedLead.canceledReason}</p>
-                            </div>
-                          )}
-                <section className="grid grid-cols-1 gap-6">
-                  {user?.role === 'agent' && (
-                    <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-700 p-4">
-                      <p className="flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-100">
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-800 text-rose-700 dark:text-rose-100">🔔</span>
-                        Complete your target or salary will be deducted accordingly.
-                      </p>
-                    </div>
-                  )}
-                  <div className="card">
-                    <Dashboard />
-                  </div>
-                </section>
-                {(user?.role === 'admin' || user?.role === 'manager') && (
-                  <section>
-                    <AnalyticsDashboard isAdmin={user?.role === 'admin'} showAgentTargetsOnly={user?.role === 'manager'} />
-                  </section>
+                {isCreativeRole ? (
+                  <CreativeWorkPanel />
+                ) : (
+                  <>
+                    <section className="card">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                          <h1 className="text-3xl font-bold">Dashboard</h1>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            Your sales performance, pipeline health, and task summary all in one place.
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                    {selectedLead && selectedLead.status === 'canceled' && selectedLead.canceledReason && (
+                      <div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Canceled Reason</p>
+                        <p className="text-sm text-rose-700 dark:text-rose-200">{selectedLead.canceledReason}</p>
+                      </div>
+                    )}
+                    <section className="grid grid-cols-1 gap-6">
+                      {user?.role === 'agent' && (
+                        <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-700 p-4">
+                          <p className="flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-100">
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-800 text-rose-700 dark:text-rose-100">🔔</span>
+                            Complete your target or salary will be deducted accordingly.
+                          </p>
+                        </div>
+                      )}
+                      <div className="card">
+                        <Dashboard />
+                      </div>
+                    </section>
+                    {(user?.role === 'admin' || user?.role === 'manager') && (
+                      <section>
+                        <AnalyticsDashboard isAdmin={user?.role === 'admin'} showAgentTargetsOnly={user?.role === 'manager'} />
+                      </section>
+                    )}
+                  </>
                 )}
               </div>
             )}

@@ -10,7 +10,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '')).replace(/\/$/, '');
+const API_PREFIX = API_BASE ? `${API_BASE}/api` : '/api';
 
 interface Role {
   id: string;
@@ -51,7 +52,7 @@ function RoleManagementTab() {
   async function fetchRoles() {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/api/admin/roles`, {
+      const response = await axios.get(`${API_PREFIX}/admin/roles`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setRoles(response.data.roles || []);
@@ -72,7 +73,7 @@ function RoleManagementTab() {
 
     try {
       setLoading(true);
-      await axios.post(`${API_BASE}/api/admin/roles`, formData, {
+      await axios.post(`${API_PREFIX}/admin/roles`, formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setFormData({ name: '', slug: '', description: '' });
@@ -93,7 +94,7 @@ function RoleManagementTab() {
 
     try {
       setLoading(true);
-      await axios.delete(`${API_BASE}/api/admin/roles/${roleId}`, {
+      await axios.delete(`${API_PREFIX}/admin/roles/${roleId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setError(null);
@@ -249,7 +250,7 @@ function UserManagementTab() {
   async function fetchUsers() {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/api/admin/users`, {
+      const response = await axios.get(`${API_PREFIX}/admin/users`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setUsers(response.data.users || []);
@@ -263,7 +264,7 @@ function UserManagementTab() {
 
   async function fetchRoles() {
     try {
-      const response = await axios.get(`${API_BASE}/api/admin/roles`, {
+      const response = await axios.get(`${API_PREFIX}/admin/roles`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setRoles(response.data.roles || []);
@@ -281,7 +282,7 @@ function UserManagementTab() {
 
     try {
       setLoading(true);
-      await axios.post(`${API_BASE}/api/admin/users`, formData, {
+      await axios.post(`${API_PREFIX}/admin/users`, formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setFormData({ email: '', name: '', password: '', roleId: '' });
@@ -302,7 +303,7 @@ function UserManagementTab() {
 
     try {
       setLoading(true);
-      await axios.delete(`${API_BASE}/api/admin/users/${userId}`, {
+      await axios.delete(`${API_PREFIX}/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setError(null);
