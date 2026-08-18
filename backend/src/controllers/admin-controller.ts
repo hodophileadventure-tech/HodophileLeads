@@ -963,7 +963,7 @@ export const adminController = {
             COUNT(l.id) as bookings,
             COALESCE(u.monthly_target, 5000000) AS monthly_target
           FROM users u
-          LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed')
+          LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed' OR l.lead_outcome = 'confirmed' OR l.pipeline_stage = 'confirmed')
           GROUP BY u.id, u.name
           ORDER BY total_revenue DESC NULLS LAST
         `
@@ -973,7 +973,7 @@ export const adminController = {
             COUNT(l.id) as bookings,
             5000000 AS monthly_target
           FROM users u
-          LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed')
+          LEFT JOIN leads l ON u.id = l.agent_id AND (l.status = 'booked' OR l.status = 'completed' OR l.lead_outcome = 'confirmed' OR l.pipeline_stage = 'confirmed')
           GROUP BY u.id, u.name
           ORDER BY total_revenue DESC NULLS LAST
         `;
