@@ -440,7 +440,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
     ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
     ...(user?.role === 'manager' ? [{ label: 'Quick Summary', href: 'quick-summary', icon: '📋' }] : []),
-    ...(user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
+    ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
     ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
     { label: 'Agent Panel', href: 'agent', icon: '🧭' },
     ...(user?.role === 'agent' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
@@ -1339,7 +1339,7 @@ export const App: React.FC = () => {
               <QuickSummary agents={agents} />
             )}
 
-            {currentPage === 'lead-transfer' && user?.role === 'manager' && (
+            {currentPage === 'lead-transfer' && (user?.role === 'admin' || user?.role === 'manager') && (
               <LeadTransferPanel />
             )}
 
