@@ -30,14 +30,13 @@ export const dashboardController = {
     try {
       const scopeAgentId = getLeadScopeAgentId(req.user?.role, req.user?.id);
       const scopeParams = scopeAgentId ? [scopeAgentId] : [];
-      const [statsResult, paymentsResult, overdueResult] = await Promise.allSettled([
+      const [statsResult, paymentsResult, overdueResult, revenueResult] = await Promise.allSettled([
         query(`
           SELECT
             COUNT(*)::int as total_leads,
             COUNT(*) FILTER (WHERE temperature = 'hot')::int as hot_leads,
               COUNT(*) FILTER (WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM NOW()) AND status = 'booked')::int as bookings_this_month,
-              COUNT(*) FILTER (WHERE status = 'booked' OR lead_outcome = 'confirmed' OR pipeline_stage = 'confirmed')::int as total_confirmed,
-            COALESCE(SUM(CASE WHEN status = 'booked' OR lead_outcome = 'confirmed' OR pipeline_stage = 'confirmed' THEN budget ELSE 0 END), 0)::numeric as total_revenue
+              COUNT(*) FILTER (WHERE status = 'booked' OR lead_outcome = 'confirmed' OR pipeline_stage = 'confirmed')::int as total_confirmed
           FROM leads
           ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
         `, scopeParams),
@@ -54,13 +53,21 @@ export const dashboardController = {
           FROM follow_ups f
           JOIN leads l ON l.id = f.lead_id
           ${scopeAgentId ? 'WHERE l.agent_id = $1' : ''} AND f.status != 'completed' AND f.due_date < NOW()
+        `, scopeParams),
+        query(`
+          SELECT COALESCE(SUM(p.amount), 0)::numeric as total_revenue
+          FROM payments p
+          JOIN leads l ON l.id = p.lead_id
+          WHERE l.status = 'booked' OR l.lead_outcome = 'confirmed' OR l.pipeline_stage = 'confirmed'
+          ${scopeAgentId ? 'AND l.agent_id = $1' : ''}
         `, scopeParams)
       ]);
 
       const stats = statsResult.status === 'fulfilled' ? statsResult.value.rows[0] : null;
       const payments = paymentsResult.status === 'fulfilled' ? paymentsResult.value.rows[0] : null;
       const overdueTasks = overdueResult.status === 'fulfilled' ? overdueResult.value.rows[0] : null;
-      const confirmedRevenue = parseFloat(stats?.total_revenue) || 0;
+      const revenue = revenueResult.status === 'fulfilled' ? revenueResult.value.rows[0] : null;
+      const confirmedRevenue = parseFloat(revenue?.total_revenue) || 0;
       const targetSummary = calculateMonthlyTargetProgress(confirmedRevenue);
 
       if (statsResult.status === 'rejected') {
@@ -71,6 +78,9 @@ export const dashboardController = {
       }
       if (overdueResult.status === 'rejected') {
         console.error('[Dashboard] overdue query failed', overdueResult.reason);
+      }
+      if (revenueResult.status === 'rejected') {
+        console.error('[Dashboard] revenue query failed', revenueResult.reason);
       }
 
       res.json({
