@@ -1,5 +1,6 @@
 import React from 'react';
 import { paymentsAPI, leadsAPI } from '../utils/api-service';
+import { resolveAssetUrl } from '../utils/resolveAssetUrl';
 import { Button, Modal } from './common';
 import type { Payment, Lead } from '../types';
 
@@ -136,22 +137,25 @@ export const PaymentsPanel: React.FC<PaymentsPanelProps> = ({ leadId, lead }) =>
         <p className="text-sm text-slate-500">No payment records yet.</p>
       ) : (
         <div className="space-y-3">
-          {payments.map((payment) => (
-            <div key={payment.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex flex-wrap justify-between gap-3">
-              <div>
-                <p className="font-medium">PKR {payment.amount}</p>
-                <p className="text-xs text-slate-500">{payment.method} · Due {payment.dueDate || (payment as any).due_date}</p>
-                <p className="text-xs text-slate-500">Status: {payment.status}</p>
-                {(payment.proofUrl || (payment as any).proof_url) && (
-                  <a href={payment.proofUrl || (payment as any).proof_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block">📎 View Proof</a>
-                )}
+          {payments.map((payment) => {
+            const proofUrl = resolveAssetUrl(payment.proofUrl || (payment as any).proof_url, import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api');
+            return (
+              <div key={payment.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex flex-wrap justify-between gap-3">
+                <div>
+                  <p className="font-medium">PKR {payment.amount}</p>
+                  <p className="text-xs text-slate-500">{payment.method} · Due {payment.dueDate || (payment as any).due_date}</p>
+                  <p className="text-xs text-slate-500">Status: {payment.status}</p>
+                  {proofUrl && (
+                    <a href={proofUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block">📎 View Proof</a>
+                  )}
+                  </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => setConfirmingPayment(payment)}>Confirm</Button>
+                  <Button size="sm" variant="danger" onClick={async () => { if (!confirm('Delete payment?')) return; await paymentsAPI.delete(payment.id); await load(); window.dispatchEvent(new Event('dashboard-refresh')); }}>Delete</Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={() => setConfirmingPayment(payment)}>Confirm</Button>
-                <Button size="sm" variant="danger" onClick={async () => { if (!confirm('Delete payment?')) return; await paymentsAPI.delete(payment.id); await load(); window.dispatchEvent(new Event('dashboard-refresh')); }}>Delete</Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
