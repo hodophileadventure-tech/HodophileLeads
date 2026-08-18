@@ -1048,6 +1048,14 @@ export const App: React.FC = () => {
                             hidePreview
                             generatePreviewOnMount
                             onPreviewGenerated={handlePreviewGenerated}
+                            leadId={selectedQuoteRequest?.leadId}
+                            requestId={selectedQuoteRequest?.id}
+                            requestType={selectedQuoteRequest?.requestType as 'invoice' | 'quotation'}
+                            initialDocumentData={selectedQuoteRequest?.documentData}
+                            onSaved={() => {
+                              setSelectedQuoteRequest(null);
+                              window.dispatchEvent(new Event('quote-request-saved'));
+                            }}
                           />
                         </div>
                       </main>

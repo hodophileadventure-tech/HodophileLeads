@@ -22,12 +22,22 @@ type InvoicePageProps = {
   onPreviewGenerated?: (dataUrl: string) => void;
   generatePreviewOnMount?: boolean;
   hidePreview?: boolean;
+  leadId?: string;
+  requestId?: string;
+  requestType?: 'quotation' | 'invoice';
+  initialDocumentData?: any;
+  onSaved?: () => void;
 };
 
 export const InvoicePage: React.FC<InvoicePageProps> = ({
   onPreviewGenerated,
   generatePreviewOnMount = false,
   hidePreview = false,
+  leadId,
+  requestId,
+  requestType = 'invoice',
+  initialDocumentData,
+  onSaved,
 }) => {
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [travelDate, setTravelDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -299,34 +309,48 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     }
   };
 
-  const saveInvoice = () => {
-    const invoiceData = {
-      invoiceNumber,
-      date,
-      travelDate,
-      destination,
-      persons,
-      customerName,
-      number,
-      city,
-      discount,
-      advance,
-      subtotal,
-      discountValue,
-      totalDue,
-      balance,
-      rows,
-    };
+  const saveInvoice = async () => {
+    if (!requestId) {
+      alert('Please open this invoice from a lead request so it can be saved to the system.');
+      return;
+    }
 
-    const blob = new Blob([JSON.stringify(invoiceData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Invoice-${invoiceNumber || 'Invoice'}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+      const invoiceData = {
+        invoiceNumber,
+        date,
+        travelDate,
+        destination,
+        persons,
+        customerName,
+        phone: number,
+        city,
+        discount,
+        advanceAmount: advance,
+        subtotal: String(subtotal),
+        discountValue: String(discountValue),
+        totalDue: String(totalDue),
+        balanceDue: String(balance),
+        tableRows: rows,
+        packageIncludes: rows.map((row) => row.particulars).filter(Boolean),
+        packageName: destination,
+        packageDescription: destination,
+        amount: String(totalDue),
+      };
+
+      const response = await quoteRequestsAPI.save(requestId, { ...initialDocumentData, ...invoiceData, requestType });
+      if (response.data?.lead) {
+        window.dispatchEvent(new CustomEvent('lead-payment-pricing-updated', {
+          detail: { leadId: leadId || response.data.lead.id || null, lead: response.data.lead }
+        }));
+      }
+      window.dispatchEvent(new CustomEvent('quote-request-saved', { detail: { leadId: leadId || null, lead: response.data?.lead || null } }));
+      onSaved?.();
+      alert('Invoice saved successfully.');
+    } catch (error: any) {
+      console.error('Failed to save invoice:', error);
+      alert(error?.response?.data?.message || 'Failed to save invoice. Please try again.');
+    }
   };
 
   return (
