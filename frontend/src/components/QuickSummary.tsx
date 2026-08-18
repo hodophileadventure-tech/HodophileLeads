@@ -124,6 +124,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
   };
 
   const totalLeadPieValue = leadsData.reduce((sum, item) => sum + item.value, 0);
+  const remainingLeadCount = data ? Math.max(0, data.totalLeads - totalLeadPieValue) : 0;
   const hasLeadPieMismatch = data ? totalLeadPieValue !== data.totalLeads : false;
 
   return (
@@ -238,6 +239,12 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <p className="text-2xl font-bold text-red-600 dark:text-red-300">{data.canceledLeads}</p>
             </button>
           </div>
+
+          {remainingLeadCount > 0 && (
+            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              Other / unclassified lead statuses: <span className="font-semibold text-slate-900 dark:text-slate-100">{remainingLeadCount}</span>
+            </div>
+          )}
 
           {expandedSection && (
             <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
@@ -371,7 +378,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               )}
               {hasLeadPieMismatch && (
                 <div className="mt-3 text-sm text-yellow-700 dark:text-yellow-300">
-                  Note: lead pie segments total {totalLeadPieValue}, but overall total leads is {data?.totalLeads}.
+                  Note: lead pie segments total {totalLeadPieValue}, but overall total leads is {data?.totalLeads}. Remaining unclassified statuses: {remainingLeadCount}.
                 </div>
               )}
             </div>
