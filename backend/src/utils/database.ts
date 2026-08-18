@@ -164,6 +164,65 @@ export const repairPendingQuotationNumbers = async () => {
     console.warn('[MIGRATION] Warning repairing pending quotation numbers:', error.message);
   }
 };
+export const ensureTaskSystemTables = async (): Promise<void> => {
+  try {
+    const taskTableCheck = await query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name IN ('tasks', 'task_submissions', 'task_comments', 'task_attachments', 'task_activity_logs')
+    `);
+
+    const existingTables = new Set((taskTableCheck.rows || []).map((row: any) => row.table_name));
+    const requiredTables = ['tasks', 'task_submissions', 'task_comments', 'task_attachments', 'task_activity_logs'];
+    const missingTables = requiredTables.filter((tableName) => !existingTables.has(tableName));
+
+    if (missingTables.length === 0) {
+      console.log('[SCHEMA INIT] Task system tables already exist');
+      return;
+    }
+
+    console.log(`[SCHEMA INIT] Missing task tables: ${missingTables.join(', ')} - repairing schema`);
+
+    try {
+      await query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+    } catch (extensionError: any) {
+      console.warn('[SCHEMA INIT] Could not enable pgcrypto:', extensionError.message || extensionError);
+    }
+
+    const migrationPath = path.join(__dirname, '..', '..', '..', 'database', 'migrations', '2026-08-12-003-create-tasks-system.sql');
+
+    if (!fs.existsSync(migrationPath)) {
+      console.warn('[SCHEMA INIT] Task migration file not found:', migrationPath);
+      return;
+    }
+
+    const migrationSql = fs.readFileSync(migrationPath, 'utf8');
+    const statements = migrationSql
+      .split(';')
+      .map((statement) => statement.trim())
+      .filter((statement) => statement.length > 0)
+      .filter((statement) => !/^BEGIN$/i.test(statement) && !/^COMMIT$/i.test(statement));
+
+    for (const statement of statements) {
+      try {
+        await query(statement);
+      } catch (error: any) {
+        const message = String(error?.message || '');
+        const isIgnorable = message.includes('already exists') || message.includes('duplicate key') || error?.code === '42P07' || error?.code === '42701' || error?.code === '23505';
+
+        if (!isIgnorable) {
+          console.warn('[SCHEMA INIT] Warning executing task migration statement:', message);
+        }
+      }
+    }
+
+    console.log('[SCHEMA INIT] ✅ Task system schema repair completed');
+  } catch (error: any) {
+    console.warn('[SCHEMA INIT] Task schema repair failed:', error?.message || error);
+  }
+};
+
 const initializeSchema = async () => {
   try {
     // First check if tables already exist to avoid re-creating and losing data
@@ -179,6 +238,7 @@ const initializeSchema = async () => {
       
       // Run any pending migrations
       await runPendingMigrations();
+      await ensureTaskSystemTables();
       await repairPendingQuotationNumbers();
       
       // Check data integrity - warn if database looks suspiciously empty

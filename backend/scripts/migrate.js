@@ -17,6 +17,7 @@ async function migrate() {
   try {
     console.log('🔄 Starting database migration...');
     await client.query('BEGIN');
+    await client.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
 
     // 1. Users Table (no dependencies)
     await client.query(`
@@ -68,6 +69,126 @@ async function migrate() {
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP');
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_logout_at TIMESTAMP');
     console.log('✅ Users login audit columns ensured');
+
+    // Task system repair: ensure task tables exist even for older production databases
+    const taskTablesCheck = await client.query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name IN ('tasks', 'task_submissions', 'task_comments', 'task_attachments', 'task_activity_logs')
+    `);
+    const existingTaskTables = new Set((taskTablesCheck.rows || []).map((row) => row.table_name));
+    const requiredTaskTables = ['tasks', 'task_submissions', 'task_comments', 'task_attachments', 'task_activity_logs'];
+    const missingTaskTables = requiredTaskTables.filter((tableName) => !existingTaskTables.has(tableName));
+
+    if (missingTaskTables.length > 0) {
+      console.log(`⚠️ Missing task tables detected: ${missingTaskTables.join(', ')}. Repairing task schema...`);
+      const taskSql = `
+        CREATE TABLE IF NOT EXISTS tasks (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          title VARCHAR(255) NOT NULL,
+          description TEXT,
+          created_by UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+          assigned_to UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+          start_date TIMESTAMP,
+          deadline TIMESTAMP NOT NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'assigned',
+          priority VARCHAR(20) NOT NULL DEFAULT 'medium',
+          started_at TIMESTAMP,
+          submitted_at TIMESTAMP,
+          approved_at TIMESTAMP,
+          completed_at TIMESTAMP,
+          cancelled_at TIMESTAMP,
+          is_overdue BOOLEAN DEFAULT false,
+          cancellation_reason TEXT,
+          cancelled_by UUID REFERENCES users(id) ON DELETE SET NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT valid_status CHECK (status IN ('assigned', 'in_progress', 'submitted', 'revision_requested', 'approved', 'cancelled')),
+          CONSTRAINT valid_priority CHECK (priority IN ('low', 'medium', 'high'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks(assigned_to);
+        CREATE INDEX IF NOT EXISTS idx_tasks_created_by ON tasks(created_by);
+        CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+        CREATE INDEX IF NOT EXISTS idx_tasks_deadline ON tasks(deadline);
+        CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
+        CREATE INDEX IF NOT EXISTS idx_tasks_is_overdue ON tasks(is_overdue);
+
+        CREATE TABLE IF NOT EXISTS task_submissions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+          submission_notes TEXT,
+          submitted_by UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+          submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          review_status VARCHAR(50) NOT NULL DEFAULT 'pending',
+          reviewer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+          reviewed_at TIMESTAMP,
+          review_notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT valid_review_status CHECK (review_status IN ('pending', 'approved', 'revision_requested'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_task_submissions_task_id ON task_submissions(task_id);
+        CREATE INDEX IF NOT EXISTS idx_task_submissions_submitted_by ON task_submissions(submitted_by);
+        CREATE INDEX IF NOT EXISTS idx_task_submissions_review_status ON task_submissions(review_status);
+        CREATE INDEX IF NOT EXISTS idx_task_submissions_reviewer_id ON task_submissions(reviewer_id);
+
+        CREATE TABLE IF NOT EXISTS task_comments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+          comment_text TEXT NOT NULL,
+          commented_by UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+          is_system_comment BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT comment_length CHECK (char_length(comment_text) > 0)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_task_comments_task_id ON task_comments(task_id);
+        CREATE INDEX IF NOT EXISTS idx_task_comments_commented_by ON task_comments(commented_by);
+        CREATE INDEX IF NOT EXISTS idx_task_comments_is_system ON task_comments(is_system_comment);
+
+        CREATE TABLE IF NOT EXISTS task_attachments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          entity_type VARCHAR(50) NOT NULL,
+          entity_id UUID NOT NULL,
+          original_filename VARCHAR(255) NOT NULL,
+          stored_filename VARCHAR(255) NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          file_size_bytes INTEGER NOT NULL,
+          file_path VARCHAR(500) NOT NULL,
+          uploaded_by UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+          uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          is_deleted BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_task_attachments_entity ON task_attachments(entity_type, entity_id);
+        CREATE INDEX IF NOT EXISTS idx_task_attachments_uploaded_by ON task_attachments(uploaded_by);
+        CREATE INDEX IF NOT EXISTS idx_task_attachments_mime_type ON task_attachments(mime_type);
+
+        CREATE TABLE IF NOT EXISTS task_activity_logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+          action VARCHAR(50) NOT NULL,
+          details JSONB,
+          performed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+          performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_task_activity_logs_task_id ON task_activity_logs(task_id);
+        CREATE INDEX IF NOT EXISTS idx_task_activity_logs_action ON task_activity_logs(action);
+        CREATE INDEX IF NOT EXISTS idx_task_activity_logs_performed_by ON task_activity_logs(performed_by);
+        CREATE INDEX IF NOT EXISTS idx_task_activity_logs_performed_at ON task_activity_logs(performed_at);
+      `;
+
+      for (const statement of taskSql.split(';').map((part) => part.trim()).filter(Boolean)) {
+        await client.query(statement);
+      }
+      console.log('✅ Task system schema repaired');
+    }
 
     // 2. Client Profiles Table (no dependencies)
     await client.query(`
