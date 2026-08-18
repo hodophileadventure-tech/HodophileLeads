@@ -57,6 +57,18 @@ const QUOTATION_NUMBER_LOCK_KEY = 'quotation-number-global';
 const QUOTATION_NUMBER_START = 1100;
 const PENDING_QUOTATION_STATUSES = ['requested', 'saved', 'created', 'manager_pending', 'admin_pending'];
 
+const resolveProjectAssetPath = (...relativeSegments: string[]): string => {
+  const candidates = [
+    path.join(process.cwd(), ...relativeSegments),
+    path.join(__dirname, '..', '..', ...relativeSegments),
+    path.join(__dirname, '..', '..', '..', ...relativeSegments),
+    path.join(__dirname, '..', '..', '..', '..', ...relativeSegments)
+  ];
+
+  const existing = candidates.find((candidate) => fs.existsSync(candidate));
+  return existing || candidates[0];
+};
+
 // Passwords are stored as bcrypt hashes in the mock DB seed above.
 
 let pool: Pool | null = null;
@@ -184,7 +196,7 @@ export const ensureRoleAndPermissionTables = async (): Promise<void> => {
 
     console.log(`[SCHEMA INIT] Missing RBAC tables: ${missingTables.join(', ')} - repairing schema`);
 
-    const migrationPath = path.join(__dirname, '..', '..', '..', 'database', 'migrations', '2026-08-12-001-create-roles-system.sql');
+    const migrationPath = resolveProjectAssetPath('database', 'migrations', '2026-08-12-001-create-roles-system.sql');
     if (!fs.existsSync(migrationPath)) {
       console.warn('[SCHEMA INIT] RBAC migration file not found:', migrationPath);
       return;
@@ -241,7 +253,7 @@ export const ensureTaskSystemTables = async (): Promise<void> => {
       console.warn('[SCHEMA INIT] Could not enable pgcrypto:', extensionError.message || extensionError);
     }
 
-    const migrationPath = path.join(__dirname, '..', '..', '..', 'database', 'migrations', '2026-08-12-003-create-tasks-system.sql');
+    const migrationPath = resolveProjectAssetPath('database', 'migrations', '2026-08-12-003-create-tasks-system.sql');
 
     if (!fs.existsSync(migrationPath)) {
       console.warn('[SCHEMA INIT] Task migration file not found:', migrationPath);
@@ -315,7 +327,7 @@ const initializeSchema = async () => {
     
     console.log('[SCHEMA INIT] Database schema not found - initializing...');
     
-    const schemaPath = path.join(__dirname, '../../database/schema.sql');
+    const schemaPath = resolveProjectAssetPath('database', 'schema.sql');
     const schemaSql = fs.readFileSync(schemaPath, 'utf-8');
     
     // Split by semicolons and filter out empty statements
