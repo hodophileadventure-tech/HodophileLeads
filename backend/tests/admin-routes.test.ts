@@ -1,6 +1,7 @@
 import express from 'express';
 import { adminRouter } from '../src/routes/admin';
 import { adminController } from '../src/controllers/admin-controller';
+import { listRoles } from '../src/controllers/admin-role-user-controller';
 import { verifyToken } from '../src/utils/auth';
 import { query } from '../src/utils/database';
 
@@ -53,6 +54,25 @@ describe('admin agents route', () => {
         server.close((err) => (err ? reject(err) : resolve()));
       });
     }
+  });
+
+  it('returns an empty role list when the roles tables are missing', async () => {
+    (query as jest.Mock).mockRejectedValueOnce({ code: '42P01', message: 'relation "roles" does not exist' });
+
+    const req: any = { user: { id: 'admin-1', role: 'admin' } };
+    const res: any = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn()
+    };
+    const next = jest.fn();
+
+    await listRoles(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      roles: []
+    });
   });
 
   it('reverts a lead to the previous owner from the most recent matching transfer event', async () => {

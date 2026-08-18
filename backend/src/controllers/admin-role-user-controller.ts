@@ -98,7 +98,15 @@ export async function listRoles(req: AdminRequest, res: Response, next: NextFunc
       success: true,
       roles: result.rows
     });
-  } catch (error) {
+  } catch (error: any) {
+    const code = error?.code || '';
+    const message = String(error?.message || '');
+    if (code === '42P01' || message.includes('does not exist') || message.includes('relation "roles"')) {
+      return res.json({
+        success: true,
+        roles: []
+      });
+    }
     next(error);
   }
 }

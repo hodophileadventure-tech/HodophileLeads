@@ -164,6 +164,57 @@ export const repairPendingQuotationNumbers = async () => {
     console.warn('[MIGRATION] Warning repairing pending quotation numbers:', error.message);
   }
 };
+export const ensureRoleAndPermissionTables = async (): Promise<void> => {
+  try {
+    const requiredTables = ['roles', 'permissions', 'role_permissions'];
+    const tableCheck = await query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name = ANY($1::text[])
+    `, [requiredTables]);
+
+    const existingTables = new Set((tableCheck.rows || []).map((row: any) => row.table_name));
+    const missingTables = requiredTables.filter((tableName) => !existingTables.has(tableName));
+
+    if (missingTables.length === 0) {
+      console.log('[SCHEMA INIT] Role and permission tables already exist');
+      return;
+    }
+
+    console.log(`[SCHEMA INIT] Missing RBAC tables: ${missingTables.join(', ')} - repairing schema`);
+
+    const migrationPath = path.join(__dirname, '..', '..', '..', 'database', 'migrations', '2026-08-12-001-create-roles-system.sql');
+    if (!fs.existsSync(migrationPath)) {
+      console.warn('[SCHEMA INIT] RBAC migration file not found:', migrationPath);
+      return;
+    }
+
+    const migrationSql = fs.readFileSync(migrationPath, 'utf8');
+    const statements = migrationSql
+      .split(';')
+      .map((statement) => statement.trim())
+      .filter((statement) => statement.length > 0)
+      .filter((statement) => !/^BEGIN$/i.test(statement) && !/^COMMIT$/i.test(statement));
+
+    for (const statement of statements) {
+      try {
+        await query(statement);
+      } catch (error: any) {
+        const message = String(error?.message || '');
+        const isIgnorable = message.includes('already exists') || message.includes('duplicate key') || error?.code === '42P07' || error?.code === '42701' || error?.code === '23505';
+        if (!isIgnorable) {
+          console.warn('[SCHEMA INIT] Warning executing RBAC migration statement:', message);
+        }
+      }
+    }
+
+    console.log('[SCHEMA INIT] ✅ RBAC schema repair completed');
+  } catch (error: any) {
+    console.warn('[SCHEMA INIT] RBAC schema repair failed:', error?.message || error);
+  }
+};
+
 export const ensureTaskSystemTables = async (): Promise<void> => {
   try {
     const taskTableCheck = await query(`
@@ -238,6 +289,7 @@ const initializeSchema = async () => {
       
       // Run any pending migrations
       await runPendingMigrations();
+      await ensureRoleAndPermissionTables();
       await ensureTaskSystemTables();
       await repairPendingQuotationNumbers();
       
