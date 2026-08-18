@@ -758,12 +758,12 @@ body {
 .pdf-content-right {
   display: grid;
   gap: 10px;
-  padding: 8px 10px 10px 8px;
+  padding: 8px 10px 10px 0;
   border: 1px solid #111827;
   border-radius: 0;
   background: #f8f8f8;
   min-width: 0;
-  margin-left: -12px;
+  margin-left: -24px;
 }
 
 .pdf-summary {
@@ -772,14 +772,14 @@ body {
   table-layout: fixed;
   margin-top: 0;
   margin-right: 0;
-  margin-left: 0;
+  margin-left: -8px;
   border: none;
   background: transparent;
 }
 
 .pdf-summary td {
   border: none;
-  padding: 10px 4px;
+  padding: 10px 0;
   font-size: 20px;
   text-align: left;
   color: #111827;
@@ -801,9 +801,9 @@ body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 52%;
-  padding-right: 8px;
-  padding-left: 6px;
+  width: 58%;
+  padding-right: 14px;
+  padding-left: 0;
   text-align: left;
   vertical-align: middle;
 }
@@ -812,9 +812,9 @@ body {
   text-align: right;
   font-weight: 700;
   font-size: 21px;
-  width: 48%;
-  padding-left: 0;
-  padding-right: 12px;
+  width: 42%;
+  padding-left: 8px;
+  padding-right: 8px;
   white-space: nowrap;
   min-width: 150px;
   border-left: 0;
