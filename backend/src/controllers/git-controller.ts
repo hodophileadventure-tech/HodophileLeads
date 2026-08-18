@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { AuthenticatedRequest } from '../types';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 const execAsync = promisify(exec);
 

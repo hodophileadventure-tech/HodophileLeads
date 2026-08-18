@@ -72,7 +72,7 @@ const GitHistoryPanel: React.FC = () => {
     setSuccess('');
 
     try {
-      const response = await gitAPI.revertToCommit(selectedCommit.hash);
+      await gitAPI.revertToCommit(selectedCommit.hash);
       setSuccess(`✓ Successfully reverted to commit ${selectedCommit.shortHash}`);
       setShowConfirmation(false);
       setSelectedCommit(null);
@@ -137,7 +137,7 @@ const GitHistoryPanel: React.FC = () => {
               <p className="text-slate-500 dark:text-slate-400 py-4">No commits found</p>
             ) : (
               <div className="space-y-0 border border-slate-300 dark:border-slate-600 rounded-lg max-h-96 overflow-y-auto">
-                {commits.map((commit, index) => (
+                {commits.map((commit) => (
                   <div
                     key={commit.hash}
                     className={`p-3 border-b border-slate-300 dark:border-slate-600 last:border-b-0 cursor-pointer transition-colors ${

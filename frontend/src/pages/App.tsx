@@ -447,6 +447,7 @@ export const App: React.FC = () => {
     ...(user?.role === 'agent' ? [{ label: 'Created Quotations', href: 'created-quotations', icon: '💾' }] : []),
     { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
     ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
+    ...(user?.role === 'admin' ? [{ label: 'Git History', href: 'git-history', icon: '🧾' }] : []),
     { label: 'Analytics', href: 'analytics', icon: '📈' }
   ];
 
@@ -602,6 +603,10 @@ export const App: React.FC = () => {
 
             {currentPage === 'dev-panel' && user?.role === 'admin' && (
               <DeveloperPanel />
+            )}
+
+            {currentPage === 'git-history' && user?.role === 'admin' && (
+              <GitHistoryPanel />
             )}
 
             {currentPage === 'leads' && (
