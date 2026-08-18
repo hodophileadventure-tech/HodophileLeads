@@ -1,6 +1,8 @@
 import { leadsModel } from '../src/models/Lead';
 import { query } from '../src/utils/database';
 
+const { shouldUnconfirmLead } = require('../scripts/unconfirm-incomplete-bookings');
+
 jest.mock('../src/utils/database', () => ({
   query: jest.fn(),
   getClient: jest.fn()
@@ -22,9 +24,33 @@ describe('Lead model update', () => {
       isB2b: true
     } as any);
 
-    const [sql, params] = (query as jest.Mock).mock.calls[0];
+    const [sql, params] = (query as jest.Mock).mock.calls.at(-1);
     expect(sql).toContain('is_b2b');
     expect(sql).toContain('pipeline_stage');
     expect(params).toContain(true);
+  });
+
+  it('does not auto-unconfirm a completed booking when hotel and transport are present', () => {
+    const lead = {
+      status: 'booked',
+      lead_outcome: 'confirmed',
+      pipeline_stage: 'confirmed',
+      hotel_info: { hotelName: 'Lake View', roomType: 'Deluxe', checkIn: '2026-09-01', checkOut: '2026-09-05' },
+      transport_preference: 'Private car'
+    };
+
+    expect(shouldUnconfirmLead(lead)).toBe(false);
+  });
+
+  it('auto-unconfirms incomplete bookings that are missing required travel details', () => {
+    const lead = {
+      status: 'booked',
+      lead_outcome: 'confirmed',
+      pipeline_stage: 'confirmed',
+      hotel_info: { hotelName: 'Lake View' },
+      transport_preference: ''
+    };
+
+    expect(shouldUnconfirmLead(lead)).toBe(true);
   });
 });

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "prestart": "node scripts/migrate.js && node scripts/import-complete-hotels.js && node scripts/unconfirm-incomplete-bookings.js",
+    "prestart": "node scripts/migrate.js && node scripts/import-complete-hotels.js",
     "start": "node scripts/migrate.js && node dist/index.js",
     "test": "jest",
     "smoke:test": "node scripts/smokeTest.js",

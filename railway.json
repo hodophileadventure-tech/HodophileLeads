@@ -48,8 +48,7 @@
           "description": "Comma-separated IP addresses allowed for office access (optional)",
           "default": ""
         }
-      },
-      "postDeployHook": "npm run db:migrate && npm run unconfirm:incomplete"
+      }
     },
     "frontend": {
       "type": "nodejs",

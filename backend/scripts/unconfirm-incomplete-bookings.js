@@ -1,11 +1,31 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+const shouldUnconfirmLead = (row = {}) => {
+  const hotelInfo = row.hotel_info;
+  const hotelOptions = row.hotel_options;
+  const transportPreference = row.transport_preference;
 
-(async () => {
+  const hasCompleteHotel =
+    (hotelInfo && hotelInfo.hotelName && hotelInfo.roomType && hotelInfo.checkIn && hotelInfo.checkOut) ||
+    (Array.isArray(hotelOptions) && hotelOptions.some((option) =>
+      option && option.hotelName && option.roomType && option.checkIn && option.checkOut
+    ));
+
+  const hasTransport = typeof transportPreference === 'string' && transportPreference.trim().length > 0;
+
+  return Boolean(
+    row &&
+    (row.status === 'booked' || row.lead_outcome === 'confirmed' || row.pipeline_stage === 'confirmed') &&
+    (!hasCompleteHotel || !hasTransport)
+  );
+};
+
+const runUnconfirmIncompleteBookings = async () => {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL
+  });
+
   const client = await pool.connect();
   try {
     const columnResult = await client.query(
@@ -21,33 +41,29 @@ const pool = new Pool({
 
     let updated = 0;
     for (const row of result.rows) {
-      const hotelInfo = row.hotel_info;
-      const hotelOptions = row.hotel_options;
-      const transportPreference = row.transport_preference;
+      if (!shouldUnconfirmLead(row)) continue;
 
-      const hasCompleteHotel =
-        (hotelInfo && hotelInfo.hotelName && hotelInfo.roomType && hotelInfo.checkIn && hotelInfo.checkOut) ||
-        (Array.isArray(hotelOptions) && hotelOptions.some((option) =>
-          option && option.hotelName && option.roomType && option.checkIn && option.checkOut
-        ));
-
-      const hasTransport = typeof transportPreference === 'string' && transportPreference.trim().length > 0;
-
-      if (!hasCompleteHotel || !hasTransport) {
-        const updateSql = hasPipelineStage
-          ? `UPDATE leads SET status = 'contacted', lead_outcome = NULL, pipeline_stage = 'contacted', updated_at = NOW() WHERE id = $1`
-          : `UPDATE leads SET status = 'contacted', lead_outcome = NULL, updated_at = NOW() WHERE id = $1`;
-        await client.query(updateSql, [row.id]);
-        updated += 1;
-      }
+      const updateSql = hasPipelineStage
+        ? `UPDATE leads SET status = 'contacted', lead_outcome = NULL, pipeline_stage = 'contacted', updated_at = NOW() WHERE id = $1`
+        : `UPDATE leads SET status = 'contacted', lead_outcome = NULL, updated_at = NOW() WHERE id = $1`;
+      await client.query(updateSql, [row.id]);
+      updated += 1;
     }
 
     console.log(`Unconfirmed ${updated} incomplete booked leads.`);
   } catch (error) {
     console.error('Failed to unconfirm incomplete bookings:', error);
-    process.exit(1);
+    process.exitCode = 1;
   } finally {
     client.release();
     await pool.end();
   }
-})();
+};
+
+if (typeof module !== 'undefined') {
+  module.exports = { shouldUnconfirmLead, runUnconfirmIncompleteBookings };
+}
+
+if (require.main === module) {
+  runUnconfirmIncompleteBookings();
+}
