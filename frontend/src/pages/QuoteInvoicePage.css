@@ -759,11 +759,12 @@ body {
 }
 
 .pdf-summary {
-  width: 100%;
+  width: calc(100% - 10px);
   border-collapse: collapse;
   table-layout: fixed;
   margin-top: 0;
   margin-right: 0;
+  margin-left: -10px;
   border: none;
   background: transparent;
 }
@@ -788,7 +789,7 @@ body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 25%;
+  width: 42%;
   padding-right: 0;
   padding-left: 8px;
   text-align: left;
@@ -798,11 +799,11 @@ body {
   text-align: left;
   font-weight: 700;
   font-size: 21px;
-  width: 75%;
-  padding-left: 60px;
-  padding-right: 8px;
+  width: 58%;
+  padding-left: 18px;
+  padding-right: 0;
   white-space: nowrap;
-  min-width: 200px;
+  min-width: 160px;
   border-left: 8px solid transparent;
 }
 
