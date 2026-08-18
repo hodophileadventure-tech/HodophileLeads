@@ -55,11 +55,10 @@ export const dashboardController = {
           ${scopeAgentId ? 'WHERE l.agent_id = $1' : ''} AND f.status != 'completed' AND f.due_date < NOW()
         `, scopeParams),
         query(`
-          SELECT COALESCE(SUM(p.amount), 0)::numeric as total_revenue
-          FROM payments p
-          JOIN leads l ON l.id = p.lead_id
-          WHERE l.status = 'booked' OR l.lead_outcome = 'confirmed' OR l.pipeline_stage = 'confirmed'
-          ${scopeAgentId ? 'AND l.agent_id = $1' : ''}
+          SELECT COALESCE(SUM(CASE WHEN actual_price > 0 THEN actual_price ELSE 0 END), 0)::numeric as total_revenue
+          FROM leads
+          WHERE (status = 'booked' OR lead_outcome = 'confirmed' OR pipeline_stage = 'confirmed')
+          ${scopeAgentId ? 'AND agent_id = $1' : ''}
         `, scopeParams)
       ]);
 

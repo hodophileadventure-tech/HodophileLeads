@@ -959,7 +959,7 @@ export const adminController = {
       const sql = hasColumn
         ? `
           SELECT u.id as agent_id, u.name,
-            COALESCE(SUM(COALESCE(l.budget,0)),0) as total_revenue,
+            COALESCE(SUM(CASE WHEN l.actual_price > 0 THEN l.actual_price ELSE 0 END),0) as total_revenue,
             COUNT(l.id) as bookings,
             COALESCE(u.monthly_target, 5000000) AS monthly_target
           FROM users u
@@ -969,7 +969,7 @@ export const adminController = {
         `
         : `
           SELECT u.id as agent_id, u.name,
-            COALESCE(SUM(COALESCE(l.budget,0)),0) as total_revenue,
+            COALESCE(SUM(CASE WHEN l.actual_price > 0 THEN l.actual_price ELSE 0 END),0) as total_revenue,
             COUNT(l.id) as bookings,
             5000000 AS monthly_target
           FROM users u
