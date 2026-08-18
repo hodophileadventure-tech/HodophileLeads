@@ -7,6 +7,7 @@ import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
+import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
 const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
 
@@ -1011,7 +1012,7 @@ export const AgentPanel: React.FC = () => {
                     setShowFollowUpModal(false);
                     setFollowUpLead(null);
                     const created = normalizeFollowUp(response.data);
-                    if (new Date(created.dueDate).getTime() - Date.now() <= 60 * 60 * 1000) {
+                    if (shouldTriggerFollowUpAlarm(created.dueDate, Date.now())) {
                       setActiveAlarm(created);
                     }
                     window.dispatchEvent(new CustomEvent('followup-due', { detail: created }));

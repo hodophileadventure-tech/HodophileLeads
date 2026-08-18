@@ -28,6 +28,7 @@ import AdminPage from './AdminPage';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
+import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history';
 
@@ -328,15 +329,11 @@ export const App: React.FC = () => {
         const response = await followUpsAPI.list();
         if (!mounted) return;
         const now = Date.now();
-        const oneHourMs = 60 * 60 * 1000;
         const soonest = (response.data || [])
           .map(normalizeFollowUp)
           .filter((item) => item.status !== 'completed')
-          .filter((item) => (dismissedFollowUps[item.id] || 0) < Date.now())
-          .filter((item) => {
-            const dueAt = new Date(item.dueDate).getTime();
-            return dueAt > now && dueAt - now <= oneHourMs;
-          })
+          .filter((item) => (dismissedFollowUps[item.id] || 0) < now)
+          .filter((item) => shouldTriggerFollowUpAlarm(item.dueDate, now))
           .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
 
         if (soonest && (!activeAlarm || activeAlarm.id !== soonest.id)) {
@@ -377,7 +374,7 @@ export const App: React.FC = () => {
       const dueAt = new Date(item.dueDate).getTime();
       if (Number.isNaN(dueAt)) return;
       if ((dismissedFollowUps[item.id] || 0) >= Date.now()) return;
-      if (dueAt - Date.now() <= 60 * 60 * 1000 && item.status !== 'completed') {
+      if (item.status !== 'completed' && shouldTriggerFollowUpAlarm(item.dueDate, Date.now())) {
         setActiveAlarm(item);
       }
     };
