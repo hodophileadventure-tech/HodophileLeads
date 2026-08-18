@@ -59,7 +59,10 @@ const corsOptions = {
       'http://localhost:5001',      // Local backend alt port
       'http://127.0.0.1:3000',
       'https://www.leadmanagerhodophile.nl',
-      process.env.FRONTEND_URL,     // Production frontend (set on Railway)
+      'https://leadmanagerhodophile.nl',
+      'https://api.leadmanagerhodophile.nl',
+      process.env.FRONTEND_URL,
+      process.env.CORS_ORIGIN,
     ].filter(Boolean) as string[];
 
     // Allow requests without origin (like mobile apps, curl, etc.)
