@@ -295,8 +295,9 @@ body {
    ========================================================= */
 
 .pdf-customer-box {
-  width: 360px;
-  min-width: 360px;
+  width: min(440px, 42vw);
+  min-width: 280px;
+  max-width: 440px;
   padding: 26px 28px;
   border: 2px solid #111827;
   background: #ffffff;
@@ -304,7 +305,9 @@ body {
   display: grid;
   gap: 10px;
   flex-shrink: 0;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .pdf-header-info-value {
@@ -312,13 +315,17 @@ body {
   font-weight: 500;
   color: #111827;
   line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .pdf-customer-box .pdf-customer-name {
   font-size: 40px;
   font-weight: 600;
   line-height: 1.1;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   color: #111827;
   margin: 0;
 }
@@ -759,12 +766,12 @@ body {
 }
 
 .pdf-summary {
-  width: calc(100% - 10px);
+  width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   margin-top: 0;
   margin-right: 0;
-  margin-left: -10px;
+  margin-left: 0;
   border: none;
   background: transparent;
 }
@@ -789,22 +796,22 @@ body {
 
 .pdf-summary .label {
   font-weight: 800;
-  width: 42%;
-  padding-right: 0;
+  width: 52%;
+  padding-right: 10px;
   padding-left: 8px;
   text-align: left;
 }
 
 .pdf-summary .value {
-  text-align: left;
+  text-align: right;
   font-weight: 700;
   font-size: 21px;
-  width: 58%;
-  padding-left: 18px;
-  padding-right: 0;
+  width: 48%;
+  padding-left: 0;
+  padding-right: 8px;
   white-space: nowrap;
-  min-width: 160px;
-  border-left: 8px solid transparent;
+  min-width: 150px;
+  border-left: 0;
 }
 
 .pdf-footer-row td {
