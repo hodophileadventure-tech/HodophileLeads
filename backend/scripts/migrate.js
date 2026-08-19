@@ -320,6 +320,15 @@ async function migrate() {
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS completion_notes TEXT');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS action_plan TEXT');
+    const syncedFollowUps = await client.query(`
+      UPDATE follow_ups fu
+      SET assigned_to = l.agent_id
+      FROM leads l
+      WHERE fu.lead_id = l.id
+        AND l.agent_id IS NOT NULL
+        AND fu.assigned_to IS DISTINCT FROM l.agent_id
+    `);
+    console.log(`✅ Follow-up ownership synchronized for ${syncedFollowUps.rowCount || 0} records`);
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP');
