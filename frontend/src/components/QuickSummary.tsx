@@ -100,9 +100,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
     { name: 'Completed', value: data.completedLeads, color: COLORS.completed },
     { name: 'Potential', value: data.potentialLeads, color: COLORS.potential },
     { name: 'New', value: data.newLeads, color: '#60a5fa' },
-    { name: 'Dead', value: data.deadLeads, color: '#6b7280' },
     { name: 'Spam', value: data.spamLeads, color: '#9f1239' },
-    { name: 'Pan Leads', value: data.panLeads, color: COLORS.pan },
     { name: 'Canceled', value: data.canceledLeads, color: COLORS.canceled }
   ].filter(item => item.value > 0) : [];
 
@@ -131,10 +129,6 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
       </text>
     );
   };
-
-  const totalLeadPieValue = leadsData.reduce((sum, item) => sum + item.value, 0);
-  const remainingLeadCount = data ? Math.max(0, data.totalLeads - totalLeadPieValue) : 0;
-  const hasLeadPieMismatch = data ? totalLeadPieValue !== data.totalLeads : false;
 
   return (
     <Card>
@@ -248,22 +242,6 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">{data.potentialLeads}</p>
             </button>
             <button type="button" onClick={() => {
-              const next = expandedSection === 'deadLeads' ? null : 'deadLeads';
-              setExpandedSection(next);
-              if (next) loadDetailRows(next);
-            }} className="text-left bg-slate-100 dark:bg-slate-800 p-3 rounded-lg">
-              <p className="text-xs text-slate-600 dark:text-slate-400">Dead</p>
-              <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">{data.deadLeads}</p>
-            </button>
-            <button type="button" onClick={() => {
-              const next = expandedSection === 'panLeads' ? null : 'panLeads';
-              setExpandedSection(next);
-              if (next) loadDetailRows(next);
-            }} className="text-left bg-violet-50 dark:bg-violet-900/30 p-3 rounded-lg">
-              <p className="text-xs text-slate-600 dark:text-slate-400">Pan Leads</p>
-              <p className="text-2xl font-bold text-violet-600 dark:text-violet-300">{data.panLeads}</p>
-            </button>
-            <button type="button" onClick={() => {
               const next = expandedSection === 'spamLeads' ? null : 'spamLeads';
               setExpandedSection(next);
               if (next) loadDetailRows(next);
@@ -300,12 +278,6 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               </button>
             ))}
           </div>
-
-          {remainingLeadCount > 0 && (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              Other / unclassified lead statuses: <span className="font-semibold text-slate-900 dark:text-slate-100">{remainingLeadCount}</span>
-            </div>
-          )}
 
           {expandedSection && (
             <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
@@ -388,12 +360,10 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                           {expandedSection === 'inProgressLeads' && 'Leads currently in contact, interest, or negotiation stages.'}
                           {expandedSection === 'potentialLeads' && 'Promising leads marked as potential but not yet converted.'}
                           {expandedSection === 'newLeads' && 'Fresh leads created in the selected date range.'}
-                          {expandedSection === 'deadLeads' && 'Leads with temperature dead that are not completed or canceled.'}
                           {expandedSection === 'spamLeads' && 'Leads flagged as spam during the selected date range.'}
                           {expandedSection === 'canceledLeads' && 'Leads explicitly canceled with cancellation details.'}
                           {expandedSection === 'completedLeads' && 'Leads marked as completed in the selected date range.'}
                           {expandedSection === 'totalLeads' && 'All leads that match the selected date range and agent.'}
-                          {expandedSection === 'panLeads' && 'Cold leads marked as not potential and likely low-priority.'}
                         </p>
                       </div>
                     </div>
@@ -465,11 +435,6 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                 </ResponsiveContainer>
               ) : (
                 <p className="text-slate-600 dark:text-slate-400 text-center py-8">No lead data available</p>
-              )}
-              {hasLeadPieMismatch && (
-                <div className="mt-3 text-sm text-yellow-700 dark:text-yellow-300">
-                  Note: lead pie segments total {totalLeadPieValue}, but overall total leads is {data?.totalLeads}. Remaining unclassified statuses: {remainingLeadCount}.
-                </div>
               )}
             </div>
 
