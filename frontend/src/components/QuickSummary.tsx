@@ -240,6 +240,30 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <p className="text-2xl font-bold text-sky-600 dark:text-sky-300">{data.newLeads}</p>
             </button>
             <button type="button" onClick={() => {
+              const next = expandedSection === 'potentialLeads' ? null : 'potentialLeads';
+              setExpandedSection(next);
+              if (next) loadDetailRows(next);
+            }} className="text-left bg-amber-50 dark:bg-amber-900/30 p-3 rounded-lg">
+              <p className="text-xs text-slate-600 dark:text-slate-400">Potential</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">{data.potentialLeads}</p>
+            </button>
+            <button type="button" onClick={() => {
+              const next = expandedSection === 'deadLeads' ? null : 'deadLeads';
+              setExpandedSection(next);
+              if (next) loadDetailRows(next);
+            }} className="text-left bg-slate-100 dark:bg-slate-800 p-3 rounded-lg">
+              <p className="text-xs text-slate-600 dark:text-slate-400">Dead</p>
+              <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">{data.deadLeads}</p>
+            </button>
+            <button type="button" onClick={() => {
+              const next = expandedSection === 'panLeads' ? null : 'panLeads';
+              setExpandedSection(next);
+              if (next) loadDetailRows(next);
+            }} className="text-left bg-violet-50 dark:bg-violet-900/30 p-3 rounded-lg">
+              <p className="text-xs text-slate-600 dark:text-slate-400">Pan Leads</p>
+              <p className="text-2xl font-bold text-violet-600 dark:text-violet-300">{data.panLeads}</p>
+            </button>
+            <button type="button" onClick={() => {
               const next = expandedSection === 'spamLeads' ? null : 'spamLeads';
               setExpandedSection(next);
               if (next) loadDetailRows(next);
