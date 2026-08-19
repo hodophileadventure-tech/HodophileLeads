@@ -312,15 +312,34 @@ export const dashboardController = {
           l.updated_at,
           fu.title AS follow_up_title,
           fu.description AS follow_up_description,
-          fu.completion_notes
+          COALESCE(fu.completion_notes, l.agent_remarks) AS completion_notes
         FROM leads l
         LEFT JOIN LATERAL (
           SELECT
             STRING_AGG(NULLIF(title, ''), ' | ' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS title,
             STRING_AGG(NULLIF(description, ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS description,
-            STRING_AGG(NULLIF(completion_notes, ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS completion_notes
-          FROM follow_ups
-          WHERE lead_id = l.id
+            STRING_AGG(NULLIF(COALESCE(completion_notes, audit_completion_notes), ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS completion_notes
+          FROM (
+            SELECT
+              f.title,
+              f.description,
+              f.completion_notes,
+              f.due_date,
+              f.created_at,
+              audit.completion_notes AS audit_completion_notes
+            FROM follow_ups f
+            LEFT JOIN LATERAL (
+              SELECT STRING_AGG(
+                NULLIF(changes->>'completionNotes', ''),
+                E'\n\n' ORDER BY created_at DESC
+              ) AS completion_notes
+              FROM audit_logs
+              WHERE entity_type = 'follow_up'
+                AND entity_id = f.id
+                AND action = 'complete'
+            ) audit ON true
+            WHERE f.lead_id = l.id
+          ) follow_up_rows
         ) fu ON true
         WHERE l.agent_id = $1
           AND (${sectionFilters[String(section)]})
