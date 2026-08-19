@@ -311,7 +311,8 @@ export const dashboardController = {
           l.created_at,
           l.updated_at,
           fu.title AS follow_up_title,
-          fu.description AS follow_up_description
+          fu.description AS follow_up_description,
+          fu.completion_notes
         FROM leads l
         LEFT JOIN LATERAL (
           SELECT
