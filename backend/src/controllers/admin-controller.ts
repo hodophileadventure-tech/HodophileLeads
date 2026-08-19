@@ -1021,6 +1021,11 @@ export const adminController = {
         [targetAgentId, leadId]
       );
 
+      const followUpsTransferResult = await query(
+        'UPDATE follow_ups SET assigned_to = $1 WHERE lead_id = $2 RETURNING id',
+        [targetAgentId, leadId]
+      );
+
       // Log the activity
       await logActivity({
         userId: req.user?.id as string,
@@ -1032,7 +1037,8 @@ export const adminController = {
           toAgentId: targetAgentId,
           clientName: lead.client_name,
           email: lead.email,
-          phone: lead.phone
+          phone: lead.phone,
+          transferredFollowUpCount: followUpsTransferResult.rowCount || 0
         }
       });
 
@@ -1098,6 +1104,11 @@ export const adminController = {
         [previousAgentId, leadId]
       );
 
+      const followUpsRevertResult = await query(
+        'UPDATE follow_ups SET assigned_to = $1 WHERE lead_id = $2 RETURNING id',
+        [previousAgentId, leadId]
+      );
+
       // Log the activity
       await logActivity({
         userId: req.user?.id as string,
@@ -1109,7 +1120,8 @@ export const adminController = {
           toAgentId: previousAgentId,
           clientName: lead.client_name,
           email: lead.email,
-          phone: lead.phone
+          phone: lead.phone,
+          revertedFollowUpCount: followUpsRevertResult.rowCount || 0
         }
       });
 
