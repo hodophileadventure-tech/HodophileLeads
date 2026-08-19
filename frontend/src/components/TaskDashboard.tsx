@@ -40,6 +40,8 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
   const [completionRemarks, setCompletionRemarks] = useState('');
+  const [actionPlanFollowUp, setActionPlanFollowUp] = useState<FollowUp | null>(null);
+  const [actionPlan, setActionPlan] = useState('');
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -162,6 +164,24 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
     setCompletionFollowUp(followUp);
     setCompletionRemarks('');
     setShowCompletionModal(true);
+  };
+
+  const openActionPlan = (followUp: FollowUp) => {
+    setActionPlanFollowUp(followUp);
+    setActionPlan(followUp.actionPlan || '');
+  };
+
+  const saveActionPlan = async () => {
+    if (!actionPlanFollowUp || !actionPlan.trim()) return;
+    try {
+      const response = await followUpsAPI.saveActionPlan(actionPlanFollowUp.id, actionPlan);
+      const updated = normalizeFollowUp(response.data);
+      setFollowUps((prev) => prev.map((item) => item.id === updated.id ? updated : item));
+      setActionPlanFollowUp(null);
+      setActionPlan('');
+    } catch (err) {
+      setError('Could not save action plan.');
+    }
   };
 
   const confirmCompleteTask = async () => {
@@ -287,6 +307,11 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
+                  {item.status !== 'canceled' && (
+                    <Button variant="secondary" size="sm" onClick={() => openActionPlan(item)}>
+                      Action Plan
+                    </Button>
+                  )}
                   {task.whatsappLink && item.status !== 'canceled' && (
                     <Button
                       variant="secondary"
@@ -297,7 +322,13 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                     </Button>
                   )}
                   {item.status !== 'canceled' && (
-                    <Button variant="primary" size="sm" onClick={() => completeTask(item)}>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => completeTask(item)}
+                      disabled={!item.actionPlan?.trim()}
+                      title={!item.actionPlan?.trim() ? 'Add an Action Plan before marking this follow-up done' : 'Mark follow-up done'}
+                    >
                       Mark Done
                     </Button>
                   )}
@@ -343,6 +374,26 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
               >
                 Mark Complete
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {actionPlanFollowUp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-1">Action Plan</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Write the detailed plan for this follow-up.</p>
+            <textarea
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 dark:bg-slate-800 dark:text-white"
+              rows={7}
+              value={actionPlan}
+              onChange={(event) => setActionPlan(event.target.value)}
+              placeholder="Describe the steps you will take..."
+            />
+            <div className="mt-6 flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => { setActionPlanFollowUp(null); setActionPlan(''); }}>Cancel</Button>
+              <Button variant="primary" onClick={saveActionPlan} disabled={!actionPlan.trim()}>Save Action Plan</Button>
             </div>
           </div>
         </div>

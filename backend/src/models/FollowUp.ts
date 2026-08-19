@@ -2,6 +2,11 @@ import { query } from '../utils/database';
 import type { FollowUp } from '../types';
 
 export const followUpsModel = {
+  async findById(id: string) {
+    const result = await query('SELECT * FROM follow_ups WHERE id = $1 LIMIT 1', [id]);
+    return result.rows[0];
+  },
+
   async findAllByAssignee(assignedTo: string, status?: string) {
     let sql = `
       SELECT fu.*, l.client_name, l.phone, u.name AS created_by_name
@@ -135,6 +140,14 @@ export const followUpsModel = {
     const result = await query(
       "UPDATE follow_ups SET status = 'completed', completed_at = NOW(), completion_notes = $2 WHERE id = $1 RETURNING *",
       [id, completionNotes?.trim() || null]
+    );
+    return result.rows[0];
+  },
+
+  async saveActionPlan(id: string, actionPlan: string) {
+    const result = await query(
+      'UPDATE follow_ups SET action_plan = $2 WHERE id = $1 RETURNING *',
+      [id, actionPlan]
     );
     return result.rows[0];
   },

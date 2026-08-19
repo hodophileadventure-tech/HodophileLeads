@@ -87,6 +87,13 @@ export const followUpsController = {
     try {
       const payload = validatePayload(followUpSchema.fork(['leadId','title','description','dueDate'], (s) => s.optional()), req.body) as any;
       if (payload.status === 'completed' && !payload.completedAt) {
+        const existing = await followUpsModel.findById(req.params.id);
+        if (!existing) {
+          return res.status(404).json({ message: 'Follow-up not found' });
+        }
+        if (!String(existing.action_plan || '').trim()) {
+          return res.status(400).json({ message: 'Action plan is required before completing this follow-up' });
+        }
         payload.completedAt = new Date().toISOString();
       }
 
@@ -106,6 +113,24 @@ export const followUpsController = {
           changes: payload as Record<string, any>
         });
       } catch (_) {}
+      res.json(item);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async saveActionPlan(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const actionPlan = typeof req.body?.actionPlan === 'string' ? req.body.actionPlan.trim() : '';
+      if (!actionPlan) {
+        return res.status(400).json({ message: 'Action plan is required' });
+      }
+
+      const item = await followUpsModel.saveActionPlan(req.params.id, actionPlan);
+      if (!item) {
+        return res.status(404).json({ message: 'Follow-up not found' });
+      }
+
       res.json(item);
     } catch (error) {
       next(error);
@@ -135,6 +160,14 @@ export const followUpsController = {
   async complete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { remarks } = req.body as { remarks?: string };
+
+      const existing = await followUpsModel.findById(req.params.id);
+      if (!existing) {
+        return res.status(404).json({ message: 'Follow-up not found' });
+      }
+      if (!String(existing.action_plan || '').trim()) {
+        return res.status(400).json({ message: 'Action plan is required before completing this follow-up' });
+      }
       
       const item = await followUpsModel.markDoneWithNotes(req.params.id, remarks);
       if (!item) {
