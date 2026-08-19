@@ -203,6 +203,13 @@ const DailyReportsPage: React.FC = () => {
                         <div>
                           <div className="font-semibold">{action.entityType} · {action.action}</div>
                           <div className="text-slate-500 dark:text-slate-400 text-sm">{JSON.stringify(action.changes)}</div>
+                          {action.followUp && (
+                            <div className="mt-2 space-y-1 text-sm">
+                              {action.followUp.title && <div><span className="font-medium">Follow-up:</span> {action.followUp.title}</div>}
+                              {action.followUp.notes && <div className="whitespace-pre-wrap"><span className="font-medium">Follow-up notes:</span> {action.followUp.notes}</div>}
+                              {action.followUp.completionNotes && <div className="whitespace-pre-wrap"><span className="font-medium">Completion notes:</span> {action.followUp.completionNotes}</div>}
+                            </div>
+                          )}
                         </div>
                         <div className="text-xs text-slate-400">{formatKarachiDateTime(action.timestamp)}</div>
                       </div>

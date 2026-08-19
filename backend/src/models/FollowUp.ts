@@ -125,8 +125,16 @@ export const followUpsModel = {
 
   async markDone(id: string) {
     const result = await query(
-      "UPDATE follow_ups SET status = 'completed', completed_at = NOW() WHERE id = $1 RETURNING *",
-      [id]
+      "UPDATE follow_ups SET status = 'completed', completed_at = NOW(), completion_notes = $2 WHERE id = $1 RETURNING *",
+      [id, null]
+    );
+    return result.rows[0];
+  },
+
+  async markDoneWithNotes(id: string, completionNotes?: string) {
+    const result = await query(
+      "UPDATE follow_ups SET status = 'completed', completed_at = NOW(), completion_notes = $2 WHERE id = $1 RETURNING *",
+      [id, completionNotes?.trim() || null]
     );
     return result.rows[0];
   },

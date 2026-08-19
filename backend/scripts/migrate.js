@@ -298,6 +298,7 @@ async function migrate() {
         priority VARCHAR(50) NOT NULL DEFAULT 'medium',
         assigned_to UUID NOT NULL REFERENCES users(id),
         completed_at TIMESTAMP,
+        completion_notes TEXT,
         canceled_reason TEXT,
         canceled_by UUID REFERENCES users(id),
         canceled_at TIMESTAMP,
@@ -317,6 +318,7 @@ async function migrate() {
     await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS priority VARCHAR(50) DEFAULT 'medium'");
     await client.query("ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS assigned_to UUID REFERENCES users(id)");
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP');
+    await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS completion_notes TEXT');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_reason TEXT');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_by UUID REFERENCES users(id)');
     await client.query('ALTER TABLE follow_ups ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMP');

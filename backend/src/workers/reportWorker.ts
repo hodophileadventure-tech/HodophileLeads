@@ -55,11 +55,16 @@ const compileReport = async (userId: string, reportType: 'daily' | 'weekly' | 'm
   }
 
   const activitiesQuery = `
-    SELECT entity_type, action, changes, user_id, created_at
-    FROM audit_logs
-    WHERE user_id = $1
-      AND created_at BETWEEN $2 AND $3
-    ORDER BY created_at ASC
+    SELECT al.entity_type, al.action, al.changes, al.user_id, al.created_at,
+           fu.title AS follow_up_title,
+           fu.description AS follow_up_notes,
+           fu.completion_notes AS follow_up_completion_notes,
+           fu.completed_at AS follow_up_completed_at
+    FROM audit_logs al
+    LEFT JOIN follow_ups fu ON fu.id = al.entity_id AND al.entity_type = 'follow_up'
+    WHERE al.user_id = $1
+      AND al.created_at BETWEEN $2 AND $3
+    ORDER BY al.created_at ASC
   `;
   const activityResult = await query(activitiesQuery, [userId, periodStart.toISOString(), periodEnd.toISOString()]);
 
@@ -80,7 +85,21 @@ const compileReport = async (userId: string, reportType: 'daily' | 'weekly' | 'm
     const action = String(row.action || '');
     const type = String(row.entity_type || '');
     const changes = row.changes || {};
-    actions.push({ entityType: type, action, changes, timestamp: row.created_at });
+    const actionData: Record<string, any> = {
+      entityType: type,
+      action,
+      changes,
+      timestamp: row.created_at
+    };
+    if (type === 'follow_up') {
+      actionData.followUp = {
+        title: row.follow_up_title,
+        notes: row.follow_up_notes,
+        completionNotes: row.follow_up_completion_notes,
+        completedAt: row.follow_up_completed_at
+      };
+    }
+    actions.push(actionData);
 
     if (type === 'lead' && action === 'create') totals.leadsCreated += 1;
     if (type === 'follow_up' && action === 'create') totals.followUpsCreated += 1;

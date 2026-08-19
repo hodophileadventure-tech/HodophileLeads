@@ -136,7 +136,7 @@ export const followUpsController = {
     try {
       const { remarks } = req.body as { remarks?: string };
       
-      const item = await followUpsModel.markDone(req.params.id);
+      const item = await followUpsModel.markDoneWithNotes(req.params.id, remarks);
       if (!item) {
         return res.status(404).json({ message: 'Follow-up not found' });
       }
@@ -161,7 +161,8 @@ export const followUpsController = {
           userId: req.user.id,
           entityType: 'follow_up',
           entityId: req.params.id,
-          action: 'complete'
+          action: 'complete',
+          changes: { completionNotes: remarks || '' }
         });
       } catch (_) {}
       res.json(item);
