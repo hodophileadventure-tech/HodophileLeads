@@ -1010,9 +1010,9 @@ export const adminController = {
       }
 
       // Check if current agent exists (optional, but good practice)
-      const currentAgentResult = await query("SELECT id FROM users WHERE id = $1 AND role = 'agent'", [lead.agent_id]);
-      if (!currentAgentResult.rows[0]) {
-        return res.status(400).json({ message: 'Current agent not found' });
+      const currentOwnerResult = await query('SELECT id, role FROM users WHERE id = $1', [lead.agent_id]);
+      if (!currentOwnerResult.rows[0]) {
+        return res.status(400).json({ message: 'Current lead owner not found' });
       }
 
       // Transfer the lead
