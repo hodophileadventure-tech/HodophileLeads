@@ -213,6 +213,8 @@ export const dashboardController = {
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3)::int as total_followups,
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'completed')::int as completed_followups,
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status IN ('overdue', 'today'))::int as past_due_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'today')::int as due_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'overdue')::int as overdue_followups,
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'upcoming')::int as active_followups
         FROM leads l
         WHERE l.agent_id = $1 AND (
@@ -237,6 +239,8 @@ export const dashboardController = {
         totalFollowups: parseInt(stats.total_followups) || 0,
         completedFollowups: parseInt(stats.completed_followups) || 0,
         pastDueFollowups: parseInt(stats.past_due_followups) || 0,
+        dueFollowups: parseInt(stats.due_followups) || 0,
+        overdueFollowups: parseInt(stats.overdue_followups) || 0,
         activeFollowups: parseInt(stats.active_followups) || 0
       });
     } catch (error) {
@@ -268,7 +272,13 @@ export const dashboardController = {
         'deadLeads',
         'spamLeads',
         'canceledLeads',
-        'panLeads'
+        'panLeads',
+        'totalFollowups',
+        'completedFollowups',
+        'dueFollowups',
+        'overdueFollowups',
+        'pastDueFollowups',
+        'activeFollowups'
       ]);
 
       if (!validSections.has(String(section))) {
@@ -282,6 +292,44 @@ export const dashboardController = {
 
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
         return res.status(400).json({ message: 'Invalid date format' });
+      }
+
+      const followUpSections = new Set(['totalFollowups', 'completedFollowups', 'pastDueFollowups', 'activeFollowups']);
+      if (followUpSections.has(String(section))) {
+        const followUpFilters: Record<string, string> = {
+          totalFollowups: 'TRUE',
+          completedFollowups: `fu.status = 'completed'`,
+          dueFollowups: `fu.status = 'today'`,
+          overdueFollowups: `fu.status = 'overdue'`,
+          pastDueFollowups: `fu.status IN ('overdue', 'today')`,
+          activeFollowups: `fu.status = 'upcoming'`
+        };
+        const followUpResult = await query(`
+          SELECT
+            fu.id,
+            fu.title,
+            fu.description,
+            fu.status,
+            fu.priority,
+            fu.due_date,
+            fu.completed_at,
+            fu.completion_notes,
+            fu.action_plan,
+            l.id AS lead_id,
+            l.client_name,
+            l.phone,
+            l.destination
+          FROM follow_ups fu
+          JOIN leads l ON l.id = fu.lead_id
+          WHERE l.agent_id = $1
+            AND (${followUpFilters[String(section)]})
+            AND fu.created_at >= $2
+            AND fu.created_at <= $3
+          ORDER BY fu.due_date ASC NULLS LAST, fu.created_at DESC
+          LIMIT 500
+        `, [resolvedAgentId, start.toISOString(), end.toISOString()]);
+
+        return res.json(followUpResult.rows);
       }
 
       const sectionFilters: Record<string, string> = {

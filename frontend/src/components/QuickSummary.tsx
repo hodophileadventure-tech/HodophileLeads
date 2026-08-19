@@ -20,6 +20,8 @@ interface SummaryData {
   totalLeads: number;
   totalFollowups: number;
   completedFollowups: number;
+  dueFollowups: number;
+  overdueFollowups: number;
   pastDueFollowups: number;
   activeFollowups: number;
 }
@@ -106,9 +108,16 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
 
   const followupsData = data ? [
     { name: 'Completed', value: data.completedFollowups, color: COLORS.completed },
-    { name: 'Past Due', value: data.pastDueFollowups, color: COLORS.pastDue },
+    { name: 'Due', value: data.dueFollowups, color: '#f59e0b' },
+    { name: 'Overdue', value: data.overdueFollowups, color: COLORS.pastDue },
     { name: 'Active', value: data.activeFollowups, color: COLORS.active }
   ].filter(item => item.value > 0) : [];
+
+  const toggleDetails = (section: string) => {
+    const next = expandedSection === section ? null : section;
+    setExpandedSection(next);
+    if (next) loadDetailRows(next);
+  };
 
   const renderPieLabel = ({ cx, cy, midAngle, outerRadius, name, value }: any) => {
     const RADIAN = Math.PI / 180;
@@ -240,6 +249,26 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             </button>
           </div>
 
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { key: 'totalFollowups', label: 'Total Follow-ups', value: data.totalFollowups, className: 'bg-slate-50 dark:bg-slate-800' },
+              { key: 'completedFollowups', label: 'Completed', value: data.completedFollowups, className: 'bg-emerald-50 dark:bg-emerald-900/30' },
+              { key: 'dueFollowups', label: 'Due', value: data.dueFollowups, className: 'bg-amber-50 dark:bg-amber-900/30' },
+              { key: 'overdueFollowups', label: 'Overdue', value: data.overdueFollowups, className: 'bg-rose-50 dark:bg-rose-900/30' },
+              { key: 'activeFollowups', label: 'Active', value: data.activeFollowups, className: 'bg-sky-50 dark:bg-sky-900/30' }
+            ].map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => toggleDetails(item.key)}
+                className={`text-left p-3 rounded-lg ${item.className}`}
+              >
+                <p className="text-xs text-slate-600 dark:text-slate-400">{item.label}</p>
+                <p className="text-2xl font-bold">{item.value}</p>
+              </button>
+            ))}
+          </div>
+
           {remainingLeadCount > 0 && (
             <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
               Other / unclassified lead statuses: <span className="font-semibold text-slate-900 dark:text-slate-100">{remainingLeadCount}</span>
@@ -283,7 +312,36 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                 ) : detailError ? (
                   <div className="text-sm text-red-600 dark:text-red-300">{detailError}</div>
                 ) : detailRows.length === 0 ? (
-                  <div className="text-sm text-slate-600 dark:text-slate-300">No matching leads found for this category in the selected range.</div>
+                  <div className="text-sm text-slate-600 dark:text-slate-300">No matching records found for this category in the selected range.</div>
+                ) : expandedSection.includes('Followups') ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-left text-sm text-slate-700 dark:text-slate-200">
+                      <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+                        <tr>
+                          <th className="px-3 py-2">Lead</th>
+                          <th className="px-3 py-2">Phone</th>
+                          <th className="px-3 py-2">Follow-up Notes</th>
+                          <th className="px-3 py-2">Status</th>
+                          <th className="px-3 py-2">Due Date</th>
+                          <th className="px-3 py-2">Action Plan</th>
+                          <th className="px-3 py-2">Completion Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {detailRows.map((row, index) => (
+                          <tr key={`${row.id}-${index}`} className="border-b border-slate-200 dark:border-slate-700 align-top">
+                            <td className="px-3 py-2">{row.client_name || '-'}</td>
+                            <td className="px-3 py-2">{row.phone || '-'}</td>
+                            <td className="px-3 py-2 whitespace-pre-wrap">{row.description || '-'}</td>
+                            <td className="px-3 py-2 capitalize">{row.status || '-'}</td>
+                            <td className="px-3 py-2">{row.due_date ? new Date(row.due_date).toLocaleString() : '-'}</td>
+                            <td className="px-3 py-2 whitespace-pre-wrap">{row.action_plan || '-'}</td>
+                            <td className="px-3 py-2 whitespace-pre-wrap">{row.completion_notes || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
