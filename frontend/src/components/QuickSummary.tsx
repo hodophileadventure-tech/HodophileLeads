@@ -232,6 +232,14 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{data.completedLeads}</p>
             </button>
             <button type="button" onClick={() => {
+              const next = expandedSection === 'newLeads' ? null : 'newLeads';
+              setExpandedSection(next);
+              if (next) loadDetailRows(next);
+            }} className="text-left bg-sky-50 dark:bg-sky-900/30 p-3 rounded-lg">
+              <p className="text-xs text-slate-600 dark:text-slate-400">New Leads</p>
+              <p className="text-2xl font-bold text-sky-600 dark:text-sky-300">{data.newLeads}</p>
+            </button>
+            <button type="button" onClick={() => {
               const next = expandedSection === 'spamLeads' ? null : 'spamLeads';
               setExpandedSection(next);
               if (next) loadDetailRows(next);
