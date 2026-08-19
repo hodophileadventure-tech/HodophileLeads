@@ -41,6 +41,7 @@ export const followUpsAPI = {
   create: (data: Partial<FollowUp>) => apiClient.post<FollowUp>('/follow-ups', data),
   update: (id: string, data: Partial<FollowUp>) => apiClient.put<FollowUp>(`/follow-ups/${encodeURIComponent(id)}`, data),
   complete: (id: string, remarks?: string) => apiClient.patch(`/follow-ups/${encodeURIComponent(id)}/complete`, { remarks }),
+  saveActionPlan: (id: string, actionPlan: string) => apiClient.patch(`/follow-ups/${encodeURIComponent(id)}/action-plan`, { actionPlan }),
   cancel: (id: string, reason: string) => apiClient.patch(`/follow-ups/${encodeURIComponent(id)}/cancel`, { reason }),
   delete: (id: string) => {
     if (!id) {

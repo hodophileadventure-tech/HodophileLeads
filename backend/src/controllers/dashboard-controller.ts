@@ -312,13 +312,15 @@ export const dashboardController = {
           l.updated_at,
           fu.title AS follow_up_title,
           fu.description AS follow_up_description,
-          COALESCE(fu.completion_notes, l.agent_remarks) AS completion_notes
+          COALESCE(fu.completion_notes, l.agent_remarks) AS completion_notes,
+          fu.action_plan
         FROM leads l
         LEFT JOIN LATERAL (
           SELECT
             STRING_AGG(NULLIF(title, ''), ' | ' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS title,
             STRING_AGG(NULLIF(description, ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS description,
-            STRING_AGG(NULLIF(COALESCE(completion_notes, audit_completion_notes), ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS completion_notes
+            STRING_AGG(NULLIF(COALESCE(completion_notes, audit_completion_notes), ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS completion_notes,
+            STRING_AGG(NULLIF(action_plan, ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS action_plan
           FROM (
             SELECT
               f.title,

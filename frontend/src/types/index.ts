@@ -101,6 +101,7 @@ export interface FollowUp {
   whatsappLink?: string;
   completedAt?: string;
   completionNotes?: string | null;
+  actionPlan?: string | null;
   createdAt: string;
   canceledReason?: string | null;
   canceledBy?: string | null;

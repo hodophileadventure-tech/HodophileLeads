@@ -8,6 +8,7 @@ followUpsRouter.use(authMiddleware);
 followUpsRouter.get('/', followUpsController.list);
 followUpsRouter.post('/', followUpsController.create);
 followUpsRouter.put('/:id', followUpsController.update);
+followUpsRouter.patch('/:id/action-plan', followUpsController.saveActionPlan);
 followUpsRouter.patch('/:id/complete', followUpsController.complete);
 followUpsRouter.patch('/:id/cancel', followUpsController.cancel);
 followUpsRouter.delete('/:id', followUpsController.delete);

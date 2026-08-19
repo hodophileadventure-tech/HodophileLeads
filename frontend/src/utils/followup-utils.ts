@@ -28,6 +28,7 @@ export const normalizeFollowUp = (item: any): FollowUp => ({
   whatsappLink: item.whatsappLink || item.whatsapp_link,
   completedAt: item.completedAt || item.completed_at || null,
   completionNotes: item.completionNotes || item.completion_notes || null,
+  actionPlan: item.actionPlan || item.action_plan || null,
   canceledReason: item.canceledReason || item.canceled_reason || null,
   canceledBy: item.canceledBy || item.canceled_by || null,
   canceledAt: item.canceledAt || item.canceled_at || null,

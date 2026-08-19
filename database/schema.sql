@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS follow_ups (
   created_by UUID REFERENCES users(id),
   completed_at TIMESTAMP,
   completion_notes TEXT,
+  action_plan TEXT,
   canceled_reason TEXT,
   canceled_by UUID REFERENCES users(id),
   canceled_at TIMESTAMP,
