@@ -209,13 +209,13 @@ export const dashboardController = {
           COUNT(*) FILTER (WHERE temperature = 'cold' AND status = 'new' AND potential = false)::int as pan_leads,
           COUNT(*) FILTER (WHERE status = 'new' AND potential = false AND temperature IS DISTINCT FROM 'cold')::int as new_leads,
           COUNT(*)::int as total_leads,
-          -- Follow-up stats (follow-ups created in selected date range for this agent)
+          -- Follow-up stats use due dates because stored status can lag behind the calendar.
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3)::int as total_followups,
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'completed')::int as completed_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status IN ('overdue', 'today'))::int as past_due_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'today')::int as due_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'overdue')::int as overdue_followups,
-          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status = 'upcoming')::int as active_followups
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status NOT IN ('completed', 'canceled') AND f.due_date < NOW())::int as past_due_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status NOT IN ('completed', 'canceled') AND f.due_date >= NOW() AND f.due_date < NOW() + INTERVAL '1 day')::int as due_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status NOT IN ('completed', 'canceled') AND f.due_date < NOW())::int as overdue_followups,
+          (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status NOT IN ('completed', 'canceled') AND f.due_date >= NOW() + INTERVAL '1 day')::int as active_followups
         FROM leads l
         WHERE l.agent_id = $1 AND (
           (l.created_at >= $2 AND l.created_at <= $3) OR
@@ -294,15 +294,15 @@ export const dashboardController = {
         return res.status(400).json({ message: 'Invalid date format' });
       }
 
-      const followUpSections = new Set(['totalFollowups', 'completedFollowups', 'pastDueFollowups', 'activeFollowups']);
+      const followUpSections = new Set(['totalFollowups', 'completedFollowups', 'dueFollowups', 'overdueFollowups', 'pastDueFollowups', 'activeFollowups']);
       if (followUpSections.has(String(section))) {
         const followUpFilters: Record<string, string> = {
           totalFollowups: 'TRUE',
           completedFollowups: `fu.status = 'completed'`,
-          dueFollowups: `fu.status = 'today'`,
-          overdueFollowups: `fu.status = 'overdue'`,
-          pastDueFollowups: `fu.status IN ('overdue', 'today')`,
-          activeFollowups: `fu.status = 'upcoming'`
+          dueFollowups: `fu.status NOT IN ('completed', 'canceled') AND fu.due_date >= NOW() AND fu.due_date < NOW() + INTERVAL '1 day'`,
+          overdueFollowups: `fu.status NOT IN ('completed', 'canceled') AND fu.due_date < NOW()`,
+          pastDueFollowups: `fu.status NOT IN ('completed', 'canceled') AND fu.due_date < NOW()`,
+          activeFollowups: `fu.status NOT IN ('completed', 'canceled') AND fu.due_date >= NOW() + INTERVAL '1 day'`
         };
         const followUpResult = await query(`
           SELECT
