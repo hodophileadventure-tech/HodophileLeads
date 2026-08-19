@@ -314,11 +314,12 @@ export const dashboardController = {
           fu.description AS follow_up_description
         FROM leads l
         LEFT JOIN LATERAL (
-          SELECT title, description, completion_notes AS completion_notes
+          SELECT
+            STRING_AGG(NULLIF(title, ''), ' | ' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS title,
+            STRING_AGG(NULLIF(description, ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS description,
+            STRING_AGG(NULLIF(completion_notes, ''), E'\n\n' ORDER BY due_date ASC NULLS LAST, created_at DESC) AS completion_notes
           FROM follow_ups
           WHERE lead_id = l.id
-          ORDER BY due_date ASC NULLS LAST, created_at DESC
-          LIMIT 1
         ) fu ON true
         WHERE l.agent_id = $1
           AND (${sectionFilters[String(section)]})
