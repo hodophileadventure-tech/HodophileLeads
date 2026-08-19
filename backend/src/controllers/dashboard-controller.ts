@@ -314,7 +314,7 @@ export const dashboardController = {
           fu.description AS follow_up_description
         FROM leads l
         LEFT JOIN LATERAL (
-          SELECT title, description
+          SELECT title, description, completion_notes AS completion_notes
           FROM follow_ups
           WHERE lead_id = l.id
           ORDER BY due_date ASC NULLS LAST, created_at DESC

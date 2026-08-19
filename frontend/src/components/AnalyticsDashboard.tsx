@@ -580,13 +580,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
                               <span className="capitalize">{lead.temperature || 'unknown'}</span>
                             </div>
                           </div>
-                          {(lead.canceled_reason || lead.agent_remarks || lead.remarks || lead.follow_up_title || lead.follow_up_description) && (
+                          {(lead.canceled_reason || lead.agent_remarks || lead.remarks || lead.follow_up_title || lead.follow_up_description || lead.completion_notes) && (
                             <div className="mt-2 text-sm text-slate-600 dark:text-slate-300 space-y-1">
                               {lead.canceled_reason && <p><span className="font-medium">Canceled:</span> {lead.canceled_reason}</p>}
                               {lead.agent_remarks && <p><span className="font-medium">Agent remarks:</span> {lead.agent_remarks}</p>}
                               {lead.remarks && <p><span className="font-medium">Remarks:</span> {lead.remarks}</p>}
                               {lead.follow_up_title && <p><span className="font-medium">Follow-up:</span> {lead.follow_up_title}</p>}
                               {lead.follow_up_description && <p><span className="font-medium">Follow-up notes:</span> {lead.follow_up_description}</p>}
+                              {lead.completion_notes && <p className="whitespace-pre-wrap"><span className="font-medium">Completion notes:</span> {lead.completion_notes}</p>}
                             </div>
                           )}
                         </div>

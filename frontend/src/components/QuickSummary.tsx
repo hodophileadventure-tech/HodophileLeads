@@ -318,7 +318,8 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                             <th className="px-3 py-2">Status</th>
                             <th className="px-3 py-2">Temperature</th>
                             <th className="px-3 py-2">Follow-up</th>
-                            <th className="px-3 py-2">Follow-up Remarks</th>
+                            <th className="px-3 py-2">Follow-up Notes</th>
+                            <th className="px-3 py-2">Completion Notes</th>
                             <th className="px-3 py-2">Reason</th>
                             <th className="px-3 py-2">Remarks</th>
                           </tr>
@@ -332,7 +333,8 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                               <td className="px-3 py-2 capitalize">{row.status || '-'}</td>
                               <td className="px-3 py-2 capitalize">{row.temperature || '-'}</td>
                               <td className="px-3 py-2">{row.follow_up_title || '-'}</td>
-                              <td className="px-3 py-2">{row.follow_up_description || '-'}</td>
+                              <td className="px-3 py-2 whitespace-pre-wrap">{row.follow_up_description || '-'}</td>
+                              <td className="px-3 py-2 whitespace-pre-wrap">{row.completion_notes || '-'}</td>
                               <td className="px-3 py-2">{row.canceled_reason || '-'}</td>
                               <td className="px-3 py-2">{row.agent_remarks || row.remarks || '-'}</td>
                             </tr>
