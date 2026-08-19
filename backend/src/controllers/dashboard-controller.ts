@@ -326,6 +326,7 @@ export const dashboardController = {
               f.title,
               f.description,
               f.completion_notes,
+              f.action_plan,
               f.due_date,
               f.created_at,
               audit.completion_notes AS audit_completion_notes
