@@ -104,6 +104,7 @@ tasksRouter.post(
 tasksRouter.post(
   '/:id/submit',
   authorizationService.requirePermission('tasks', 'submit'),
+  taskUpload.single('attachment'),
   tasksController.submitTask
 );
 

@@ -179,9 +179,16 @@ export const tasksController = {
 
       const { id } = req.params;
       const { submission_notes } = req.body;
+      const file = req.file as Express.Multer.File | undefined;
 
       const { task, submission } = await taskService.submitTask(id, req.user.id, {
-        submission_notes
+        submission_notes,
+        attachment: file ? {
+          original_filename: file.originalname,
+          stored_filename: file.filename,
+          mime_type: file.mimetype,
+          file_size_bytes: file.size
+        } : undefined
       });
 
       res.json({

@@ -19,6 +19,7 @@ interface TaskRecord {
   submitted_at?: string;
   approved_at?: string;
   attachments?: Array<{ id: string; original_filename: string; file_path: string; mime_type: string }>;
+  latestSubmission?: { submission_notes?: string; submitted_by_name?: string; submitted_at?: string; review_notes?: string };
 }
 
 const roleLabel = (role?: string) => {
@@ -62,6 +63,9 @@ export const CreativeWorkPanel: React.FC = () => {
   const [deadline, setDeadline] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [submissionTask, setSubmissionTask] = useState<TaskRecord | null>(null);
+  const [submissionNotes, setSubmissionNotes] = useState('');
+  const [submissionAttachment, setSubmissionAttachment] = useState<File | null>(null);
 
   const isAdmin = user?.role === 'admin';
 
@@ -73,7 +77,12 @@ export const CreativeWorkPanel: React.FC = () => {
       const tasksWithAttachments = await Promise.all(loadedTasks.map(async (task) => {
         try {
           const attachmentResponse = await tasksAPI.listAttachments(task.id);
-          return { ...task, attachments: attachmentResponse.data?.data || [] };
+          const submissionResponse = await tasksAPI.listSubmissions(task.id);
+          return {
+            ...task,
+            attachments: attachmentResponse.data?.data || [],
+            latestSubmission: submissionResponse.data?.data?.[0]
+          };
         } catch {
           return task;
         }
@@ -143,10 +152,19 @@ export const CreativeWorkPanel: React.FC = () => {
   };
 
   const updateTaskAction = async (taskId: string, action: 'start' | 'submit' | 'approve' | 'request-revision') => {
+    if (action === 'submit') {
+      const task = tasks.find((item) => item.id === taskId);
+      if (task) {
+        setSubmissionTask(task);
+        setSubmissionNotes('');
+        setSubmissionAttachment(null);
+      }
+      return;
+    }
+
     try {
-      const methods: Record<typeof action, (id: string, payload?: any) => Promise<any>> = {
+      const methods: Record<Exclude<typeof action, 'submit'>, (id: string, payload?: any) => Promise<any>> = {
         start: tasksAPI.start,
-        submit: tasksAPI.submit,
         approve: tasksAPI.approve,
         'request-revision': tasksAPI.requestRevision,
       };
@@ -156,6 +174,28 @@ export const CreativeWorkPanel: React.FC = () => {
     } catch (err) {
       console.error(`Failed to ${action} task`, err);
       setError(`Could not ${action.replace('-', ' ')} the task.`);
+    }
+  };
+
+  const sendForApproval = async () => {
+    if (!submissionTask || !submissionNotes.trim()) {
+      setError('Please add submission notes before sending for approval.');
+      return;
+    }
+
+    try {
+      setError('');
+      const formData = new FormData();
+      formData.append('submission_notes', submissionNotes.trim());
+      if (submissionAttachment) formData.append('attachment', submissionAttachment);
+      await tasksAPI.submit(submissionTask.id, formData);
+      setSubmissionTask(null);
+      setSubmissionNotes('');
+      setSubmissionAttachment(null);
+      await fetchTasks();
+    } catch (err) {
+      console.error('Failed to send task for approval', err);
+      setError('Could not send the task for approval.');
     }
   };
 
@@ -263,6 +303,17 @@ export const CreativeWorkPanel: React.FC = () => {
                         Attachment: {file.original_filename}
                       </a>
                     ))}
+                    {task.latestSubmission && (
+                      <div className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800">
+                        <p className="font-semibold">Submission notes</p>
+                        <p className="mt-1 whitespace-pre-wrap text-slate-600 dark:text-slate-300">
+                          {task.latestSubmission.submission_notes || 'No submission notes provided.'}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Sent for approval: {formatDate(task.latestSubmission.submitted_at)}
+                        </p>
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
                       <span>Assigned by: {task.created_by_name || 'Admin'}</span>
                       <span>Deadline: {formatDate(task.deadline)}</span>
@@ -275,7 +326,7 @@ export const CreativeWorkPanel: React.FC = () => {
                       <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'start')}>Start</Button>
                     )}
                     {!isAdmin && (task.status === 'in_progress' || task.status === 'revision_requested') && (
-                      <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'submit')}>Submit</Button>
+                      <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'submit')}>Send for Approval</Button>
                     )}
                     {isAdmin && task.status === 'submitted' && (
                       <>
@@ -290,6 +341,33 @@ export const CreativeWorkPanel: React.FC = () => {
           </div>
         )}
       </section>
+
+      {submissionTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg space-y-4 rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900">
+            <div>
+              <h2 className="text-xl font-bold">Send Task for Approval</h2>
+              <p className="mt-1 text-sm text-slate-500">{submissionTask.title}</p>
+            </div>
+            <textarea
+              className="input-field min-h-[140px]"
+              value={submissionNotes}
+              onChange={(e) => setSubmissionNotes(e.target.value)}
+              placeholder="Describe the completed work, delivered items, and any notes for admin"
+            />
+            <input
+              type="file"
+              className="input-field"
+              onChange={(e) => setSubmissionAttachment(e.target.files?.[0] || null)}
+              accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setSubmissionTask(null)}>Cancel</Button>
+              <Button variant="primary" onClick={sendForApproval}>Send for Approval</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

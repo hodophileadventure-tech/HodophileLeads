@@ -103,7 +103,15 @@ export class TaskService {
   async submitTask(
     taskId: string,
     userId: string,
-    data: { submission_notes?: string }
+    data: {
+      submission_notes?: string;
+      attachment?: {
+        original_filename: string;
+        stored_filename: string;
+        mime_type: string;
+        file_size_bytes: number;
+      };
+    }
   ): Promise<{ task: Task; submission: TaskSubmission }> {
     const task = await taskModel.findById(taskId);
     if (!task) throw new Error('Task not found');
@@ -122,6 +130,18 @@ export class TaskService {
       submission_notes: data.submission_notes,
       submitted_by: userId
     });
+
+    if (data.attachment) {
+      await taskModel.addAttachment({
+        task_id: taskId,
+        original_filename: data.attachment.original_filename,
+        stored_filename: data.attachment.stored_filename,
+        mime_type: data.attachment.mime_type,
+        file_size_bytes: data.attachment.file_size_bytes,
+        file_path: `/uploads/tasks/${data.attachment.stored_filename}`,
+        uploaded_by: userId
+      });
+    }
 
     // Update task status
     const updated = await taskModel.updateStatus(taskId, 'submitted', userId);
