@@ -45,9 +45,9 @@ Health endpoints:
      JWT_EXPIRY=7d
      NODE_ENV=production
      ```
-   - Run migrations:
-     - Go to Deployments → Edit → Post Deploy Hook
-     - Add: `npm run db:migrate`
+   - Migrations run automatically before `npm start` through the backend `prestart` hook.
+   - The migration runner reads `backend/database/migrations`, records completed files in the `migrations` table, and safely skips files already applied.
+   - You can also run the same process manually with: `npm run db:migrate`
 
 3. **Frontend Service**
    - Set the GitHub repository

@@ -204,7 +204,49 @@ export const ensureRoleAndPermissionTables = async (): Promise<void> => {
 
     const migrationPath = resolveProjectAssetPath('database', 'migrations', '2026-08-12-001-create-roles-system.sql');
     if (!fs.existsSync(migrationPath)) {
-      console.warn('[SCHEMA INIT] RBAC migration file not found:', migrationPath);
+      console.warn('[SCHEMA INIT] RBAC migration file not found:', migrationPath, '- applying core RBAC schema fallback');
+      await query(`
+        CREATE TABLE IF NOT EXISTS roles (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(100) UNIQUE NOT NULL,
+          slug VARCHAR(100) UNIQUE NOT NULL,
+          description TEXT,
+          is_system_role BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await query(`
+        CREATE TABLE IF NOT EXISTS permissions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          resource VARCHAR(50) NOT NULL,
+          action VARCHAR(50) NOT NULL,
+          display_name VARCHAR(100) NOT NULL,
+          description TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(resource, action)
+        )
+      `);
+      await query(`
+        CREATE TABLE IF NOT EXISTS role_permissions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+          permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(role_id, permission_id)
+        )
+      `);
+      await query(`
+        INSERT INTO roles (name, slug, description, is_system_role, is_active)
+        VALUES
+          ('Admin', 'admin', 'System administrator with full access', true, true),
+          ('Sales Executive', 'agent', 'Sales executive / CRM agent', true, true),
+          ('Sales Manager', 'manager', 'Sales team manager and supervisor', true, true)
+        ON CONFLICT DO NOTHING
+      `);
       return;
     }
 
@@ -396,6 +438,27 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] Adding trip_budget column to leads table...');
       await query(`ALTER TABLE leads ADD COLUMN trip_budget DECIMAL(12, 2)`);
       console.log('[MIGRATION] ✅ trip_budget column added successfully');
+    }
+
+    // Keep older production databases compatible with lead status protection.
+    const hasProgressedCheckResult = await query(`
+      SELECT COUNT(*) as count FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'has_progressed'
+    `);
+
+    const hasProgressedExists = hasProgressedCheckResult.rows?.[0]?.count > 0;
+
+    if (!hasProgressedExists) {
+      console.log('[MIGRATION] Adding has_progressed column to leads table...');
+      await query('ALTER TABLE leads ADD COLUMN has_progressed BOOLEAN DEFAULT false');
+      await query(`
+        UPDATE leads
+        SET has_progressed = true
+        WHERE status NOT IN ('new', 'spam') AND has_progressed = false
+      `);
+      await query('CREATE INDEX IF NOT EXISTS idx_leads_has_progressed ON leads(has_progressed)');
+      await query('CREATE INDEX IF NOT EXISTS idx_leads_status_progressed ON leads(status, has_progressed)');
+      console.log('[MIGRATION] has_progressed column added successfully');
     }
 
     const initialPriceCheckResult = await query(`
