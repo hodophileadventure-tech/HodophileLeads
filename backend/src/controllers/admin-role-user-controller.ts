@@ -69,6 +69,21 @@ export async function createRole(req: AdminRequest, res: Response, next: NextFun
       }
     }
 
+    // The role form does not expose permission selection yet. Creative roles
+    // need the task permissions required by CreativeWorkPanel immediately.
+    const normalizedSlug = String(slug).trim().toLowerCase();
+    if (['content_creator', 'video_editor'].includes(normalizedSlug)) {
+      const taskActions = ['view', 'start', 'submit'];
+      await query(
+        `INSERT INTO role_permissions (role_id, permission_id)
+         SELECT $1, p.id
+         FROM permissions p
+         WHERE p.resource = 'tasks' AND p.action = ANY($2::text[])
+         ON CONFLICT DO NOTHING`,
+        [createdRole.id, taskActions]
+      );
+    }
+
     res.status(201).json({
       success: true,
       message: `Role '${name}' created successfully`,
