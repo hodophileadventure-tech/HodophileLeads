@@ -10,7 +10,7 @@ BEGIN;
 -- 1. ADD role_id COLUMN TO USERS TABLE
 -- ============================================================================
 ALTER TABLE users 
-ADD COLUMN role_id UUID;
+ADD COLUMN IF NOT EXISTS role_id UUID;
 
 -- ============================================================================
 -- 2. MIGRATE EXISTING ROLE DATA
@@ -62,35 +62,29 @@ END $$;
 -- ============================================================================
 -- 4. ADD FOREIGN KEY CONSTRAINT
 -- ============================================================================
-ALTER TABLE users
-ADD CONSTRAINT fk_users_role_id 
-FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_users_role_id'
+  ) THEN
+    ALTER TABLE users
+      ADD CONSTRAINT fk_users_role_id
+      FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT;
+  END IF;
+END $$;
 
 -- ============================================================================
 -- 5. MAKE role_id NOT NULL
 -- ============================================================================
-ALTER TABLE users
-ALTER COLUMN role_id SET NOT NULL;
+-- Keep the legacy role column for compatibility with older auth and migration code.
 
 -- ============================================================================
--- 6. REMOVE OLD ROLE COLUMN CONSTRAINT
+-- 6. ADD INDEX FOR role_id
 -- ============================================================================
-ALTER TABLE users
-DROP CONSTRAINT valid_role;
+CREATE INDEX IF NOT EXISTS idx_users_role_id ON users(role_id);
 
 -- ============================================================================
--- 7. REMOVE OLD ROLE COLUMN
--- ============================================================================
-ALTER TABLE users
-DROP COLUMN role;
-
--- ============================================================================
--- 8. ADD INDEX FOR role_id
--- ============================================================================
-CREATE INDEX idx_users_role_id ON users(role_id);
-
--- ============================================================================
--- 9. FINAL VERIFICATION
+-- 7. FINAL VERIFICATION
 -- ============================================================================
 
 -- Count users by role

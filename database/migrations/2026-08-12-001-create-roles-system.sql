@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS roles (
 );
 
 -- Indexes for roles table
-CREATE INDEX idx_roles_slug ON roles(slug);
-CREATE INDEX idx_roles_is_active ON roles(is_active);
-CREATE INDEX idx_roles_is_system_role ON roles(is_system_role);
+CREATE INDEX IF NOT EXISTS idx_roles_slug ON roles(slug);
+CREATE INDEX IF NOT EXISTS idx_roles_is_active ON roles(is_active);
+CREATE INDEX IF NOT EXISTS idx_roles_is_system_role ON roles(is_system_role);
 
 -- ============================================================================
 -- 2. CREATE PERMISSIONS TABLE
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS permissions (
 );
 
 -- Indexes for permissions table
-CREATE INDEX idx_permissions_resource ON permissions(resource);
-CREATE INDEX idx_permissions_action ON permissions(action);
+CREATE INDEX IF NOT EXISTS idx_permissions_resource ON permissions(resource);
+CREATE INDEX IF NOT EXISTS idx_permissions_action ON permissions(action);
 
 -- ============================================================================
 -- 3. CREATE ROLE_PERMISSIONS TABLE (MANY-TO-MANY)
@@ -74,8 +74,8 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 );
 
 -- Indexes for role_permissions table
-CREATE INDEX idx_role_permissions_role_id ON role_permissions(role_id);
-CREATE INDEX idx_role_permissions_permission_id ON role_permissions(permission_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id);
 
 -- ============================================================================
 -- 4. SEED INITIAL SYSTEM ROLES

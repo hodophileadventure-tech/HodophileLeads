@@ -54,12 +54,12 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 -- Indexes for tasks table
-CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to);
-CREATE INDEX idx_tasks_created_by ON tasks(created_by);
-CREATE INDEX idx_tasks_status ON tasks(status);
-CREATE INDEX idx_tasks_deadline ON tasks(deadline);
-CREATE INDEX idx_tasks_priority ON tasks(priority);
-CREATE INDEX idx_tasks_is_overdue ON tasks(is_overdue);
+CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_tasks_created_by ON tasks(created_by);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_deadline ON tasks(deadline);
+CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
+CREATE INDEX IF NOT EXISTS idx_tasks_is_overdue ON tasks(is_overdue);
 
 -- ============================================================================
 -- 2. CREATE TASK_SUBMISSIONS TABLE
@@ -94,10 +94,10 @@ CREATE TABLE IF NOT EXISTS task_submissions (
 );
 
 -- Indexes for task_submissions table
-CREATE INDEX idx_task_submissions_task_id ON task_submissions(task_id);
-CREATE INDEX idx_task_submissions_submitted_by ON task_submissions(submitted_by);
-CREATE INDEX idx_task_submissions_review_status ON task_submissions(review_status);
-CREATE INDEX idx_task_submissions_reviewer_id ON task_submissions(reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_task_submissions_task_id ON task_submissions(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_submissions_submitted_by ON task_submissions(submitted_by);
+CREATE INDEX IF NOT EXISTS idx_task_submissions_review_status ON task_submissions(review_status);
+CREATE INDEX IF NOT EXISTS idx_task_submissions_reviewer_id ON task_submissions(reviewer_id);
 
 -- ============================================================================
 -- 3. CREATE TASK_COMMENTS TABLE
@@ -126,9 +126,9 @@ CREATE TABLE IF NOT EXISTS task_comments (
 );
 
 -- Indexes for task_comments table
-CREATE INDEX idx_task_comments_task_id ON task_comments(task_id);
-CREATE INDEX idx_task_comments_commented_by ON task_comments(commented_by);
-CREATE INDEX idx_task_comments_is_system ON task_comments(is_system_comment);
+CREATE INDEX IF NOT EXISTS idx_task_comments_task_id ON task_comments(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_comments_commented_by ON task_comments(commented_by);
+CREATE INDEX IF NOT EXISTS idx_task_comments_is_system ON task_comments(is_system_comment);
 
 -- ============================================================================
 -- 4. CREATE TASK_ATTACHMENTS TABLE
@@ -159,9 +159,9 @@ CREATE TABLE IF NOT EXISTS task_attachments (
 );
 
 -- Indexes for task_attachments table
-CREATE INDEX idx_task_attachments_entity ON task_attachments(entity_type, entity_id);
-CREATE INDEX idx_task_attachments_uploaded_by ON task_attachments(uploaded_by);
-CREATE INDEX idx_task_attachments_mime_type ON task_attachments(mime_type);
+CREATE INDEX IF NOT EXISTS idx_task_attachments_entity ON task_attachments(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_task_attachments_uploaded_by ON task_attachments(uploaded_by);
+CREATE INDEX IF NOT EXISTS idx_task_attachments_mime_type ON task_attachments(mime_type);
 
 -- ============================================================================
 -- 5. CREATE TASK_ACTIVITY_LOGS TABLE
@@ -184,10 +184,10 @@ CREATE TABLE IF NOT EXISTS task_activity_logs (
 );
 
 -- Indexes for task_activity_logs table
-CREATE INDEX idx_task_activity_logs_task_id ON task_activity_logs(task_id);
-CREATE INDEX idx_task_activity_logs_action ON task_activity_logs(action);
-CREATE INDEX idx_task_activity_logs_performed_by ON task_activity_logs(performed_by);
-CREATE INDEX idx_task_activity_logs_performed_at ON task_activity_logs(performed_at);
+CREATE INDEX IF NOT EXISTS idx_task_activity_logs_task_id ON task_activity_logs(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_activity_logs_action ON task_activity_logs(action);
+CREATE INDEX IF NOT EXISTS idx_task_activity_logs_performed_by ON task_activity_logs(performed_by);
+CREATE INDEX IF NOT EXISTS idx_task_activity_logs_performed_at ON task_activity_logs(performed_at);
 
 -- ============================================================================
 -- 6. ENHANCE NOTIFICATIONS TABLE (ADD COLUMNS IF NOT EXISTS)

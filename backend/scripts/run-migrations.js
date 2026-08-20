@@ -20,6 +20,13 @@ async function runMigrations() {
   const client = await pool.connect();
   try {
     console.log('🔄 Starting database migrations...');
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS migrations (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     // Read all migration files from database/migrations directory
     const migrationsDir = path.join(__dirname, '..', 'database', 'migrations');
@@ -40,18 +47,28 @@ async function runMigrations() {
     for (const file of files) {
       const filePath = path.join(migrationsDir, file);
       const sql = fs.readFileSync(filePath, 'utf-8');
+
+      const migrationName = file.replace(/\.sql$/, '');
+      const existing = await client.query(
+        'SELECT 1 FROM migrations WHERE name = $1',
+        [migrationName]
+      );
+
+      if (existing.rowCount > 0) {
+        console.log(`↪️ Skipping already applied migration: ${file}`);
+        continue;
+      }
       
       console.log(`⏳ Running migration: ${file}`);
       try {
         await client.query(sql);
+        await client.query(
+          'INSERT INTO migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING',
+          [migrationName]
+        );
         console.log(`✅ Migration completed: ${file}`);
       } catch (error) {
-        if (error.code === '42703') {
-          // Column already exists
-          console.log(`ℹ️ Migration skipped (column already exists): ${file}`);
-        } else {
-          throw error;
-        }
+        throw error;
       }
     }
 
