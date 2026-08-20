@@ -46,22 +46,24 @@ export const authController = {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      if (user.role === 'agent') {
+      const authenticatedRole = user.role_slug || user.role;
+
+      if (authenticatedRole === 'agent') {
         // IP restrictions removed - all agents can login from anywhere
       }
 
       await query('UPDATE users SET updated_at = NOW() WHERE id = $1', [user.id]);
 
-      console.log('[AUTH] Login succeeded', { email: user.email, role: user.role, roleSlug: user.role_slug, ip: req.ip });
+      console.log('[AUTH] Login succeeded', { email: user.email, role: authenticatedRole, roleSlug: user.role_slug, ip: req.ip });
 
       // Issue shorter-lived tokens for elevated/internal roles
       const privilegedRoles = ['admin', 'agent', 'manager'];
-      const tokenExpiry = privilegedRoles.includes(user.role) ? '9h' : undefined;
+      const tokenExpiry = privilegedRoles.includes(authenticatedRole) ? '9h' : undefined;
 
       const token = generateToken({
         id: user.id,
         email: user.email,
-        role: user.role
+        role: authenticatedRole
       }, tokenExpiry);
 
       res.json({
@@ -70,9 +72,9 @@ export const authController = {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
-          role_slug: user.role_slug || user.role, // fallback to role if no role_slug
-          role_name: user.role_name || user.role
+          role: authenticatedRole,
+          role_slug: authenticatedRole,
+          role_name: user.role_name || authenticatedRole
         }
       });
     } catch (error) {

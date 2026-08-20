@@ -6,7 +6,7 @@ import { Request, Response, NextFunction } from 'express';
 import { query } from '../utils/database';
 import { roleModel } from '../models/Role';
 import { permissionModel } from '../models/Permission';
-import crypto from 'crypto';
+import { hashPassword } from '../utils/auth';
 
 interface AdminRequest extends Request {
   user?: {
@@ -282,18 +282,14 @@ export async function createUser(req: AdminRequest, res: Response, next: NextFun
       });
     }
 
-    // Hash password (simple SHA256 - in production use bcrypt)
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password)
-      .digest('hex');
+    const hashedPassword = await hashPassword(password);
 
     // Create user
     const userResult = await query(
       `INSERT INTO users (email, name, password, role_id)
        VALUES ($1, $2, $3, $4)
        RETURNING id, email, name, role_id`,
-      [email, name, hashedPassword, roleId]
+      [String(email).trim().toLowerCase(), String(name).trim(), hashedPassword, roleId]
     );
 
     const createdUser = userResult.rows[0];
