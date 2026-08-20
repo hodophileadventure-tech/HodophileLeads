@@ -4,5 +4,7 @@
 
 UPDATE follow_ups fu
 SET created_by = l.agent_id
+FROM leads l
 WHERE fu.created_by IS NULL
-  AND fu.lead_id IN (SELECT id FROM leads);
+  AND fu.lead_id = l.id
+  AND l.agent_id IS NOT NULL;
