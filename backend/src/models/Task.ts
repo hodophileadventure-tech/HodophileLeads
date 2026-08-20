@@ -6,6 +6,45 @@ import { query } from '../utils/database';
 import type { Task, TaskStatus } from '../types/task-management';
 
 export const taskModel = {
+  async addAttachment(data: {
+    task_id: string;
+    original_filename: string;
+    stored_filename: string;
+    mime_type: string;
+    file_size_bytes: number;
+    file_path: string;
+    uploaded_by: string;
+  }) {
+    const result = await query(
+      `INSERT INTO task_attachments (
+        entity_type, entity_id, original_filename, stored_filename,
+        mime_type, file_size_bytes, file_path, uploaded_by
+      ) VALUES ('task', $1, $2, $3, $4, $5, $6, $7)
+      RETURNING *`,
+      [
+        data.task_id,
+        data.original_filename,
+        data.stored_filename,
+        data.mime_type,
+        data.file_size_bytes,
+        data.file_path,
+        data.uploaded_by
+      ]
+    );
+    return result.rows[0];
+  },
+
+  async findAttachments(taskId: string) {
+    const result = await query(
+      `SELECT ta.*, u.name AS uploaded_by_name
+       FROM task_attachments ta
+       LEFT JOIN users u ON u.id = ta.uploaded_by
+       WHERE ta.entity_type = 'task' AND ta.entity_id = $1 AND ta.is_deleted = false
+       ORDER BY ta.created_at DESC`,
+      [taskId]
+    );
+    return result.rows;
+  },
   
   async create(data: {
     title: string;

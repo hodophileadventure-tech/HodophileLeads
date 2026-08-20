@@ -6,6 +6,23 @@ import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { authorizationService } from '../services/authorization-service';
 import { tasksController } from '../controllers/tasks-controller';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+const taskUploadDirectory = path.join(__dirname, '..', '..', 'uploads', 'tasks');
+fs.mkdirSync(taskUploadDirectory, { recursive: true });
+const taskStorage = multer.diskStorage({
+  destination: (_req, _file, callback) => callback(null, taskUploadDirectory),
+  filename: (_req, file, callback) => {
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    callback(null, `${Date.now()}-${safeName}`);
+  }
+});
+const taskUpload = multer({
+  storage: taskStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 export const tasksRouter = Router();
 
@@ -38,6 +55,19 @@ tasksRouter.get(
   '/',
   authorizationService.requirePermission('tasks', 'view'),
   tasksController.listTasks
+);
+
+tasksRouter.get(
+  '/:id/attachments',
+  authorizationService.requirePermission('tasks', 'view'),
+  tasksController.listAttachments
+);
+
+tasksRouter.post(
+  '/:id/attachments',
+  authorizationService.requirePermission('tasks', 'create'),
+  taskUpload.single('attachment'),
+  tasksController.uploadAttachment
 );
 
 /**

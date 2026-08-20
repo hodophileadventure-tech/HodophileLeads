@@ -18,6 +18,7 @@ interface TaskRecord {
   started_at?: string;
   submitted_at?: string;
   approved_at?: string;
+  attachments?: Array<{ id: string; original_filename: string; file_path: string; mime_type: string }>;
 }
 
 const roleLabel = (role?: string) => {
@@ -60,6 +61,7 @@ export const CreativeWorkPanel: React.FC = () => {
   const [assignedTo, setAssignedTo] = useState('');
   const [deadline, setDeadline] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [attachment, setAttachment] = useState<File | null>(null);
 
   const isAdmin = user?.role === 'admin';
 
@@ -67,7 +69,16 @@ export const CreativeWorkPanel: React.FC = () => {
     try {
       setLoading(true);
       const response = await tasksAPI.list();
-      setTasks(response.data?.data || []);
+      const loadedTasks: TaskRecord[] = response.data?.data || [];
+      const tasksWithAttachments = await Promise.all(loadedTasks.map(async (task) => {
+        try {
+          const attachmentResponse = await tasksAPI.listAttachments(task.id);
+          return { ...task, attachments: attachmentResponse.data?.data || [] };
+        } catch {
+          return task;
+        }
+      }));
+      setTasks(tasksWithAttachments);
     } catch (err) {
       console.error('Failed to load tasks', err);
       setError('Could not load tasks.');
@@ -106,18 +117,24 @@ export const CreativeWorkPanel: React.FC = () => {
 
     try {
       setError('');
-      await tasksAPI.create({
+      const response = await tasksAPI.create({
         title: title.trim(),
         description: description.trim(),
         assigned_to: assignedTo,
         deadline,
         priority,
       });
+      if (attachment) {
+        const formData = new FormData();
+        formData.append('attachment', attachment);
+        await tasksAPI.uploadAttachment(response.data?.data?.id, formData);
+      }
       setTitle('');
       setDescription('');
       setAssignedTo('');
       setDeadline('');
       setPriority('medium');
+      setAttachment(null);
       await fetchTasks();
     } catch (err) {
       console.error('Failed to create task', err);
@@ -188,6 +205,12 @@ export const CreativeWorkPanel: React.FC = () => {
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
             />
+            <input
+              type="file"
+              className="input-field"
+              onChange={(e) => setAttachment(e.target.files?.[0] || null)}
+              accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip"
+            />
           </div>
           <textarea
             className="input-field min-h-[120px]"
@@ -229,6 +252,17 @@ export const CreativeWorkPanel: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-sm text-slate-600 dark:text-slate-300">{task.description || 'No description provided.'}</p>
+                    {task.attachments?.map((file) => (
+                      <a
+                        key={file.id}
+                        href={file.file_path}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-blue-600 underline"
+                      >
+                        Attachment: {file.original_filename}
+                      </a>
+                    ))}
                     <div className="flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
                       <span>Assigned by: {task.created_by_name || 'Admin'}</span>
                       <span>Deadline: {formatDate(task.deadline)}</span>
