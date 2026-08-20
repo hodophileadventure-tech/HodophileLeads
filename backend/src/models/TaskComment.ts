@@ -56,12 +56,13 @@ export const taskCommentModel = {
   async addSystemComment(
     taskId: string,
     message: string,
+    commentedBy: string,
     details?: Record<string, any>
   ): Promise<TaskComment> {
     return this.create({
       task_id: taskId,
       comment_text: message,
-      commented_by: '00000000-0000-0000-0000-000000000000', // System user
+      commented_by: commentedBy,
       is_system_comment: true
     });
   }

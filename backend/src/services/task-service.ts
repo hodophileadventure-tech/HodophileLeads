@@ -90,7 +90,8 @@ export class TaskService {
     // Add system comment
     await taskCommentModel.addSystemComment(
       taskId,
-      `${updated.assigned_to_name || 'User'} started working on this task`
+      `${updated.assigned_to_name || 'User'} started working on this task`,
+      userId
     );
 
     return updated;
@@ -136,7 +137,8 @@ export class TaskService {
     // Add system comment
     await taskCommentModel.addSystemComment(
       taskId,
-      `${updated.assigned_to_name || 'User'} submitted task for review`
+      `${updated.assigned_to_name || 'User'} submitted task for review`,
+      userId
     );
 
     // Notify creator/admin
@@ -197,7 +199,8 @@ export class TaskService {
     // Add system comment
     await taskCommentModel.addSystemComment(
       taskId,
-      `Task approved by admin`
+      `Task approved by admin`,
+      approverId
     );
 
     // Notify assignee
@@ -262,7 +265,8 @@ export class TaskService {
     // Add system comment
     await taskCommentModel.addSystemComment(
       taskId,
-      `Revision requested: ${revisionNotes}`
+      `Revision requested: ${revisionNotes}`,
+      reviewerId
     );
 
     // Notify assignee
@@ -299,7 +303,8 @@ export class TaskService {
     // Add system comment
     await taskCommentModel.addSystemComment(
       taskId,
-      `Task cancelled: ${reason}`
+      `Task cancelled: ${reason}`,
+      cancelledBy
     );
 
     // Notify assignee
