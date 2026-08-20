@@ -3,6 +3,7 @@ import { generateToken, hashPassword, comparePassword } from '../utils/auth';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { query } from '../utils/database';
 import { authLoginSchema, authRegisterSchema, validatePayload } from '../utils/validation';
+import crypto from 'crypto';
 
 export const authController = {
   async login(req: Request, res: Response, next: NextFunction) {
@@ -40,7 +41,20 @@ export const authController = {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      const validPassword = await comparePassword(password, user.password);
+      let validPassword = await comparePassword(password, user.password);
+
+      // Users created before the bcrypt fix have a legacy SHA-256 hash.
+      // Accept it once, then upgrade the stored hash immediately.
+      if (!validPassword && /^[a-f0-9]{64}$/i.test(String(user.password || ''))) {
+        const legacyHash = crypto.createHash('sha256').update(password).digest('hex');
+        if (legacyHash === String(user.password).toLowerCase()) {
+          validPassword = true;
+          const upgradedHash = await hashPassword(password);
+          await query('UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2', [upgradedHash, user.id]);
+          console.log('[AUTH] Upgraded legacy password hash to bcrypt', { userId: user.id });
+        }
+      }
+
       if (!validPassword) {
         console.warn('[AUTH] Login failed: invalid password', { email: normalizedEmail, ip: req.ip });
         return res.status(401).json({ message: 'Invalid credentials' });
