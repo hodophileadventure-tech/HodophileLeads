@@ -31,7 +31,7 @@ import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks';
 
  
 
@@ -439,6 +439,7 @@ export const App: React.FC = () => {
         { label: 'Follow-ups', href: 'followups', icon: '🕒' },
         { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
         ...(user?.role === 'admin' ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Task Management', href: 'tasks', icon: '✅' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
@@ -1361,6 +1362,10 @@ export const App: React.FC = () => {
 
             {currentPage === 'admin-users' && user?.role === 'admin' && (
               <AdminPage />
+            )}
+
+            {currentPage === 'tasks' && user?.role === 'admin' && (
+              <CreativeWorkPanel />
             )}
 
             {currentPage === 'admin-dashboard' && user?.role === 'admin' && (
