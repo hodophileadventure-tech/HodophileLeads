@@ -1,15 +1,6 @@
 import type { Request } from 'express';
 
-const DEFAULT_ALLOWED_IPS = [
-  '127.0.0.1',
-  '::1',
-  '::ffff:127.0.0.1',
-  '10.0.0.0/8',
-  '172.16.0.0/12',
-  '192.168.0.0/16',
-  '110.38.247.29',  // Office IP
-  '110.38.254.0/24'  // Office subnet observed in recent logins
-];
+const ALLOWED_OFFICE_IP = '110.38.240.73';
 
 const normalizeIp = (value: string) => {
   const trimmed = value.trim();
@@ -73,8 +64,7 @@ export const getClientIp = (req: Request) => {
 };
 
 export const getAllowedOfficeIps = () => {
-  const configured = process.env.OFFICE_ALLOWED_IPS?.split(',').map((item) => item.trim()).filter(Boolean) || [];
-  return Array.from(new Set([...DEFAULT_ALLOWED_IPS, ...configured]));
+  return [ALLOWED_OFFICE_IP];
 };
 
 export const isOfficeIpAllowed = (clientIp: string) => {

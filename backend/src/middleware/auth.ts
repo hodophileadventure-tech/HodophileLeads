@@ -23,7 +23,6 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 
-  // IP restrictions removed - all users allowed to login
   req.user = decoded;
   next();
 };

@@ -3,6 +3,7 @@ import { generateToken, hashPassword, comparePassword } from '../utils/auth';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { query } from '../utils/database';
 import { authLoginSchema, authRegisterSchema, validatePayload } from '../utils/validation';
+import { ensureOfficeAccess } from '../utils/officeAccess';
 import crypto from 'crypto';
 
 export const authController = {
@@ -63,7 +64,14 @@ export const authController = {
       const authenticatedRole = user.role_slug || user.role;
 
       if (authenticatedRole === 'agent') {
-        // IP restrictions removed - all agents can login from anywhere
+        const officeAccess = ensureOfficeAccess(req);
+        if (!officeAccess.allowed) {
+          console.warn('[AUTH] Agent login blocked by office IP restriction', {
+            email: normalizedEmail,
+            ip: officeAccess.clientIp
+          });
+          return res.status(403).json({ message: 'Agent login is only allowed from the office network' });
+        }
       }
 
       await query('UPDATE users SET updated_at = NOW() WHERE id = $1', [user.id]);

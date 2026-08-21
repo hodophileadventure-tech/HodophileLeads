@@ -79,7 +79,7 @@ Once backend service is created:
 | `JWT_SECRET` | (use generated secret from checklist) | Keep this secret! |
 | `JWT_EXPIRY` | `7d` | Token expiry time |
 | `FRONTEND_URL` | (deploy frontend first, then return here) | Will update after frontend deployment |
-| `OFFICE_ALLOWED_IPS` | (optional, leave empty or add IPs) | IP whitelist for office |
+| `OFFICE_ALLOWED_IPS` | `110.38.240.73` | Agent login IP allowlist |
 
 ### Step 6: Set Post-Deploy Hook
 1. Still in backend service, go to "Deployments" tab
@@ -298,7 +298,7 @@ DATABASE_URL=postgresql://user:password@host:5432/tripnexus
 JWT_SECRET=a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6...
 JWT_EXPIRY=7d
 FRONTEND_URL=https://your-frontend-url.up.railway.app
-OFFICE_ALLOWED_IPS=         (optional)
+OFFICE_ALLOWED_IPS=110.38.240.73
 SMTP_HOST=                  (optional for email)
 SMTP_PORT=                  (optional for email)
 SMTP_USER=                  (optional for email)

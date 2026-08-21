@@ -25,13 +25,8 @@ Backend runs on http://localhost:5000
 
 ## Office Login Restriction
 
-Agent logins are restricted to the office network by IP allowlist. Set `OFFICE_ALLOWED_IPS` in `.env` with your office PC IPs, for example:
+Agent logins are allowed only when the request IP is `110.38.240.73`. Admins can still log in from anywhere.
 
-```env
-OFFICE_ALLOWED_IPS=192.168.1.103,192.168.1.162,192.168.1.246
-```
-
-Admins can still log in from anywhere.
 
 ## API Endpoints
 
