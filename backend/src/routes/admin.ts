@@ -104,6 +104,7 @@ adminRouter.post('/users/:id/assign-role', roleMiddleware(['admin']), adminRoleU
 
 // ATTENDANCE (Admin Only)
 adminRouter.get('/attendance', roleMiddleware(['admin']), attendanceController.getAttendance);
+adminRouter.get('/attendance/monthly', roleMiddleware(['admin']), attendanceController.getMonthlyAttendance);
 adminRouter.put('/attendance', roleMiddleware(['admin']), attendanceController.saveAttendance);
 
 // ============================================================================

@@ -31,6 +31,37 @@ export async function getAttendance(req: AttendanceRequest, res: Response, next:
   }
 }
 
+export async function getMonthlyAttendance(req: AttendanceRequest, res: Response, next: NextFunction) {
+  try {
+    const month = String(req.query.month || '').trim();
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      return res.status(400).json({ error: 'month must use YYYY-MM format' });
+    }
+
+    const result = await query(
+      `SELECT u.id AS user_id, u.name, u.email, r.name AS role_name,
+              COUNT(a.id)::int AS marked_days,
+              COUNT(a.id) FILTER (WHERE a.status = 'present')::int AS present,
+              COUNT(a.id) FILTER (WHERE a.status = 'late')::int AS late,
+              COUNT(a.id) FILTER (WHERE a.status = 'absent')::int AS absent,
+              COUNT(a.id) FILTER (WHERE a.status = 'half_day')::int AS half_day
+       FROM users u
+       LEFT JOIN roles r ON r.id = u.role_id
+       LEFT JOIN attendance a ON a.user_id = u.id
+         AND a.attendance_date >= $1::date
+         AND a.attendance_date < ($1::date + INTERVAL '1 month')
+       WHERE COALESCE(r.slug, u.role, '') <> 'admin'
+       GROUP BY u.id, u.name, u.email, r.name
+       ORDER BY u.name ASC`,
+      [`${month}-01`]
+    );
+
+    res.json({ success: true, month, employees: result.rows });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function saveAttendance(req: AttendanceRequest, res: Response, next: NextFunction) {
   try {
     const { date, records } = req.body || {};
@@ -60,4 +91,4 @@ export async function saveAttendance(req: AttendanceRequest, res: Response, next
   }
 }
 
-export const attendanceController = { getAttendance, saveAttendance };
+export const attendanceController = { getAttendance, getMonthlyAttendance, saveAttendance };
