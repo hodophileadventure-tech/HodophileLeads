@@ -464,6 +464,8 @@ export async function deleteUser(req: AdminRequest, res: Response, next: NextFun
 
     // Preserve reports while removing the user reference so the FK does not block deletion.
     await query('UPDATE daily_reports SET user_id = NULL WHERE user_id = $1', [id]);
+    await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [id]);
+    await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [id]);
 
     // Delete user
     await query('DELETE FROM users WHERE id = $1', [id]);
