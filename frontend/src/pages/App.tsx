@@ -26,12 +26,13 @@ import LeadTransferPanel from '../components/LeadTransferPanel';
 import GitHistoryPanel from '../components/GitHistoryPanel';
 import { Button, Spinner } from '../components/common';
 import AdminPage from './AdminPage';
+import AttendancePage from './AttendancePage';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks' | 'attendance';
 
  
 
@@ -446,6 +447,7 @@ export const App: React.FC = () => {
         { label: 'Follow-ups', href: 'followups', icon: '🕒' },
         { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
         ...(user?.role === 'admin' ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Attendance', href: 'attendance', icon: '📅' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Task Management', href: 'tasks', icon: '✅' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
@@ -1370,6 +1372,10 @@ export const App: React.FC = () => {
 
             {currentPage === 'admin-users' && user?.role === 'admin' && (
               <AdminPage />
+            )}
+
+            {currentPage === 'attendance' && user?.role === 'admin' && (
+              <AttendancePage />
             )}
 
             {currentPage === 'tasks' && user?.role === 'admin' && (

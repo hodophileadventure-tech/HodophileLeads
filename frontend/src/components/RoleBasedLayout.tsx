@@ -210,6 +210,7 @@ function AdminLayout({ user, children }: LayoutProps) {
           {[
             { icon: '📊', label: 'Dashboard', path: '/admin/dashboard' },
             { icon: '👥', label: 'Users & Roles', path: '/admin/users' },
+            { icon: '📅', label: 'Attendance', path: '/admin/attendance' },
             { icon: '🗂️', label: 'All Leads', path: '/admin/leads' },
             { icon: '✓', label: 'Tasks', path: '/admin/tasks' },
             { icon: '📈', label: 'Reports', path: '/admin/reports' },

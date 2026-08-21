@@ -5,6 +5,7 @@ import path from 'path';
 import { adminController } from '../controllers/admin-controller';
 import { quoteRequestsController } from '../controllers/quote-requests-controller';
 import { adminRoleUserController } from '../controllers/admin-role-user-controller';
+import { attendanceController } from '../controllers/attendance-controller';
 
 export const adminRouter = Router();
 
@@ -100,6 +101,10 @@ adminRouter.delete('/users/:id', roleMiddleware(['admin']), adminRoleUserControl
 
 // Assign role to user
 adminRouter.post('/users/:id/assign-role', roleMiddleware(['admin']), adminRoleUserController.assignRole);
+
+// ATTENDANCE (Admin Only)
+adminRouter.get('/attendance', roleMiddleware(['admin']), attendanceController.getAttendance);
+adminRouter.put('/attendance', roleMiddleware(['admin']), attendanceController.saveAttendance);
 
 // ============================================================================
 // PERMISSIONS MANAGEMENT
