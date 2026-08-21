@@ -91,7 +91,7 @@ export const initDatabase = async () => {
     // Automatically initialize database schema
     await initializeSchema();
     
-    if (process.env.LOG_DB_SCHEMA === 'true' || process.env.NODE_ENV !== 'production') {
+    if (process.env.LOG_DB_SCHEMA === 'true') {
       await logDatabaseSchema(query);
     }
   } catch (err: any) {
@@ -626,12 +626,25 @@ const runPendingMigrations = async () => {
       console.log('[MIGRATION] ✅ quote_requests status constraint updated successfully');
     }
 
-    try {
-      await query(`ALTER TABLE quote_requests ADD CONSTRAINT quote_requests_quotation_number_unique UNIQUE (quotation_number)`);
-      console.log('[MIGRATION] ✅ quotation_number unique constraint ensured');
-    } catch (constraintError: any) {
-      if (!String(constraintError?.message || '').includes('already exists') && constraintError?.code !== '42P07') {
-        console.warn('[MIGRATION] Warning ensuring quotation_number unique constraint:', constraintError.message);
+    const quotationConstraintCheck = await query(`
+      SELECT 1
+      FROM pg_constraint c
+      JOIN pg_class t ON t.oid = c.conrelid
+      JOIN pg_namespace n ON n.oid = t.relnamespace
+      WHERE c.conname = 'quote_requests_quotation_number_unique'
+        AND t.relname = 'quote_requests'
+        AND n.nspname = 'public'
+      LIMIT 1
+    `);
+
+    if (quotationConstraintCheck.rows?.length === 0) {
+      try {
+        await query(`ALTER TABLE quote_requests ADD CONSTRAINT quote_requests_quotation_number_unique UNIQUE (quotation_number)`);
+        console.log('[MIGRATION] ✅ quotation_number unique constraint ensured');
+      } catch (constraintError: any) {
+        if (constraintError?.code !== '42P07') {
+          console.warn('[MIGRATION] Warning ensuring quotation_number unique constraint:', constraintError.message);
+        }
       }
     }
 
