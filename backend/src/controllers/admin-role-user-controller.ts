@@ -466,6 +466,29 @@ export async function deleteUser(req: AdminRequest, res: Response, next: NextFun
     await query('UPDATE daily_reports SET user_id = NULL WHERE user_id = $1', [id]);
     await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [id]);
     await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [id]);
+    const replacementAdmin = await query(
+      `SELECT id FROM users WHERE role = 'admin' AND id <> $1 ORDER BY created_at ASC LIMIT 1`,
+      [id]
+    );
+    if (replacementAdmin.rows.length === 0) {
+      return res.status(400).json({ error: 'Another admin account is required before deleting this user.' });
+    }
+    const replacementAdminId = replacementAdmin.rows[0].id;
+    await query(
+      'UPDATE quote_requests SET requested_by = $1 WHERE requested_by = $2',
+      [replacementAdminId, id]
+    );
+    await query(`
+      UPDATE quote_requests
+      SET created_by_manager = NULL,
+          resolved_by = NULL,
+          approved_by = NULL,
+          rejected_by = NULL
+      WHERE created_by_manager = $1
+         OR resolved_by = $1
+         OR approved_by = $1
+         OR rejected_by = $1
+    `, [id]);
 
     // Delete user
     await query('DELETE FROM users WHERE id = $1', [id]);
