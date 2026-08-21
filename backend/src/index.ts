@@ -21,7 +21,6 @@ import tasksRouter from './routes/tasks';
 import { gitRouter } from './routes/git';
 import { errorHandler } from './middleware/auth';
 import { initDatabase } from './utils/database';
-import { runMigrations } from './utils/migration-runner';
 import { startFollowUpWorker } from './workers/followUpWorker';
 import { startReportWorker } from './workers/reportWorker';
 import { startOutboxWorker } from './workers/outboxWorker';
@@ -187,13 +186,7 @@ app.use(errorHandler);
 // Start server after DB init and worker start
 const start = async () => {
   try {
-    // Run migrations first (creates schema if needed)
-    await runMigrations();
-  } catch (err) {
-    console.error('Migration runner failed during startup:', err);
-  }
-
-  try {
+    // The npm prestart hook completes schema creation and tracked migrations.
     await initDatabase();
   } catch (err) {
     console.error('Database initialization failed during startup:', err);

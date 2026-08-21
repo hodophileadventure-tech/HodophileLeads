@@ -134,9 +134,7 @@ export async function runMigrations(): Promise<void> {
     console.log('[Migration] ✓ All pending migrations executed successfully');
   } catch (error) {
     console.error('[Migration] ✗ Migration runner failed:', error);
-    // Don't throw - migrations might partially run, better to start server and investigate
-    // In production, you may want to throw to prevent server startup
-    console.error('[Migration] WARNING: Some migrations may have failed. Check database state.');
+    throw error;
   }
 }
 
