@@ -462,10 +462,6 @@ export async function deleteUser(req: AdminRequest, res: Response, next: NextFun
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Preserve reports while removing the user reference so the FK does not block deletion.
-    await query('UPDATE daily_reports SET user_id = NULL WHERE user_id = $1', [id]);
-    await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [id]);
-    await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [id]);
     const replacementAdmin = await query(
       `SELECT id FROM users WHERE role = 'admin' AND id <> $1 ORDER BY created_at ASC LIMIT 1`,
       [id]
@@ -474,6 +470,35 @@ export async function deleteUser(req: AdminRequest, res: Response, next: NextFun
       return res.status(400).json({ error: 'Another admin account is required before deleting this user.' });
     }
     const replacementAdminId = replacementAdmin.rows[0].id;
+
+    const ownedLeads = await query('SELECT COUNT(*)::int AS count FROM leads WHERE agent_id = $1', [id]);
+    let replacementAgentId = replacementAdminId;
+    if (Number(ownedLeads.rows[0]?.count || 0) > 0) {
+      const replacementAgent = await query(
+        `SELECT id FROM users WHERE role = 'agent' AND id <> $1 ORDER BY created_at ASC LIMIT 1`,
+        [id]
+      );
+      if (replacementAgent.rows.length === 0) {
+        return res.status(400).json({ error: 'Another sales agent is required before deleting a user who owns leads.' });
+      }
+      replacementAgentId = replacementAgent.rows[0].id;
+      await query('UPDATE leads SET agent_id = $1 WHERE agent_id = $2', [replacementAgentId, id]);
+    }
+
+    await query('UPDATE follow_ups SET assigned_to = $1 WHERE assigned_to = $2', [replacementAgentId, id]);
+    await query('UPDATE follow_ups SET created_by = NULL, canceled_by = NULL WHERE created_by = $1 OR canceled_by = $1', [id]);
+    await query('UPDATE tasks SET assigned_to = $1, created_by = $1 WHERE assigned_to = $2 OR created_by = $2', [replacementAdminId, id]);
+    await query('UPDATE task_submissions SET submitted_by = $1, reviewer_id = NULL WHERE submitted_by = $2 OR reviewer_id = $2', [replacementAdminId, id]);
+    await query('UPDATE task_comments SET commented_by = $1 WHERE commented_by = $2', [replacementAdminId, id]);
+    await query('UPDATE task_attachments SET uploaded_by = $1 WHERE uploaded_by = $2', [replacementAdminId, id]);
+    await query('UPDATE task_activity_logs SET performed_by = NULL WHERE performed_by = $1', [id]);
+    await query('UPDATE attachments SET uploaded_by = NULL WHERE uploaded_by = $1', [id]);
+    await query('UPDATE screen_captures SET agent_id = $1, requested_by = NULL WHERE agent_id = $2 OR requested_by = $2', [replacementAgentId, id]);
+
+    // Preserve reports while removing the user reference so the FK does not block deletion.
+    await query('UPDATE daily_reports SET user_id = NULL WHERE user_id = $1', [id]);
+    await query('UPDATE notifications SET user_id = NULL WHERE user_id = $1', [id]);
+    await query('UPDATE audit_logs SET user_id = NULL WHERE user_id = $1', [id]);
     await query(
       'UPDATE quote_requests SET requested_by = $1 WHERE requested_by = $2',
       [replacementAdminId, id]
