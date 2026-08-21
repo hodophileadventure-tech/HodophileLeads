@@ -273,10 +273,18 @@ export const App: React.FC = () => {
   };
 
   const refreshLeads = async () => {
-    // Request full list (limit=0) so UI shows all leads
-    const response = await leadsAPI.list(0);
+    const response = await leadsAPI.list(100, undefined, 0);
     setLeads(response.data);
     await loadFollowUps();
+  };
+
+  const loadMoreLeads = async () => {
+    const response = await leadsAPI.list(100, undefined, leads.length);
+    const existingIds = new Set(leads.map((lead) => String(lead.id)));
+    const nextLeads = response.data.filter((lead) => !existingIds.has(String(lead.id)));
+    if (nextLeads.length > 0) {
+      setLeads([...leads, ...nextLeads]);
+    }
   };
 
   useEffect(() => {
@@ -295,8 +303,7 @@ export const App: React.FC = () => {
 
     const fetchLeads = async () => {
       try {
-        // Request full list (limit=0) so UI shows all leads
-        const response = await leadsAPI.list(0);
+        const response = await leadsAPI.list(100, undefined, 0);
         setLeads(response.data);
         await loadFollowUps();
         
@@ -627,6 +634,7 @@ export const App: React.FC = () => {
                 leads={leads}
                 followUps={followUps}
                 onRefreshLeads={refreshLeads}
+                onLoadMoreLeads={loadMoreLeads}
                 onRefreshFollowUps={refreshFollowUps}
               />
             )}

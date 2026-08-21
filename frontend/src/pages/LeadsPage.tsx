@@ -46,6 +46,7 @@ interface LeadsPageProps {
   leads: Lead[];
   followUps: FollowUp[];
   onRefreshLeads: () => Promise<void>;
+  onLoadMoreLeads?: () => Promise<void>;
   onRefreshFollowUps: () => Promise<void>;
 }
 
@@ -53,6 +54,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   leads,
   followUps,
   onRefreshLeads,
+  onLoadMoreLeads,
   onRefreshFollowUps,
 }) => {
   const [activeFilter, setActiveFilter] = useState<StatusFilter>('all');
@@ -639,6 +641,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                           <span className="font-medium">{hotel.hotelName}</span>
                           <span>{hotel.roomType} · PKR {hotel.roomPrice}</span>
                         </div>
+
                       ))}
                     </div>
                   </div>
@@ -910,6 +913,14 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
             <LeadList leads={filteredLeads} onSelectLead={setSelectedLead} />
           )}
         </section>
+
+        {onLoadMoreLeads && leads.length >= 100 && (
+          <div className="flex justify-center pt-2">
+            <Button variant="secondary" onClick={() => void onLoadMoreLeads()}>
+              Load more leads
+            </Button>
+          </div>
+        )}
         
       </main>
     </div>

@@ -191,13 +191,14 @@ const confirmLeadAndEnqueue = async (leadId: string, updateData: Partial<any>) =
 export const leadsController = {
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const defaultLimit = 10000; // 10k leads max (covers most cases)
+      const defaultLimit = 100;
+      const maxLimit = 100;
       const { limit, offset = 0, startDate, endDate, phone, status } = req.query as any;
-      // Interpret limit: undefined => defaultLimit, '0' or 0 => no limit (return all), otherwise numeric limit
-      let numericLimit: number | undefined;
-      if (limit === undefined) numericLimit = defaultLimit;
-      else if (String(limit) === '0' || Number(limit) === 0) numericLimit = 0;
-      else numericLimit = Number(limit) || defaultLimit;
+      // Always return a bounded page. Legacy limit=0 now means the first page.
+      const requestedLimit = Number(limit);
+      const numericLimit = Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? Math.min(Math.floor(requestedLimit), maxLimit)
+        : defaultLimit;
 
       const scopeAgentId = req.user.role === 'agent' ? String(req.user.id) : undefined;
       const leads = await leadsModel.findAll(

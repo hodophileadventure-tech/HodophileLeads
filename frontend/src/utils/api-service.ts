@@ -4,12 +4,12 @@ import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix, QuoteReque
 export const leadsAPI = {
   list: (limit?: number, filters?: { phone?: string; startDate?: string; endDate?: string; status?: string }, offset?: number) => apiClient.get<Lead[]>('/leads', {
     params: {
-      ...(limit ? { limit } : {}),
+      ...(limit !== undefined ? { limit } : {}),
       ...(filters?.phone ? { phone: filters.phone } : {}),
       ...(filters?.startDate ? { startDate: filters.startDate } : {}),
       ...(filters?.endDate ? { endDate: filters.endDate } : {}),
       ...(filters?.status ? { status: filters.status } : {}),
-      ...(offset ? { offset } : {}),
+      ...(offset !== undefined ? { offset } : {}),
     }
   }),
   getById: (id: string) => apiClient.get<Lead>(`/leads/${id}`),

@@ -218,7 +218,7 @@ export const AgentPanel: React.FC = () => {
 
   const loadLeads = async (filters?: { phone?: string; startDate?: string; endDate?: string }) => {
     try {
-      const res = await leadsAPI.list(0, {
+      const res = await leadsAPI.list(100, {
         phone: filters?.phone ?? (searchQuery.trim() || undefined),
         startDate: filters?.startDate ?? (appliedDateRange.startDate || undefined),
         endDate: filters?.endDate ?? (appliedDateRange.endDate || undefined)

@@ -91,7 +91,9 @@ export const initDatabase = async () => {
     // Automatically initialize database schema
     await initializeSchema();
     
-    await logDatabaseSchema(query);
+    if (process.env.LOG_DB_SCHEMA === 'true' || process.env.NODE_ENV !== 'production') {
+      await logDatabaseSchema(query);
+    }
   } catch (err: any) {
     console.error('[DB INIT] Failed to connect to Postgres, continuing in mock mode.', err?.message || err);
     useMockDb = true;
