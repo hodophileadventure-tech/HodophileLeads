@@ -23,11 +23,6 @@ npm run dev
 
 Backend runs on http://localhost:5000
 
-## Office Login Restriction
-
-Agent logins are allowed only when the request IP is `110.38.240.73`. Admins can still log in from anywhere.
-
-
 ## API Endpoints
 
 ### Authentication

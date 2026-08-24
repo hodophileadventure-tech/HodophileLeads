@@ -43,10 +43,6 @@
         },
         "FRONTEND_URL": {
           "description": "Frontend application URL (set after deploying frontend)"
-        },
-        "OFFICE_ALLOWED_IPS": {
-          "description": "Comma-separated IP addresses allowed for office access (optional)",
-          "default": ""
         }
       }
     },
