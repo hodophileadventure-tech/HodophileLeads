@@ -5,6 +5,19 @@ interface AttendanceRequest extends Request {
   user?: { id: string };
 }
 
+interface MonthlyAttendanceRow {
+  user_id: string;
+  name: string;
+  email: string;
+  role_name?: string;
+  marked_days: number;
+  present: number;
+  late: number;
+  absent: number;
+  half_day: number;
+  days: Record<string, string>;
+}
+
 const STATUSES = new Set(['present', 'late', 'absent', 'half_day']);
 
 export async function getAttendance(req: AttendanceRequest, res: Response, next: NextFunction) {
@@ -44,7 +57,12 @@ export async function getMonthlyAttendance(req: AttendanceRequest, res: Response
               COUNT(a.id) FILTER (WHERE a.status = 'present')::int AS present,
               COUNT(a.id) FILTER (WHERE a.status = 'late')::int AS late,
               COUNT(a.id) FILTER (WHERE a.status = 'absent')::int AS absent,
-              COUNT(a.id) FILTER (WHERE a.status = 'half_day')::int AS half_day
+              COUNT(a.id) FILTER (WHERE a.status = 'half_day')::int AS half_day,
+              COALESCE(
+                json_object_agg(EXTRACT(DAY FROM a.attendance_date)::int, a.status)
+                  FILTER (WHERE a.id IS NOT NULL),
+                '{}'::json
+              ) AS days
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id
        LEFT JOIN attendance a ON a.user_id = u.id
@@ -56,7 +74,7 @@ export async function getMonthlyAttendance(req: AttendanceRequest, res: Response
       [`${month}-01`]
     );
 
-    res.json({ success: true, month, employees: result.rows });
+    res.json({ success: true, month, employees: result.rows as MonthlyAttendanceRow[] });
   } catch (error) {
     next(error);
   }

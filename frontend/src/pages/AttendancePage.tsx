@@ -7,11 +7,22 @@ const API_PREFIX = API_BASE ? `${API_BASE}/api` : '/api';
 
 type AttendanceStatus = 'present' | 'late' | 'absent' | 'half_day';
 type Employee = { user_id: string; name: string; email: string; role_name?: string; status?: AttendanceStatus; note?: string };
-type MonthlyEmployee = Omit<Employee, 'status' | 'note'> & { marked_days: number; present: number; late: number; absent: number; half_day: number };
+type MonthlyEmployee = Omit<Employee, 'status' | 'note'> & { marked_days: number; present: number; late: number; absent: number; half_day: number; days: Record<string, AttendanceStatus> };
 const statusLabels: Record<AttendanceStatus, string> = { present: 'Present', late: 'Late', absent: 'Absent', half_day: 'Half Day' };
+const statusShortLabels: Record<AttendanceStatus, string> = { present: 'P', late: 'L', absent: 'A', half_day: 'H' };
 
 const today = () => new Date().toLocaleDateString('en-CA');
 const authConfig = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+
+const daysInMonth = (value: string) => {
+  const [year, monthNumber] = value.split('-').map(Number);
+  return new Date(year, monthNumber, 0).getDate();
+};
+
+const dayInfo = (value: string, day: number) => {
+  const date = new Date(`${value}-${String(day).padStart(2, '0')}T12:00:00`);
+  return { number: day, name: date.toLocaleDateString('en-US', { weekday: 'short' }), weekend: date.getDay() === 0 || date.getDay() === 6 };
+};
 
 export default function AttendancePage() {
   const [date, setDate] = useState(today);
@@ -68,6 +79,13 @@ export default function AttendancePage() {
   };
 
   const counts = employees.reduce((result, employee) => { const status = employee.status || 'unmarked'; result[status] = (result[status] || 0) + 1; return result; }, {} as Record<string, number>);
+  const monthDays = Array.from({ length: daysInMonth(month) }, (_, index) => dayInfo(month, index + 1));
+  const monthlyTotals = monthlyEmployees.reduce((result, employee) => ({
+    present: result.present + employee.present,
+    absent: result.absent + employee.absent,
+    late: result.late + employee.late,
+    half_day: result.half_day + employee.half_day,
+  }), { present: 0, absent: 0, late: 0, half_day: 0 });
 
   return (
     <div className="space-y-6">
@@ -78,9 +96,24 @@ export default function AttendancePage() {
       {(message || error) && <div className={`rounded border p-3 ${error ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>{error || message}</div>}
       <div className="flex flex-wrap gap-3 text-sm"><span className="rounded bg-gray-100 px-3 py-1">Total: {employees.length}</span><span className="rounded bg-green-100 px-3 py-1 text-green-800">Present: {counts.present || 0}</span><span className="rounded bg-yellow-100 px-3 py-1 text-yellow-800">Late: {counts.late || 0}</span><span className="rounded bg-red-100 px-3 py-1 text-red-800">Absent: {counts.absent || 0}</span><span className="rounded bg-orange-100 px-3 py-1 text-orange-800">Half Day: {counts.half_day || 0}</span></div>
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white"><table className="w-full"><thead className="bg-gray-50"><tr><th className="px-5 py-3 text-left text-sm font-semibold">Employee</th><th className="px-5 py-3 text-left text-sm font-semibold">Role</th><th className="px-5 py-3 text-left text-sm font-semibold">Status</th><th className="px-5 py-3 text-left text-sm font-semibold">Note</th></tr></thead><tbody className="divide-y divide-gray-200">{loading ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">Loading employees...</td></tr> : employees.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">No employees found.</td></tr> : employees.map(employee => <tr key={employee.user_id}><td className="px-5 py-3"><div className="font-medium text-gray-900">{employee.name}</div><div className="text-xs text-gray-500">{employee.email}</div></td><td className="px-5 py-3 text-sm text-gray-600">{employee.role_name || 'Employee'}</td><td className="px-5 py-3"><select value={employee.status || ''} onChange={event => updateEmployee(employee.user_id, { status: event.target.value as AttendanceStatus })} className="rounded border border-gray-300 px-3 py-2 text-sm"><option value="">Select status</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></td><td className="px-5 py-3"><input value={employee.note || ''} onChange={event => updateEmployee(employee.user_id, { note: event.target.value })} placeholder="Optional note" className="w-full min-w-48 rounded border border-gray-300 px-3 py-2 text-sm" /></td></tr>)}</tbody></table></div>
-      <section className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-xl font-bold text-gray-900">Monthly Attendance Report</h2><p className="mt-1 text-gray-600">Review saved attendance totals for each employee.</p></div><label className="text-sm font-medium text-gray-700">Month<input type="month" value={month} onChange={event => setMonth(event.target.value)} className="mt-1 block rounded border border-gray-300 px-3 py-2" /></label></div>
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white"><table className="w-full"><thead className="bg-gray-50"><tr><th className="px-5 py-3 text-left text-sm font-semibold">Employee</th><th className="px-4 py-3 text-center text-sm font-semibold">Marked</th><th className="px-4 py-3 text-center text-sm font-semibold text-green-700">Present</th><th className="px-4 py-3 text-center text-sm font-semibold text-yellow-700">Late</th><th className="px-4 py-3 text-center text-sm font-semibold text-red-700">Absent</th><th className="px-4 py-3 text-center text-sm font-semibold text-orange-700">Half Day</th></tr></thead><tbody className="divide-y divide-gray-200">{monthlyLoading ? <tr><td colSpan={6} className="p-6 text-center text-gray-500">Loading monthly report...</td></tr> : monthlyEmployees.map(employee => <tr key={employee.user_id}><td className="px-5 py-3"><div className="font-medium text-gray-900">{employee.name}</div><div className="text-xs text-gray-500">{employee.role_name || 'Employee'}</div></td><td className="px-4 py-3 text-center">{employee.marked_days}</td><td className="px-4 py-3 text-center text-green-700">{employee.present}</td><td className="px-4 py-3 text-center text-yellow-700">{employee.late}</td><td className="px-4 py-3 text-center text-red-700">{employee.absent}</td><td className="px-4 py-3 text-center text-orange-700">{employee.half_day}</td></tr>)}</tbody></table></div>
+      <section className="overflow-hidden border-2 border-sky-700 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div><h2 className="text-2xl font-black tracking-tight text-blue-950">Attendance Sheet</h2><p className="text-sm font-medium text-blue-950/80">Daily attendance register</p></div>
+          <label className="text-sm font-bold text-blue-950">Month<input type="month" value={month} onChange={event => setMonth(event.target.value)} className="ml-2 rounded border border-blue-900/30 bg-white px-2 py-1 font-semibold" /></label>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 border-b border-slate-300 bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-wide">
+          <span className="text-slate-600">Legend:</span><span className="text-green-700">P Present</span><span className="text-red-700">A Absent</span><span className="text-amber-700">L Late</span><span className="text-orange-700">H Half day</span>
+          <span className="ml-auto text-slate-500">{monthlyTotals.present} present / {monthlyTotals.absent} absent</span>
+        </div>
+        <div className="max-h-[520px] overflow-auto">
+          <table className="min-w-max border-collapse text-center text-xs">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-slate-200 text-slate-700"><th rowSpan={2} className="sticky left-0 z-20 w-10 border border-slate-300 bg-slate-200 px-2 py-1">Sr.</th><th rowSpan={2} className="sticky left-10 z-20 min-w-36 border border-slate-300 bg-slate-200 px-2 py-1 text-left">Employee</th>{monthDays.map(day => <th key={day.number} className={`w-8 border border-slate-300 px-1 py-1 ${day.weekend ? 'bg-red-700 text-white' : ''}`}><div>{day.name}</div><div className="font-black">{day.number}</div></th>)}<th colSpan={4} className="border border-slate-300 bg-slate-200 px-2 py-1">TOTAL</th></tr>
+              <tr className="bg-slate-100 font-black"><th className="border border-slate-300 bg-green-600 px-2 py-1 text-white">PRESENT</th><th className="border border-slate-300 bg-red-700 px-2 py-1 text-white">ABSENT</th><th className="border border-slate-300 bg-amber-500 px-2 py-1 text-white">LATE</th><th className="border border-slate-300 bg-orange-500 px-2 py-1 text-white">HALF</th></tr>
+            </thead>
+            <tbody>{monthlyLoading ? <tr><td colSpan={monthDays.length + 6} className="p-8 text-slate-500">Loading attendance sheet...</td></tr> : monthlyEmployees.map((employee, index) => <tr key={employee.user_id} className="even:bg-slate-50"><td className="sticky left-0 z-[1] border border-slate-300 bg-inherit px-2 py-1 text-slate-500">{index + 1}</td><td className="sticky left-10 z-[1] border border-slate-300 bg-inherit px-2 py-1 text-left font-semibold text-slate-800">{employee.name}</td>{monthDays.map(day => { const status = employee.days?.[String(day.number)] as AttendanceStatus | undefined; return <td key={day.number} className={`border border-slate-300 px-1 py-1 font-black ${day.weekend ? 'bg-red-50' : ''} ${status === 'present' ? 'text-green-700' : status === 'absent' ? 'bg-red-100 text-red-700' : status === 'late' ? 'bg-amber-100 text-amber-700' : status === 'half_day' ? 'bg-orange-100 text-orange-700' : 'text-slate-300'}`}>{status ? statusShortLabels[status] : '-'}</td>; })}<td className="border border-slate-300 bg-green-50 px-2 py-1 font-black text-green-700">{employee.present}</td><td className="border border-slate-300 bg-red-50 px-2 py-1 font-black text-red-700">{employee.absent}</td><td className="border border-slate-300 bg-amber-50 px-2 py-1 font-black text-amber-700">{employee.late}</td><td className="border border-slate-300 bg-orange-50 px-2 py-1 font-black text-orange-700">{employee.half_day}</td></tr>)}</tbody>
+          </table>
+        </div>
       </section>
     </div>
   );
