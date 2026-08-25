@@ -494,10 +494,11 @@ function UserManagementTab() {
       )}
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+        <table className="w-full min-w-[1100px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
@@ -506,12 +507,25 @@ function UserManagementTab() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Joining Date</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Salary</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {users.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 text-sm whitespace-nowrap">
+                  <button
+                    onClick={() => beginEdit(user)}
+                    className="text-blue-600 hover:text-blue-700 font-medium mr-4"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(user.id)}
+                    className="text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Delete
+                  </button>
+                </td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.name}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                 <td className="px-6 py-4 text-sm">
@@ -525,20 +539,6 @@ function UserManagementTab() {
                 <td className="px-6 py-4 text-sm text-gray-600">{user.salary == null ? '-' : Number(user.salary).toLocaleString()}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(user.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 text-sm">
-                  <button
-                    onClick={() => beginEdit(user)}
-                    className="text-blue-600 hover:text-blue-700 font-medium mr-4"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    className="text-red-600 hover:text-red-700 font-medium"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
             ))}
