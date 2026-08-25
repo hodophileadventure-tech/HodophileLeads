@@ -422,7 +422,9 @@ const runPendingMigrations = async () => {
       ['salary', 'NUMERIC(12, 2)'],
       ['designation', 'VARCHAR(150)'],
       ['emergency_contact_number', 'VARCHAR(50)'],
-      ['address', 'TEXT']
+      ['address', 'TEXT'],
+      ['bank_name', 'VARCHAR(150)'],
+      ['account_number', 'VARCHAR(100)']
     ];
     for (const [column, type] of employeeColumns) {
       await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${column} ${type}`);

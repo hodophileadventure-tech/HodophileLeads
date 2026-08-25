@@ -38,17 +38,21 @@ interface User {
   designation?: string | null;
   emergency_contact_number?: string | null;
   address?: string | null;
+  bank_name?: string | null;
+  account_number?: string | null;
 }
 
 type EmployeeFormData = {
   email: string; name: string; password: string; roleId: string; nic: string;
   dateOfBirth: string; joiningDate: string; salary: string; designation: string;
   emergencyContactNumber: string; address: string;
+  bankName: string; accountNumber: string;
 };
 
 const emptyEmployeeForm: EmployeeFormData = {
   email: '', name: '', password: '', roleId: '', nic: '', dateOfBirth: '',
-  joiningDate: '', salary: '', designation: '', emergencyContactNumber: '', address: ''
+  joiningDate: '', salary: '', designation: '', emergencyContactNumber: '', address: '',
+  bankName: '', accountNumber: ''
 };
 
 
@@ -331,7 +335,8 @@ function UserManagementTab() {
       nic: user.nic || '', dateOfBirth: user.date_of_birth?.slice(0, 10) || '',
       joiningDate: user.joining_date?.slice(0, 10) || '', salary: user.salary?.toString() || '',
       designation: user.designation || '',
-      emergencyContactNumber: user.emergency_contact_number || '', address: user.address || ''
+      emergencyContactNumber: user.emergency_contact_number || '', address: user.address || '',
+      bankName: user.bank_name || '', accountNumber: user.account_number || ''
     });
     setShowCreateForm(true);
   }
@@ -444,7 +449,8 @@ function UserManagementTab() {
               {[
                 ['nic', 'NIC'], ['dateOfBirth', 'Date of Birth'], ['joiningDate', 'Joining Date'],
                 ['salary', 'Salary'], ['designation', 'Designation'],
-                ['emergencyContactNumber', 'Emergency Contact Number']
+                ['emergencyContactNumber', 'Emergency Contact Number'],
+                ['bankName', 'Bank Name'], ['accountNumber', 'Account Number']
               ].map(([field, label]) => (
                 <div key={field}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -486,7 +492,7 @@ function UserManagementTab() {
                 disabled={loading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? 'Creating...' : 'Create User'}
+                {loading ? 'Saving...' : editingUserId ? 'Save Changes' : 'Create Employee'}
               </button>
             </div>
           </form>
@@ -506,6 +512,8 @@ function UserManagementTab() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">NIC</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Joining Date</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Salary</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Bank Name</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Account Number</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
             </tr>
           </thead>
@@ -537,6 +545,8 @@ function UserManagementTab() {
                 <td className="px-6 py-4 text-sm text-gray-600">{user.nic || '-'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.joining_date ? new Date(user.joining_date).toLocaleDateString() : '-'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.salary == null ? '-' : Number(user.salary).toLocaleString()}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.bank_name || '-'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.account_number || '-'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(user.created_at).toLocaleDateString()}
                 </td>

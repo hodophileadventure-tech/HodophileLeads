@@ -266,7 +266,7 @@ export async function createUser(req: AdminRequest, res: Response, next: NextFun
   try {
     const {
       email, name, password, roleId, nic, dateOfBirth, joiningDate, salary,
-      designation, emergencyContactNumber, address
+      designation, emergencyContactNumber, address, bankName, accountNumber
     } = req.body;
 
     // Validate input
@@ -306,17 +306,19 @@ export async function createUser(req: AdminRequest, res: Response, next: NextFun
     const userResult = await query(
       `INSERT INTO users (
          email, name, password, role_id, nic, date_of_birth, joining_date,
-         salary, designation, emergency_contact_number, address
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         salary, designation, emergency_contact_number, address, bank_name, account_number
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING id, email, name, role_id, nic, date_of_birth, joining_date,
-                 salary, designation, emergency_contact_number, address`,
+                 salary, designation, emergency_contact_number, address, bank_name, account_number`,
       [
         String(email).trim().toLowerCase(), String(name).trim(), hashedPassword, roleId,
         nic ? String(nic).trim() : null, dateOfBirth || null, joiningDate || null,
         salary === '' || salary === undefined ? null : Number(salary),
         designation ? String(designation).trim() : null,
         emergencyContactNumber ? String(emergencyContactNumber).trim() : null,
-        address ? String(address).trim() : null
+        address ? String(address).trim() : null,
+        bankName ? String(bankName).trim() : null,
+        accountNumber ? String(accountNumber).trim() : null
       ]
     );
 
@@ -341,6 +343,7 @@ export async function listUsers(req: AdminRequest, res: Response, next: NextFunc
     const result = await query(
             `SELECT u.id, u.email, u.name, u.nic, u.date_of_birth, u.joining_date,
               u.salary, u.designation, u.emergency_contact_number, u.address,
+              u.bank_name, u.account_number,
               r.name as role_name, r.slug as role_slug, u.created_at
        FROM users u
        LEFT JOIN roles r ON u.role_id = r.id
@@ -367,6 +370,7 @@ export async function getUser(req: AdminRequest, res: Response, next: NextFuncti
     const userResult = await query(
             `SELECT u.id, u.email, u.name, u.role_id, u.nic, u.date_of_birth, u.joining_date,
               u.salary, u.designation, u.emergency_contact_number, u.address,
+              u.bank_name, u.account_number,
               r.name as role_name, r.slug as role_slug, u.created_at
        FROM users u
        LEFT JOIN roles r ON u.role_id = r.id
@@ -411,7 +415,7 @@ export async function updateUser(req: AdminRequest, res: Response, next: NextFun
     const { id } = req.params;
     const {
       name, email, roleId, nic, dateOfBirth, joiningDate, salary,
-      designation, emergencyContactNumber, address
+      designation, emergencyContactNumber, address, bankName, accountNumber
     } = req.body;
 
     // Check if user exists
@@ -448,16 +452,21 @@ export async function updateUser(req: AdminRequest, res: Response, next: NextFun
         name = COALESCE($1, name),
         email = COALESCE($2, email),
         role_id = COALESCE($3, role_id),
-        nic = $4, date_of_birth = $5, joining_date = $6, salary = $7,
-        designation = $8, emergency_contact_number = $9, address = $10
-       WHERE id = $11`,
+        nic = COALESCE($4, nic), date_of_birth = COALESCE($5, date_of_birth),
+        joining_date = COALESCE($6, joining_date), salary = COALESCE($7, salary),
+        designation = COALESCE($8, designation), emergency_contact_number = COALESCE($9, emergency_contact_number),
+        address = COALESCE($10, address), bank_name = COALESCE($11, bank_name),
+        account_number = COALESCE($12, account_number)
+             WHERE id = $13`,
       [
         name, email, roleId, nic ? String(nic).trim() : null,
         dateOfBirth || null, joiningDate || null,
         salary === '' || salary === undefined ? null : Number(salary),
         designation ? String(designation).trim() : null,
         emergencyContactNumber ? String(emergencyContactNumber).trim() : null,
-        address ? String(address).trim() : null, id
+        address ? String(address).trim() : null,
+        bankName ? String(bankName).trim() : null,
+        accountNumber ? String(accountNumber).trim() : null, id
       ]
     );
 
