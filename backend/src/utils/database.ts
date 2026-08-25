@@ -414,6 +414,20 @@ const initializeSchema = async () => {
 
 const runPendingMigrations = async () => {
   try {
+    // Keep existing production databases compatible with employee records.
+    const employeeColumns = [
+      ['nic', 'VARCHAR(50)'],
+      ['date_of_birth', 'DATE'],
+      ['joining_date', 'DATE'],
+      ['salary', 'NUMERIC(12, 2)'],
+      ['designation', 'VARCHAR(150)'],
+      ['emergency_contact_number', 'VARCHAR(50)'],
+      ['address', 'TEXT']
+    ];
+    for (const [column, type] of employeeColumns) {
+      await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${column} ${type}`);
+    }
+
     // Check and add proof_url column to payments table if it doesn't exist
     const columnCheckResult = await query(`
       SELECT COUNT(*) as count FROM information_schema.columns 
