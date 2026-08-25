@@ -31,7 +31,25 @@ interface User {
   role_name: string;
   role_slug: string;
   created_at: string;
+  nic?: string | null;
+  date_of_birth?: string | null;
+  joining_date?: string | null;
+  salary?: number | null;
+  designation?: string | null;
+  emergency_contact_number?: string | null;
+  address?: string | null;
 }
+
+type EmployeeFormData = {
+  email: string; name: string; password: string; roleId: string; nic: string;
+  dateOfBirth: string; joiningDate: string; salary: string; designation: string;
+  emergencyContactNumber: string; address: string;
+};
+
+const emptyEmployeeForm: EmployeeFormData = {
+  email: '', name: '', password: '', roleId: '', nic: '', dateOfBirth: '',
+  joiningDate: '', salary: '', designation: '', emergencyContactNumber: '', address: ''
+};
 
 
 
@@ -239,7 +257,8 @@ function UserManagementTab() {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [formData, setFormData] = useState({ email: '', name: '', password: '', roleId: '' });
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<EmployeeFormData>(emptyEmployeeForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -276,17 +295,25 @@ function UserManagementTab() {
 
   async function handleCreateUser(e: React.FormEvent) {
     e.preventDefault();
-    if (!formData.email || !formData.name || !formData.password || !formData.roleId) {
-      setError('All fields are required');
+    if (!formData.email || !formData.name || (!editingUserId && !formData.password) || !formData.roleId) {
+      setError('Email, name, password for new users, and role are required');
       return;
     }
 
     try {
       setLoading(true);
-      await axios.post(`${API_PREFIX}/admin/users`, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setFormData({ email: '', name: '', password: '', roleId: '' });
+      const payload = editingUserId ? { ...formData, password: undefined } : formData;
+      if (editingUserId) {
+        await axios.put(`${API_PREFIX}/admin/users/${editingUserId}`, payload, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+      } else {
+        await axios.post(`${API_PREFIX}/admin/users`, formData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+      }
+      setFormData(emptyEmployeeForm);
+      setEditingUserId(null);
       setShowCreateForm(false);
       setError(null);
       await fetchUsers();
@@ -295,6 +322,18 @@ function UserManagementTab() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function beginEdit(user: User) {
+    setEditingUserId(user.id);
+    setFormData({
+      email: user.email, name: user.name, password: '', roleId: user.role_id,
+      nic: user.nic || '', dateOfBirth: user.date_of_birth?.slice(0, 10) || '',
+      joiningDate: user.joining_date?.slice(0, 10) || '', salary: user.salary?.toString() || '',
+      designation: user.designation || '',
+      emergencyContactNumber: user.emergency_contact_number || '', address: user.address || ''
+    });
+    setShowCreateForm(true);
   }
 
   async function handleDeleteUser(userId: string) {
@@ -342,7 +381,7 @@ function UserManagementTab() {
       {/* Create Form */}
       {showCreateForm && (
         <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">Create New User</h3>
+          <h3 className="text-lg font-semibold mb-4">{editingUserId ? 'Edit Employee Record' : 'Create Employee Record'}</h3>
           <form onSubmit={handleCreateUser} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -372,7 +411,7 @@ function UserManagementTab() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password *
+                Password {editingUserId ? '(leave blank to keep current)' : '*'}
               </label>
               <input
                 type="password"
@@ -401,12 +440,42 @@ function UserManagementTab() {
               </select>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                ['nic', 'NIC'], ['dateOfBirth', 'Date of Birth'], ['joiningDate', 'Joining Date'],
+                ['salary', 'Salary'], ['designation', 'Designation'],
+                ['emergencyContactNumber', 'Emergency Contact Number']
+              ].map(([field, label]) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                  <input
+                    type={field === 'dateOfBirth' || field === 'joiningDate' ? 'date' : field === 'salary' ? 'number' : 'text'}
+                    min={field === 'salary' ? '0' : undefined}
+                    value={formData[field as keyof EmployeeFormData]}
+                    onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <textarea
+                rows={2}
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => {
                   setShowCreateForm(false);
-                  setFormData({ email: '', name: '', password: '', roleId: '' });
+                  setEditingUserId(null);
+                  setFormData(emptyEmployeeForm);
                 }}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
@@ -432,6 +501,10 @@ function UserManagementTab() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Designation</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">NIC</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Joining Date</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Salary</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
             </tr>
@@ -446,10 +519,20 @@ function UserManagementTab() {
                     {user.role_name || 'No role'}
                   </span>
                 </td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.designation || '-'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.nic || '-'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.joining_date ? new Date(user.joining_date).toLocaleDateString() : '-'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.salary == null ? '-' : Number(user.salary).toLocaleString()}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(user.created_at).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 text-sm">
+                  <button
+                    onClick={() => beginEdit(user)}
+                    className="text-blue-600 hover:text-blue-700 font-medium mr-4"
+                  >
+                    Edit
+                  </button>
                   <button
                     onClick={() => handleDeleteUser(user.id)}
                     className="text-red-600 hover:text-red-700 font-medium"
