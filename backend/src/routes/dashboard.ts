@@ -8,7 +8,7 @@ dashboardRouter.use(authMiddleware);
 
 dashboardRouter.get('/stats', dashboardController.getStats);
 dashboardRouter.get('/pipeline', dashboardController.getPipeline);
-dashboardRouter.get('/analytics', roleMiddleware(['admin', 'manager']), dashboardController.getAnalytics);
-dashboardRouter.get('/agent-quick-summary', roleMiddleware(['admin', 'manager', 'agent']), dashboardController.getAgentQuickSummary);
-dashboardRouter.get('/agent-summary-details', roleMiddleware(['admin', 'manager', 'agent']), dashboardController.getAgentSummaryDetails);
+dashboardRouter.get('/analytics', roleMiddleware(['admin', 'qa', 'manager']), dashboardController.getAnalytics);
+dashboardRouter.get('/agent-quick-summary', roleMiddleware(['admin', 'qa', 'manager', 'agent']), dashboardController.getAgentQuickSummary);
+dashboardRouter.get('/agent-summary-details', roleMiddleware(['admin', 'qa', 'manager', 'agent']), dashboardController.getAgentSummaryDetails);
 dashboardRouter.get('/health', dashboardController.getHealthScore);

@@ -102,7 +102,7 @@ export const authController = {
       console.log('[AUTH] Login succeeded', { email: user.email, role: authenticatedRole, roleSlug: user.role_slug, ip: req.ip });
 
       // Issue shorter-lived tokens for elevated/internal roles
-      const privilegedRoles = ['admin', 'agent', 'manager'];
+      const privilegedRoles = ['admin', 'qa', 'agent', 'manager'];
       const tokenExpiry = privilegedRoles.includes(authenticatedRole) ? '9h' : undefined;
 
       const token = generateToken({
@@ -187,7 +187,7 @@ export const authController = {
         console.log('[AUTH REGISTER] Could not fetch role details', { role });
       }
 
-      const privilegedRoles = ['admin', 'agent', 'manager'];
+      const privilegedRoles = ['admin', 'qa', 'agent', 'manager'];
       const tokenExpiry = privilegedRoles.includes(role) ? '9h' : undefined;
 
       const token = generateToken({

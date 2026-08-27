@@ -310,7 +310,7 @@ export const App: React.FC = () => {
         
         // Fetch agents for manager panel
         try {
-          if (user?.role === 'admin' || user?.role === 'manager') {
+          if (user?.role === 'admin' || user?.role === 'qa' || user?.role === 'manager') {
             const agentsResponse = await (adminAPI as any).getAgents();
             setAgents(Array.isArray(agentsResponse.data?.agents) ? agentsResponse.data.agents : []);
           }
@@ -434,6 +434,7 @@ export const App: React.FC = () => {
   }, [activeAlarm, leads]);
 
   const isCreativeRole = ['content_creator', 'video_editor', 'content creator', 'video editor'].includes(String(user?.role || ''));
+  const isAdminLike = user?.role === 'admin' || user?.role === 'qa';
 
   const navItems = isCreativeRole
     ? [
@@ -446,24 +447,24 @@ export const App: React.FC = () => {
         { label: 'Leads', href: 'leads', icon: '🧾' },
         { label: 'Follow-ups', href: 'followups', icon: '🕒' },
         { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
-        ...(user?.role === 'admin' ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
-        ...(user?.role === 'admin' ? [{ label: 'Attendance', href: 'attendance', icon: '📅' }] : []),
-        ...(user?.role === 'admin' ? [{ label: 'Task Management', href: 'tasks', icon: '✅' }] : []),
-        ...(user?.role === 'admin' ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
+        ...(isAdminLike ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
+        ...(isAdminLike ? [{ label: 'Attendance', href: 'attendance', icon: '📅' }] : []),
+        ...(isAdminLike ? [{ label: 'Task Management', href: 'tasks', icon: '✅' }] : []),
+        ...(isAdminLike ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Pending Invoices', href: 'pending-invoices', icon: '🧾' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
         ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
         ...(user?.role === 'manager' ? [{ label: 'Quick Summary', href: 'quick-summary', icon: '📋' }] : []),
-        ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
-        ...(user?.role === 'admin' || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
+        ...(isAdminLike || user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
+        ...(isAdminLike || user?.role === 'manager' ? [{ label: 'Hotel Directory', href: 'hotels', icon: '🏨' }] : []),
         { label: 'Agent Panel', href: 'agent', icon: '🧭' },
         ...(user?.role === 'agent' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
         ...(user?.role === 'agent' ? [{ label: 'Created Quotations', href: 'created-quotations', icon: '💾' }] : []),
         { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
-        ...(user?.role === 'admin' ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
-        ...(user?.role === 'admin' ? [{ label: 'Git History', href: 'git-history', icon: '🧾' }] : []),
+        ...(isAdminLike ? [{ label: 'Developer Panel', href: 'dev-panel', icon: '🛠️' }] : []),
+        ...(isAdminLike ? [{ label: 'Git History', href: 'git-history', icon: '🧾' }] : []),
         { label: 'Analytics', href: 'analytics', icon: '📈' }
       ];
 
@@ -523,7 +524,7 @@ export const App: React.FC = () => {
 
           {/* Main Content */}
           <main className="flex-1 p-6 mt-16 md:mt-0 ml-0 md:ml-0 overflow-auto">
-            {(user?.role === 'admin' || user?.role === 'agent') && (
+            {(isAdminLike || user?.role === 'agent') && (
               <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <input
@@ -606,9 +607,9 @@ export const App: React.FC = () => {
                         <Dashboard />
                       </div>
                     </section>
-                    {(user?.role === 'admin' || user?.role === 'manager') && (
+                    {(isAdminLike || user?.role === 'manager') && (
                       <section>
-                        <AnalyticsDashboard isAdmin={user?.role === 'admin'} showAgentTargetsOnly={user?.role === 'manager'} />
+                        <AnalyticsDashboard isAdmin={isAdminLike} showAgentTargetsOnly={user?.role === 'manager'} />
                       </section>
                     )}
                   </>
@@ -619,15 +620,15 @@ export const App: React.FC = () => {
               <ReportIssuePage />
             )}
 
-            {currentPage === 'daily-reports' && user?.role === 'admin' && (
+            {currentPage === 'daily-reports' && isAdminLike && (
               <DailyReportsPage />
             )}
 
-            {currentPage === 'dev-panel' && user?.role === 'admin' && (
+            {currentPage === 'dev-panel' && isAdminLike && (
               <DeveloperPanel />
             )}
 
-            {currentPage === 'git-history' && user?.role === 'admin' && (
+            {currentPage === 'git-history' && isAdminLike && (
               <GitHistoryPanel />
             )}
 
@@ -1362,27 +1363,27 @@ export const App: React.FC = () => {
               <QuickSummary agents={agents} />
             )}
 
-            {currentPage === 'lead-transfer' && (user?.role === 'admin' || user?.role === 'manager') && (
+            {currentPage === 'lead-transfer' && (isAdminLike || user?.role === 'manager') && (
               <LeadTransferPanel />
             )}
 
-            {currentPage === 'hotels' && (user?.role === 'admin' || user?.role === 'manager') && (
+            {currentPage === 'hotels' && (isAdminLike || user?.role === 'manager') && (
               <HotelsPanel />
             )}
 
-            {currentPage === 'admin-users' && user?.role === 'admin' && (
+            {currentPage === 'admin-users' && isAdminLike && (
               <AdminPage />
             )}
 
-            {currentPage === 'attendance' && user?.role === 'admin' && (
+            {currentPage === 'attendance' && isAdminLike && (
               <AttendancePage />
             )}
 
-            {currentPage === 'tasks' && user?.role === 'admin' && (
+            {currentPage === 'tasks' && isAdminLike && (
               <CreativeWorkPanel />
             )}
 
-            {currentPage === 'admin-dashboard' && user?.role === 'admin' && (
+            {currentPage === 'admin-dashboard' && isAdminLike && (
               <div className="space-y-6">
                 <section className="card">
                   <h1 className="text-3xl font-bold">Admin Dashboard</h1>

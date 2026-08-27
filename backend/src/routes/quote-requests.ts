@@ -5,6 +5,12 @@ import { quoteRequestsController } from '../controllers/quote-requests-controlle
 export const quoteRequestsRouter = Router();
 
 quoteRequestsRouter.use(authMiddleware);
+quoteRequestsRouter.use((req: any, res, next) => {
+	if (req.user?.role === 'qa') {
+		return res.status(403).json({ message: 'Quotation and invoice access is restricted for QA users.' });
+	}
+	next();
+});
 quoteRequestsRouter.get('/', quoteRequestsController.listByUser);
 quoteRequestsRouter.get('/next-number', roleMiddleware(['admin', 'manager']), quoteRequestsController.getNextQuotationNumber);
 quoteRequestsRouter.get('/pending', roleMiddleware(['agent', 'manager', 'admin']), quoteRequestsController.listPending);

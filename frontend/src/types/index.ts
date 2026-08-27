@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'agent' | 'manager' | 'content_creator' | 'video_editor' | 'content creator' | 'video editor';
+export type UserRole = 'admin' | 'qa' | 'agent' | 'manager' | 'content_creator' | 'video_editor' | 'content creator' | 'video editor';
 export type LeadTemperature = 'hot' | 'warm' | 'cold' | 'dead';
 export type LeadStatus = 'new' | 'contacted' | 'interested' | 'negotiation' | 'booked' | 'completed' | 'canceled' | 'spam';
 export type LeadOutcome = 'confirmed' | 'budget_issue' | 'no_reply';

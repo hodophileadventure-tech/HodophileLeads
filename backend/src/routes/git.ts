@@ -7,7 +7,7 @@ export const gitRouter = Router();
 gitRouter.use(authMiddleware);
 
 // Only admin can access git history and revert commits
-gitRouter.get('/commits', roleMiddleware(['admin']), gitController.getCommitHistory);
-gitRouter.get('/commits/:hash', roleMiddleware(['admin']), gitController.getCommitDetails);
-gitRouter.post('/revert', roleMiddleware(['admin']), gitController.revertToCommit);
-gitRouter.get('/current', roleMiddleware(['admin']), gitController.getCurrentCommit);
+gitRouter.get('/commits', roleMiddleware(['admin', 'qa']), gitController.getCommitHistory);
+gitRouter.get('/commits/:hash', roleMiddleware(['admin', 'qa']), gitController.getCommitDetails);
+gitRouter.post('/revert', roleMiddleware(['admin', 'qa']), gitController.revertToCommit);
+gitRouter.get('/current', roleMiddleware(['admin', 'qa']), gitController.getCurrentCommit);

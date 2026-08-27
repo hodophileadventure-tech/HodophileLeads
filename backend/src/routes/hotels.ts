@@ -13,8 +13,8 @@ router.get('/hotels/city/:city', authMiddleware, hotelController.getHotelsByCity
 router.get('/hotels/:hotelId', authMiddleware, hotelController.getHotelDetails);
 
 // Admin/Manager only routes
-router.post('/hotels', authMiddleware, roleMiddleware(['admin', 'manager']), hotelController.createHotel);
-router.post('/hotels/:hotelId/rooms', authMiddleware, roleMiddleware(['admin', 'manager']), hotelController.createRoomType);
-router.post('/hotels/rooms/:roomTypeId/pricing', authMiddleware, roleMiddleware(['admin', 'manager']), hotelController.createRoomPricing);
+router.post('/hotels', authMiddleware, roleMiddleware(['admin', 'qa', 'manager']), hotelController.createHotel);
+router.post('/hotels/:hotelId/rooms', authMiddleware, roleMiddleware(['admin', 'qa', 'manager']), hotelController.createRoomType);
+router.post('/hotels/rooms/:roomTypeId/pricing', authMiddleware, roleMiddleware(['admin', 'qa', 'manager']), hotelController.createRoomPricing);
 
 export default router;
