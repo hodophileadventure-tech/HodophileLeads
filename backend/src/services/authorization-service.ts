@@ -32,6 +32,20 @@ export class AuthorizationService {
     action: string
   ): Promise<boolean> {
     try {
+      if (resource === 'tasks') {
+        const qaResult = await query(
+          `SELECT EXISTS(
+             SELECT 1
+             FROM users u
+             LEFT JOIN roles r ON r.id = u.role_id
+             WHERE u.id = $1
+               AND LOWER(REPLACE(COALESCE(r.slug, u.role, ''), ' ', '_')) IN ('qa', 'quality_assurance')
+           ) AS is_qa`,
+          [userId]
+        );
+        if (qaResult.rows[0]?.is_qa) return true;
+      }
+
       const result = await query(
         `SELECT EXISTS(
           SELECT 1 FROM role_permissions rp
