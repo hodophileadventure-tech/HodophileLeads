@@ -424,11 +424,21 @@ const runPendingMigrations = async () => {
       ['emergency_contact_number', 'VARCHAR(50)'],
       ['address', 'TEXT'],
       ['bank_name', 'VARCHAR(150)'],
-      ['account_number', 'VARCHAR(100)']
+      ['account_number', 'VARCHAR(100)'],
+      ['working_days', "VARCHAR(20) NOT NULL DEFAULT 'monday-friday'"],
+      ['reporting_time', "TIME NOT NULL DEFAULT '09:00'"]
     ];
     for (const [column, type] of employeeColumns) {
       await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${column} ${type}`);
     }
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS attendance_sheets (
+        attendance_date DATE PRIMARY KEY,
+        locked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        locked_by UUID REFERENCES users(id) ON DELETE SET NULL
+      )
+    `);
 
     // Check and add proof_url column to payments table if it doesn't exist
     const columnCheckResult = await query(`
