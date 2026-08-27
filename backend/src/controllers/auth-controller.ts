@@ -6,6 +6,7 @@ import { authLoginSchema, authRegisterSchema, validatePayload } from '../utils/v
 import crypto from 'crypto';
 
 const ATTENDANCE_TIMEZONE = process.env.ATTENDANCE_TIMEZONE || 'Asia/Karachi';
+const ATTENDANCE_GRACE_MINUTES = Number(process.env.ATTENDANCE_GRACE_MINUTES || 15);
 
 async function markLoginAttendance(userId: string, role: string) {
   if (role === 'admin') return;
@@ -18,7 +19,8 @@ async function markLoginAttendance(userId: string, role: string) {
      )
     INSERT INTO attendance (user_id, attendance_date, status, marked_by, note)
          SELECT u.id, local_clock.attendance_date,
-            CASE WHEN local_clock.current_time > u.reporting_time THEN 'late' ELSE 'present' END,
+            CASE WHEN local_clock.current_time > (u.reporting_time + ($3::int * INTERVAL '1 minute'))::time
+              THEN 'late' ELSE 'present' END,
            u.id,
            'Login time: ' || local_clock.login_time
      FROM users u CROSS JOIN local_clock
@@ -34,7 +36,7 @@ async function markLoginAttendance(userId: string, role: string) {
          AND NOT EXISTS (
            SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = EXCLUDED.attendance_date
          )`,
-    [userId, ATTENDANCE_TIMEZONE]
+    [userId, ATTENDANCE_TIMEZONE, ATTENDANCE_GRACE_MINUTES]
   );
 }
 
