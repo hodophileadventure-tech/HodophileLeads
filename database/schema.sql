@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   attendance_exempt BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT valid_role CHECK (role IN ('admin', 'qa', 'agent', 'manager'))
+  CONSTRAINT valid_role CHECK (role IN ('admin', 'qa', 'quality_assurance', 'agent', 'manager'))
 );
 
 -- Leads Table

@@ -6,7 +6,8 @@ export const quoteRequestsRouter = Router();
 
 quoteRequestsRouter.use(authMiddleware);
 quoteRequestsRouter.use((req: any, res, next) => {
-	if (req.user?.role === 'qa') {
+	const role = String(req.user?.role || '').toLowerCase().replace(/\s+/g, '_');
+	if (role === 'qa' || role === 'quality_assurance') {
 		return res.status(403).json({ message: 'Quotation and invoice access is restricted for QA users.' });
 	}
 	next();

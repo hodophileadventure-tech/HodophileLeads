@@ -433,8 +433,9 @@ export const App: React.FC = () => {
     return leads.find((lead) => String(lead.id) === String(activeAlarm.leadId)) || null;
   }, [activeAlarm, leads]);
 
-  const isCreativeRole = ['content_creator', 'video_editor', 'content creator', 'video editor'].includes(String(user?.role || ''));
-  const isAdminLike = user?.role === 'admin' || user?.role === 'qa';
+  const normalizedRole = String(user?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const isCreativeRole = ['content_creator', 'video_editor'].includes(normalizedRole);
+  const isAdminLike = normalizedRole === 'admin' || normalizedRole === 'qa' || normalizedRole === 'quality_assurance';
 
   const navItems = isCreativeRole
     ? [
@@ -746,7 +747,7 @@ export const App: React.FC = () => {
                   </p>
                 </section>
                 <section className="card">
-                  <AnalyticsDashboard isAdmin={user.role === 'admin'} showAgentTargetsOnly={user.role === 'manager'} />
+                  <AnalyticsDashboard isAdmin={isAdminLike} showAgentTargetsOnly={user.role === 'manager'} />
                 </section>
               </div>
             )}

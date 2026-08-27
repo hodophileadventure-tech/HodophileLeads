@@ -46,7 +46,9 @@ export const validateUserExists = async (req: AuthenticatedRequest, res: Respons
 
 export const roleMiddleware = (allowedRoles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
+    const role = String(req.user?.role || '').toLowerCase().replace(/\s+/g, '_');
+    const normalizedRole = role === 'quality_assurance' ? 'qa' : role;
+    if (!req.user || !allowedRoles.includes(normalizedRole)) {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
     next();
