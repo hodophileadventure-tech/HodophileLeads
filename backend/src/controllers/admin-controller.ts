@@ -379,6 +379,28 @@ export const adminController = {
         WHERE status = 'canceled'
       `);
 
+      const birthdayResult = await query(`
+        SELECT u.id, u.name, u.date_of_birth
+        FROM users u
+        LEFT JOIN roles r ON r.id = u.role_id
+        WHERE u.date_of_birth IS NOT NULL
+          AND COALESCE(r.slug, u.role, '') <> 'admin'
+          AND EXTRACT(MONTH FROM u.date_of_birth) = EXTRACT(MONTH FROM (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Karachi'))
+          AND EXTRACT(DAY FROM u.date_of_birth) = EXTRACT(DAY FROM (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Karachi'))
+        ORDER BY u.name ASC
+      `);
+
+      const tomorrowBirthdayResult = await query(`
+        SELECT u.id, u.name, u.date_of_birth
+        FROM users u
+        LEFT JOIN roles r ON r.id = u.role_id
+        WHERE u.date_of_birth IS NOT NULL
+          AND COALESCE(r.slug, u.role, '') <> 'admin'
+          AND EXTRACT(MONTH FROM u.date_of_birth) = EXTRACT(MONTH FROM ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Karachi')::date + INTERVAL '1 day'))
+          AND EXTRACT(DAY FROM u.date_of_birth) = EXTRACT(DAY FROM ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Karachi')::date + INTERVAL '1 day'))
+        ORDER BY u.name ASC
+      `);
+
       const agentResult = await query(`
         WITH lead_stats AS (
           SELECT
@@ -497,7 +519,9 @@ export const adminController = {
           todayLeads: Number(summaryResult.rows[0]?.today_leads || 0),
           totalLeads: Number(summaryResult.rows[0]?.total_leads || 0),
           canceledLeads: Number(summaryResult.rows[0]?.canceled_leads || 0),
-          canceledFollowUps: Number(canceledFollowUpsCount.rows[0]?.canceled_followups || 0)
+          canceledFollowUps: Number(canceledFollowUpsCount.rows[0]?.canceled_followups || 0),
+          birthdaysToday: birthdayResult.rows,
+          birthdaysTomorrow: tomorrowBirthdayResult.rows
         },
         agents: agentResult.rows,
         leads: leadsResult.rows,

@@ -26,6 +26,7 @@ export interface User {
   createdAt: string;
   lastLoginAt?: string | null;
   lastLogoutAt?: string | null;
+  date_of_birth?: string | null;
 }
 
 export interface Lead {

@@ -123,7 +123,8 @@ export const authController = {
           name: user.name,
           role: authenticatedRole,
           role_slug: authenticatedRole,
-          role_name: user.role_name || authenticatedRole
+          role_name: user.role_name || authenticatedRole,
+          date_of_birth: user.date_of_birth || null
         }
       });
     } catch (error) {

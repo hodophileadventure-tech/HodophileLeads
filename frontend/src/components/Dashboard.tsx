@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { dashboardAPI } from '../utils/api-service';
 import { formatCurrency, getHealthScoreColor } from '../utils/helpers';
 import { Card, Spinner } from './common';
+import { useAuth } from '../context/AuthContext';
 
 interface StatCard {
   label: string;
@@ -34,6 +35,7 @@ const getBreakdownSegments = (target: number, segments: number, achieved: number
 };
 
 export const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedBreakdown, setSelectedBreakdown] = useState<BreakdownKey>('weekly');
@@ -74,6 +76,17 @@ export const Dashboard: React.FC = () => {
   const dailyTarget = monthlyTarget / daysInMonth;
   const currentPace = monthlyTargetAchieved / Math.max(1, daysElapsed);
   const paceStatus = currentPace >= dailyTarget ? 'On track' : 'Needs more pace';
+
+  const birthdayAge = (() => {
+    if (user?.role === 'admin' || !user?.date_of_birth) return null;
+    const birthDate = new Date(user.date_of_birth);
+    const now = new Date();
+    let age = now.getFullYear() - birthDate.getFullYear();
+    const birthdayPassed = now.getMonth() > birthDate.getMonth()
+      || (now.getMonth() === birthDate.getMonth() && now.getDate() >= birthDate.getDate());
+    if (!birthdayPassed) age -= 1;
+    return now.getMonth() === birthDate.getMonth() && now.getDate() === birthDate.getDate() ? age : null;
+  })();
 
   const selectedBreakdownConfig = breakdownOptions.find((item) => item.key === selectedBreakdown) || breakdownOptions[0];
   const breakdownSegments = useMemo(
@@ -125,6 +138,13 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 px-4 md:px-6 lg:px-8">
       <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+
+      {birthdayAge !== null && (
+        <Card className="border border-amber-200 bg-amber-50 shadow-sm">
+          <h2 className="text-xl font-bold text-amber-900">Happy Birthday, {user?.name}!</h2>
+          <p className="mt-1 text-amber-800">Hodophile gives you many congratulations on your birthday. Congratulations, you have turned {birthdayAge}!</p>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat) => (

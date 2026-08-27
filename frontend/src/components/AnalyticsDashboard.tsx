@@ -32,6 +32,8 @@ interface AdminOverviewSummary {
   totalLeads: number;
   canceledLeads: number;
   canceledFollowUps: number;
+  birthdaysToday: Array<{ id: string; name: string; date_of_birth: string }>;
+  birthdaysTomorrow: Array<{ id: string; name: string; date_of_birth: string }>;
 }
 
 interface AdminOverviewAgent {
@@ -674,6 +676,26 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
 
       {isAdmin && <LeadTransferPanel />}
 
+      {isAdmin && adminOverview && (
+        <>
+          {adminOverview.summary.birthdaysToday?.length > 0 && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+              <h2 className="text-lg font-bold">Employee birthdays today</h2>
+              <div className="mt-2 space-y-1 text-sm">
+                {adminOverview.summary.birthdaysToday.map((birthday) => <p key={birthday.id}>{birthday.name} is celebrating a birthday today.</p>)}
+              </div>
+            </div>
+          )}
+          {adminOverview.summary.birthdaysTomorrow?.length > 0 && (
+            <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sky-900">
+              <h2 className="text-lg font-bold">Birthday reminder for tomorrow</h2>
+              <div className="mt-2 space-y-1 text-sm">
+                {adminOverview.summary.birthdaysTomorrow.map((birthday) => <p key={birthday.id}>{birthday.name}'s birthday is tomorrow.</p>)}
+              </div>
+            </div>
+          )}
+        </>
+      )}
       {isAdmin && adminOverview && (
         <Card>
           <h2 className="text-xl font-bold mb-4">Admin Snapshot</h2>
