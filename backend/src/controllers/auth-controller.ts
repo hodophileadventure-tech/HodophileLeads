@@ -5,22 +5,33 @@ import { query } from '../utils/database';
 import { authLoginSchema, authRegisterSchema, validatePayload } from '../utils/validation';
 import crypto from 'crypto';
 
+const ATTENDANCE_TIMEZONE = process.env.ATTENDANCE_TIMEZONE || 'Asia/Karachi';
+
 async function markLoginAttendance(userId: string, role: string) {
   if (role === 'admin') return;
 
   await query(
-    `INSERT INTO attendance (user_id, attendance_date, status, marked_by)
-     SELECT u.id, CURRENT_DATE,
-            CASE WHEN LOCALTIME > u.reporting_time THEN 'late' ELSE 'present' END,
+    `WITH local_clock AS (
+       SELECT (CURRENT_TIMESTAMP AT TIME ZONE $2)::date AS attendance_date,
+              (CURRENT_TIMESTAMP AT TIME ZONE $2)::time AS current_time
+     )
+     INSERT INTO attendance (user_id, attendance_date, status, marked_by)
+     SELECT u.id, local_clock.attendance_date,
+            CASE WHEN local_clock.current_time > u.reporting_time THEN 'late' ELSE 'present' END,
             u.id
-     FROM users u
+     FROM users u CROSS JOIN local_clock
      WHERE u.id = $1
-       AND (u.working_days = 'monday-saturday' OR EXTRACT(ISODOW FROM CURRENT_DATE) BETWEEN 1 AND 5)
+       AND (u.working_days = 'monday-saturday' OR EXTRACT(ISODOW FROM local_clock.attendance_date) BETWEEN 1 AND 5)
        AND NOT EXISTS (
-         SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = CURRENT_DATE
+         SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = local_clock.attendance_date
        )
-     ON CONFLICT (user_id, attendance_date) DO NOTHING`,
-    [userId]
+     ON CONFLICT (user_id, attendance_date) DO UPDATE
+       SET status = EXCLUDED.status, updated_at = NOW()
+       WHERE attendance.marked_by = EXCLUDED.marked_by
+         AND NOT EXISTS (
+           SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = EXCLUDED.attendance_date
+         )`,
+    [userId, ATTENDANCE_TIMEZONE]
   );
 }
 
