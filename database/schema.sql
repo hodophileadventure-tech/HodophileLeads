@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_logout_at TIMESTAMP,
   working_days VARCHAR(20) NOT NULL DEFAULT 'monday-friday',
   reporting_time TIME NOT NULL DEFAULT '09:00',
+  attendance_exempt BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_role CHECK (role IN ('admin', 'agent', 'manager'))

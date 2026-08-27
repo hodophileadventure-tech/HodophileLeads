@@ -12,21 +12,24 @@ async function markLoginAttendance(userId: string, role: string) {
 
   await query(
     `WITH local_clock AS (
-       SELECT (CURRENT_TIMESTAMP AT TIME ZONE $2)::date AS attendance_date,
-              (CURRENT_TIMESTAMP AT TIME ZONE $2)::time AS current_time
+      SELECT (CURRENT_TIMESTAMP AT TIME ZONE $2)::date AS attendance_date,
+        (CURRENT_TIMESTAMP AT TIME ZONE $2)::time AS current_time,
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE $2, 'YYYY-MM-DD HH24:MI:SS') AS login_time
      )
-     INSERT INTO attendance (user_id, attendance_date, status, marked_by)
-     SELECT u.id, local_clock.attendance_date,
+    INSERT INTO attendance (user_id, attendance_date, status, marked_by, note)
+         SELECT u.id, local_clock.attendance_date,
             CASE WHEN local_clock.current_time > u.reporting_time THEN 'late' ELSE 'present' END,
-            u.id
+           u.id,
+           'Login time: ' || local_clock.login_time
      FROM users u CROSS JOIN local_clock
      WHERE u.id = $1
        AND (u.working_days = 'monday-saturday' OR EXTRACT(ISODOW FROM local_clock.attendance_date) BETWEEN 1 AND 5)
+      AND u.attendance_exempt = FALSE
        AND NOT EXISTS (
          SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = local_clock.attendance_date
        )
      ON CONFLICT (user_id, attendance_date) DO UPDATE
-       SET status = EXCLUDED.status, updated_at = NOW()
+       SET status = EXCLUDED.status, note = EXCLUDED.note, updated_at = NOW()
        WHERE attendance.marked_by = EXCLUDED.marked_by
          AND NOT EXISTS (
            SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = EXCLUDED.attendance_date

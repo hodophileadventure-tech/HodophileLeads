@@ -42,19 +42,20 @@ interface User {
   account_number?: string | null;
   working_days?: 'monday-friday' | 'monday-saturday' | null;
   reporting_time?: string | null;
+  attendance_exempt?: boolean;
 }
 
 type EmployeeFormData = {
   email: string; name: string; password: string; roleId: string; nic: string;
   dateOfBirth: string; joiningDate: string; salary: string; designation: string;
   emergencyContactNumber: string; address: string;
-  bankName: string; accountNumber: string; workingDays: string; reportingTime: string;
+  bankName: string; accountNumber: string; workingDays: string; reportingTime: string; attendanceExempt: boolean;
 };
 
 const emptyEmployeeForm: EmployeeFormData = {
   email: '', name: '', password: '', roleId: '', nic: '', dateOfBirth: '',
   joiningDate: '', salary: '', designation: '', emergencyContactNumber: '', address: '',
-  bankName: '', accountNumber: '', workingDays: 'monday-friday', reportingTime: '09:00'
+  bankName: '', accountNumber: '', workingDays: 'monday-friday', reportingTime: '09:00', attendanceExempt: false
 };
 
 
@@ -339,7 +340,7 @@ function UserManagementTab() {
       designation: user.designation || '',
       emergencyContactNumber: user.emergency_contact_number || '', address: user.address || '',
       bankName: user.bank_name || '', accountNumber: user.account_number || '',
-      workingDays: user.working_days || 'monday-friday', reportingTime: user.reporting_time?.slice(0, 5) || '09:00'
+      workingDays: user.working_days || 'monday-friday', reportingTime: user.reporting_time?.slice(0, 5) || '09:00', attendanceExempt: Boolean(user.attendance_exempt)
     });
     setShowCreateForm(true);
   }
@@ -460,7 +461,7 @@ function UserManagementTab() {
                   <input
                     type={field === 'dateOfBirth' || field === 'joiningDate' ? 'date' : field === 'salary' ? 'number' : 'text'}
                     min={field === 'salary' ? '0' : undefined}
-                    value={formData[field as keyof EmployeeFormData]}
+                    value={String(formData[field as keyof EmployeeFormData])}
                     onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -491,6 +492,11 @@ function UserManagementTab() {
                 <input type="time" value={formData.reportingTime} onChange={(e) => setFormData({ ...formData, reportingTime: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
+
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <input type="checkbox" checked={formData.attendanceExempt} onChange={(e) => setFormData({ ...formData, attendanceExempt: e.target.checked })} />
+              Exclude this employee from attendance
+            </label>
 
             <div className="flex justify-end space-x-3">
               <button
@@ -533,6 +539,7 @@ function UserManagementTab() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Account Number</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Working Days</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Reporting Time</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Attendance</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
             </tr>
           </thead>
@@ -568,6 +575,7 @@ function UserManagementTab() {
                 <td className="px-6 py-4 text-sm text-gray-600">{user.account_number || '-'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.working_days === 'monday-saturday' ? 'Monday to Saturday' : 'Monday to Friday'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.reporting_time?.slice(0, 5) || '-'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.attendance_exempt ? 'Excluded' : 'Included'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(user.created_at).toLocaleDateString()}
                 </td>

@@ -72,7 +72,7 @@ export default function AttendancePage() {
     try {
       await axios.put(`${API_PREFIX}/admin/attendance`, {
         date,
-        records: employees.map(employee => ({ userId: employee.user_id, status: employee.status || 'present', note: employee.note || '' }))
+        records: employees.map(employee => ({ userId: employee.user_id, status: employee.status || 'absent', note: employee.note || '' }))
       }, authConfig());
       setLocked(true);
       setMessage('Attendance saved successfully. This sheet is now locked.');

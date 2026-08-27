@@ -267,7 +267,7 @@ export async function createUser(req: AdminRequest, res: Response, next: NextFun
     const {
       email, name, password, roleId, nic, dateOfBirth, joiningDate, salary,
       designation, emergencyContactNumber, address, bankName, accountNumber,
-      workingDays, reportingTime
+      workingDays, reportingTime, attendanceExempt
     } = req.body;
 
     // Validate input
@@ -308,11 +308,11 @@ export async function createUser(req: AdminRequest, res: Response, next: NextFun
       `INSERT INTO users (
          email, name, password, role_id, nic, date_of_birth, joining_date,
          salary, designation, emergency_contact_number, address, bank_name, account_number
-         , working_days, reporting_time
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+         , working_days, reporting_time, attendance_exempt
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING id, email, name, role_id, nic, date_of_birth, joining_date,
                  salary, designation, emergency_contact_number, address, bank_name, account_number,
-                 working_days, reporting_time`,
+                 working_days, reporting_time, attendance_exempt`,
       [
         String(email).trim().toLowerCase(), String(name).trim(), hashedPassword, roleId,
         nic ? String(nic).trim() : null, dateOfBirth || null, joiningDate || null,
@@ -322,7 +322,7 @@ export async function createUser(req: AdminRequest, res: Response, next: NextFun
         address ? String(address).trim() : null,
         bankName ? String(bankName).trim() : null,
         accountNumber ? String(accountNumber).trim() : null,
-        workingDays || 'monday-friday', reportingTime || '09:00'
+        workingDays || 'monday-friday', reportingTime || '09:00', Boolean(attendanceExempt)
       ]
     );
 
@@ -347,7 +347,7 @@ export async function listUsers(req: AdminRequest, res: Response, next: NextFunc
     const result = await query(
             `SELECT u.id, u.email, u.name, u.nic, u.date_of_birth, u.joining_date,
               u.salary, u.designation, u.emergency_contact_number, u.address,
-              u.bank_name, u.account_number, u.working_days, u.reporting_time,
+              u.bank_name, u.account_number, u.working_days, u.reporting_time, u.attendance_exempt,
               r.name as role_name, r.slug as role_slug, u.created_at
        FROM users u
        LEFT JOIN roles r ON u.role_id = r.id
@@ -374,7 +374,7 @@ export async function getUser(req: AdminRequest, res: Response, next: NextFuncti
     const userResult = await query(
             `SELECT u.id, u.email, u.name, u.role_id, u.nic, u.date_of_birth, u.joining_date,
               u.salary, u.designation, u.emergency_contact_number, u.address,
-              u.bank_name, u.account_number, u.working_days, u.reporting_time,
+              u.bank_name, u.account_number, u.working_days, u.reporting_time, u.attendance_exempt,
               r.name as role_name, r.slug as role_slug, u.created_at
        FROM users u
        LEFT JOIN roles r ON u.role_id = r.id
@@ -420,7 +420,7 @@ export async function updateUser(req: AdminRequest, res: Response, next: NextFun
     const {
       name, email, roleId, nic, dateOfBirth, joiningDate, salary,
       designation, emergencyContactNumber, address, bankName, accountNumber,
-      workingDays, reportingTime
+      workingDays, reportingTime, attendanceExempt
     } = req.body;
 
     // Check if user exists
@@ -462,8 +462,9 @@ export async function updateUser(req: AdminRequest, res: Response, next: NextFun
         designation = COALESCE($8, designation), emergency_contact_number = COALESCE($9, emergency_contact_number),
         address = COALESCE($10, address), bank_name = COALESCE($11, bank_name),
            account_number = COALESCE($12, account_number),
-           working_days = COALESCE($13, working_days), reporting_time = COALESCE($14, reporting_time)
-             WHERE id = $15`,
+           working_days = COALESCE($13, working_days), reporting_time = COALESCE($14, reporting_time),
+           attendance_exempt = COALESCE($15, attendance_exempt)
+             WHERE id = $16`,
       [
         name, email, roleId, nic ? String(nic).trim() : null,
         dateOfBirth || null, joiningDate || null,
@@ -473,7 +474,7 @@ export async function updateUser(req: AdminRequest, res: Response, next: NextFun
         address ? String(address).trim() : null,
         bankName ? String(bankName).trim() : null,
         accountNumber ? String(accountNumber).trim() : null,
-        workingDays || null, reportingTime || null, id
+        workingDays || null, reportingTime || null, attendanceExempt === undefined ? null : Boolean(attendanceExempt), id
       ]
     );
 

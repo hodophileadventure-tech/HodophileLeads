@@ -426,7 +426,8 @@ const runPendingMigrations = async () => {
       ['bank_name', 'VARCHAR(150)'],
       ['account_number', 'VARCHAR(100)'],
       ['working_days', "VARCHAR(20) NOT NULL DEFAULT 'monday-friday'"],
-      ['reporting_time', "TIME NOT NULL DEFAULT '09:00'"]
+      ['reporting_time', "TIME NOT NULL DEFAULT '09:00'"],
+      ['attendance_exempt', 'BOOLEAN NOT NULL DEFAULT FALSE']
     ];
     for (const [column, type] of employeeColumns) {
       await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${column} ${type}`);

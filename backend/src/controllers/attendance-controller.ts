@@ -33,7 +33,7 @@ export async function getAttendance(req: AttendanceRequest, res: Response, next:
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id
        LEFT JOIN attendance a ON a.user_id = u.id AND a.attendance_date = $1::date
-       WHERE COALESCE(r.slug, u.role, '') <> 'admin'
+      WHERE COALESCE(r.slug, u.role, '') <> 'admin' AND u.attendance_exempt = FALSE
        ORDER BY u.name ASC`,
       [date]
     );
@@ -69,7 +69,7 @@ export async function getMonthlyAttendance(req: AttendanceRequest, res: Response
        LEFT JOIN attendance a ON a.user_id = u.id
          AND a.attendance_date >= $1::date
          AND a.attendance_date < ($1::date + INTERVAL '1 month')
-       WHERE COALESCE(r.slug, u.role, '') <> 'admin'
+      WHERE COALESCE(r.slug, u.role, '') <> 'admin' AND u.attendance_exempt = FALSE
        GROUP BY u.id, u.name, u.email, r.name
        ORDER BY u.name ASC`,
       [`${month}-01`]
@@ -109,7 +109,16 @@ export async function saveAttendance(req: AttendanceRequest, res: Response, next
       return res.status(409).json({ error: 'This attendance sheet has already been saved and locked.' });
     }
 
-    for (const record of records) {
+    const eligibleUsers = await client.query(
+      `SELECT u.id FROM users u
+       LEFT JOIN roles r ON r.id = u.role_id
+       WHERE COALESCE(r.slug, u.role, '') <> 'admin' AND u.attendance_exempt = FALSE`
+    );
+    const submittedRecords = new Map(records.map((record: any) => [String(record.userId), record]));
+
+    for (const employee of eligibleUsers.rows) {
+      const record = submittedRecords.get(String(employee.id));
+      const status = record?.status || 'absent';
       await client.query(
         `INSERT INTO attendance (user_id, attendance_date, status, note, marked_by)
          VALUES ($1, $2::date, $3, $4, $5)
@@ -118,7 +127,7 @@ export async function saveAttendance(req: AttendanceRequest, res: Response, next
                        note = EXCLUDED.note,
                        marked_by = EXCLUDED.marked_by,
                        updated_at = NOW()`,
-        [record.userId, date, record.status, record.note ? String(record.note).trim() : null, req.user?.id]
+        [employee.id, date, status, record?.note ? String(record.note).trim() : null, req.user?.id]
       );
     }
 
