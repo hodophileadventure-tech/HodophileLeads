@@ -34,6 +34,7 @@ export default function AttendancePage() {
   const [month, setMonth] = useState(date.slice(0, 7));
   const [monthlyEmployees, setMonthlyEmployees] = useState<MonthlyEmployee[]>([]);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -41,6 +42,7 @@ export default function AttendancePage() {
       try {
         const response = await axios.get(`${API_PREFIX}/admin/attendance?date=${date}`, authConfig());
         setEmployees(response.data.employees || []);
+        setLocked(Boolean(response.data.locked));
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load attendance');
       } finally { setLoading(false); }
@@ -62,7 +64,7 @@ export default function AttendancePage() {
   }, [month]);
 
   const updateEmployee = (userId: string, changes: Partial<Employee>) => {
-    setEmployees(current => current.map(employee => employee.user_id === userId ? { ...employee, ...changes } : employee));
+    if (!locked) setEmployees(current => current.map(employee => employee.user_id === userId ? { ...employee, ...changes } : employee));
   };
 
   const save = async () => {
@@ -72,7 +74,8 @@ export default function AttendancePage() {
         date,
         records: employees.map(employee => ({ userId: employee.user_id, status: employee.status || 'present', note: employee.note || '' }))
       }, authConfig());
-      setMessage('Attendance saved successfully.');
+      setLocked(true);
+      setMessage('Attendance saved successfully. This sheet is now locked.');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to save attendance');
     } finally { setSaving(false); }
@@ -91,11 +94,12 @@ export default function AttendancePage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Employee Attendance</h1><p className="mt-1 text-gray-600">Mark attendance for your team by date.</p></div>
-        <div className="flex items-end gap-3"><label className="text-sm font-medium text-gray-700">Date<input type="date" value={date} onChange={event => setDate(event.target.value)} className="mt-1 block rounded border border-gray-300 px-3 py-2" /></label><button onClick={save} disabled={saving || loading || employees.length === 0} className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save Attendance'}</button></div>
+        <div className="flex items-end gap-3"><label className="text-sm font-medium text-gray-700">Date<input type="date" value={date} onChange={event => setDate(event.target.value)} className="mt-1 block rounded border border-gray-300 px-3 py-2" /></label><button onClick={save} disabled={locked || saving || loading || employees.length === 0} className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50">{locked ? 'Sheet Locked' : saving ? 'Saving...' : 'Save Attendance'}</button></div>
       </div>
       {(message || error) && <div className={`rounded border p-3 ${error ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>{error || message}</div>}
+      {locked && !error && <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">This date has been saved and locked. Attendance cannot be changed.</div>}
       <div className="flex flex-wrap gap-3 text-sm"><span className="rounded bg-gray-100 px-3 py-1">Total: {employees.length}</span><span className="rounded bg-green-100 px-3 py-1 text-green-800">Present: {counts.present || 0}</span><span className="rounded bg-yellow-100 px-3 py-1 text-yellow-800">Late: {counts.late || 0}</span><span className="rounded bg-red-100 px-3 py-1 text-red-800">Absent: {counts.absent || 0}</span><span className="rounded bg-orange-100 px-3 py-1 text-orange-800">Half Day: {counts.half_day || 0}</span></div>
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white"><table className="w-full"><thead className="bg-gray-50"><tr><th className="px-5 py-3 text-left text-sm font-semibold">Employee</th><th className="px-5 py-3 text-left text-sm font-semibold">Role</th><th className="px-5 py-3 text-left text-sm font-semibold">Status</th><th className="px-5 py-3 text-left text-sm font-semibold">Note</th></tr></thead><tbody className="divide-y divide-gray-200">{loading ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">Loading employees...</td></tr> : employees.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">No employees found.</td></tr> : employees.map(employee => <tr key={employee.user_id}><td className="px-5 py-3"><div className="font-medium text-gray-900">{employee.name}</div><div className="text-xs text-gray-500">{employee.email}</div></td><td className="px-5 py-3 text-sm text-gray-600">{employee.role_name || 'Employee'}</td><td className="px-5 py-3"><select value={employee.status || ''} onChange={event => updateEmployee(employee.user_id, { status: event.target.value as AttendanceStatus })} className="rounded border border-gray-300 px-3 py-2 text-sm"><option value="">Select status</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></td><td className="px-5 py-3"><input value={employee.note || ''} onChange={event => updateEmployee(employee.user_id, { note: event.target.value })} placeholder="Optional note" className="w-full min-w-48 rounded border border-gray-300 px-3 py-2 text-sm" /></td></tr>)}</tbody></table></div>
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white"><table className="w-full"><thead className="bg-gray-50"><tr><th className="px-5 py-3 text-left text-sm font-semibold">Employee</th><th className="px-5 py-3 text-left text-sm font-semibold">Role</th><th className="px-5 py-3 text-left text-sm font-semibold">Status</th><th className="px-5 py-3 text-left text-sm font-semibold">Note</th></tr></thead><tbody className="divide-y divide-gray-200">{loading ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">Loading employees...</td></tr> : employees.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">No employees found.</td></tr> : employees.map(employee => <tr key={employee.user_id}><td className="px-5 py-3"><div className="font-medium text-gray-900">{employee.name}</div><div className="text-xs text-gray-500">{employee.email}</div></td><td className="px-5 py-3 text-sm text-gray-600">{employee.role_name || 'Employee'}</td><td className="px-5 py-3"><select disabled={locked} value={employee.status || ''} onChange={event => updateEmployee(employee.user_id, { status: event.target.value as AttendanceStatus })} className="rounded border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100"><option value="">Select status</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></td><td className="px-5 py-3"><input disabled={locked} value={employee.note || ''} onChange={event => updateEmployee(employee.user_id, { note: event.target.value })} placeholder="Optional note" className="w-full min-w-48 rounded border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100" /></td></tr>)}</tbody></table></div>
       <section className="overflow-hidden border-2 border-sky-700 bg-white shadow-sm">
         <div className="flex flex-col gap-3 bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div><h2 className="text-2xl font-black tracking-tight text-blue-950">Attendance Sheet</h2><p className="text-sm font-medium text-blue-950/80">Daily attendance register</p></div>

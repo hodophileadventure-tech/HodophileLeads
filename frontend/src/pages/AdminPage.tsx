@@ -40,19 +40,21 @@ interface User {
   address?: string | null;
   bank_name?: string | null;
   account_number?: string | null;
+  working_days?: 'monday-friday' | 'monday-saturday' | null;
+  reporting_time?: string | null;
 }
 
 type EmployeeFormData = {
   email: string; name: string; password: string; roleId: string; nic: string;
   dateOfBirth: string; joiningDate: string; salary: string; designation: string;
   emergencyContactNumber: string; address: string;
-  bankName: string; accountNumber: string;
+  bankName: string; accountNumber: string; workingDays: string; reportingTime: string;
 };
 
 const emptyEmployeeForm: EmployeeFormData = {
   email: '', name: '', password: '', roleId: '', nic: '', dateOfBirth: '',
   joiningDate: '', salary: '', designation: '', emergencyContactNumber: '', address: '',
-  bankName: '', accountNumber: ''
+  bankName: '', accountNumber: '', workingDays: 'monday-friday', reportingTime: '09:00'
 };
 
 
@@ -336,7 +338,8 @@ function UserManagementTab() {
       joiningDate: user.joining_date?.slice(0, 10) || '', salary: user.salary?.toString() || '',
       designation: user.designation || '',
       emergencyContactNumber: user.emergency_contact_number || '', address: user.address || '',
-      bankName: user.bank_name || '', accountNumber: user.account_number || ''
+      bankName: user.bank_name || '', accountNumber: user.account_number || '',
+      workingDays: user.working_days || 'monday-friday', reportingTime: user.reporting_time?.slice(0, 5) || '09:00'
     });
     setShowCreateForm(true);
   }
@@ -475,6 +478,20 @@ function UserManagementTab() {
               />
             </div>
 
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Working Days</label>
+                <select value={formData.workingDays} onChange={(e) => setFormData({ ...formData, workingDays: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="monday-friday">Monday to Friday</option>
+                  <option value="monday-saturday">Monday to Saturday</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Reporting Time</label>
+                <input type="time" value={formData.reportingTime} onChange={(e) => setFormData({ ...formData, reportingTime: e.target.value })} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
@@ -514,6 +531,8 @@ function UserManagementTab() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Salary</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Bank Name</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Account Number</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Working Days</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Reporting Time</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
             </tr>
           </thead>
@@ -547,6 +566,8 @@ function UserManagementTab() {
                 <td className="px-6 py-4 text-sm text-gray-600">{user.salary == null ? '-' : Number(user.salary).toLocaleString()}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.bank_name || '-'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{user.account_number || '-'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.working_days === 'monday-saturday' ? 'Monday to Saturday' : 'Monday to Friday'}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{user.reporting_time?.slice(0, 5) || '-'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(user.created_at).toLocaleDateString()}
                 </td>

@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_url VARCHAR(500),
   last_login_at TIMESTAMP,
   last_logout_at TIMESTAMP,
+  working_days VARCHAR(20) NOT NULL DEFAULT 'monday-friday',
+  reporting_time TIME NOT NULL DEFAULT '09:00',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_role CHECK (role IN ('admin', 'agent', 'manager'))

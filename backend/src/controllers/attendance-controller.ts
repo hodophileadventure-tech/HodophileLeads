@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { query } from '../utils/database';
+import { getClient, query } from '../utils/database';
 
 interface AttendanceRequest extends Request {
   user?: { id: string };
@@ -38,7 +38,8 @@ export async function getAttendance(req: AttendanceRequest, res: Response, next:
       [date]
     );
 
-    res.json({ success: true, date, employees: result.rows });
+    const lock = await query('SELECT locked_at FROM attendance_sheets WHERE attendance_date = $1::date', [date]);
+    res.json({ success: true, date, locked: lock.rows.length > 0, employees: result.rows });
   } catch (error) {
     next(error);
   }
@@ -81,6 +82,7 @@ export async function getMonthlyAttendance(req: AttendanceRequest, res: Response
 }
 
 export async function saveAttendance(req: AttendanceRequest, res: Response, next: NextFunction) {
+  let client: Awaited<ReturnType<typeof getClient>> | null = null;
   try {
     const { date, records } = req.body || {};
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) || !Array.isArray(records)) {
@@ -91,7 +93,24 @@ export async function saveAttendance(req: AttendanceRequest, res: Response, next
       if (!record?.userId || !STATUSES.has(record.status)) {
         return res.status(400).json({ error: 'Each record needs a userId and valid status' });
       }
-      await query(
+    }
+
+    client = await getClient();
+    await client.query('BEGIN');
+    const lockResult = await client.query(
+      `INSERT INTO attendance_sheets (attendance_date, locked_by)
+       VALUES ($1::date, $2)
+       ON CONFLICT (attendance_date) DO NOTHING
+       RETURNING attendance_date`,
+      [date, req.user?.id]
+    );
+    if (lockResult.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'This attendance sheet has already been saved and locked.' });
+    }
+
+    for (const record of records) {
+      await client.query(
         `INSERT INTO attendance (user_id, attendance_date, status, note, marked_by)
          VALUES ($1, $2::date, $3, $4, $5)
          ON CONFLICT (user_id, attendance_date)
@@ -103,9 +122,16 @@ export async function saveAttendance(req: AttendanceRequest, res: Response, next
       );
     }
 
+    await client.query('COMMIT');
+
     res.json({ success: true, message: 'Attendance saved successfully' });
   } catch (error) {
+    if (client) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
+    }
     next(error);
+  } finally {
+    client?.release();
   }
 }
 

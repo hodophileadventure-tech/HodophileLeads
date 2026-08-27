@@ -5,6 +5,25 @@ import { query } from '../utils/database';
 import { authLoginSchema, authRegisterSchema, validatePayload } from '../utils/validation';
 import crypto from 'crypto';
 
+async function markLoginAttendance(userId: string, role: string) {
+  if (role === 'admin') return;
+
+  await query(
+    `INSERT INTO attendance (user_id, attendance_date, status, marked_by)
+     SELECT u.id, CURRENT_DATE,
+            CASE WHEN LOCALTIME > u.reporting_time THEN 'late' ELSE 'present' END,
+            u.id
+     FROM users u
+     WHERE u.id = $1
+       AND (u.working_days = 'monday-saturday' OR EXTRACT(ISODOW FROM CURRENT_DATE) BETWEEN 1 AND 5)
+       AND NOT EXISTS (
+         SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = CURRENT_DATE
+       )
+     ON CONFLICT (user_id, attendance_date) DO NOTHING`,
+    [userId]
+  );
+}
+
 export const authController = {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
@@ -75,6 +94,12 @@ export const authController = {
         email: user.email,
         role: authenticatedRole
       }, tokenExpiry);
+
+      try {
+        await markLoginAttendance(user.id, authenticatedRole);
+      } catch (attendanceError) {
+        console.error('[AUTH] Could not mark login attendance', { userId: user.id, attendanceError });
+      }
 
       res.json({
         token,
