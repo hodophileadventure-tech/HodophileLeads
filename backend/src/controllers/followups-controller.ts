@@ -9,7 +9,8 @@ import { logActivity } from '../utils/activity-log';
 
 const ensureLeadAccess = (lead: any, user: any) => {
   if (!lead) return false;
-  if (user.role === 'admin' || user.role === 'manager') return true;
+  const role = String(user?.role || '').toLowerCase().replace(/\s+/g, '_');
+  if (role === 'admin' || role === 'manager' || role === 'qa' || role === 'quality_assurance') return true;
   return String(lead.agentId) === String(user.id);
 };
 
@@ -30,7 +31,8 @@ export const followUpsController = {
         return res.json(rows);
       }
 
-      const rows = req.user.role === 'admin' || req.user.role === 'manager'
+      const role = String(req.user.role || '').toLowerCase().replace(/\s+/g, '_');
+      const rows = role === 'admin' || role === 'manager' || role === 'qa' || role === 'quality_assurance'
         ? await followUpsModel.findAll(status ? String(status) : undefined)
         : await followUpsModel.findAllByAssignee(req.user.id, status ? String(status) : undefined);
       
