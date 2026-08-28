@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, AlertCircle, ArrowRight, Bell, CheckCircle2, CircleDollarSign, Flame, RefreshCw, Users } from 'lucide-react';
-import { dashboardAPI } from '../utils/api-service';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { dashboardAPI, followUpsAPI, leadsAPI } from '../utils/api-service';
 import { formatCurrency } from '../utils/helpers';
 import { Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
 import { useDataStore } from '../context/store';
+import { normalizeFollowUp } from '../utils/followup-utils';
 
 interface DashboardProps { onNavigate?: (page: 'leads' | 'followups' | 'analytics') => void; }
 interface DashboardStats { totalLeads?: number; hotLeads?: number; totalConfirmed?: number; bookingsThisMonth?: number; totalRevenue?: number; pendingPayments?: number; monthlyTarget?: number; monthlyTargetProgress?: number; }
@@ -22,7 +24,7 @@ const formatUpdated = (date: Date) => date.toLocaleTimeString('en-PK', { hour: '
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const { leads, followUps } = useDataStore();
+  const { leads, followUps, setLeads, setFollowUps } = useDataStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pipeline, setPipeline] = useState<PipelineRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   const fetchDashboard = async (showLoader = false) => {
     if (showLoader) setRefreshing(true);
-    const [statsResult, pipelineResult] = await Promise.allSettled([dashboardAPI.getStats(), dashboardAPI.getPipeline()]);
+    const [statsResult, pipelineResult, leadsResult, followUpsResult] = await Promise.allSettled([
+      dashboardAPI.getStats(), dashboardAPI.getPipeline(), leadsAPI.list(100, undefined, 0), followUpsAPI.list()
+    ]);
     if (statsResult.status === 'fulfilled') setStats(statsResult.value.data || {});
     if (pipelineResult.status === 'fulfilled') setPipeline(Array.isArray(pipelineResult.value.data) ? pipelineResult.value.data : []);
-    if (statsResult.status === 'rejected' && pipelineResult.status === 'rejected') setError('Dashboard data is temporarily unavailable.');
+    if (leadsResult.status === 'fulfilled') setLeads(leadsResult.value.data || []);
+    if (followUpsResult.status === 'fulfilled') setFollowUps((followUpsResult.value.data || []).map(normalizeFollowUp));
+    if (statsResult.status === 'rejected' && pipelineResult.status === 'rejected' && leadsResult.status === 'rejected' && followUpsResult.status === 'rejected') setError('Dashboard data is temporarily unavailable.');
     else { setError(''); setLastUpdated(new Date()); }
     setLoading(false);
     setRefreshing(false);
@@ -47,7 +53,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     const interval = window.setInterval(refresh, 30000);
     window.addEventListener('dashboard-refresh', refresh);
     return () => { window.clearInterval(interval); window.removeEventListener('dashboard-refresh', refresh); };
-  }, []);
+  }, [setFollowUps, setLeads]);
 
   const followUpCounts = useMemo(() => {
     const todayKey = new Date().toDateString();
@@ -69,6 +75,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   }, [pipeline]);
 
   const hotWithoutFollowUp = useMemo(() => leads.filter((lead) => lead.temperature === 'hot' && !followUps.some((item) => String(item.leadId) === String(lead.id) && item.status !== 'completed' && item.status !== 'canceled')).length, [leads, followUps]);
+  const trendData = useMemo(() => {
+    const days = Array.from({ length: 14 }, (_, index) => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - (13 - index));
+      return { key: date.toISOString().slice(0, 10), label: date.toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }), leads: 0, followUps: 0 };
+    });
+    const byDate = new Map(days.map((day) => [day.key, day]));
+    leads.forEach((lead) => {
+      const date = new Date(lead.createdAt);
+      if (Number.isNaN(date.getTime())) return;
+      const key = date.toISOString().slice(0, 10);
+      const day = byDate.get(key);
+      if (day) day.leads += 1;
+    });
+    followUps.forEach((item) => {
+      const date = new Date(item.createdAt);
+      if (Number.isNaN(date.getTime())) return;
+      const key = date.toISOString().slice(0, 10);
+      const day = byDate.get(key);
+      if (day) day.followUps += 1;
+    });
+    return days;
+  }, [leads, followUps]);
   const kpis = [
     { label: 'Total leads', value: stats?.totalLeads || 0, detail: 'Current portfolio', icon: Users, action: 'leads' as const },
     { label: 'Hot leads', value: stats?.hotLeads || 0, detail: 'Priority conversations', icon: Flame, action: 'leads' as const },
@@ -94,6 +124,39 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         <div className="dashboard-section dashboard-priority"><div className="flex items-start justify-between gap-4"><div><p className="section-eyebrow">Action center</p><h2 className="section-title">What needs attention</h2></div><AlertCircle size={18} className="text-amber-600" /></div><div className="mt-3 divide-y divide-amber-200/70"><button type="button" onClick={() => onNavigate?.('followups')} className="dashboard-action-row"><span><strong>{followUpCounts.overdue}</strong> overdue follow-ups</span><ArrowRight size={15} /></button><button type="button" onClick={() => onNavigate?.('followups')} className="dashboard-action-row"><span><strong>{followUpCounts.today}</strong> follow-ups due today</span><ArrowRight size={15} /></button><button type="button" onClick={() => onNavigate?.('leads')} className="dashboard-action-row"><span><strong>{hotWithoutFollowUp}</strong> hot leads without follow-up</span><ArrowRight size={15} /></button><div className="dashboard-action-row"><span><strong>{stats?.pendingPayments || 0}</strong> payments pending</span><Activity size={15} /></div></div></div>
       </section>
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3"><div className="dashboard-section lg:col-span-2"><div className="flex items-start justify-between gap-4"><div><p className="section-eyebrow">Revenue target</p><h2 className="section-title">Confirmed revenue progress</h2></div><span className="text-xs font-semibold text-slate-500">Current snapshot</span></div><div className="mt-6 flex items-end justify-between gap-4"><div><p className="font-display text-3xl font-bold text-[var(--text)]">{formatCurrency(stats?.totalRevenue || 0)}</p><p className="mt-1 text-xs text-slate-500">of {formatCurrency(stats?.monthlyTarget || 0)} target</p></div><span className="font-display text-xl font-bold text-amber-600">{stats?.monthlyTargetProgress || 0}%</span></div><div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-amber-400 transition-all duration-700" style={{ width: `${Math.min(100, stats?.monthlyTargetProgress || 0)}%` }} /></div><p className="mt-3 text-xs text-slate-500">Historical revenue trend is not exposed by the current dashboard API.</p></div><div className="dashboard-section"><p className="section-eyebrow">Operational health</p><h2 className="section-title">Follow-up performance</h2><div className="mt-6 grid grid-cols-2 gap-4"><div><p className="font-display text-2xl font-bold text-rose-600">{followUpCounts.overdue}</p><p className="text-xs text-slate-500">Overdue</p></div><div><p className="font-display text-2xl font-bold text-amber-600">{followUpCounts.today}</p><p className="text-xs text-slate-500">Due today</p></div></div><button type="button" onClick={() => onNavigate?.('followups')} className="mt-6 flex items-center gap-2 text-xs font-bold text-amber-700 hover:text-amber-800">Open follow-ups <ArrowRight size={14} /></button></div></section>
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_.65fr]">
+        <div className="dashboard-section">
+          <div className="flex items-start justify-between gap-4"><div><p className="section-eyebrow">Live activity trend</p><h2 className="section-title">Leads and follow-ups over 14 days</h2></div><span className="text-xs font-semibold text-slate-500">Auto-refreshing</span></div>
+          <div className="mt-5 h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                <defs><linearGradient id="leadTrendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FCC000" stopOpacity={0.32} /><stop offset="100%" stopColor="#FCC000" stopOpacity={0.03} /></linearGradient></defs>
+                <CartesianGrid vertical={false} stroke="#e9eef1" strokeDasharray="3 3" />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#7b8790' }} tickLine={false} axisLine={false} interval={2} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#7b8790' }} tickLine={false} axisLine={false} width={28} />
+                <Tooltip contentStyle={{ border: '1px solid #dce3e8', borderRadius: 6, fontSize: 12 }} labelStyle={{ fontWeight: 700, color: '#17212b' }} />
+                <Area type="monotone" dataKey="leads" name="Leads created" stroke="#d49a00" strokeWidth={2.5} fill="url(#leadTrendFill)" animationDuration={650} />
+                <Area type="monotone" dataKey="followUps" name="Follow-ups created" stroke="#45525e" strokeWidth={1.8} fill="none" animationDuration={650} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">Based on records currently available to your workspace. Historical revenue is not exposed by the current API.</p>
+        </div>
+        <div className="dashboard-section">
+          <div><p className="section-eyebrow">Workload trend</p><h2 className="section-title">Follow-ups created</h2></div>
+          <div className="mt-5 h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={trendData} margin={{ top: 8, right: 0, left: -24, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="#e9eef1" strokeDasharray="3 3" />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#7b8790' }} tickLine={false} axisLine={false} interval={3} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: '#7b8790' }} tickLine={false} axisLine={false} width={28} />
+                <Tooltip cursor={{ fill: '#fff8df' }} contentStyle={{ border: '1px solid #dce3e8', borderRadius: 6, fontSize: 12 }} />
+                <Bar dataKey="followUps" name="Follow-ups" fill="#45525e" radius={[3, 3, 0, 0]} animationDuration={650} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
