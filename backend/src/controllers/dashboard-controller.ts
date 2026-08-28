@@ -17,9 +17,17 @@ export const calculateMonthlyTargetProgress = (achievedAmount: number | string, 
   };
 };
 
-export const canAccessAdminLikeAnalytics = (role?: string) => role === 'admin' || role === 'manager';
+const normalizeDashboardRole = (role?: string) => {
+  const normalizedRole = String(role || '').toLowerCase().replace(/\s+/g, '_');
+  return normalizedRole === 'quality_assurance' ? 'qa' : normalizedRole;
+};
 
-export const canAccessOwnAnalytics = (role?: string) => role === 'agent';
+export const canAccessAdminLikeAnalytics = (role?: string) => {
+  const normalizedRole = normalizeDashboardRole(role);
+  return normalizedRole === 'admin' || normalizedRole === 'manager' || normalizedRole === 'qa';
+};
+
+export const canAccessOwnAnalytics = (role?: string) => normalizeDashboardRole(role) === 'agent';
 
 export const getLeadScopeAgentId = (role?: string, userId?: string) => {
   return role === 'agent' ? userId : undefined;

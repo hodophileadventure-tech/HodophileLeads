@@ -4,6 +4,8 @@ describe('dashboard access helpers', () => {
   it('allows admins and managers to view admin-style analytics, while agents stay self-scoped', () => {
     expect(canAccessAdminLikeAnalytics('admin')).toBe(true);
     expect(canAccessAdminLikeAnalytics('manager')).toBe(true);
+    expect(canAccessAdminLikeAnalytics('qa')).toBe(true);
+    expect(canAccessAdminLikeAnalytics('quality_assurance')).toBe(true);
     expect(canAccessAdminLikeAnalytics('agent')).toBe(false);
     expect(canAccessOwnAnalytics('agent')).toBe(true);
   });
