@@ -8,6 +8,7 @@ interface StatCard {
   label: string;
   value: string | number;
   color: string;
+  detail: string;
 }
 
 type BreakdownKey = 'weekly' | 'fortnightly' | 'tenDay';
@@ -115,29 +116,43 @@ export const Dashboard: React.FC = () => {
     {
       label: 'Total Leads',
       value: stats.totalLeads || 0,
-      color: 'bg-blue-100 dark:bg-blue-900'
+      color: 'bg-blue-100 dark:bg-blue-900',
+      detail: 'Across your active pipeline'
     },
     {
       label: 'Hot Leads',
       value: stats.hotLeads || 0,
-      color: 'bg-red-100 dark:bg-red-900'
+      color: 'bg-red-100 dark:bg-red-900',
+      detail: 'Need a timely response'
     },
     {
       label: 'Confirmed Leads',
       // Show total confirmed leads (align with Leads view)
       value: stats.totalConfirmed || stats.bookingsThisMonth || 0,
-      color: 'bg-green-100 dark:bg-green-900'
+      color: 'bg-green-100 dark:bg-green-900',
+      detail: 'Bookings secured'
     },
     {
       label: 'Total Revenue',
       value: formatCurrency(stats.totalRevenue || 0),
-      color: 'bg-purple-100 dark:bg-purple-900'
+      color: 'bg-purple-100 dark:bg-purple-900',
+      detail: 'Confirmed booking value'
     }
   ];
 
   return (
     <div className="space-y-6 px-4 md:px-6 lg:px-8">
-      <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+      <div className="dashboard-hero rounded-2xl p-6 md:p-8">
+        <div className="relative z-10 max-w-2xl">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-200">Sales command center</p>
+          <h1 className="text-3xl font-black md:text-4xl">Good work, {user?.name?.split(' ')[0] || 'team'}.</h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-100">Your pipeline, follow-ups, and revenue momentum are all in view. Keep the next best conversation moving.</p>
+          <div className="mt-5 flex flex-wrap gap-3 text-xs font-semibold">
+            <span className="rounded-full bg-white/15 px-3 py-2 text-white">{stats.totalLeads || 0} active leads</span>
+            <span className="rounded-full bg-emerald-400/20 px-3 py-2 text-emerald-100">{paceStatus}</span>
+          </div>
+        </div>
+      </div>
 
       {birthdayAge !== null && (
         <Card className="border border-amber-200 bg-amber-50 shadow-sm">
@@ -146,16 +161,57 @@ export const Dashboard: React.FC = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statCards.map((stat) => (
-          <Card key={stat.label} className={`${stat.color} shadow-sm`}>
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1 truncate">
+          <Card key={stat.label} className={`stat-tile ${stat.color} shadow-sm`}>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-2 truncate">
               {stat.label}
             </p>
             <p className="text-2xl md:text-3xl font-bold truncate">{stat.value}</p>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{stat.detail}</p>
           </Card>
         ))}
       </div>
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_.7fr]">
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-white shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-300">Requires attention</p>
+              <h2 className="mt-2 text-xl font-bold text-white">Keep the next conversation moving</h2>
+            </div>
+            <span className="rounded-md bg-white/10 px-2.5 py-1 text-xs font-semibold text-slate-300">Live signals</span>
+          </div>
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+            <div className="border-l-2 border-rose-400 pl-3">
+              <p className="text-2xl font-bold text-white">{stats.hotLeads || 0}</p>
+              <p className="text-xs text-slate-400">Hot leads</p>
+            </div>
+            <div className="border-l-2 border-amber-400 pl-3">
+              <p className="text-2xl font-bold text-white">{stats.overdueTasks || 0}</p>
+              <p className="text-xs text-slate-400">Overdue follow-ups</p>
+            </div>
+            <div className="border-l-2 border-sky-400 pl-3">
+              <p className="text-2xl font-bold text-white">{stats.pendingPayments || 0}</p>
+              <p className="text-xs text-slate-400">Pending payments</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">Pipeline pulse</p>
+          <div className="mt-4 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-3xl font-bold text-[var(--text)]">{stats.negotiationLeads || 0}</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">Leads in negotiation</p>
+            </div>
+            <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{paceStatus}</span>
+          </div>
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-amber-400 transition-all duration-500" style={{ width: `${Math.max(8, Math.min(100, monthlyTargetProgress))}%` }} />
+          </div>
+          <p className="mt-2 text-xs text-slate-500">{monthlyTargetProgress}% of monthly target achieved</p>
+        </div>
+      </section>
 
       <Card className="bg-white dark:bg-slate-900 shadow-md rounded-3xl p-8 min-h-[30rem] lg:min-h-[32rem]">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">

@@ -9,25 +9,42 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ navItems, currentPath, onNavigate }) => {
   const { sidebarOpen, toggleSidebar } = useUIStore();
+  const [collapsed, setCollapsed] = React.useState(false);
 
   return (
     <>
       {/* Mobile toggle */}
       <button
         onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg"
-        style={{ background: 'var(--brand)', color: '#000' }}
+        className="fixed left-4 top-4 z-50 rounded-md bg-[var(--brand)] p-2 text-[var(--sidebar)] shadow-sm md:hidden"
+        aria-label="Open navigation"
       >
-        ☰
+        <span aria-hidden="true">☰</span>
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 bg-[var(--surface)] border-r transform transition-transform ${
+        className={`app-sidebar fixed inset-y-0 left-0 border-r transform transition-all duration-200 ${collapsed ? 'sidebar-collapsed' : ''} ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } md:relative md:translate-x-0 z-40 mt-16 md:mt-0`}
       >
-        <nav className="p-4 space-y-2">
+        <div className="sidebar-brand">
+          <span className="sidebar-mark">TN</span>
+          <div>
+            <p className="sidebar-title">TripNexus</p>
+            <p className="sidebar-caption">Lead operations</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCollapsed((value) => !value)}
+            className="sidebar-collapse-button ml-auto hidden rounded-md p-2 text-slate-300 hover:bg-white/10 md:block"
+            aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+            title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+          >
+            <span aria-hidden="true">{collapsed ? '›' : '‹'}</span>
+          </button>
+        </div>
+        <nav className="space-y-1 py-4" aria-label="Primary navigation">
           {navItems.map((item) => (
             <button
               key={item.href}
@@ -35,14 +52,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ navItems, currentPath, onNavig
                 onNavigate(item.href);
                 if (window.innerWidth < 768) toggleSidebar();
               }}
-              className={`w-full text-left rounded-lg transition-colors ${
+              className={`sidebar-nav-item w-full text-left rounded-lg transition-colors ${
                 currentPath === item.href
                   ? 'nav-item-active'
                   : 'nav-btn'
               }`}
             >
-              <span className="mr-3">{item.icon}</span>
-              <span style={{color: '#000'}}>{item.label}</span>
+              <span className="sidebar-nav-icon" aria-hidden="true">{item.icon}</span>
+              <span className="sidebar-nav-label">{item.label}</span>
             </button>
           ))}
         </nav>

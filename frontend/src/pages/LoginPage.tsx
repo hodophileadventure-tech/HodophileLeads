@@ -26,23 +26,39 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-500 to-primary-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-center mb-2 text-primary-500">TRIPNEXUS</h1>
-          <p className="text-center text-slate-600 dark:text-slate-400 mb-8">
-            Travel Agency Lead Management
-          </p>
+    <div className="login-page flex min-h-screen items-center justify-center p-5 sm:p-8">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-xl border border-white/10 bg-white shadow-2xl lg:grid-cols-[1.05fr_.95fr]">
+        <div className="login-intro hidden flex-col justify-between bg-[#17232d] p-10 text-white lg:flex">
+          <div>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-md bg-amber-400 font-extrabold text-[#17232d]">TN</span>
+              <span className="font-display text-sm font-extrabold tracking-[.18em] text-white">TRIPNEXUS</span>
+            </div>
+            <p className="mt-20 max-w-sm font-display text-4xl font-bold leading-tight text-white">Every journey starts with a better conversation.</p>
+            <p className="mt-5 max-w-sm text-sm leading-6 text-slate-300">A focused workspace for turning travel enquiries into memorable experiences.</p>
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-[.16em] text-slate-400">Travel operations platform</p>
+        </div>
+        <div className="p-7 sm:p-10">
+          <div className="mb-9 lg:hidden">
+            <p className="font-display text-xl font-extrabold tracking-[.12em] text-slate-900">TRIPNEXUS</p>
+            <p className="mt-1 text-sm text-slate-500">Travel operations platform</p>
+          </div>
+          <div className="mb-8">
+            <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-600">Welcome back</p>
+            <h1 className="mt-2 text-3xl font-bold text-slate-900">Sign in to your workspace</h1>
+            <p className="mt-2 text-sm text-slate-500">Manage leads, follow-ups, and bookings in one place.</p>
+          </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded">
+            <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">Email address</label>
               <input
                 type="email"
                 value={email}
@@ -54,7 +70,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
               <input
                 type="password"
                 value={password}
