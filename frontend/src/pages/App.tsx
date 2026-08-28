@@ -4,7 +4,7 @@ import { useUIStore, useDataStore } from '../context/store';
 import { leadsAPI, followUpsAPI, quoteRequestsAPI, adminAPI } from '../utils/api-service';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
-import { Dashboard } from '../components/Dashboard';
+import { Dashboard } from '../components/Dashboard.tsx';
 import AgentPanel from '../components/AgentPanel';
 import CreatedQuotesPanel from '../components/CreatedQuotesPanel';
 import ReportIssuePage from './ReportIssuePage';
@@ -630,7 +630,7 @@ export const App: React.FC = () => {
                           </p>
                         </div>
                       )}
-                      <Dashboard />
+                      <Dashboard onNavigate={(page: 'leads' | 'followups' | 'analytics') => setCurrentPage(page)} />
                     </section>
                     {(isAdminLike || user?.role === 'manager') && (
                       <section>

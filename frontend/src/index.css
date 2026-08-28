@@ -422,6 +422,89 @@ h1, h2, h3, h4, h5, h6 {
   padding: 2rem clamp(1rem, 3vw, 3rem) 4rem !important;
 }
 
+.dashboard-skeleton {
+  display: grid;
+  min-height: 28rem;
+  place-items: center;
+}
+.dashboard-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  border: 1px solid #bde7ca;
+  border-radius: .4rem;
+  background: #f1fbf4;
+  color: #24713b;
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .35rem .55rem;
+}
+.dashboard-live-dot {
+  width: .4rem;
+  height: .4rem;
+  border-radius: 50%;
+  background: #2faa55;
+  box-shadow: 0 0 0 3px rgba(47,170,85,.12);
+  animation: livePulse 2s ease-in-out infinite;
+}
+.dashboard-kpi {
+  min-height: 9.5rem;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  background: var(--surface);
+  padding: 1rem;
+  box-shadow: 0 3px 12px rgba(23,33,43,.035);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.dashboard-kpi:hover {
+  border-color: #eac45b;
+  box-shadow: 0 8px 22px rgba(23,33,43,.08);
+  transform: translateY(-2px);
+}
+.dashboard-kpi-icon {
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  place-items: center;
+  border-radius: .55rem;
+  background: #fff5c9;
+  color: #8a6500;
+}
+.dashboard-section {
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  background: var(--surface);
+  padding: 1.25rem;
+  box-shadow: 0 3px 12px rgba(23,33,43,.035);
+}
+.dashboard-priority { border-color: #f0d889; background: #fffaf0; }
+.section-eyebrow {
+  color: var(--muted) !important;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.section-title { margin-top: .35rem; font-size: 1.08rem; font-weight: 750; }
+.dashboard-action-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .8rem 0;
+  color: var(--text-soft);
+  font-size: .84rem;
+  text-align: left;
+  transition: color 160ms ease, padding-left 160ms ease;
+}
+.dashboard-action-row:hover { padding-left: .25rem; color: var(--text); }
+.dashboard-action-row strong { color: var(--text); font-family: 'Manrope', sans-serif; }
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .45; }
+}
+
 .app-sidebar {
   width: 15.5rem !important;
   background: var(--surface) !important;

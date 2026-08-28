@@ -1,390 +1,99 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Activity, AlertCircle, ArrowRight, Bell, CheckCircle2, CircleDollarSign, Flame, RefreshCw, Users } from 'lucide-react';
 import { dashboardAPI } from '../utils/api-service';
-import { formatCurrency, getHealthScoreColor, getLeadLifecycleState } from '../utils/helpers';
-import { Card, Spinner } from './common';
+import { formatCurrency } from '../utils/helpers';
+import { Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
 import { useDataStore } from '../context/store';
 
-interface StatCard {
-  label: string;
-  value: string | number;
-  color: string;
-  detail: string;
-}
+interface DashboardProps { onNavigate?: (page: 'leads' | 'followups' | 'analytics') => void; }
+interface DashboardStats { totalLeads?: number; hotLeads?: number; totalConfirmed?: number; bookingsThisMonth?: number; totalRevenue?: number; pendingPayments?: number; monthlyTarget?: number; monthlyTargetProgress?: number; }
+interface PipelineRow { status?: string; count?: number | string; }
 
-type BreakdownKey = 'weekly' | 'fortnightly' | 'tenDay';
-
-const breakdownOptions: Array<{ key: BreakdownKey; label: string; segments: number; unit: string }> = [
-  { key: 'weekly', label: 'Weekly', segments: 4, unit: 'Week' },
-  { key: 'fortnightly', label: 'Fortnightly', segments: 2, unit: 'Fortnight' },
-  { key: 'tenDay', label: '10 Days', segments: 3, unit: '10-day block' }
+const statusGroups = [
+  { label: 'New', statuses: ['new'], tone: 'bg-sky-500' },
+  { label: 'Contacted', statuses: ['contacted'], tone: 'bg-cyan-500' },
+  { label: 'Follow-up', statuses: ['interested', 'negotiation'], tone: 'bg-amber-400' },
+  { label: 'Confirmed', statuses: ['booked', 'completed'], tone: 'bg-emerald-500' },
+  { label: 'Cancelled', statuses: ['canceled'], tone: 'bg-rose-500' }
 ];
 
-const getBreakdownSegments = (target: number, segments: number, achieved: number) => {
-  const baseTarget = Math.ceil(target / segments);
-  const remainder = target % segments;
-  return Array.from({ length: segments }, (_, index) => {
-    const segmentTarget = baseTarget + (index < remainder ? 1 : 0);
-    const segmentStart = index * baseTarget + Math.min(index, remainder);
-    const segmentAchieved = Math.max(0, Math.min(segmentTarget, achieved - segmentStart));
-    return {
-      label: segments === 4 ? `Week ${index + 1}` : segments === 2 ? `Half ${index + 1}` : `Block ${index + 1}`,
-      target: segmentTarget,
-      achieved: segmentAchieved,
-      remaining: Math.max(0, segmentTarget - segmentAchieved)
-    };
-  });
-};
+const formatUpdated = (date: Date) => date.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
 
-export const Dashboard: React.FC = () => {
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { leads, followUps } = useDataStore();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [pipeline, setPipeline] = useState<PipelineRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBreakdown, setSelectedBreakdown] = useState<BreakdownKey>('weekly');
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await dashboardAPI.getStats();
-        setStats(response.data);
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const handleRefresh = () => {
-      setLoading(true);
-      fetchStats();
-    };
-
-    window.addEventListener('dashboard-refresh', handleRefresh);
-    fetchStats();
-
-    return () => {
-      window.removeEventListener('dashboard-refresh', handleRefresh);
-    };
-  }, []);
-
-  const monthlyTarget = Number(stats?.monthlyTarget || 5_000_000);
-  const monthlyTargetAchieved = Number(stats?.monthlyTargetAchieved || stats?.totalRevenue || 0);
-  const monthlyTargetProgress = Number(stats?.monthlyTargetProgress || 0);
-  const monthlyTargetRemaining = Number(stats?.monthlyTargetRemaining || Math.max(0, monthlyTarget - monthlyTargetAchieved));
-
-  const today = new Date();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const daysElapsed = Math.min(today.getDate(), daysInMonth);
-  const dailyTarget = monthlyTarget / daysInMonth;
-  const currentPace = monthlyTargetAchieved / Math.max(1, daysElapsed);
-  const paceStatus = currentPace >= dailyTarget ? 'On track' : 'Needs more pace';
-
-  const followUpCounts = useMemo(() => {
-    const now = Date.now();
-    return followUps.reduce((counts, item) => {
-      if (item.status === 'completed' || item.status === 'canceled') return counts;
-      const dueAt = new Date(item.dueDate).getTime();
-      if (!Number.isNaN(dueAt) && dueAt < now) counts.overdue += 1;
-      else if (!Number.isNaN(dueAt) && new Date(item.dueDate).toDateString() === new Date().toDateString()) counts.today += 1;
-      else counts.upcoming += 1;
-      return counts;
-    }, { overdue: 0, today: 0, upcoming: 0 });
-  }, [followUps]);
-
-  const pipelineStages = useMemo(() => {
-    const stages = [
-      { label: 'New leads', state: 'new', tone: 'bg-sky-500' },
-      { label: 'In progress', state: 'in_progress', tone: 'bg-amber-400' },
-      { label: 'Confirmed', state: 'confirmed', tone: 'bg-emerald-500' },
-      { label: 'Cancelled', state: 'cancelled', tone: 'bg-rose-500' }
-    ];
-    return stages.map((stage) => ({
-      ...stage,
-      count: leads.filter((lead) => getLeadLifecycleState(lead) === stage.state).length
-    }));
-  }, [leads]);
-
-  const birthdayAge = (() => {
-    if (user?.role === 'admin' || !user?.date_of_birth) return null;
-    const birthDate = new Date(user.date_of_birth);
-    const now = new Date();
-    let age = now.getFullYear() - birthDate.getFullYear();
-    const birthdayPassed = now.getMonth() > birthDate.getMonth()
-      || (now.getMonth() === birthDate.getMonth() && now.getDate() >= birthDate.getDate());
-    if (!birthdayPassed) age -= 1;
-    return now.getMonth() === birthDate.getMonth() && now.getDate() === birthDate.getDate() ? age : null;
-  })();
-
-  const selectedBreakdownConfig = breakdownOptions.find((item) => item.key === selectedBreakdown) || breakdownOptions[0];
-  const breakdownSegments = useMemo(
-    () => getBreakdownSegments(monthlyTarget, selectedBreakdownConfig.segments, monthlyTargetAchieved),
-    [monthlyTarget, monthlyTargetAchieved, selectedBreakdownConfig.segments]
-  );
-
-  const piePercent = Math.min(100, Math.max(0, monthlyTargetProgress));
-  const pieStyle = {
-    background: `conic-gradient(#10b981 0deg ${piePercent * 3.6}deg, #e2e8f0 ${piePercent * 3.6}deg 360deg)`
+  const fetchDashboard = async (showLoader = false) => {
+    if (showLoader) setRefreshing(true);
+    const [statsResult, pipelineResult] = await Promise.allSettled([dashboardAPI.getStats(), dashboardAPI.getPipeline()]);
+    if (statsResult.status === 'fulfilled') setStats(statsResult.value.data || {});
+    if (pipelineResult.status === 'fulfilled') setPipeline(Array.isArray(pipelineResult.value.data) ? pipelineResult.value.data : []);
+    if (statsResult.status === 'rejected' && pipelineResult.status === 'rejected') setError('Dashboard data is temporarily unavailable.');
+    else { setError(''); setLastUpdated(new Date()); }
+    setLoading(false);
+    setRefreshing(false);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    void fetchDashboard();
+    const refresh = () => { if (document.visibilityState === 'visible') void fetchDashboard(); };
+    const interval = window.setInterval(refresh, 30000);
+    window.addEventListener('dashboard-refresh', refresh);
+    return () => { window.clearInterval(interval); window.removeEventListener('dashboard-refresh', refresh); };
+  }, []);
 
-  if (!stats) {
-    return <Card>Failed to load dashboard data</Card>;
-  }
+  const followUpCounts = useMemo(() => {
+    const todayKey = new Date().toDateString();
+    return followUps.reduce((result, item) => {
+      if (item.status === 'completed' || item.status === 'canceled') return result;
+      const due = new Date(item.dueDate);
+      if (Number.isNaN(due.getTime()) || due < new Date()) result.overdue += 1;
+      else if (due.toDateString() === todayKey) result.today += 1;
+      return result;
+    }, { today: 0, overdue: 0 });
+  }, [followUps]);
 
-  const statCards: StatCard[] = [
-    {
-      label: 'Total Leads',
-      value: stats.totalLeads || 0,
-      color: 'bg-blue-100 dark:bg-blue-900',
-      detail: 'Across your active pipeline'
-    },
-    {
-      label: 'Hot Leads',
-      value: stats.hotLeads || 0,
-      color: 'bg-red-100 dark:bg-red-900',
-      detail: 'Need a timely response'
-    },
-    {
-      label: 'Follow-ups Due',
-      value: followUpCounts.today + followUpCounts.overdue,
-      color: 'bg-amber-100 dark:bg-amber-900',
-      detail: `${followUpCounts.overdue} overdue`
-    },
-    {
-      label: 'Confirmed Bookings',
-      // Show total confirmed leads (align with Leads view)
-      value: stats.totalConfirmed || stats.bookingsThisMonth || 0,
-      color: 'bg-green-100 dark:bg-green-900',
-      detail: 'Bookings secured'
-    },
-    {
-      label: 'Total Revenue',
-      value: formatCurrency(stats.totalRevenue || 0),
-      color: 'bg-purple-100 dark:bg-purple-900',
-      detail: 'Confirmed booking value'
-    }
+  const pipelineSummary = useMemo(() => {
+    const total = pipeline.reduce((sum, row) => sum + Number(row.count || 0), 0);
+    return statusGroups.map((group) => {
+      const count = pipeline.filter((row) => group.statuses.includes(String(row.status || '').toLowerCase())).reduce((sum, row) => sum + Number(row.count || 0), 0);
+      return { ...group, count, percent: total ? Math.round((count / total) * 100) : 0 };
+    });
+  }, [pipeline]);
+
+  const hotWithoutFollowUp = useMemo(() => leads.filter((lead) => lead.temperature === 'hot' && !followUps.some((item) => String(item.leadId) === String(lead.id) && item.status !== 'completed' && item.status !== 'canceled')).length, [leads, followUps]);
+  const kpis = [
+    { label: 'Total leads', value: stats?.totalLeads || 0, detail: 'Current portfolio', icon: Users, action: 'leads' as const },
+    { label: 'Hot leads', value: stats?.hotLeads || 0, detail: 'Priority conversations', icon: Flame, action: 'leads' as const },
+    { label: 'Follow-ups due', value: followUpCounts.today + followUpCounts.overdue, detail: `${followUpCounts.overdue} overdue`, icon: Bell, action: 'followups' as const },
+    { label: 'Confirmed bookings', value: stats?.totalConfirmed || stats?.bookingsThisMonth || 0, detail: 'All confirmed', icon: CheckCircle2, action: 'analytics' as const },
+    { label: 'Confirmed revenue', value: formatCurrency(stats?.totalRevenue || 0), detail: 'From confirmed leads', icon: CircleDollarSign, action: 'analytics' as const }
   ];
 
+  if (loading) return <div className="dashboard-skeleton" aria-label="Loading dashboard"><Spinner size="lg" /></div>;
+
   return (
-    <div className="space-y-5">
-      <div className="dashboard-hero rounded-2xl p-6 md:p-8">
-        <div className="relative z-10 max-w-2xl">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-200">Sales command center</p>
-          <h1 className="text-3xl font-black md:text-4xl">Good work, {user?.name?.split(' ')[0] || 'team'}.</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-100">Here&apos;s what&apos;s happening with your leads and sales today.</p>
-          <div className="mt-5 flex flex-wrap gap-3 text-xs font-semibold">
-            <span className="rounded-full bg-white/15 px-3 py-2 text-white">{stats.totalLeads || 0} active leads</span>
-            <span className="rounded-full bg-emerald-400/20 px-3 py-2 text-emerald-100">{paceStatus}</span>
-          </div>
-        </div>
-      </div>
-
-      {birthdayAge !== null && (
-        <Card className="border border-amber-200 bg-amber-50 shadow-sm">
-          <h2 className="text-xl font-bold text-amber-900">Happy Birthday, {user?.name}!</h2>
-          <p className="mt-1 text-amber-800">Hodophile gives you many congratulations on your birthday. Congratulations, you have turned {birthdayAge}!</p>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {statCards.map((stat) => (
-          <Card key={stat.label} className={`stat-tile ${stat.color} shadow-sm`}>
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-2 truncate">
-              {stat.label}
-            </p>
-            <p className="text-2xl md:text-3xl font-bold truncate">{stat.value}</p>
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{stat.detail}</p>
-          </Card>
-        ))}
-      </div>
-
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_.75fr]">
-        <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">Sales pipeline overview</p>
-              <h2 className="mt-2 text-xl font-bold text-[var(--text)]">Where leads are moving today</h2>
-            </div>
-            <span className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">{leads.length} total</span>
-          </div>
-          <div className="mt-6 space-y-4">
-            {pipelineStages.map((stage) => {
-              const percent = leads.length ? Math.round((stage.count / leads.length) * 100) : 0;
-              return (
-                <div key={stage.state} className="grid grid-cols-[7rem_1fr_3rem] items-center gap-3 text-sm">
-                  <span className="font-medium text-slate-600">{stage.label}</span>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div className={`h-full rounded-full ${stage.tone} transition-all duration-500`} style={{ width: `${Math.max(stage.count ? 4 : 0, percent)}%` }} />
-                  </div>
-                  <span className="text-right text-xs font-bold text-slate-700">{stage.count}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-800">Today&apos;s priorities</p>
-          <div className="mt-4 divide-y divide-amber-200/70">
-            <div className="flex items-center justify-between gap-3 py-3">
-              <span className="text-sm font-medium text-slate-700">Follow-ups overdue</span>
-              <span className="font-display text-lg font-bold text-rose-600">{followUpCounts.overdue}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 py-3">
-              <span className="text-sm font-medium text-slate-700">Follow-ups due today</span>
-              <span className="font-display text-lg font-bold text-amber-700">{followUpCounts.today}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 py-3">
-              <span className="text-sm font-medium text-slate-700">Hot leads</span>
-              <span className="font-display text-lg font-bold text-rose-600">{stats.hotLeads || 0}</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 py-3">
-              <span className="text-sm font-medium text-slate-700">Payments pending</span>
-              <span className="font-display text-lg font-bold text-sky-700">{stats.pendingPayments || 0}</span>
-            </div>
-          </div>
-        </div>
+    <div className="dashboard-command-center space-y-5">
+      <header className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 lg:flex-row lg:items-end lg:justify-between">
+        <div><p className="text-xs font-bold uppercase tracking-[.16em] text-amber-600">Executive overview</p><h1 className="mt-1 text-3xl font-bold text-[var(--text)]">Dashboard</h1><p className="mt-1 text-sm text-[var(--muted)]">Sales and operations overview for {user?.name || 'your team'}.</p></div>
+        <div className="flex flex-wrap items-center gap-2"><span className="dashboard-live-status"><span className="dashboard-live-dot" /> Live</span><span className="text-xs text-slate-500">{lastUpdated ? `Updated ${formatUpdated(lastUpdated)}` : 'Updating...'}</span><button type="button" onClick={() => void fetchDashboard(true)} className="rounded-md border border-[var(--line)] bg-white p-2 text-slate-500 hover:bg-slate-50" title="Refresh dashboard" aria-label="Refresh dashboard"><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /></button></div>
+      </header>
+      {error && <div className="flex items-center justify-between gap-3 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"><span>{error}</span><button type="button" onClick={() => void fetchDashboard(true)} className="font-semibold underline">Retry</button></div>}
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5" aria-label="Key performance indicators">
+        {kpis.map(({ label, value, detail, icon: Icon, action }) => <button key={label} type="button" onClick={() => onNavigate?.(action)} className="dashboard-kpi text-left"><div className="flex items-start justify-between gap-3"><span className="dashboard-kpi-icon"><Icon size={17} /></span><ArrowRight size={14} className="text-slate-300" /></div><p className="mt-4 text-[.68rem] font-bold uppercase tracking-[.12em] text-slate-500">{label}</p><p className="mt-1 truncate font-display text-2xl font-bold text-[var(--text)]">{value}</p><p className="mt-1 text-xs text-slate-500">{detail}</p></button>)}
       </section>
-
-      <Card className="bg-white dark:bg-slate-900 shadow-md rounded-3xl p-8 min-h-[30rem] lg:min-h-[32rem]">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg md:text-xl font-bold">Monthly Target Tracker</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track confirmed revenue against the monthly goal.</p>
-          </div>
-          <div className="flex-shrink-0 flex gap-2">
-            {breakdownOptions.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => setSelectedBreakdown(item.key)}
-                className={`rounded-full px-3 py-1 text-sm font-medium ${selectedBreakdown === item.key ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-sm text-slate-500 dark:text-slate-400">Monthly target</p>
-                <p className="text-2xl md:text-3xl font-bold truncate">{formatCurrency(monthlyTargetAchieved)} <span className="text-base font-normal text-slate-500">/</span> {formatCurrency(monthlyTarget)}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-slate-500 dark:text-slate-400">Remaining</p>
-                <p className="text-xl md:text-2xl font-semibold text-amber-600">{formatCurrency(monthlyTargetRemaining)}</p>
-              </div>
-            </div>
-
-            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3">
-              <div className="h-3 rounded-full bg-emerald-500 transition-all" style={{ width: `${monthlyTargetProgress}%` }} />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-              <div className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800">
-                <p className="text-slate-500">Daily target</p>
-                <p className="font-semibold">{formatCurrency(dailyTarget)} / day</p>
-              </div>
-              <div className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800">
-                <p className="text-slate-500">Current pace</p>
-                <p className="font-semibold">{formatCurrency(currentPace)} / day</p>
-              </div>
-              <div className="rounded-lg border border-slate-100 dark:border-slate-700 p-3 bg-white dark:bg-slate-800">
-                <p className="text-slate-500">Status</p>
-                <p className={`font-semibold ${paceStatus === 'On track' ? 'text-emerald-600' : 'text-amber-600'}`}>{paceStatus}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row items-stretch gap-6">
-            <div className="flex items-center justify-center lg:w-1/3">
-              <div className="relative flex h-28 w-28 md:h-36 md:w-36 items-center justify-center rounded-full shadow-inner" style={pieStyle}>
-                <div className="flex h-20 w-20 md:h-28 md:w-28 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-center">
-                  <div>
-                    <p className="text-xs text-slate-500">Achieved</p>
-                    <p className="text-lg md:text-xl font-bold">{monthlyTargetProgress}%</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 space-y-3">
-              <p className="text-sm font-semibold">{selectedBreakdownConfig.label} breakdown</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {breakdownSegments.map((segment) => (
-                  <div key={segment.label} className="rounded-lg border border-slate-100 dark:border-slate-700 p-4 text-sm bg-white dark:bg-slate-800 min-h-[12rem]">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <p className="font-medium text-slate-900 dark:text-slate-100">{segment.label}</p>
-                        <p className="text-xs text-slate-500">Remaining</p>
-                        <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(segment.remaining)}</p>
-                      </div>
-                      <div className="space-y-3 text-sm text-slate-900 dark:text-slate-100">
-                        <div className="space-y-1">
-                          <p className="text-slate-500">Achieved</p>
-                          <p className="font-semibold">{formatCurrency(segment.achieved)}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-slate-500">Target</p>
-                          <p className="font-semibold">{formatCurrency(segment.target)}</p>
-                        </div>
-                      </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                        <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, Math.round((segment.achieved / Math.max(1, segment.target)) * 100))}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <h2 className="text-xl font-bold mb-4">Pipeline Health</h2>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span>Overall Score</span>
-              <span className={`inline-block w-4 h-4 rounded-full ${getHealthScoreColor(stats.pipelineHealth || 'green')}`} />
-            </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-              <div
-                className={`h-full rounded-full ${getHealthScoreColor(stats.pipelineHealth || 'green')}`}
-                style={{ width: '75%' }}
-              />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="text-xl font-bold mb-4">Quick Stats</h2>
-          <ul className="space-y-2 text-sm">
-            <li className="flex justify-between">
-              <span>Leads in Negotiation</span>
-              <span className="font-medium">{stats.negotiationLeads || 0}</span>
-            </li>
-            <li className="flex justify-between">
-              <span>Pending Payments</span>
-              <span className="font-medium">{stats.pendingPayments || 0}</span>
-            </li>
-            <li className="flex justify-between">
-              <span>Overdue Tasks</span>
-              <span className="font-medium text-red-500">{stats.overdueTasks || 0}</span>
-            </li>
-          </ul>
-        </Card>
-      </div>
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_.75fr]">
+        <div className="dashboard-section"><div className="flex items-start justify-between gap-4"><div><p className="section-eyebrow">Pipeline intelligence</p><h2 className="section-title">Where leads are moving</h2></div><span className="text-xs font-semibold text-slate-500">Live count</span></div><div className="mt-6 space-y-5">{pipelineSummary.map((stage) => <button key={stage.label} type="button" onClick={() => onNavigate?.('leads')} className="group grid w-full grid-cols-[6.5rem_1fr_2rem] items-center gap-3 text-left"><span className="text-sm font-medium text-slate-600 group-hover:text-slate-900">{stage.label}</span><span className="h-2 overflow-hidden rounded-full bg-slate-100"><span className={`block h-full rounded-full ${stage.tone} transition-all duration-500`} style={{ width: `${stage.percent}%` }} /></span><span className="text-right text-xs font-bold text-slate-700">{stage.count}</span></button>)}</div></div>
+        <div className="dashboard-section dashboard-priority"><div className="flex items-start justify-between gap-4"><div><p className="section-eyebrow">Action center</p><h2 className="section-title">What needs attention</h2></div><AlertCircle size={18} className="text-amber-600" /></div><div className="mt-3 divide-y divide-amber-200/70"><button type="button" onClick={() => onNavigate?.('followups')} className="dashboard-action-row"><span><strong>{followUpCounts.overdue}</strong> overdue follow-ups</span><ArrowRight size={15} /></button><button type="button" onClick={() => onNavigate?.('followups')} className="dashboard-action-row"><span><strong>{followUpCounts.today}</strong> follow-ups due today</span><ArrowRight size={15} /></button><button type="button" onClick={() => onNavigate?.('leads')} className="dashboard-action-row"><span><strong>{hotWithoutFollowUp}</strong> hot leads without follow-up</span><ArrowRight size={15} /></button><div className="dashboard-action-row"><span><strong>{stats?.pendingPayments || 0}</strong> payments pending</span><Activity size={15} /></div></div></div>
+      </section>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3"><div className="dashboard-section lg:col-span-2"><div className="flex items-start justify-between gap-4"><div><p className="section-eyebrow">Revenue target</p><h2 className="section-title">Confirmed revenue progress</h2></div><span className="text-xs font-semibold text-slate-500">Current snapshot</span></div><div className="mt-6 flex items-end justify-between gap-4"><div><p className="font-display text-3xl font-bold text-[var(--text)]">{formatCurrency(stats?.totalRevenue || 0)}</p><p className="mt-1 text-xs text-slate-500">of {formatCurrency(stats?.monthlyTarget || 0)} target</p></div><span className="font-display text-xl font-bold text-amber-600">{stats?.monthlyTargetProgress || 0}%</span></div><div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-amber-400 transition-all duration-700" style={{ width: `${Math.min(100, stats?.monthlyTargetProgress || 0)}%` }} /></div><p className="mt-3 text-xs text-slate-500">Historical revenue trend is not exposed by the current dashboard API.</p></div><div className="dashboard-section"><p className="section-eyebrow">Operational health</p><h2 className="section-title">Follow-up performance</h2><div className="mt-6 grid grid-cols-2 gap-4"><div><p className="font-display text-2xl font-bold text-rose-600">{followUpCounts.overdue}</p><p className="text-xs text-slate-500">Overdue</p></div><div><p className="font-display text-2xl font-bold text-amber-600">{followUpCounts.today}</p><p className="text-xs text-slate-500">Due today</p></div></div><button type="button" onClick={() => onNavigate?.('followups')} className="mt-6 flex items-center gap-2 text-xs font-bold text-amber-700 hover:text-amber-800">Open follow-ups <ArrowRight size={14} /></button></div></section>
     </div>
   );
 };
