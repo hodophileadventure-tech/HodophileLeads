@@ -136,6 +136,7 @@ export const App: React.FC = () => {
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState('');
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const alarmAudioContextRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
@@ -428,6 +429,30 @@ export const App: React.FC = () => {
     };
   }, [activeAlarm]);
 
+  useEffect(() => {
+    const showSuccess = (message: string) => {
+      setSuccessToast(message);
+      window.setTimeout(() => setSuccessToast(''), 3200);
+    };
+    const handleQuoteSaved = () => showSuccess('Quotation saved successfully');
+    const handleLeadSaved = (event: Event) => {
+      const updated = Boolean((event as CustomEvent<{ updated?: boolean }>).detail?.updated);
+      showSuccess(updated ? 'Lead updated successfully' : 'New lead added to your pipeline');
+    };
+    const handlePricingUpdated = () => showSuccess('Payment pricing updated');
+    const handleFollowUpUpdated = () => showSuccess('Follow-up marked complete');
+    window.addEventListener('quote-request-saved', handleQuoteSaved);
+    window.addEventListener('lead-saved', handleLeadSaved);
+    window.addEventListener('lead-payment-pricing-updated', handlePricingUpdated);
+    window.addEventListener('followups-updated', handleFollowUpUpdated);
+    return () => {
+      window.removeEventListener('quote-request-saved', handleQuoteSaved);
+      window.removeEventListener('lead-saved', handleLeadSaved);
+      window.removeEventListener('lead-payment-pricing-updated', handlePricingUpdated);
+      window.removeEventListener('followups-updated', handleFollowUpUpdated);
+    };
+  }, []);
+
   const activeFollowUpLead = useMemo(() => {
     if (!activeAlarm) return null;
     return leads.find((lead) => String(lead.id) === String(activeAlarm.leadId)) || null;
@@ -481,7 +506,7 @@ export const App: React.FC = () => {
 
   return (
     <div className={darkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-white dark:bg-slate-900">
+      <div className="app-shell">
         <Navbar onNotificationClick={async (notification) => {
           try {
             if (notification?.type === 'quote_saved' && notification.payload?.requestId) {
@@ -524,7 +549,8 @@ export const App: React.FC = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-6 mt-16 md:mt-0 ml-0 md:ml-0 overflow-auto">
+          <main className="app-main flex-1 p-6 mt-16 md:mt-0 ml-0 md:ml-0 overflow-auto">
+            <div key={currentPage} className="page-enter">
             {(isAdminLike || user?.role === 'agent') && (
               <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -579,7 +605,7 @@ export const App: React.FC = () => {
                   <CreativeWorkPanel />
                 ) : (
                   <>
-                    <section className="card">
+                    <section className="app-page-heading">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -604,9 +630,7 @@ export const App: React.FC = () => {
                           </p>
                         </div>
                       )}
-                      <div className="card">
-                        <Dashboard />
-                      </div>
+                      <Dashboard />
                     </section>
                     {(isAdminLike || user?.role === 'manager') && (
                       <section>
@@ -1406,6 +1430,13 @@ export const App: React.FC = () => {
               </div>
             )}
 
+            </div>
+            {successToast && (
+              <div className="toast-success fixed right-5 top-20 z-[60] flex items-center gap-3 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-emerald-800">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">✓</span>
+                {successToast}
+              </div>
+            )}
             {activeAlarm && (
               <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                 <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border-2 border-red-500 p-5 shadow-2xl animate-pulse">

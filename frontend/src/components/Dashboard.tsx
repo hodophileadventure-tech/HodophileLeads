@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { dashboardAPI } from '../utils/api-service';
-import { formatCurrency, getHealthScoreColor } from '../utils/helpers';
+import { formatCurrency, getHealthScoreColor, getLeadLifecycleState } from '../utils/helpers';
 import { Card, Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
+import { useDataStore } from '../context/store';
 
 interface StatCard {
   label: string;
@@ -37,6 +38,7 @@ const getBreakdownSegments = (target: number, segments: number, achieved: number
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { leads, followUps } = useDataStore();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedBreakdown, setSelectedBreakdown] = useState<BreakdownKey>('weekly');
@@ -77,6 +79,31 @@ export const Dashboard: React.FC = () => {
   const dailyTarget = monthlyTarget / daysInMonth;
   const currentPace = monthlyTargetAchieved / Math.max(1, daysElapsed);
   const paceStatus = currentPace >= dailyTarget ? 'On track' : 'Needs more pace';
+
+  const followUpCounts = useMemo(() => {
+    const now = Date.now();
+    return followUps.reduce((counts, item) => {
+      if (item.status === 'completed' || item.status === 'canceled') return counts;
+      const dueAt = new Date(item.dueDate).getTime();
+      if (!Number.isNaN(dueAt) && dueAt < now) counts.overdue += 1;
+      else if (!Number.isNaN(dueAt) && new Date(item.dueDate).toDateString() === new Date().toDateString()) counts.today += 1;
+      else counts.upcoming += 1;
+      return counts;
+    }, { overdue: 0, today: 0, upcoming: 0 });
+  }, [followUps]);
+
+  const pipelineStages = useMemo(() => {
+    const stages = [
+      { label: 'New leads', state: 'new', tone: 'bg-sky-500' },
+      { label: 'In progress', state: 'in_progress', tone: 'bg-amber-400' },
+      { label: 'Confirmed', state: 'confirmed', tone: 'bg-emerald-500' },
+      { label: 'Cancelled', state: 'cancelled', tone: 'bg-rose-500' }
+    ];
+    return stages.map((stage) => ({
+      ...stage,
+      count: leads.filter((lead) => getLeadLifecycleState(lead) === stage.state).length
+    }));
+  }, [leads]);
 
   const birthdayAge = (() => {
     if (user?.role === 'admin' || !user?.date_of_birth) return null;
@@ -126,7 +153,13 @@ export const Dashboard: React.FC = () => {
       detail: 'Need a timely response'
     },
     {
-      label: 'Confirmed Leads',
+      label: 'Follow-ups Due',
+      value: followUpCounts.today + followUpCounts.overdue,
+      color: 'bg-amber-100 dark:bg-amber-900',
+      detail: `${followUpCounts.overdue} overdue`
+    },
+    {
+      label: 'Confirmed Bookings',
       // Show total confirmed leads (align with Leads view)
       value: stats.totalConfirmed || stats.bookingsThisMonth || 0,
       color: 'bg-green-100 dark:bg-green-900',
@@ -141,12 +174,12 @@ export const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 px-4 md:px-6 lg:px-8">
+    <div className="space-y-5">
       <div className="dashboard-hero rounded-2xl p-6 md:p-8">
         <div className="relative z-10 max-w-2xl">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-200">Sales command center</p>
           <h1 className="text-3xl font-black md:text-4xl">Good work, {user?.name?.split(' ')[0] || 'team'}.</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-100">Your pipeline, follow-ups, and revenue momentum are all in view. Keep the next best conversation moving.</p>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-100">Here&apos;s what&apos;s happening with your leads and sales today.</p>
           <div className="mt-5 flex flex-wrap gap-3 text-xs font-semibold">
             <span className="rounded-full bg-white/15 px-3 py-2 text-white">{stats.totalLeads || 0} active leads</span>
             <span className="rounded-full bg-emerald-400/20 px-3 py-2 text-emerald-100">{paceStatus}</span>
@@ -161,7 +194,7 @@ export const Dashboard: React.FC = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {statCards.map((stat) => (
           <Card key={stat.label} className={`stat-tile ${stat.color} shadow-sm`}>
             <p className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-2 truncate">
@@ -173,43 +206,50 @@ export const Dashboard: React.FC = () => {
         ))}
       </div>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_.7fr]">
-        <div className="rounded-lg border border-slate-800 bg-slate-900 p-5 text-white shadow-sm">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_.75fr]">
+        <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-300">Requires attention</p>
-              <h2 className="mt-2 text-xl font-bold text-white">Keep the next conversation moving</h2>
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">Sales pipeline overview</p>
+              <h2 className="mt-2 text-xl font-bold text-[var(--text)]">Where leads are moving today</h2>
             </div>
-            <span className="rounded-md bg-white/10 px-2.5 py-1 text-xs font-semibold text-slate-300">Live signals</span>
+            <span className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">{leads.length} total</span>
           </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">
-            <div className="border-l-2 border-rose-400 pl-3">
-              <p className="text-2xl font-bold text-white">{stats.hotLeads || 0}</p>
-              <p className="text-xs text-slate-400">Hot leads</p>
-            </div>
-            <div className="border-l-2 border-amber-400 pl-3">
-              <p className="text-2xl font-bold text-white">{stats.overdueTasks || 0}</p>
-              <p className="text-xs text-slate-400">Overdue follow-ups</p>
-            </div>
-            <div className="border-l-2 border-sky-400 pl-3">
-              <p className="text-2xl font-bold text-white">{stats.pendingPayments || 0}</p>
-              <p className="text-xs text-slate-400">Pending payments</p>
-            </div>
+          <div className="mt-6 space-y-4">
+            {pipelineStages.map((stage) => {
+              const percent = leads.length ? Math.round((stage.count / leads.length) * 100) : 0;
+              return (
+                <div key={stage.state} className="grid grid-cols-[7rem_1fr_3rem] items-center gap-3 text-sm">
+                  <span className="font-medium text-slate-600">{stage.label}</span>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full ${stage.tone} transition-all duration-500`} style={{ width: `${Math.max(stage.count ? 4 : 0, percent)}%` }} />
+                  </div>
+                  <span className="text-right text-xs font-bold text-slate-700">{stage.count}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
-        <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">Pipeline pulse</p>
-          <div className="mt-4 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-3xl font-bold text-[var(--text)]">{stats.negotiationLeads || 0}</p>
-              <p className="mt-1 text-sm text-[var(--muted)]">Leads in negotiation</p>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-800">Today&apos;s priorities</p>
+          <div className="mt-4 divide-y divide-amber-200/70">
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span className="text-sm font-medium text-slate-700">Follow-ups overdue</span>
+              <span className="font-display text-lg font-bold text-rose-600">{followUpCounts.overdue}</span>
             </div>
-            <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{paceStatus}</span>
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span className="text-sm font-medium text-slate-700">Follow-ups due today</span>
+              <span className="font-display text-lg font-bold text-amber-700">{followUpCounts.today}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span className="text-sm font-medium text-slate-700">Hot leads</span>
+              <span className="font-display text-lg font-bold text-rose-600">{stats.hotLeads || 0}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span className="text-sm font-medium text-slate-700">Payments pending</span>
+              <span className="font-display text-lg font-bold text-sky-700">{stats.pendingPayments || 0}</span>
+            </div>
           </div>
-          <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-amber-400 transition-all duration-500" style={{ width: `${Math.max(8, Math.min(100, monthlyTargetProgress))}%` }} />
-          </div>
-          <p className="mt-2 text-xs text-slate-500">{monthlyTargetProgress}% of monthly target achieved</p>
         </div>
       </section>
 

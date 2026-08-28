@@ -424,9 +424,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .app-sidebar {
   width: 15.5rem !important;
-  background: var(--sidebar) !important;
-  border-right: 1px solid rgba(255,255,255,.08) !important;
-  box-shadow: 10px 0 30px rgba(23,35,45,.08) !important;
+  background: var(--surface) !important;
+  border-right: 1px solid var(--line) !important;
+  box-shadow: 4px 0 18px rgba(23,35,45,.035) !important;
 }
 
 .sidebar-brand {
@@ -443,26 +443,27 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--sidebar) !important;
 }
 
-.sidebar-title { font-family: 'Manrope', sans-serif; }
+.sidebar-title { font-family: 'Manrope', sans-serif; color: var(--text) !important; }
+.sidebar-caption { color: var(--muted) !important; }
 .sidebar-nav-item {
   position: relative;
   margin: .18rem .65rem;
   width: calc(100% - 1.3rem) !important;
   border-radius: .45rem !important;
-  color: #aebbc5 !important;
+  color: var(--text-soft) !important;
   padding: .68rem .78rem !important;
   font-size: .82rem;
 }
 
 .sidebar-nav-item:hover {
-  background: var(--sidebar-soft) !important;
-  color: #fff !important;
+  background: #fff8df !important;
+  color: var(--text) !important;
   transform: none !important;
 }
 
 .app-sidebar .nav-item-active {
-  background: rgba(229,169,0,.16) !important;
-  color: #ffd86a !important;
+  background: #fff8df !important;
+  color: #805c00 !important;
   box-shadow: none !important;
 }
 
@@ -477,6 +478,10 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--brand);
 }
 
+.app-sidebar .sidebar-section-label { color: #8b959d !important; }
+.app-sidebar .sidebar-collapse-button { color: var(--muted) !important; }
+.app-sidebar .sidebar-collapse-button:hover { background: var(--surface-muted) !important; }
+
 .app-sidebar .nav-item-active span { color: inherit !important; }
 
 .sidebar-nav-icon {
@@ -487,6 +492,15 @@ h1, h2, h3, h4, h5, h6 {
   filter: grayscale(1);
   opacity: .78;
 }
+.sidebar-section-label {
+  margin: 0 1.4rem .35rem;
+  color: #748491 !important;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.sidebar-collapsed .sidebar-section-label { display: none; }
 
 .sidebar-collapsed { width: 4.6rem !important; }
 .sidebar-collapsed .sidebar-brand { justify-content: center; padding-inline: .7rem !important; }
