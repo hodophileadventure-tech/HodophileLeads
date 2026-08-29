@@ -85,6 +85,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
 
   React.useEffect(() => {
     if (!selectedLead || !leadDetailRef.current) return;
+    if (showFollowUpModal || showConfirmForm || showCompletionModal || showCancelLeadModal) return;
+
     const t = setTimeout(() => {
       try {
         leadDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -93,7 +95,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       }
     }, 50);
     return () => clearTimeout(t);
-  }, [selectedLead]);
+  }, [selectedLead, showFollowUpModal, showConfirmForm, showCompletionModal, showCancelLeadModal]);
 
   // Filter leads based on status
   const getLeadLocation = (lead: Lead) => {

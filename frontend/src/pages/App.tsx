@@ -67,7 +67,9 @@ export const App: React.FC = () => {
 
   React.useEffect(() => {
     if (!selectedLead || !leadDetailRef.current) return;
-    // small delay to allow layout to update before scrolling
+    // Do not auto-scroll while a modal is open; keep the follow-up dialog visible in the viewport.
+    if (currentPage === 'attendance') return;
+
     const t = setTimeout(() => {
       try {
         leadDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -76,7 +78,7 @@ export const App: React.FC = () => {
       }
     }, 50);
     return () => clearTimeout(t);
-  }, [selectedLead]);
+  }, [selectedLead, currentPage]);
 
   React.useEffect(() => {
     const leadId = selectedLead?.id;
