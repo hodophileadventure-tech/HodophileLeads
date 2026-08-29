@@ -5,22 +5,30 @@ interface UIState {
   sidebarOpen: boolean;
   darkMode: boolean;
   selectedLead: Lead | null;
+  isCRMMuted: boolean;
   toggleSidebar: () => void;
   toggleDarkMode: () => void;
   setSelectedLead: (lead: Lead | null) => void;
+  toggleCRMMute: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
   sidebarOpen: true,
   darkMode: localStorage.getItem('darkMode') === 'true',
   selectedLead: null,
+  isCRMMuted: localStorage.getItem('crmMuted') === 'true',
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   toggleDarkMode: () => set((state) => {
     const newMode = !state.darkMode;
     localStorage.setItem('darkMode', String(newMode));
     return { darkMode: newMode };
   }),
-  setSelectedLead: (lead) => set({ selectedLead: lead })
+  setSelectedLead: (lead) => set({ selectedLead: lead }),
+  toggleCRMMute: () => set((state) => {
+    const newMutedState = !state.isCRMMuted;
+    localStorage.setItem('crmMuted', String(newMutedState));
+    return { isCRMMuted: newMutedState };
+  })
 }));
 
 interface DataState {

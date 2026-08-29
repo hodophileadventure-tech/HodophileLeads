@@ -403,10 +403,19 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  const { isCRMMuted } = useUIStore();
+
   useEffect(() => {
     if (!activeAlarm) {
       stopAlarmAudio();
       return;
+    }
+
+    if (isCRMMuted) {
+      // Don't play audio if muted
+      return () => {
+        stopAlarmAudio();
+      };
     }
 
     primeAlarmAudio();
@@ -421,13 +430,15 @@ export const App: React.FC = () => {
 
     void alarmAudioRef.current.play().catch((error) => {
       console.warn('Alarm playback failed until next user interaction', error);
-      playBuzzerFallback();
+      if (!isCRMMuted) {
+        playBuzzerFallback();
+      }
     });
 
     return () => {
       stopAlarmAudio();
     };
-  }, [activeAlarm]);
+  }, [activeAlarm, isCRMMuted]);
 
   useEffect(() => {
     const showSuccess = (message: string) => {
@@ -1474,10 +1485,19 @@ export const App: React.FC = () => {
                       <Button variant="secondary" onClick={() => dismissFollowUp(activeAlarm)}>
                         Dismiss
                       </Button>
+                      <Button 
+                        variant="secondary" 
+                        onClick={() => useUIStore.setState({ isCRMMuted: !isCRMMuted })}
+                        className={isCRMMuted ? 'bg-gray-400 dark:bg-gray-600' : ''}
+                      >
+                        {isCRMMuted ? '🔇 Muted' : '🔊 Mute CRM'}
+                      </Button>
                     </div>
                   </div>
                   <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-200">
-                    Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.
+                    {isCRMMuted 
+                      ? '🔇 CRM is muted - no alerts will sound until you unmute.'
+                      : 'Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.'}
                   </div>
                 </div>
               </div>
