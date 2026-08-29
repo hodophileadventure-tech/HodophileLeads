@@ -74,7 +74,7 @@ export interface Lead {
   canceledReason?: string | null;
   canceledBy?: string | null;
   canceledAt?: string | null;
-  islamabadStay?: string;
+  islamabadStay?: string | boolean;
 }
 
 export interface LeadHotelInfo {

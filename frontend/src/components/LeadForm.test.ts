@@ -11,7 +11,7 @@ describe('buildLeadFormState', () => {
       address: 'Lahore',
       gender: 'male',
       source: 'whatsapp',
-      islamabadStay: true,
+      islamabadStay: 'yes',
       destination: 'Dubai',
       travelDates: { from: '2026-10-05', to: '2026-10-12' },
       createdAt: '2026-08-15T00:00:00.000Z',
@@ -23,7 +23,7 @@ describe('buildLeadFormState', () => {
       tripBudget: 500000,
       potential: true,
       status: 'new',
-      pipelineStage: 'new'
+      pipelineStage: 'new_lead'
     });
 
     expect(form.clientName).toBe('Ali Khan');

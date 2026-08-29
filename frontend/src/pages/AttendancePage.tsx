@@ -68,14 +68,19 @@ export default function AttendancePage() {
   };
 
   const save = async () => {
+    if (!window.confirm('Save and lock this attendance sheet for this date? This action cannot be undone from the UI.')) {
+      return;
+    }
+
     setSaving(true); setError(''); setMessage('');
     try {
       await axios.put(`${API_PREFIX}/admin/attendance`, {
         date,
+        lock: true,
         records: employees.map(employee => ({ userId: employee.user_id, status: employee.status || 'absent', note: employee.note || '' }))
       }, authConfig());
       setLocked(true);
-      setMessage('Attendance saved successfully. This sheet is now locked.');
+      setMessage('Attendance saved and locked successfully.');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to save attendance');
     } finally { setSaving(false); }
@@ -94,7 +99,7 @@ export default function AttendancePage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Employee Attendance</h1><p className="mt-1 text-gray-600">Mark attendance for your team by date.</p></div>
-        <div className="flex items-end gap-3"><label className="text-sm font-medium text-gray-700">Date<input type="date" value={date} onChange={event => setDate(event.target.value)} className="mt-1 block rounded border border-gray-300 px-3 py-2" /></label><button onClick={save} disabled={locked || saving || loading || employees.length === 0} className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50">{locked ? 'Sheet Locked' : saving ? 'Saving...' : 'Save Attendance'}</button></div>
+        <div className="flex items-end gap-3"><label className="text-sm font-medium text-gray-700">Date<input type="date" value={date} onChange={event => setDate(event.target.value)} className="mt-1 block rounded border border-gray-300 px-3 py-2" /></label><button onClick={save} disabled={locked || saving || loading || employees.length === 0} className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50">{locked ? 'Sheet Locked' : saving ? 'Saving...' : 'Save & Lock'}</button></div>
       </div>
       {(message || error) && <div className={`rounded border p-3 ${error ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>{error || message}</div>}
       {locked && !error && <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">This date has been saved and locked. Attendance cannot be changed.</div>}
