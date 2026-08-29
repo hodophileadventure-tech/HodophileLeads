@@ -474,7 +474,7 @@ export const App: React.FC = () => {
         { label: 'Follow-ups', href: 'followups', icon: '🕒' },
         { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
         ...(isAdminLike ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
-        ...(isAdminLike ? [{ label: 'Attendance', href: 'attendance', icon: '📅' }] : []),
+        ...((isAdminLike || user?.role === 'agent') ? [{ label: 'Attendance', href: 'attendance', icon: '📅' }] : []),
         ...(isAdminLike ? [{ label: 'Task Management', href: 'tasks', icon: '✅' }] : []),
         ...(isAdminLike ? [{ label: 'Daily Reports', href: 'daily-reports', icon: '📑' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Quotes & Invoices', href: 'quoteinvoice', icon: '🧾' }] : []),
@@ -1400,7 +1400,7 @@ export const App: React.FC = () => {
               <AdminPage />
             )}
 
-            {currentPage === 'attendance' && isAdminLike && (
+            {currentPage === 'attendance' && (isAdminLike || user?.role === 'agent') && (
               <AttendancePage />
             )}
 

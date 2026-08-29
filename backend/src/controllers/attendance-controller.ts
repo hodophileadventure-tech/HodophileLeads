@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { getClient, query } from '../utils/database';
 
 interface AttendanceRequest extends Request {
-  user?: { id: string };
+  user?: { id: string; role?: string };
 }
 
 interface MonthlyAttendanceRow {
@@ -27,15 +27,20 @@ export async function getAttendance(req: AttendanceRequest, res: Response, next:
       return res.status(400).json({ error: 'date must use YYYY-MM-DD format' });
     }
 
+    const isAdminOrQa = ['admin', 'qa', 'quality_assurance'].includes(String(req.user?.role || '').toLowerCase().replace(/\s+/g, '_'));
+    const userIdFilter = isAdminOrQa ? null : req.user?.id;
+
     const result = await query(
       `SELECT u.id AS user_id, u.name, u.email, r.name AS role_name,
               a.status, a.note
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id
        LEFT JOIN attendance a ON a.user_id = u.id AND a.attendance_date = $1::date
-      WHERE COALESCE(r.slug, u.role, '') <> 'admin' AND u.attendance_exempt = FALSE
+      WHERE COALESCE(r.slug, u.role, '') <> 'admin'
+        AND u.attendance_exempt = FALSE
+        ${userIdFilter ? 'AND u.id = $2' : ''}
        ORDER BY u.name ASC`,
-      [date]
+      userIdFilter ? [date, userIdFilter] : [date]
     );
 
     const lock = await query('SELECT locked_at FROM attendance_sheets WHERE attendance_date = $1::date', [date]);
@@ -51,6 +56,9 @@ export async function getMonthlyAttendance(req: AttendanceRequest, res: Response
     if (!/^\d{4}-\d{2}$/.test(month)) {
       return res.status(400).json({ error: 'month must use YYYY-MM format' });
     }
+
+    const isAdminOrQa = ['admin', 'qa', 'quality_assurance'].includes(String(req.user?.role || '').toLowerCase().replace(/\s+/g, '_'));
+    const monthStart = `${month}-01`;
 
     const result = await query(
       `SELECT u.id AS user_id, u.name, u.email, r.name AS role_name,
@@ -69,10 +77,12 @@ export async function getMonthlyAttendance(req: AttendanceRequest, res: Response
        LEFT JOIN attendance a ON a.user_id = u.id
          AND a.attendance_date >= $1::date
          AND a.attendance_date < ($1::date + INTERVAL '1 month')
-      WHERE COALESCE(r.slug, u.role, '') <> 'admin' AND u.attendance_exempt = FALSE
+      WHERE COALESCE(r.slug, u.role, '') <> 'admin'
+        AND u.attendance_exempt = FALSE
+        ${isAdminOrQa ? '' : 'AND u.id = $2'}
        GROUP BY u.id, u.name, u.email, r.name
        ORDER BY u.name ASC`,
-      [`${month}-01`]
+      isAdminOrQa ? [monthStart] : [monthStart, req.user?.id]
     );
 
     res.json({ success: true, month, employees: result.rows as MonthlyAttendanceRow[] });
@@ -84,9 +94,15 @@ export async function getMonthlyAttendance(req: AttendanceRequest, res: Response
 export async function saveAttendance(req: AttendanceRequest, res: Response, next: NextFunction) {
   let client: Awaited<ReturnType<typeof getClient>> | null = null;
   try {
-    const { date, records } = req.body || {};
+    const { date, records, lock } = req.body || {};
+    const shouldLock = lock === true || lock === 'true';
+
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) || !Array.isArray(records)) {
       return res.status(400).json({ error: 'date and records are required' });
+    }
+
+    if (!shouldLock) {
+      return res.status(400).json({ error: 'Attendance must be explicitly saved and locked by an admin or QA.' });
     }
 
     for (const record of records) {

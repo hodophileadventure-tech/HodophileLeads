@@ -102,9 +102,10 @@ adminRouter.delete('/users/:id', roleMiddleware(['admin', 'qa']), adminRoleUserC
 // Assign role to user
 adminRouter.post('/users/:id/assign-role', roleMiddleware(['admin', 'qa']), adminRoleUserController.assignRole);
 
-// ATTENDANCE (Admin Only)
-adminRouter.get('/attendance', roleMiddleware(['admin', 'qa']), attendanceController.getAttendance);
-adminRouter.get('/attendance/monthly', roleMiddleware(['admin', 'qa']), attendanceController.getMonthlyAttendance);
+// ATTENDANCE
+// Admin/QA finalize the sheet; employees can view only their own attendance.
+adminRouter.get('/attendance', roleMiddleware(['admin', 'qa', 'agent', 'manager']), attendanceController.getAttendance);
+adminRouter.get('/attendance/monthly', roleMiddleware(['admin', 'qa', 'agent', 'manager']), attendanceController.getMonthlyAttendance);
 adminRouter.put('/attendance', roleMiddleware(['admin', 'qa']), attendanceController.saveAttendance);
 
 // ============================================================================
