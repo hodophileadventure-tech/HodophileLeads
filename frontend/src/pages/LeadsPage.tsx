@@ -218,10 +218,6 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   };
 
   const openFollowUpModal = (followUp?: FollowUp) => {
-    // Force the viewport back to the top so the follow-up dialog is immediately visible
-    // instead of appearing below the fold on a long lead detail page.
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-
     if (followUp) {
       setEditingFollowUp(followUp);
       setFollowUpTitle(followUp.title);
@@ -746,8 +742,11 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
         {selectedLead && <PaymentsPanel leadId={String(selectedLead.id)} lead={selectedLead} />}
 
         {showFollowUpModal && selectedLead && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
+            <div
+              className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl"
+              style={{ marginTop: Math.max(16, window.scrollY + 24) }}
+            >
               <h3 className="text-xl font-bold mb-1">Schedule Follow Up</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 Set the reminder date and time for {selectedLead.clientName}.
