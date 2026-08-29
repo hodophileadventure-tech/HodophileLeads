@@ -10,80 +10,80 @@ interface LeadFormProps {
   initiallyOpen?: boolean;
 }
 
+const createEmptyLeadFormState = () => ({
+  clientName: '',
+  email: '',
+  phone: '',
+  address: '',
+  gender: '',
+  source: '',
+  age: '',
+  islamabadStay: '',
+  destination: '',
+  travelDates: { from: '', to: '' },
+  tourType: '',
+  createdAt: new Date().toISOString().slice(0, 10),
+  adults: '',
+  kids: '',
+  persons: 1,
+  agentRemarks: '',
+  remarks: '',
+  tripBudget: '',
+  potential: false,
+  leadStatus: 'new'
+});
+
+export const buildLeadFormState = (initialData?: Partial<Lead>) => {
+  if (!initialData) {
+    return createEmptyLeadFormState();
+  }
+
+  const rawIslamabad = (initialData as any).islamabadStay;
+  let islamabadStayVal = '';
+  if (rawIslamabad === true) islamabadStayVal = 'yes';
+  else if (rawIslamabad === false) islamabadStayVal = 'no';
+  else if (typeof rawIslamabad === 'string') islamabadStayVal = rawIslamabad;
+
+  return {
+    clientName: initialData.clientName || '',
+    email: initialData.email || '',
+    phone: initialData.phone || '',
+    address: initialData.address || '',
+    gender: (initialData as any).gender || '',
+    source: initialData.source || '',
+    age: (initialData as any).age ?? '',
+    islamabadStay: islamabadStayVal,
+    destination: initialData.destination || '',
+    travelDates: initialData.travelDates || { from: '', to: '' },
+    createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+    adults: initialData.adults ?? (initialData.persons ? initialData.persons : ''),
+    kids: initialData.kids ?? '',
+    tourType: (initialData as any).tourType || '',
+    agentRemarks: (initialData as any).agentRemarks || '',
+    remarks: (initialData as any).remarks || '',
+    tripBudget: (initialData as any).tripBudget ?? '',
+    potential: Boolean((initialData as any).potential),
+    leadStatus: (initialData as any).potential ? 'potential' : (initialData as any).pipelineStage === 'confirmed' || (initialData as any).status === 'booked' ? 'confirmed' : (initialData as any).status === 'completed' ? 'dead' : 'new'
+  };
+};
+
 export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOpenChange, initiallyOpen = false }) => {
   const [isOpen, setIsOpen] = useState(initiallyOpen);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState<any>({
-    clientName: '',
-    email: '',
-    phone: '',
-    address: '',
-    gender: '',
-    source: '',
-    islamabadStay: '',
-    destination: '',
-    travelDates: { from: '', to: '' },
-    tourType: '',
-    createdAt: new Date().toISOString().slice(0, 10),
-    adults: '',
-    kids: '',
-    agentRemarks: '',
-    remarks: '',
-    tripBudget: '',
-    potential: false,
-    leadStatus: 'new'
-  });
+  const [formData, setFormData] = useState<any>(() => buildLeadFormState(initialData));
 
   useEffect(() => {
-    if (initialData) {
-      const rawIslamabad = (initialData as any).islamabadStay;
-      let islamabadStayVal = '';
-      if (rawIslamabad === true) islamabadStayVal = 'yes';
-      else if (rawIslamabad === false) islamabadStayVal = 'no';
-      else if (typeof rawIslamabad === 'string') islamabadStayVal = rawIslamabad;
+    const nextState = buildLeadFormState(initialData);
 
-      setFormData({
-        clientName: initialData.clientName || '',
-        email: initialData.email || '',
-        phone: initialData.phone || '',
-        address: initialData.address || '',
-        gender: (initialData as any).gender || '',
-        source: initialData.source || '',
-        islamabadStay: islamabadStayVal,
-        destination: initialData.destination || '',
-        travelDates: initialData.travelDates || { from: '', to: '' },
-        createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
-        adults: initialData.adults ?? (initialData.persons ? initialData.persons : '') ,
-        kids: initialData.kids ?? '',
-        tourType: (initialData as any).tourType || '',
-        agentRemarks: (initialData as any).agentRemarks || '',
-        remarks: (initialData as any).remarks || '',
-        tripBudget: (initialData as any).tripBudget ?? '',
-        potential: (initialData as any).potential || false,
-        leadStatus: (initialData as any).potential ? 'potential' : (initialData as any).pipelineStage === 'confirmed' || (initialData as any).status === 'booked' ? 'confirmed' : (initialData as any).status === 'completed' ? 'dead' : 'new'
+    setFormData((prev: any) => {
+      const previousSnapshot = JSON.stringify({
+        ...prev,
+        travelDates: prev?.travelDates || { from: '', to: '' }
       });
-    } else {
-      setFormData({
-        clientName: '',
-        email: '',
-        phone: '',
-        address: '',
-        gender: '',
-        source: '',
-        age: '',
-        islamabadStay: '',
-        destination: '',
-        travelDates: { from: '', to: '' },
-        tourType: '',
-        createdAt: new Date().toISOString().slice(0, 10),
-        persons: 1,
-        agentRemarks: '',
-        remarks: '',
-        potential: false,
-        leadStatus: 'new'
-      });
-    }
+      const nextSnapshot = JSON.stringify(nextState);
+      return previousSnapshot === nextSnapshot ? prev : nextState;
+    });
 
     if (initiallyOpen) {
       setIsOpen(true);
@@ -186,6 +186,9 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         const response = await leadsAPI.create(payload);
         onSuccess?.(response.data as Lead);
       }
+      window.dispatchEvent(new CustomEvent('lead-saved', {
+        detail: { updated: Boolean(initialData?.id) }
+      }));
       setIsOpen(false);
       onOpenChange?.(false);
       setFormData({
