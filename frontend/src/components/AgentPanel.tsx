@@ -488,6 +488,8 @@ export const AgentPanel: React.FC = () => {
   };
 
   const openFollowUp = (lead: Lead) => {
+    // Keep the modal in the visible viewport so the user can fill the form immediately.
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     setFollowUpLead(lead);
     setFollowUpTitle(`Follow up with ${lead.clientName || 'client'}`);
     setFollowUpNote('');

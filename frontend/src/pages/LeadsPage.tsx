@@ -80,22 +80,10 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
   const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
+  // Keep the user in their current viewport instead of auto-jumping down the page
+  // when a lead is selected or when follow-up actions are opened.
   // UI now expects the parent to supply the full `leads` list;
   // client-side filtering will be applied for tabs.
-
-  React.useEffect(() => {
-    if (!selectedLead || !leadDetailRef.current) return;
-    if (showFollowUpModal || showConfirmForm || showCompletionModal || showCancelLeadModal) return;
-
-    const t = setTimeout(() => {
-      try {
-        leadDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }, 50);
-    return () => clearTimeout(t);
-  }, [selectedLead, showFollowUpModal, showConfirmForm, showCompletionModal, showCancelLeadModal]);
 
   // Filter leads based on status
   const getLeadLocation = (lead: Lead) => {
@@ -230,6 +218,10 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   };
 
   const openFollowUpModal = (followUp?: FollowUp) => {
+    // Force the viewport back to the top so the follow-up dialog is immediately visible
+    // instead of appearing below the fold on a long lead detail page.
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
     if (followUp) {
       setEditingFollowUp(followUp);
       setFollowUpTitle(followUp.title);
