@@ -332,6 +332,23 @@
     animation: pageEnter 420ms cubic-bezier(.2,.8,.2,1) both;
   }
 
+  /* Modal dialog styles - keep centered and visible */
+  .fixed.inset-0.bg-black.z-50 {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Prevent body scroll when modal is open */
+  body:has(.fixed.inset-0.bg-black\/50.z-50) {
+    overflow: hidden !important;
+  }
+
   .dashboard-hero {
     position: relative;
     overflow: hidden;

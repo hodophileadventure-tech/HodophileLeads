@@ -383,8 +383,8 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
       )}
 
       {actionPlanFollowUp && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
+          <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl flex flex-col overflow-auto">
             <h3 className="text-xl font-bold mb-1">Action Plan</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Write the detailed plan for this follow-up.</p>
             <textarea
