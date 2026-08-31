@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { leadsAPI, followUpsAPI } from '../utils/api-service';
 import { Button, Badge, Modal } from '../components/common';
 import { LeadForm } from '../components/LeadForm';
