@@ -80,6 +80,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
   const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
+  const followUpModalRef = React.useRef<HTMLDivElement | null>(null);
+  const completionModalRef = React.useRef<HTMLDivElement | null>(null);
   // Keep the user in their current viewport instead of auto-jumping down the page
   // when a lead is selected or when follow-up actions are opened.
   // UI now expects the parent to supply the full `leads` list;
@@ -200,6 +202,19 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       new: leads.filter((lead) => getLeadLifecycleState(lead) === 'new').length,
     };
   }, [leads]);
+
+  // Scroll modals into view when they open
+  useEffect(() => {
+    if (showFollowUpModal && followUpModalRef.current) {
+      followUpModalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showFollowUpModal]);
+
+  useEffect(() => {
+    if (showCompletionModal && completionModalRef.current) {
+      completionModalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showCompletionModal]);
 
   const handleLeadSearch = () => {
     // Search is already applied via useMemo
@@ -745,7 +760,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
         {selectedLead && <PaymentsPanel leadId={String(selectedLead.id)} lead={selectedLead} />}
 
         {showFollowUpModal && selectedLead && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
+          <div ref={followUpModalRef} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
             <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl flex flex-col overflow-auto">
               <h3 className="text-xl font-bold mb-1">Schedule Follow Up</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -799,7 +814,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
         )}
 
         {showCompletionModal && nextPendingFollowUp && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
+          <div ref={completionModalRef} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
             <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl flex flex-col overflow-auto">
               <h3 className="text-xl font-bold mb-1">Mark Follow-up Complete</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">

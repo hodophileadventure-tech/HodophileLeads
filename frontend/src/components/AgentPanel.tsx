@@ -41,6 +41,7 @@ export const AgentPanel: React.FC = () => {
   const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
   const [completionRemarks, setCompletionRemarks] = useState('');
   const quotePanelRef = useRef<HTMLDivElement | null>(null);
+  const followUpModalRef = useRef<HTMLDivElement | null>(null);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpNote, setFollowUpNote] = useState('');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
@@ -367,7 +368,12 @@ export const AgentPanel: React.FC = () => {
     };
   }, [quoteRequests]);
 
-  // No scroll effect - let content flow naturally and appear on page
+  // Scroll follow-up modal into view when it opens
+  useEffect(() => {
+    if (showFollowUpModal && followUpModalRef.current) {
+      followUpModalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showFollowUpModal]);
 
   const openQuotePreview = (request: QuoteRequest) => {
     window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
@@ -947,7 +953,7 @@ export const AgentPanel: React.FC = () => {
       )}
 
       {showFollowUpModal && followUpLead && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
+        <div ref={followUpModalRef} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-hidden">
           <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl flex flex-col overflow-auto">
             <h3 className="text-xl font-bold mb-1">Schedule Follow Up</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Set the reminder date and time for {followUpLead.clientName}.</p>
