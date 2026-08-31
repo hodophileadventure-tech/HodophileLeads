@@ -63,22 +63,8 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState<any[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useEffect(() => {
-    if (!selectedLead || !leadDetailRef.current) return;
-    // Do not auto-scroll while a modal is open; keep the follow-up dialog visible in the viewport.
-    if (currentPage === 'attendance') return;
-
-    const t = setTimeout(() => {
-      try {
-        leadDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }, 50);
-    return () => clearTimeout(t);
-  }, [selectedLead, currentPage]);
+  // Keep the current viewport stable when selecting leads so dialogs and forms stay visible.
 
   React.useEffect(() => {
     const leadId = selectedLead?.id;
@@ -549,7 +535,7 @@ export const App: React.FC = () => {
             console.error('Notification click handler error', e);
           }
         }} />
-        <div className="flex">
+        <div className="flex flex-1 min-h-0">
           <Sidebar
             navItems={navItems}
             currentPath={currentPage}
@@ -562,7 +548,7 @@ export const App: React.FC = () => {
           />
 
           {/* Main Content */}
-          <main className="app-main flex-1 p-6 mt-16 md:mt-0 ml-0 md:ml-0 overflow-auto">
+          <main className="app-main flex-1 p-6 md:mt-0 ml-0 md:ml-0">
             <div key={currentPage} className="page-enter">
             {(isAdminLike || user?.role === 'agent') && (
               <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -48,6 +48,8 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailError, setDetailError] = useState('');
   const [detailRows, setDetailRows] = useState<any[]>([]);
+  const [initialLoadTime, setInitialLoadTime] = useState<number>(0);
+  const [newLeadIds, setNewLeadIds] = useState<Set<string>>(new Set());
 
   // Set default date range to last 90 days
   useEffect(() => {
@@ -83,6 +85,8 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
 
     setDetailsLoading(true);
     setDetailError('');
+    setInitialLoadTime(Date.now());
+    setNewLeadIds(new Set());
     try {
       const response = await dashboardAPI.getAgentSummaryDetails(selectedAgent, _section, startDate, endDate);
       setDetailRows(response.data || []);
@@ -93,6 +97,38 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
       setDetailsLoading(false);
     }
   };
+
+  // Poll for new leads when a section is expanded
+  useEffect(() => {
+    if (!expandedSection || !selectedAgent || !startDate || !endDate || initialLoadTime === 0) {
+      return;
+    }
+
+    const pollInterval = window.setInterval(async () => {
+      try {
+        const response = await dashboardAPI.getAgentSummaryDetails(selectedAgent, expandedSection, startDate, endDate);
+        const newRows = response.data || [];
+        const currentIds = new Set(detailRows.map(row => String(row.id)));
+        const arrivedIds = new Set<string>();
+
+        newRows.forEach((row: any) => {
+          if (!currentIds.has(String(row.id))) {
+            arrivedIds.add(String(row.id));
+          }
+        });
+
+        if (arrivedIds.size > 0) {
+          setNewLeadIds(arrivedIds);
+        }
+
+        setDetailRows(newRows);
+      } catch (err) {
+        // Ignore polling errors
+      }
+    }, 5000); // Poll every 5 seconds
+
+    return () => window.clearInterval(pollInterval);
+  }, [expandedSection, selectedAgent, startDate, endDate, initialLoadTime, detailRows]);
 
   const leadsData = data ? [
     { name: 'Confirmed', value: data.confirmedLeads, color: COLORS.confirmed },
@@ -322,6 +358,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                     <table className="min-w-full text-left text-sm text-slate-700 dark:text-slate-200">
                       <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                         <tr>
+                          <th className="px-3 py-2">#</th>
                           <th className="px-3 py-2">Lead</th>
                           <th className="px-3 py-2">Phone</th>
                           <th className="px-3 py-2">Follow-up Notes</th>
@@ -332,17 +369,26 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {detailRows.map((row, index) => (
-                          <tr key={`${row.id}-${index}`} className="border-b border-slate-200 dark:border-slate-700 align-top">
-                            <td className="px-3 py-2">{row.client_name || '-'}</td>
-                            <td className="px-3 py-2">{row.phone || '-'}</td>
-                            <td className="px-3 py-2 whitespace-pre-wrap">{row.description || '-'}</td>
-                            <td className="px-3 py-2 capitalize">{row.status || '-'}</td>
-                            <td className="px-3 py-2">{row.due_date ? new Date(row.due_date).toLocaleString() : '-'}</td>
-                            <td className="px-3 py-2 whitespace-pre-wrap">{row.action_plan || '-'}</td>
-                            <td className="px-3 py-2 whitespace-pre-wrap">{row.completion_notes || '-'}</td>
-                          </tr>
-                        ))}
+                        {detailRows.map((row, index) => {
+                          const isNew = newLeadIds.has(String(row.id));
+                          return (
+                            <tr 
+                              key={`${row.id}-${index}`} 
+                              className={`border-b border-slate-200 dark:border-slate-700 align-top transition-colors ${
+                                isNew ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''
+                              }`}
+                            >
+                              <td className="px-3 py-2 font-semibold">{index + 1}</td>
+                              <td className="px-3 py-2">{row.client_name || '-'}</td>
+                              <td className="px-3 py-2">{row.phone || '-'}</td>
+                              <td className="px-3 py-2 whitespace-pre-wrap">{row.description || '-'}</td>
+                              <td className="px-3 py-2 capitalize">{row.status || '-'}</td>
+                              <td className="px-3 py-2">{row.due_date ? new Date(row.due_date).toLocaleString() : '-'}</td>
+                              <td className="px-3 py-2 whitespace-pre-wrap">{row.action_plan || '-'}</td>
+                              <td className="px-3 py-2 whitespace-pre-wrap">{row.completion_notes || '-'}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -372,6 +418,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                       <table className="min-w-full text-left text-sm text-slate-700 dark:text-slate-200">
                         <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                           <tr>
+                            <th className="px-3 py-2">#</th>
                             <th className="px-3 py-2">Lead</th>
                             <th className="px-3 py-2">Created Date</th>
                             <th className="px-3 py-2">Phone</th>
@@ -384,19 +431,28 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
                           </tr>
                         </thead>
                         <tbody>
-                          {detailRows.map((row, index) => (
-                            <tr key={`${row.id}-${index}`} className="border-b border-slate-200 dark:border-slate-700">
-                              <td className="px-3 py-2">{row.client_name || 'Unknown'}</td>
-                              <td className="px-3 py-2">{row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</td>
-                              <td className="px-3 py-2">{row.phone || '-'}</td>
-                              <td className="px-3 py-2 capitalize">{row.status || '-'}</td>
-                              <td className="px-3 py-2 whitespace-pre-wrap">{row.follow_up_description || '-'}</td>
-                              <td className="px-3 py-2 whitespace-pre-wrap">{row.completion_notes || '-'}</td>
-                              <td className="px-3 py-2 whitespace-pre-wrap">{row.action_plan || '-'}</td>
-                              <td className="px-3 py-2">{row.canceled_reason || '-'}</td>
-                              <td className="px-3 py-2">{row.agent_remarks || row.remarks || '-'}</td>
-                            </tr>
-                          ))}
+                          {detailRows.map((row, index) => {
+                            const isNew = newLeadIds.has(String(row.id));
+                            return (
+                              <tr 
+                                key={`${row.id}-${index}`} 
+                                className={`border-b border-slate-200 dark:border-slate-700 transition-colors ${
+                                  isNew ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''
+                                }`}
+                              >
+                                <td className="px-3 py-2 font-semibold">{index + 1}</td>
+                                <td className="px-3 py-2">{row.client_name || 'Unknown'}</td>
+                                <td className="px-3 py-2">{row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</td>
+                                <td className="px-3 py-2">{row.phone || '-'}</td>
+                                <td className="px-3 py-2 capitalize">{row.status || '-'}</td>
+                                <td className="px-3 py-2 whitespace-pre-wrap">{row.follow_up_description || '-'}</td>
+                                <td className="px-3 py-2 whitespace-pre-wrap">{row.completion_notes || '-'}</td>
+                                <td className="px-3 py-2 whitespace-pre-wrap">{row.action_plan || '-'}</td>
+                                <td className="px-3 py-2">{row.canceled_reason || '-'}</td>
+                                <td className="px-3 py-2">{row.agent_remarks || row.remarks || '-'}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

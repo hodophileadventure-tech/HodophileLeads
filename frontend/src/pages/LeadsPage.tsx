@@ -702,6 +702,9 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                               Note: {followUp.description}
                             </p>
                           )}
+                          {followUp.actionPlan && (
+                            <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">✓ Action Plan: Filled</p>
+                          )}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Button size="sm" variant="secondary" onClick={() => openFollowUpModal(followUp)}>
@@ -742,11 +745,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
         {selectedLead && <PaymentsPanel leadId={String(selectedLead.id)} lead={selectedLead} />}
 
         {showFollowUpModal && selectedLead && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-            <div
-              className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl"
-              style={{ marginTop: Math.max(16, window.scrollY + 24) }}
-            >
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
               <h3 className="text-xl font-bold mb-1">Schedule Follow Up</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 Set the reminder date and time for {selectedLead.clientName}.

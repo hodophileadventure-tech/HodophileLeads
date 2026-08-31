@@ -294,6 +294,9 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                         Note: {task.note}
                       </p>
                     )}
+                    {item.actionPlan && (
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">✓ Action Plan: Filled</p>
+                    )}
                     <p className="text-xs text-slate-500 mt-2">{task.dueLabel}</p>
                     {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (
                       <p className="text-xs text-rose-700 dark:text-rose-200 mt-2">
