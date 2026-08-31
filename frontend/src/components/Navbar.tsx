@@ -60,7 +60,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
   return (
     <>
     <nav className="brand-header app-navbar border-b sticky top-0 z-10 md:pl-64">
-      <div className="px-6 py-4 flex justify-between items-center">
+      <div className="px-6 py-4 flex items-center">
         <div className="flex items-center gap-4">
           <div className="md:hidden navbar-brand">TRIPNEXUS</div>
           <div className="hidden md:block">

@@ -13,6 +13,7 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
   const [showCompletionModal, setShowCompletionModal] = React.useState(false);
   const [completionFollowUp, setCompletionFollowUp] = React.useState<any | null>(null);
   const [completionRemarks, setCompletionRemarks] = React.useState('');
+  const completionModalRef = React.useRef<HTMLDivElement | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -25,6 +26,13 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
   };
 
   React.useEffect(() => { load(); }, []);
+
+  // Scroll completion modal into view when it opens
+  React.useEffect(() => {
+    if (showCompletionModal && completionModalRef.current) {
+      completionModalRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showCompletionModal]);
 
   const filtered = items.filter((i) => {
     if (filter === 'all') return true;
@@ -125,7 +133,7 @@ export const RemindersPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =
         )}
 
         {showCompletionModal && completionFollowUp && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div ref={completionModalRef} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
               <h3 className="text-xl font-bold mb-1">Mark Follow-up Complete</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Add remarks about this follow-up (optional). These will be saved to the lead.</p>
