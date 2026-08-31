@@ -69,7 +69,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6 ml-auto">
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setNotifOpen((v) => !v)}
