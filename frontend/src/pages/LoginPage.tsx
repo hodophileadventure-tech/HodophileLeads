@@ -32,8 +32,8 @@ export const LoginPage: React.FC = () => {
         <div className="login-intro hidden flex-col justify-between bg-[#17232d] p-10 text-white lg:flex">
           <div>
             <div className="flex items-center gap-3">
-              <img src={hodophileLogo} alt="Hodophile logo" className="h-12 w-auto rounded-md bg-white/10 p-1" />
-              <span className="font-display text-sm font-extrabold tracking-[.12em] text-white">HODOPHILE</span>
+              <img src={hodophileLogo} alt="Hodophile logo" className="h-16 w-auto rounded-md bg-white/10 p-1 shadow-sm" />
+              <span className="font-display text-lg font-extrabold tracking-[.12em] text-white">HODOPHILE</span>
             </div>
             <p className="mt-20 max-w-sm font-display text-4xl font-bold leading-tight text-white">Every journey starts with a better conversation.</p>
             <p className="mt-5 max-w-sm text-sm leading-6 text-slate-300">A focused workspace for turning travel enquiries into memorable experiences.</p>
@@ -43,8 +43,8 @@ export const LoginPage: React.FC = () => {
         <div className="p-7 sm:p-10">
           <div className="mb-9 lg:hidden">
             <div className="flex items-center gap-3">
-              <img src={hodophileLogo} alt="Hodophile logo" className="h-10 w-auto rounded-md border border-slate-200 bg-white p-1" />
-              <p className="font-display text-xl font-extrabold tracking-[.12em] text-slate-900">HODOPHILE</p>
+              <img src={hodophileLogo} alt="Hodophile logo" className="h-14 w-auto rounded-md border border-slate-200 bg-white p-1 shadow-sm" />
+              <p className="font-display text-2xl font-extrabold tracking-[.12em] text-slate-900">HODOPHILE</p>
             </div>
             <p className="mt-2 text-sm text-slate-500">Travel operations platform</p>
           </div>

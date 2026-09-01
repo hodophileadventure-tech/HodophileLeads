@@ -64,11 +64,11 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
       <div className="px-6 py-4 flex items-center w-full">
         <div className="flex items-center gap-4">
           <div className="md:hidden flex items-center gap-2">
-            <img src={hodophileLogo} alt="Hodophile logo" className="h-8 w-8 rounded-md border border-slate-300 bg-white p-1" />
-            <div className="navbar-brand">HODOPHILE</div>
+            <img src={hodophileLogo} alt="Hodophile logo" className="h-10 w-10 rounded-md border border-slate-300 bg-white p-1 shadow-sm" />
+            <div className="navbar-brand text-base">HODOPHILE</div>
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <img src={hodophileLogo} alt="Hodophile logo" className="h-9 w-9 rounded-md border border-slate-300 bg-white p-1" />
+            <img src={hodophileLogo} alt="Hodophile logo" className="h-11 w-11 rounded-md border border-slate-300 bg-white p-1 shadow-sm" />
             <div>
               <p className="text-xs font-bold uppercase tracking-[.16em] text-slate-400">Workspace</p>
               <p className="mt-0.5 text-sm font-semibold text-slate-700">Lead operations</p>
