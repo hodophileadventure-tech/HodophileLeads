@@ -101,15 +101,11 @@ export const authController = {
 
       console.log('[AUTH] Login succeeded', { email: user.email, role: authenticatedRole, roleSlug: user.role_slug, ip: req.ip });
 
-      // Issue shorter-lived tokens for elevated/internal roles
-      const privilegedRoles = ['admin', 'qa', 'quality_assurance', 'agent', 'manager'];
-      const tokenExpiry = privilegedRoles.includes(authenticatedRole) ? '9h' : undefined;
-
       const token = generateToken({
         id: user.id,
         email: user.email,
         role: authenticatedRole
-      }, tokenExpiry);
+      }, '8h');
 
       try {
         await markLoginAttendance(user.id, authenticatedRole);
@@ -187,14 +183,11 @@ export const authController = {
         console.log('[AUTH REGISTER] Could not fetch role details', { role });
       }
 
-      const privilegedRoles = ['admin', 'qa', 'quality_assurance', 'agent', 'manager'];
-      const tokenExpiry = privilegedRoles.includes(role) ? '9h' : undefined;
-
       const token = generateToken({
         id: user.id,
         email: user.email,
         role: role
-      }, tokenExpiry);
+      }, '8h');
 
       res.status(201).json({
         token,
@@ -236,10 +229,7 @@ export const authController = {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const privilegedRoles = ['admin', 'agent', 'manager'];
-      const tokenExpiry = privilegedRoles.includes(user.role) ? '9h' : undefined;
-
-      const token = generateToken({ id: user.id, email: user.email, role: user.role }, tokenExpiry);
+      const token = generateToken({ id: user.id, email: user.email, role: user.role }, '8h');
       res.json({
         token,
         user: {

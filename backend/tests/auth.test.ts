@@ -11,6 +11,14 @@ describe('auth utils', () => {
     expect(decoded.role).toBe('agent');
   });
 
+  test('uses an 8 hour default expiry for all roles', () => {
+    const token = generateToken({ id: 'user-2', email: 'video-editor@test.com', role: 'video_editor' });
+    const decoded = verifyToken(token) as jwt.JwtPayload;
+
+    expect(decoded.exp).toBeTruthy();
+    expect(decoded.exp! - decoded.iat!).toBe(8 * 60 * 60);
+  });
+
   test('rejects invalid token', () => {
     expect(verifyToken('invalid.token.value')).toBeNull();
   });

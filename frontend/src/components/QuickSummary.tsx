@@ -147,6 +147,11 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
     { name: 'Active', value: data.activeFollowups, color: COLORS.active }
   ].filter(item => item.value > 0) : [];
 
+  const getPercent = (value: number, total: number) => {
+    if (!total) return 0;
+    return Math.round((value / total) * 1000) / 10;
+  };
+
   const toggleDetails = (section: string) => {
     const next = expandedSection === section ? null : section;
     setExpandedSection(next);
@@ -228,6 +233,9 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
       {data && !loading && (
         <div className="space-y-8">
           {/* Summary Statistics */}
+          <div className="mb-2">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Lead Details</h3>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <button type="button" onClick={() => {
               const next = expandedSection === 'totalLeads' ? null : 'totalLeads';
@@ -236,6 +244,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Total Leads</p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-300">{data.totalLeads}</p>
+              <p className="text-xs font-medium text-blue-700 dark:text-blue-200">{getPercent(data.totalLeads, data.totalLeads)}%</p>
             </button>
             <button type="button" onClick={() => {
               const next = expandedSection === 'confirmedLeads' ? null : 'confirmedLeads';
@@ -244,6 +253,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Confirmed</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-300">{data.confirmedLeads}</p>
+              <p className="text-xs font-medium text-green-700 dark:text-green-200">{getPercent(data.confirmedLeads, data.totalLeads)}%</p>
             </button>
             <button type="button" onClick={() => {
               const next = expandedSection === 'inProgressLeads' ? null : 'inProgressLeads';
@@ -252,6 +262,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">In Progress</p>
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-300">{data.inProgressLeads}</p>
+              <p className="text-xs font-medium text-yellow-700 dark:text-yellow-200">{getPercent(data.inProgressLeads, data.totalLeads)}%</p>
             </button>
             <button type="button" onClick={() => {
               const next = expandedSection === 'completedLeads' ? null : 'completedLeads';
@@ -260,6 +271,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Completed</p>
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">{data.completedLeads}</p>
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-200">{getPercent(data.completedLeads, data.totalLeads)}%</p>
             </button>
             <button type="button" onClick={() => {
               const next = expandedSection === 'newLeads' ? null : 'newLeads';
@@ -268,6 +280,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-sky-50 dark:bg-sky-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">New Leads</p>
               <p className="text-2xl font-bold text-sky-600 dark:text-sky-300">{data.newLeads}</p>
+              <p className="text-xs font-medium text-sky-700 dark:text-sky-200">{getPercent(data.newLeads, data.totalLeads)}%</p>
             </button>
             <button type="button" onClick={() => {
               const next = expandedSection === 'potentialLeads' ? null : 'potentialLeads';
@@ -276,6 +289,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-amber-50 dark:bg-amber-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Potential</p>
               <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">{data.potentialLeads}</p>
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-200">{getPercent(data.potentialLeads, data.totalLeads)}%</p>
             </button>
             <button type="button" onClick={() => {
               const next = expandedSection === 'spamLeads' ? null : 'spamLeads';
@@ -284,6 +298,7 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Spam</p>
               <p className="text-2xl font-bold text-rose-600 dark:text-rose-300">{data.spamLeads}</p>
+              <p className="text-xs font-medium text-rose-700 dark:text-rose-200">{getPercent(data.spamLeads, data.totalLeads)}%</p>
             </button>
             <button type="button" onClick={() => {
               const next = expandedSection === 'canceledLeads' ? null : 'canceledLeads';
@@ -292,9 +307,13 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
             }} className="text-left bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
               <p className="text-xs text-slate-600 dark:text-slate-400">Canceled</p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-300">{data.canceledLeads}</p>
+              <p className="text-xs font-medium text-red-700 dark:text-red-200">{getPercent(data.canceledLeads, data.totalLeads)}%</p>
             </button>
           </div>
 
+          <div className="mb-2 mt-6">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Follow-up Details</h3>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {[
               { key: 'totalFollowups', label: 'Total Follow-ups', value: data.totalFollowups, className: 'bg-slate-50 dark:bg-slate-800' },
@@ -311,6 +330,9 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               >
                 <p className="text-xs text-slate-600 dark:text-slate-400">{item.label}</p>
                 <p className="text-2xl font-bold">{item.value}</p>
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                  {item.key === 'totalFollowups' ? `${getPercent(item.value, item.value)}%` : `${getPercent(item.value, data.totalFollowups)}%`}
+                </p>
               </button>
             ))}
           </div>

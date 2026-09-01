@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { useDataStore } from './store';
 import apiClient from '../utils/api';
+
+const AUTO_LOGOUT_MS = 8 * 60 * 60 * 1000;
 
 let ws: WebSocket | null = null;
 
@@ -45,6 +47,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
+  const logoutTimerRef = useRef<number | null>(null);
+
+  const logout = useCallback(() => {
+    if (logoutTimerRef.current) {
+      window.clearTimeout(logoutTimerRef.current);
+      logoutTimerRef.current = null;
+    }
+    void apiClient.post('/auth/logout').catch(() => undefined);
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    try { ws?.close(); } catch(e) {}
+  }, []);
+
+  const scheduleAutoLogout = useCallback(() => {
+    if (logoutTimerRef.current) {
+      window.clearTimeout(logoutTimerRef.current);
+    }
+    logoutTimerRef.current = window.setTimeout(() => {
+      logout();
+    }, AUTO_LOGOUT_MS);
+  }, [logout]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -53,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', token);
+      scheduleAutoLogout();
       // init websocket to receive realtime notifications
       const setNotifications = useDataStore.getState().setNotifications;
       const push = (n: any) => {
@@ -66,17 +91,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const logout = useCallback(() => {
-    void apiClient.post('/auth/logout').catch(() => undefined);
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    try { ws?.close(); } catch(e) {}
-  }, []);
-
   // refresh token periodically and reconnect websocket when it rotates
   React.useEffect(() => {
     if (!user) return;
+
+    scheduleAutoLogout();
 
     let mounted = true;
     const rotate = async () => {
@@ -89,6 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { token: nextToken } = response.data || {};
         if (!nextToken) return;
         localStorage.setItem('token', nextToken);
+        scheduleAutoLogout();
         try { ws?.close(); } catch (e) {}
         const push = (n: any) => {
           const current = useDataStore.getState().notifications || [];
@@ -105,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (mounted) rotate();
     }, 15 * 60 * 1000);
     return () => { mounted = false; window.clearInterval(id); };
-  }, [user]);
+  }, [user, scheduleAutoLogout]);
 
   const hasRole = useCallback((role: UserRole) => {
     return user?.role === role;

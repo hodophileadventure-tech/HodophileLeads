@@ -2,7 +2,7 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 
 const JWT_SECRET: string = process.env.JWT_SECRET || 'super-secret-key';
-const JWT_EXPIRY: string = process.env.JWT_EXPIRY || '7d';
+const JWT_EXPIRY: string = process.env.JWT_EXPIRY || '8h';
 
 export const generateToken = (payload: any, expiresIn?: string | number): string => {
   const options: SignOptions = {};
