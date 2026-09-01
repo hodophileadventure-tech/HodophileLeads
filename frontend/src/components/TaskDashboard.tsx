@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Card, Badge, Button, Spinner } from './common';
+import { Button, Spinner } from './common';
 import type { Lead, FollowUp } from '../types';
 import { formatDate, formatKarachiDateTime } from '../utils/helpers';
 import { followUpsAPI } from '../utils/api-service';
@@ -18,18 +18,6 @@ type TaskItem = {
   status: 'overdue' | 'today' | 'upcoming';
   dueLabel: string;
   whatsappLink?: string;
-};
-
-const getPriorityColor = (priority: TaskItem['priority']) => {
-  if (priority === 'high') return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-  if (priority === 'medium') return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-  return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-};
-
-const getStatusColor = (status: TaskItem['status']) => {
-  if (status === 'overdue') return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-  if (status === 'today') return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-  return 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200';
 };
 
 export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
@@ -208,8 +196,6 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Tasks</h1>
-
       {loading && (
         <div className="flex justify-center py-6">
           <Spinner size="md" />
@@ -217,53 +203,61 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
       )}
 
       {error && (
-        <Card>
-          <p className="text-red-600 dark:text-red-300 text-sm">{error}</p>
-        </Card>
+        <div className="premium-analytics-card">
+          <p className="text-red-600 font-medium text-sm">⚠️ {error}</p>
+        </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Overdue</p>
-          <p className="text-3xl font-bold text-red-500">{summary.overdue}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Due Today</p>
-          <p className="text-3xl font-bold text-green-500">{summary.today}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Upcoming</p>
-          <p className="text-3xl font-bold text-blue-500">{summary.upcoming}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-slate-600 dark:text-slate-400">High Priority</p>
-          <p className="text-3xl font-bold text-yellow-500">{summary.highPriority}</p>
-        </Card>
+      <div className="premium-kpi-grid">
+        <div className="premium-kpi-card">
+          <div className="premium-kpi-card-icon">⏰</div>
+          <div className="premium-kpi-card-label">Overdue</div>
+          <div className="premium-kpi-card-value text-red-600">{summary.overdue}</div>
+        </div>
+        <div className="premium-kpi-card">
+          <div className="premium-kpi-card-icon">📍</div>
+          <div className="premium-kpi-card-label">Due Today</div>
+          <div className="premium-kpi-card-value text-green-600">{summary.today}</div>
+        </div>
+        <div className="premium-kpi-card">
+          <div className="premium-kpi-card-icon">📅</div>
+          <div className="premium-kpi-card-label">Upcoming</div>
+          <div className="premium-kpi-card-value text-blue-600">{summary.upcoming}</div>
+        </div>
+        <div className="premium-kpi-card">
+          <div className="premium-kpi-card-icon">🔥</div>
+          <div className="premium-kpi-card-label">High Priority</div>
+          <div className="premium-kpi-card-value text-orange-600">{summary.highPriority}</div>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="premium-filter-bar">
         {[
-          { key: 'due', label: `Due (${dueFollowUps.length})`, color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-          { key: 'pastdue', label: `Past Due (${pastDueFollowUps.length})`, color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
-          { key: 'active', label: `Active (${activeFollowUps.length})`, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-          { key: 'completed', label: `Completed (${completedFollowUps.length})`, color: 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200' }
+          { key: 'due', label: `📍 Due (${dueFollowUps.length})`, icon: '📍' },
+          { key: 'pastdue', label: `⏰ Overdue (${pastDueFollowUps.length})`, icon: '⏰' },
+          { key: 'active', label: `📋 Active (${activeFollowUps.length})`, icon: '📋' },
+          { key: 'completed', label: `✅ Completed (${completedFollowUps.length})`, icon: '✅' }
         ].map((item) => (
           <button
             key={item.key}
             type="button"
             onClick={() => setActiveFilter(item.key as typeof activeFilter)}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${activeFilter === item.key ? item.color : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}
+            className={`premium-filter-btn ${activeFilter === item.key ? 'active' : ''}`}
           >
             {item.label}
           </button>
         ))}
       </div>
 
-      <Card>
+      <div>
         <h2 className="text-xl font-bold mb-4">Task Queue</h2>
 
         {visibleFollowUps.length === 0 ? (
-          <p className="text-slate-600 dark:text-slate-400">No tasks yet. Add some leads to generate follow-up tasks.</p>
+          <div className="premium-empty-state">
+            <div className="premium-empty-state-icon">📭</div>
+            <h3>No Tasks</h3>
+            <p>All tasks are complete or no follow-ups scheduled for this view</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {visibleFollowUps.map((item) => {
@@ -278,78 +272,90 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
               };
 
               return (
-              <div key={task.id} className="p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                <div className="flex flex-wrap gap-2 justify-between items-start">
+              <div key={task.id} className="premium-task-card">
+                <div className="premium-task-card-header">
                   <div className="flex-1">
-                    <h3 className="font-semibold">{task.title}</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    <h3 className="premium-task-card-title">{task.title}</h3>
+                    <p className="text-sm text-slate-600 mt-1">
                       {item.clientName
                         ? (
-                          <>Client: <span className="font-medium">{item.clientName}</span>{item.phone && <span className="text-slate-500"> · {item.phone}</span>}</>
+                          <>📞 <span className="font-medium">{item.clientName}</span>{item.phone && <span className="text-slate-500"> · {item.phone}</span>}</>
                         )
                         : item.phone
-                          ? <>Client: <span className="font-medium">{item.phone}</span></>
-                          : <>Client ID: <span className="font-medium">{item.leadId}</span></>}
+                          ? <>📞 <span className="font-medium">{item.phone}</span></>
+                          : <>📌 <span className="font-medium">{item.leadId}</span></>}
                     </p>
-                    {item.createdByName && (
-                      <p className="text-sm mt-2 px-2 py-1 inline-block bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded font-medium">
-                        Follow up of {item.createdByName}
-                      </p>
-                    )}
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{task.description}</p>
-                    {task.note && (
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 whitespace-pre-wrap">
-                        Note: {task.note}
-                      </p>
-                    )}
-                    {item.actionPlan && (
-                      <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">✓ Action Plan: Filled</p>
-                    )}
-                    <p className="text-xs text-slate-500 mt-2">{task.dueLabel}</p>
-                    {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (
-                      <p className="text-xs text-rose-700 dark:text-rose-200 mt-2">
-                        Canceled{item.canceledBy ? ` by ${String(item.canceledBy)}` : ''}{item.canceledReason ? `: ${item.canceledReason}` : ''}
-                      </p>
-                    )}
                   </div>
                   <div className="flex gap-2">
-                    <Badge color={getStatusColor(task.status)}>{task.status}</Badge>
-                    <Badge color={getPriorityColor(task.priority)}>{task.priority}</Badge>
+                    <span className={`premium-task-card-priority ${task.priority}`}>
+                      {task.priority.toUpperCase()}
+                    </span>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {item.status !== 'canceled' && (
-                    <Button variant="secondary" size="sm" onClick={() => openActionPlan(item)}>
-                      Action Plan
-                    </Button>
-                  )}
-                  {task.whatsappLink && item.status !== 'canceled' && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => window.open(task.whatsappLink, '_blank', 'noopener,noreferrer')}
-                    >
-                      Open WhatsApp
-                    </Button>
-                  )}
-                  {item.status !== 'canceled' && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => completeTask(item)}
-                      disabled={!item.actionPlan?.trim()}
-                      title={!item.actionPlan?.trim() ? 'Add an Action Plan before marking this follow-up done' : 'Mark follow-up done'}
-                    >
-                      Mark Done
-                    </Button>
-                  )}
+
+                <p className="premium-task-card-description">{task.description}</p>
+
+                {item.createdByName && (
+                  <p className="text-sm px-2 py-1 inline-block bg-blue-100 text-blue-800 rounded font-medium mb-2">
+                    👤 Follow up of {item.createdByName}
+                  </p>
+                )}
+
+                {task.note && (
+                  <p className="text-sm text-slate-600 mt-2 whitespace-pre-wrap border-l-2 border-amber-400 pl-3 py-2 bg-amber-50 rounded">
+                    📝 {task.note}
+                  </p>
+                )}
+
+                {item.actionPlan && (
+                  <p className="text-sm text-green-700 mt-2 font-medium">✅ Action Plan: Filled</p>
+                )}
+
+                {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (
+                  <p className="text-sm text-rose-700 mt-2 font-medium">
+                    ✖️ Canceled{item.canceledBy ? ` by ${String(item.canceledBy)}` : ''}{item.canceledReason ? `: ${item.canceledReason}` : ''}
+                  </p>
+                )}
+
+                <div className="premium-task-card-footer">
+                  <div className="premium-task-card-due">
+                    📅 {task.dueLabel}
+                  </div>
+                  <div className="premium-task-card-actions">
+                    {item.status !== 'canceled' && (
+                      <button
+                        onClick={() => openActionPlan(item)}
+                        className="premium-task-card-action-btn"
+                      >
+                        Plan
+                      </button>
+                    )}
+                    {task.whatsappLink && item.status !== 'canceled' && (
+                      <button
+                        onClick={() => window.open(task.whatsappLink, '_blank', 'noopener,noreferrer')}
+                        className="premium-task-card-action-btn"
+                      >
+                        WhatsApp
+                      </button>
+                    )}
+                    {item.status !== 'canceled' && (
+                      <button
+                        onClick={() => completeTask(item)}
+                        disabled={!item.actionPlan?.trim()}
+                        className="premium-task-card-action-btn primary"
+                        title={!item.actionPlan?.trim() ? 'Add an Action Plan first' : 'Mark as done'}
+                      >
+                        Done
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
               );
             })}
           </div>
         )}
-      </Card>
+      </div>
 
       {showCompletionModal && completionFollowUp && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

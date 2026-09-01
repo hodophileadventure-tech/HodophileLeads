@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, AlertCircle, ArrowRight, Bell, CheckCircle2, CircleDollarSign, Flame, RefreshCw, Users } from 'lucide-react';
+import { Bell, CheckCircle2, CircleDollarSign, Flame, RefreshCw, Users } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { dashboardAPI, followUpsAPI, leadsAPI } from '../utils/api-service';
 import { formatCurrency } from '../utils/helpers';
@@ -150,38 +150,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       )}
 
       {/* KPIs Section */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Key performance indicators">
+      <section className="premium-kpi-grid" aria-label="Key performance indicators">
         {kpis.map(({ label, value, detail, icon: Icon, action }) => (
           <button
             key={label}
             type="button"
             onClick={() => onNavigate?.(action)}
-            className="dashboard-kpi text-left hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+            className="premium-kpi-card"
           >
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="dashboard-kpi-icon">
-                <Icon size={18} />
-              </div>
-              <ArrowRight size={14} className="text-amber-300" />
+            <div className="premium-kpi-card-icon">
+              <Icon size={20} />
             </div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{label}</p>
-            <p className="text-2xl font-bold text-slate-900 mb-1">{value}</p>
-            <p className="text-xs text-slate-600 line-clamp-2">{detail}</p>
+            <p className="premium-kpi-card-label">{label}</p>
+            <p className="premium-kpi-card-value">{value}</p>
+            <p className="premium-kpi-card-detail">{detail}</p>
           </button>
         ))}
       </section>
 
       {/* Main Sections */}
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_.75fr]">
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.25fr_.75fr]">
         {/* Pipeline Section */}
-        <div className="dashboard-section">
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <div>
-              <p className="section-eyebrow">📊 Pipeline Intelligence</p>
-              <h2 className="section-title">Where leads are moving</h2>
-            </div>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">Live count</span>
-          </div>
+        <div className="premium-section">
+          <h2>📊 Pipeline Intelligence</h2>
+          <p className="text-sm text-slate-600 mb-4">Where leads are moving</p>
           <div className="space-y-4">
             {pipelineSummary.map((stage) => (
               <button
@@ -204,46 +196,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
 
         {/* Action Center */}
-        <div className="dashboard-section bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              <p className="section-eyebrow text-amber-700">⚡ Action Center</p>
-              <h2 className="section-title">What needs attention</h2>
-            </div>
-            <AlertCircle size={20} className="text-amber-600" />
-          </div>
-          <div className="divide-y divide-amber-200/70">
-            <button type="button" onClick={() => onNavigate?.('followups')} className="dashboard-action-row text-amber-900 hover:text-amber-950">
-              <span><strong>{followUpCounts.overdue}</strong> overdue follow-ups</span>
-              <ArrowRight size={15} />
+        <div className="premium-section">
+          <h2>⚡ Action Center</h2>
+          <p className="text-sm text-slate-600 mb-4">What needs your attention</p>
+          <div className="space-y-2">
+            <button type="button" onClick={() => onNavigate?.('followups')} className="premium-list-item hover:bg-slate-50 rounded px-2">
+              <div className="premium-list-item-content">
+                <p className="premium-list-item-title">⏰ Overdue Follow-ups</p>
+                <p className="premium-list-item-subtitle"><strong className="text-red-600">{followUpCounts.overdue}</strong> follow-ups need action</p>
+              </div>
+              <span className="premium-badge danger">{followUpCounts.overdue}</span>
             </button>
-            <button type="button" onClick={() => onNavigate?.('followups')} className="dashboard-action-row text-amber-900 hover:text-amber-950">
-              <span><strong>{followUpCounts.today}</strong> due today</span>
-              <ArrowRight size={15} />
+            <button type="button" onClick={() => onNavigate?.('followups')} className="premium-list-item hover:bg-slate-50 rounded px-2">
+              <div className="premium-list-item-content">
+                <p className="premium-list-item-title">📍 Due Today</p>
+                <p className="premium-list-item-subtitle"><strong className="text-green-600">{followUpCounts.today}</strong> tasks scheduled for today</p>
+              </div>
+              <span className="premium-badge success">{followUpCounts.today}</span>
             </button>
-            <button type="button" onClick={() => onNavigate?.('leads')} className="dashboard-action-row text-amber-900 hover:text-amber-950">
-              <span><strong>{hotWithoutFollowUp}</strong> hot leads awaiting follow-up</span>
-              <ArrowRight size={15} />
+            <button type="button" onClick={() => onNavigate?.('leads')} className="premium-list-item hover:bg-slate-50 rounded px-2">
+              <div className="premium-list-item-content">
+                <p className="premium-list-item-title">🔥 Hot Leads</p>
+                <p className="premium-list-item-subtitle"><strong className="text-orange-600">{hotWithoutFollowUp}</strong> hot leads awaiting follow-up</p>
+              </div>
+              <span className="premium-badge warning">{hotWithoutFollowUp}</span>
             </button>
-            <div className="dashboard-action-row text-amber-800">
-              <span><strong>{stats?.pendingPayments || 0}</strong> payments pending</span>
-              <Activity size={15} />
+            <div className="premium-list-item border-b-0">
+              <div className="premium-list-item-content">
+                <p className="premium-list-item-title">💳 Pending Payments</p>
+                <p className="premium-list-item-subtitle"><strong className="text-blue-600">{stats?.pendingPayments || 0}</strong> payments awaiting</p>
+              </div>
+              <span className="premium-badge info">{stats?.pendingPayments || 0}</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Revenue & Performance */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="dashboard-section lg:col-span-2">
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <div>
-              <p className="section-eyebrow">💰 Revenue Target</p>
-              <h2 className="section-title">Confirmed revenue progress</h2>
-            </div>
-            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">Current</span>
-          </div>
-          <div className="flex items-end justify-between gap-4">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="premium-section lg:col-span-2">
+          <h2>💰 Revenue Target</h2>
+          <p className="text-sm text-slate-600 mb-4">Confirmed revenue progress</p>
+          <div className="flex items-end justify-between gap-4 mb-6">
             <div>
               <p className="text-3xl font-bold text-slate-900">{formatCurrency(stats?.totalRevenue || 0)}</p>
               <p className="mt-1 text-xs text-slate-600">of {formatCurrency(stats?.monthlyTarget || 0)} target</p>
@@ -260,29 +254,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
 
         {/* Follow-up Health */}
-        <div className="dashboard-section">
-          <p className="section-eyebrow">✓ Operational Health</p>
-          <h2 className="section-title">Follow-up performance</h2>
-          <div className="mt-6 space-y-4">
-            <div className="p-3 rounded-lg bg-red-50 border border-red-200">
-              <p className="text-2xl font-bold text-red-600">{followUpCounts.overdue}</p>
-              <p className="text-xs text-red-700 font-semibold mt-1">Overdue</p>
+        <div className="premium-section">
+          <h2>✓ Operational Health</h2>
+          <p className="text-sm text-slate-600 mb-4">Follow-up performance metrics</p>
+          <div className="space-y-3">
+            <div className="premium-kpi-card">
+              <div className="premium-kpi-card-value text-red-600">{followUpCounts.overdue}</div>
+              <div className="premium-kpi-card-label">Overdue Tasks</div>
             </div>
-            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <p className="text-2xl font-bold text-amber-600">{followUpCounts.today}</p>
-              <p className="text-xs text-amber-700 font-semibold mt-1">Due today</p>
+            <div className="premium-kpi-card">
+              <div className="premium-kpi-card-value text-amber-600">{followUpCounts.today}</div>
+              <div className="premium-kpi-card-label">Due Today</div>
             </div>
           </div>
-          <button type="button" onClick={() => onNavigate?.('followups')} className="mt-6 w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-lg transition-colors">
-            Open follow-ups <ArrowRight size={14} />
+          <button type="button" onClick={() => onNavigate?.('followups')} className="mt-6 w-full premium-action-button primary">
+            📋 View All Follow-ups
           </button>
         </div>
       </section>
 
       {/* Charts Section */}
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_.65fr]">
-        <div className="dashboard-section">
-          <div className="flex items-start justify-between gap-4"><div><p className="section-eyebrow">Live activity trend</p><h2 className="section-title">Leads and follow-ups over 14 days</h2></div><span className="text-xs font-semibold text-slate-500">Auto-refreshing</span></div>
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.35fr_.65fr]">
+        <div className="premium-section">
+          <h2>📈 Live Activity Trend</h2>
+          <p className="text-sm text-slate-600 mb-4">Leads and follow-ups over 14 days</p>
           <div className="mt-5 h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
