@@ -163,6 +163,58 @@
     border-color: rgba(0,0,0,0.08) !important;
   }
 
+  .hodophile-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    max-width: 100%;
+  }
+
+  .hodophile-brand__mark {
+    width: 62px;
+    height: 62px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .hodophile-brand__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .hodophile-brand__title {
+    color: #111827 !important;
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(1.3rem, 2.2vw, 3rem);
+    font-weight: 900;
+    letter-spacing: -0.06em;
+    line-height: 0.9;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .hodophile-brand__tagline {
+    margin-top: 0.15rem;
+    color: #4b5563 !important;
+    font-size: clamp(0.58rem, 0.75vw, 0.88rem);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .hodophile-brand__license {
+    margin-top: 0.15rem;
+    color: #4b5563 !important;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
   .brand-header .text-primary-500 { color: #000000 !important; }
   .brand-header button, .brand-header a { color: #000000 !important; }
 
