@@ -392,7 +392,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
         <div className="flex flex-col gap-4 bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-6 text-white shadow-lg md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">📊 Sales Pipeline</p>
-            <h1 className="text-4xl font-bold mb-2">Leads Management</h1>
+            <h1 className="text-4xl font-bold mb-2" style={{ color: '#ffffff' }}>Leads Management</h1>
             <p className="text-slate-300">Convert prospects into customers with intelligent pipeline management</p>
           </div>
           <div className="flex gap-3">
