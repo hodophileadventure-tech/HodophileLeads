@@ -11,7 +11,7 @@ interface LeadCardProps {
   onClick?: () => void;
 }
 
-export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
+export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
   const [tab, setTab] = React.useState<'overview' | 'availability'>('overview');
   const [availability, setAvailability] = React.useState<any>(null);
   const [health, setHealth] = React.useState<{ score: number; health: 'red' | 'yellow' | 'green' } | null>(null);
@@ -116,7 +116,18 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
   const lifecycle = getLeadLifecycleStyle(lead);
 
   return (
-    <div className="lead-card group relative">
+    <div
+      className="lead-card group relative cursor-pointer"
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && onClick) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+    >
       {/* Unread notification badge */}
       {notifications.some((n: any) => !n.is_read && n.leadId === lead.id) && (
         <div className="absolute -top-2 -right-2 z-10">
@@ -310,14 +321,30 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
       <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-200">
         <button
           type="button"
-          onClick={() => setShowReminderModal(true)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onClick?.();
+          }}
+          className="flex-1 text-xs px-2 py-1.5 rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 font-semibold transition-colors"
+        >
+          Open
+        </button>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setShowReminderModal(true);
+          }}
           className="flex-1 text-xs px-2 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold transition-colors"
         >
           Follow-up
         </button>
         <button
           type="button"
-          onClick={() => setShowHotelModal(true)}
+          onClick={(event) => {
+            event.stopPropagation();
+            setShowHotelModal(true);
+          }}
           className="flex-1 text-xs px-2 py-1.5 rounded-md bg-green-50 text-green-700 hover:bg-green-100 font-semibold transition-colors"
         >
           Hotel

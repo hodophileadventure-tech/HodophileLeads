@@ -185,6 +185,11 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
     [selectedLeadFollowUps]
   );
 
+  const handleOpenLead = (lead: Lead) => {
+    setSelectedLead(lead);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Count leads by status
   const statusCounts = useMemo(() => {
     return {
@@ -773,7 +778,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                             </p>
                           )}
                           {followUp.actionPlan && (
-                            <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">✓ Action Plan: Filled</p>
+                            <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">Action Plan Filled</p>
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -988,9 +993,9 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
               <h2 className="text-2xl font-bold text-slate-900">Pipeline View</h2>
             </div>
             {leadView === 'kanban' ? (
-              <KanbanPipeline leads={filteredLeads} onSelectLead={setSelectedLead} onMoveStage={moveLeadStage} />
+              <KanbanPipeline leads={filteredLeads} onSelectLead={handleOpenLead} onMoveStage={moveLeadStage} />
             ) : (
-              <LeadList leads={filteredLeads} onSelectLead={setSelectedLead} />
+              <LeadList leads={filteredLeads} onSelectLead={handleOpenLead} />
             )}
           </div>
         </section>

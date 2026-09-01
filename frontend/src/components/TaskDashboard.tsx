@@ -317,7 +317,7 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                 )}
 
                 {item.actionPlan && (
-                  <p className="text-sm text-green-700 mt-2 font-medium">✅ Action Plan: Filled</p>
+                  <p className="text-sm text-green-700 mt-2 font-medium">Action Plan Filled</p>
                 )}
 
                 {item.status === 'canceled' && (item.canceledReason || item.canceledBy) && (
