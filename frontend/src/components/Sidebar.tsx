@@ -70,7 +70,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ navItems, currentPath, onNavig
       >
         <div className="sidebar-brand">
           <img src={hodophileLogo} alt="Hodophile logo" className="h-auto w-full max-w-[175px] object-contain" />
-        </div>
           <button
             type="button"
             onClick={() => setCollapsed((value) => !value)}
