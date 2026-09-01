@@ -164,6 +164,7 @@ export const reportsAPI = {
 (adminAPI as any).submitScreenCapture = (requestId: string, data: { dataUrl?: string; error?: string; capturedAt?: string }) =>
   apiClient.post(`/admin/screen-captures/${requestId}`, data);
 (adminAPI as any).getAgentsFollowUpStats = () => apiClient.get('/admin/agents/follow-up-stats');
+(adminAPI as any).getRevenueTrends = () => apiClient.get('/admin/revenue-trends');
 (adminAPI as any).deleteAgent = (agentId: string) => apiClient.delete(`/admin/agents/${agentId}`);
 
 export const quoteRequestsAPI = {

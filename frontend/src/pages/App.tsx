@@ -27,6 +27,7 @@ import GitHistoryPanel from '../components/GitHistoryPanel';
 import { Button, Spinner } from '../components/common';
 import AdminPage from './AdminPage';
 import AttendancePage from './AttendancePage';
+import { AdminRevenueDashboard } from '../components/AdminRevenueDashboard.tsx';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
@@ -1412,9 +1413,12 @@ export const App: React.FC = () => {
                 <section className="card">
                   <h1 className="text-3xl font-bold">Admin Dashboard</h1>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    System administration and user management
+                    Revenue trends, system administration, and user management
                   </p>
                 </section>
+
+                <AdminRevenueDashboard />
+
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => setCurrentPage('admin-users')}
