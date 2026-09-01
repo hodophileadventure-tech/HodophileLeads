@@ -79,6 +79,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   const [cancelLeadReasonDetail, setCancelLeadReasonDetail] = useState('');
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [pipelineCollapsed, setPipelineCollapsed] = useState(false);
+  const leadPageTopRef = React.useRef<HTMLDivElement | null>(null);
   const leadDetailRef = React.useRef<HTMLDivElement | null>(null);
   const followUpModalRef = React.useRef<HTMLDivElement | null>(null);
   const completionModalRef = React.useRef<HTMLDivElement | null>(null);
@@ -187,7 +188,12 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
 
   const handleOpenLead = (lead: Lead) => {
     setSelectedLead(lead);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      leadPageTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!leadPageTopRef.current) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   };
 
   // Count leads by status
@@ -392,6 +398,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
 
   return (
     <div className="space-y-5">
+      <div ref={leadPageTopRef} />
       {/* Premium Page Header */}
       <div className="mb-6">
         <div className="leads-management-hero flex flex-col gap-4 bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-6 text-white shadow-lg md:flex-row md:items-center md:justify-between">
