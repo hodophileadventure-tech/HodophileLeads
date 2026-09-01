@@ -4,6 +4,7 @@ import { notificationsAPI } from '../utils/api-service';
 import { useDataStore, useUIStore } from '../context/store';
 import RemindersPanel from './RemindersPanel';
 import { ChangePasswordModal } from './ChangePasswordModal';
+import headerLogo from '../assets/header-logo.jpeg';
 
 export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => void }> = ({ onNotificationClick }) => {
   const { user, logout } = useAuth();
@@ -61,7 +62,9 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
     <>
     <nav className="brand-header app-navbar border-b sticky top-0 z-10 md:pl-64">
       <div className="px-6 py-4 flex items-center w-full">
-        <div className="flex items-center gap-4"></div>
+        <div className="flex items-center gap-4">
+          <img src={headerLogo} alt="Hodophile logo" className="h-9 w-auto object-contain" />
+        </div>
 
         <div className="flex items-center gap-6 ml-auto">
           <div className="relative" ref={notifRef}>

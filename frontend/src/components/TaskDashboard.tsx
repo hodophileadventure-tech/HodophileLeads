@@ -147,6 +147,14 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
     return followUps;
   }, [activeFilter, dueFollowUps, pastDueFollowUps, activeFollowUps, completedFollowUps, followUps]);
 
+  const leadById = useMemo(() => {
+    const map = new Map<string, Lead>();
+    for (const lead of leads) {
+      map.set(String(lead.id), lead);
+    }
+    return map;
+  }, [leads]);
+
   const summary = useMemo(() => {
     return {
       overdue: tasks.filter((task) => task.status === 'overdue').length,
@@ -261,6 +269,9 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
         ) : (
           <div className="space-y-3">
             {visibleFollowUps.map((item) => {
+              const lead = leadById.get(String(item.leadId));
+              const contactName = item.clientName || lead?.clientName || 'Client';
+              const contactPhone = item.phone || lead?.phone || item.whatsappNumber || '';
               const task: TaskItem = {
                 id: item.id,
                 title: item.title,
@@ -277,13 +288,11 @@ export const TaskDashboard: React.FC<TaskDashboardProps> = ({ leads }) => {
                   <div className="flex-1">
                     <h3 className="premium-task-card-title">{task.title}</h3>
                     <p className="text-sm text-slate-600 mt-1">
-                      {item.clientName
-                        ? (
-                          <>📞 <span className="font-medium">{item.clientName}</span>{item.phone && <span className="text-slate-500"> · {item.phone}</span>}</>
-                        )
-                        : item.phone
-                          ? <>📞 <span className="font-medium">{item.phone}</span></>
-                          : <>📌 <span className="font-medium">{item.leadId}</span></>}
+                      {contactPhone ? (
+                        <>📞 <span className="font-medium">{contactName}</span><span className="text-slate-500"> · {contactPhone}</span></>
+                      ) : (
+                        <>📌 <span className="font-medium">{contactName}</span></>
+                      )}
                     </p>
                   </div>
                   <div className="flex gap-2">
