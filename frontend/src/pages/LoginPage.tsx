@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common';
+import hodophileLogo from '../assets/hodophile-logo.png';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -31,8 +32,8 @@ export const LoginPage: React.FC = () => {
         <div className="login-intro hidden flex-col justify-between bg-[#17232d] p-10 text-white lg:flex">
           <div>
             <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-md bg-amber-400 font-extrabold text-[#17232d]">TN</span>
-              <span className="font-display text-sm font-extrabold tracking-[.18em] text-white">TRIPNEXUS</span>
+              <img src={hodophileLogo} alt="Hodophile logo" className="h-12 w-auto rounded-md bg-white/10 p-1" />
+              <span className="font-display text-sm font-extrabold tracking-[.12em] text-white">HODOPHILE</span>
             </div>
             <p className="mt-20 max-w-sm font-display text-4xl font-bold leading-tight text-white">Every journey starts with a better conversation.</p>
             <p className="mt-5 max-w-sm text-sm leading-6 text-slate-300">A focused workspace for turning travel enquiries into memorable experiences.</p>
@@ -41,8 +42,11 @@ export const LoginPage: React.FC = () => {
         </div>
         <div className="p-7 sm:p-10">
           <div className="mb-9 lg:hidden">
-            <p className="font-display text-xl font-extrabold tracking-[.12em] text-slate-900">TRIPNEXUS</p>
-            <p className="mt-1 text-sm text-slate-500">Travel operations platform</p>
+            <div className="flex items-center gap-3">
+              <img src={hodophileLogo} alt="Hodophile logo" className="h-10 w-auto rounded-md border border-slate-200 bg-white p-1" />
+              <p className="font-display text-xl font-extrabold tracking-[.12em] text-slate-900">HODOPHILE</p>
+            </div>
+            <p className="mt-2 text-sm text-slate-500">Travel operations platform</p>
           </div>
           <div className="mb-8">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-600">Welcome back</p>

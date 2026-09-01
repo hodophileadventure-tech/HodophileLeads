@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getClient, query } from '../utils/database';
+import { generateMonthlySalaryReport } from '../services/salary-policy';
 
 interface AttendanceRequest extends Request {
   user?: { id: string; role?: string };
@@ -160,4 +161,14 @@ export async function saveAttendance(req: AttendanceRequest, res: Response, next
   }
 }
 
-export const attendanceController = { getAttendance, getMonthlyAttendance, saveAttendance };
+export async function generateMonthSalarySlips(req: AttendanceRequest, res: Response, next: NextFunction) {
+  try {
+    const month = String(req.body?.month || req.query.month || '').trim();
+    const report = await generateMonthlySalaryReport(month || new Date().toISOString().slice(0, 7));
+    res.json({ success: true, month: report.month, generated: report.slips.length, slips: report.slips });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const attendanceController = { getAttendance, getMonthlyAttendance, saveAttendance, generateMonthSalarySlips };

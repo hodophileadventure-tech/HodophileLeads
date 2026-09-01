@@ -106,6 +106,7 @@ adminRouter.post('/users/:id/assign-role', roleMiddleware(['admin', 'qa']), admi
 // Admin/QA finalize the sheet; employees can view only their own attendance.
 adminRouter.get('/attendance', roleMiddleware(['admin', 'qa', 'agent', 'manager']), attendanceController.getAttendance);
 adminRouter.get('/attendance/monthly', roleMiddleware(['admin', 'qa', 'agent', 'manager']), attendanceController.getMonthlyAttendance);
+adminRouter.post('/attendance/salary-slips', roleMiddleware(['admin', 'qa']), attendanceController.generateMonthSalarySlips);
 adminRouter.put('/attendance', roleMiddleware(['admin', 'qa']), attendanceController.saveAttendance);
 
 // ============================================================================

@@ -2,6 +2,7 @@ import React from 'react';
 import { useUIStore } from '../context/store';
 import { Activity, BarChart3, Bell, CalendarDays, CheckSquare, FileCheck2, FileText, GitBranch, Hotel, LayoutDashboard, Map, Megaphone, Receipt, ShieldCheck, Users, Wrench } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import hodophileLogo from '../assets/hodophile-logo.png';
 
 interface SidebarProps {
   navItems: { label: string; href: string; icon: string }[];
@@ -68,9 +69,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ navItems, currentPath, onNavig
         } md:relative md:translate-x-0 z-40 mt-16 md:mt-0`}
       >
         <div className="sidebar-brand">
-          <span className="sidebar-mark">TN</span>
+          <img src={hodophileLogo} alt="Hodophile logo" className="h-9 w-9 rounded-md bg-white/10 object-cover p-1" />
           <div>
-            <p className="sidebar-title">TripNexus</p>
+            <p className="sidebar-title">Hodophile</p>
             <p className="sidebar-caption">Lead operations</p>
           </div>
           <button

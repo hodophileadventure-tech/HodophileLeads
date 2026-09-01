@@ -28,6 +28,7 @@ import { startTaskOverdueWorker } from './workers/taskOverdueWorker';
 import { createServer } from 'http';
 import { initWebsocket } from './utils/wsServer';
 import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
+import { startMonthlyPayrollWorker } from './workers/monthlyPayrollWorker';
 
 dotenv.config();
 
@@ -199,6 +200,7 @@ const start = async () => {
     startOutboxWorker();
     startScreenCaptureCleanup();
     startTaskOverdueWorker();
+    startMonthlyPayrollWorker();
   } catch (err) {
     console.error('Failed to start background workers:', err);
   }
