@@ -633,9 +633,14 @@ export const App: React.FC = () => {
                       <Dashboard onNavigate={(page: 'leads' | 'followups' | 'analytics') => setCurrentPage(page)} />
                     </section>
                     {(isAdminLike || user?.role === 'manager') && (
-                      <section>
-                        <AnalyticsDashboard isAdmin={isAdminLike} showAgentTargetsOnly={user?.role === 'manager'} />
-                      </section>
+                      <>
+                        <section>
+                          <AdminRevenueDashboard />
+                        </section>
+                        <section>
+                          <AnalyticsDashboard isAdmin={isAdminLike} showAgentTargetsOnly={user?.role === 'manager'} />
+                        </section>
+                      </>
                     )}
                   </>
                 )}
