@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Lead } from '../types';
 import { LeadCard } from './LeadCard';
-import { getLeadLifecycleStyle, getLeadLifecycleState } from '../utils/helpers';
+import { getLeadLifecycleState } from '../utils/helpers';
 import { followUpsAPI } from '../utils/api-service';
 import { normalizeFollowUp } from '../utils/followup-utils';
 
@@ -129,7 +129,6 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
               {/* Column Cards */}
               <div className="flex-1 overflow-y-auto space-y-3 p-3">
                 {grouped[column.key].map((lead) => {
-                  const lifecycle = getLeadLifecycleStyle(lead as any);
                   const overdueClass = overdueLeadIds.includes(lead.id) 
                     ? 'ring-2 ring-red-500 ring-offset-2 animate-pulse' 
                     : '';

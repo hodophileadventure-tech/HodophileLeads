@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatDate, formatCurrency, getStatusColor, getKarachiLocalDateTimeString, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
+import { formatCurrency, getLeadLifecycleStyle, parseKarachiDateTimeToISOString } from '../utils/helpers';
 import type { Lead } from '../types';
 import { Badge } from './common';
 import { availabilityAPI, leadsAPI, followUpsAPI } from '../utils/api-service';
@@ -11,7 +11,7 @@ interface LeadCardProps {
   onClick?: () => void;
 }
 
-export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
+export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
   const [tab, setTab] = React.useState<'overview' | 'availability'>('overview');
   const [availability, setAvailability] = React.useState<any>(null);
   const [health, setHealth] = React.useState<{ score: number; health: 'red' | 'yellow' | 'green' } | null>(null);
@@ -103,16 +103,15 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
     return new Date(value);
   }, [lead.createdAt]);
 
-  const updatedAtDate = React.useMemo(() => {
-    const value = lead.updatedAt || lead.createdAt;
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const [year, month, day] = value.split('-').map(Number);
-      return new Date(year, month - 1, day);
-    }
-    return new Date(value);
-  }, [lead.updatedAt, lead.createdAt]);
-
-  const showUpdatedAt = updatedAtDate.getTime() > createdAtDate.getTime();
+  // Keep updatedAtDate calculation but don't display it
+  // const updatedAtDate = React.useMemo(() => {
+  //   const value = lead.updatedAt || lead.createdAt;
+  //   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+  //     const [year, month, day] = value.split('-').map(Number);
+  //     return new Date(year, month - 1, day);
+  //   }
+  //   return new Date(value);
+  // }, [lead.updatedAt, lead.createdAt]);
 
   const lifecycle = getLeadLifecycleStyle(lead);
 
@@ -318,10 +317,10 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
         </button>
         <button
           type="button"
-          onClick={() => setShowConfirmForm(true)}
+          onClick={() => setShowHotelModal(true)}
           className="flex-1 text-xs px-2 py-1.5 rounded-md bg-green-50 text-green-700 hover:bg-green-100 font-semibold transition-colors"
         >
-          Confirm
+          Hotel
         </button>
       </div>
 
@@ -367,6 +366,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
       )}
 
       {/* Hotel Modal */}
+      <Modal
         isOpen={showHotelModal}
         onClose={() => setShowHotelModal(false)}
         title="Edit Hotel Details"
