@@ -895,6 +895,16 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   color: #ffffff !important;
 }
 
+.leads-management-hero {
+  color: #ffffff !important;
+}
+
+.leads-management-hero .leads-management-title,
+.leads-management-hero h1 {
+  color: #ffffff !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.06);
+}
+
 .premium-page-header p {
   font-size: 0.875rem;
   font-weight: 600;
