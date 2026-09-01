@@ -214,8 +214,19 @@
   /* Brand header and sidebar styles */
   .brand-header {
     background: #f3f0ea !important;
-    color: #000000 !important;
+    color: #102a43 !important;
     border-color: rgba(0,0,0,0.08) !important;
+  }
+
+  .brand-header *,
+  .brand-header button,
+  .brand-header a,
+  .brand-header svg,
+  .app-navbar,
+  .app-navbar *,
+  .navbar-brand,
+  .navbar-user-name {
+    color: #102a43 !important;
   }
 
   .hodophile-brand {
@@ -434,6 +445,11 @@
 
   .navbar-brand { color: #102a43 !important; font-size: 1rem; font-weight: 900; letter-spacing: .08em; }
   .navbar-user-name { color: #102a43 !important; }
+  .app-navbar button svg,
+  .app-navbar .text-slate-500,
+  .brand-header .text-slate-500 {
+    color: #102a43 !important;
+  }
 
   .page-enter {
     animation: pageEnter 420ms cubic-bezier(.2,.8,.2,1) both;
@@ -869,7 +885,14 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   letter-spacing: -0.025em;
   margin: 0;
   line-height: 1.1;
-  color: #ffffff;
+  color: #ffffff !important;
+}
+
+.premium-page-header .premium-header-title,
+.premium-page-header h1,
+.premium-page-header h2,
+.premium-page-header h3 {
+  color: #ffffff !important;
 }
 
 .premium-page-header p {

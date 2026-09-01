@@ -63,7 +63,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
     <nav className="brand-header app-navbar border-b sticky top-0 z-10 md:pl-64">
       <div className="px-6 py-4 flex items-center w-full">
         <div className="flex items-center gap-4">
-          <img src={headerLogo} alt="Hodophile logo" className="h-9 w-auto object-contain" />
+          <img src={headerLogo} alt="Hodophile logo" className="h-12 w-auto object-contain" />
         </div>
 
         <div className="flex items-center gap-6 ml-auto">
