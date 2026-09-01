@@ -842,3 +842,319 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   .app-navbar { padding-left: 3.6rem; }
   .app-sidebar { width: 17rem !important; }
 }
+
+/* ====================================================== */
+/* PREMIUM PAGE STYLING - ENTERPRISE CRM DESIGN */
+/* ====================================================== */
+
+.premium-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: linear-gradient(135deg, #111827 0%, #1e293b 50%, #0f172a 100%);
+  border-radius: 0.875rem;
+  padding: 2rem 1.5rem;
+  color: white;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+  margin-bottom: 1.5rem;
+}
+
+.premium-page-header.gradient-to-br {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #0f172a 100%);
+}
+
+.premium-page-header h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.premium-page-header p {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin: 0.5rem 0 0 0;
+}
+
+.premium-page-header .subtitle {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  margin-top: 0.5rem;
+}
+
+.premium-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.premium-stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.premium-stat-card strong {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 0.25rem;
+}
+
+.premium-stat-card small {
+  display: block;
+  font-size: 0.7rem;
+  color: #cbd5e1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.premium-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.premium-section h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 1.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.premium-section h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: #fcc000;
+  border-radius: 2px;
+}
+
+.premium-filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.premium-filter-btn {
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.premium-filter-btn:hover {
+  border-color: #fcc000;
+  color: #fcc000;
+  background: #fffbf0;
+}
+
+.premium-filter-btn.active {
+  background: #fcc000;
+  color: #201700;
+  border-color: #fcc000;
+  box-shadow: 0 4px 12px rgba(252, 192, 0, 0.2);
+}
+
+.premium-table-container {
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+}
+
+.premium-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.premium-table thead {
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.premium-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 700;
+  color: #475569;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.premium-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 150ms ease;
+}
+
+.premium-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.premium-table td {
+  padding: 1rem;
+  color: #1e293b;
+}
+
+.premium-table .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.premium-table .status-new {
+  background: #dbeafe;
+  color: #0c4a6e;
+  border: 1px solid #bfdbfe;
+}
+
+.premium-table .status-active {
+  background: #dcfce7;
+  color: #14532d;
+  border: 1px solid #bbf7d0;
+}
+
+.premium-table .status-pending {
+  background: #fef3c7;
+  color: #78350f;
+  border: 1px solid #fde68a;
+}
+
+.premium-table .status-completed {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.premium-table .status-overdue {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #fecaca;
+}
+
+.premium-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.premium-empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.premium-empty-state h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.premium-empty-state p {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.premium-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.premium-action-button:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.premium-action-button.primary {
+  background: #fcc000;
+  border-color: #fcc000;
+  color: #201700;
+}
+
+.premium-action-button.primary:hover {
+  background: #f0b817;
+  border-color: #f0b817;
+  box-shadow: 0 4px 12px rgba(252, 192, 0, 0.2);
+}
+
+.premium-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.premium-badge.info {
+  background: #dbeafe;
+  color: #0c4a6e;
+  border: 1px solid #bfdbfe;
+}
+
+.premium-badge.success {
+  background: #dcfce7;
+  color: #14532d;
+  border: 1px solid #bbf7d0;
+}
+
+.premium-badge.warning {
+  background: #fef3c7;
+  color: #78350f;
+  border: 1px solid #fde68a;
+}
+
+.premium-badge.danger {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #fecaca;
+}

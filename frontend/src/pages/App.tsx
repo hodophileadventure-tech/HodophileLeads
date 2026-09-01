@@ -755,13 +755,26 @@ export const App: React.FC = () => {
 
             {currentPage === 'followups' && (
               <div className="space-y-6">
-                <section className="card">
-                  <h1 className="text-3xl font-bold">Follow-ups</h1>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    All follow-ups are listed here in a dedicated section so you can manage reminders and task status clearly.
-                  </p>
-                </section>
-                <section className="card">
+                <div className="premium-page-header">
+                  <p>✅ Task Management</p>
+                  <h1>Follow-ups & Reminders</h1>
+                  <p className="subtitle">Track and manage all follow-up tasks with intelligent scheduling and status monitoring</p>
+                  <div className="premium-stats-row">
+                    <div className="premium-stat-card">
+                      <strong>📋</strong>
+                      <small>Active Tasks</small>
+                    </div>
+                    <div className="premium-stat-card">
+                      <strong>⏰</strong>
+                      <small>Due Today</small>
+                    </div>
+                    <div className="premium-stat-card">
+                      <strong>🎯</strong>
+                      <small>Completion Rate</small>
+                    </div>
+                  </div>
+                </div>
+                <section className="premium-section">
                   <TaskDashboard leads={leads} />
                 </section>
               </div>
@@ -769,13 +782,12 @@ export const App: React.FC = () => {
 
             {currentPage === 'analytics' && (
               <div className="space-y-6">
-                <section className="card">
-                  <h1 className="text-3xl font-bold">Analytics</h1>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    See your pipeline trends and agent performance at a glance.
-                  </p>
-                </section>
-                <section className="card">
+                <div className="premium-page-header">
+                  <p>📈 Performance Analytics</p>
+                  <h1>Analytics & Insights</h1>
+                  <p className="subtitle">Real-time pipeline trends, agent performance metrics, and revenue forecasting</p>
+                </div>
+                <section className="premium-section">
                   <AnalyticsDashboard isAdmin={isAdminLike} showAgentTargetsOnly={user.role === 'manager'} />
                 </section>
               </div>

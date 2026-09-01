@@ -4,7 +4,6 @@ import { notificationsAPI } from '../utils/api-service';
 import { useDataStore, useUIStore } from '../context/store';
 import RemindersPanel from './RemindersPanel';
 import { ChangePasswordModal } from './ChangePasswordModal';
-import hodophileEmblem from '../assets/emblem.png';
 
 export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => void }> = ({ onNotificationClick }) => {
   const { user, logout } = useAuth();
@@ -62,27 +61,7 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
     <>
     <nav className="brand-header app-navbar border-b sticky top-0 z-10 md:pl-64">
       <div className="px-6 py-4 flex items-center w-full">
-        <div className="flex items-center gap-4">
-          <div className="md:hidden flex items-center gap-2">
-            <div className="hodophile-brand">
-              <img src={hodophileEmblem} alt="Hodophile emblem" className="hodophile-brand__mark" />
-              <div className="hodophile-brand__text">
-                <div className="hodophile-brand__title">HODOPHILE ADVENTURES</div>
-                <div className="hodophile-brand__tagline">THE PERFECT EXPERIENCE</div>
-              </div>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-3">
-            <div className="hodophile-brand">
-              <img src={hodophileEmblem} alt="Hodophile emblem" className="hodophile-brand__mark" />
-              <div className="hodophile-brand__text">
-                <div className="hodophile-brand__title">HODOPHILE ADVENTURES</div>
-                <div className="hodophile-brand__tagline">THE PERFECT EXPERIENCE</div>
-                <div className="hodophile-brand__license">Government License # 5436</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="flex items-center gap-4"></div>
 
         <div className="flex items-center gap-6 ml-auto">
           <div className="relative" ref={notifRef}>

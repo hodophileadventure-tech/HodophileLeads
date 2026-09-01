@@ -116,79 +116,144 @@ const ReportIssuePage: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Report Bug / Error</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
-        <label className="block">
-          <div className="text-sm font-medium mb-1">Where did you see the issue?</div>
-          <select className="input-field" value={location} onChange={(e) => setLocation(e.target.value)}>
-            {LOCATIONS.map((l) => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
-        </label>
+    <div className="space-y-6">
+      {/* Premium Page Header */}
+      <div className="premium-page-header">
+        <p>🐛 Quality Assurance</p>
+        <h1>Report Issue</h1>
+        <p className="subtitle">Help us improve by reporting bugs and errors you encounter</p>
+      </div>
 
-        <label className="block">
-          <div className="text-sm font-medium mb-1">Describe the issue</div>
-          <textarea className="input-field h-32" value={description} onChange={(e) => setDescription(e.target.value)} />
-        </label>
-
-        <label className="block">
-          <div className="text-sm font-medium mb-1">Attach screenshot (optional)</div>
-          <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-        </label>
-
-        <div>
-          <Button type="submit" loading={submitting}>Submit Report</Button>
-        </div>
-      </form>
-
-      <div className="mt-10">
-        <div className="flex items-center justify-between mb-4">
+      {/* Report Form Section */}
+      <div className="premium-section">
+        <h2>📝 Report New Issue</h2>
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
           <div>
-            <h2 className="text-xl font-semibold">Your Reported Issues</h2>
-            <p className="text-sm text-slate-500">See pending and resolved issues you have filed.</p>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Where did you see the issue?</label>
+            <select 
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white" 
+              value={location} 
+              onChange={(e) => setLocation(e.target.value)}
+            >
+              {LOCATIONS.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Describe the issue</label>
+            <textarea 
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white min-h-[120px] font-[500]" 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Provide detailed description of the issue..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Attach screenshot (optional)</label>
+            <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-amber-500 transition-colors">
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="cursor-pointer w-full"
+              />
+              <p className="text-xs text-slate-500 mt-2">{file ? `✓ ${file.name}` : 'PNG, JPG, GIF (max 5MB)'}</p>
+            </div>
+          </div>
+
+          <Button type="submit" disabled={submitting} className="premium-action-button primary w-full justify-center">
+            {submitting ? '⏳ Submitting...' : '✓ Submit Report'}
+          </Button>
+        </form>
+      </div>
+
+      {/* Issues List Section */}
+      <div className="premium-section">
+        <div className="flex items-center justify-between mb-4">
+          <h2>📋 Your Reported Issues</h2>
           <div className="flex items-center gap-2">
-            <select className="input-field" value={statusFilter} onChange={(e) => {
-              const value = e.target.value;
-              setStatusFilter(value);
-              void loadIssues(value === 'all' ? undefined : value);
-            }}>
+            <select 
+              className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium" 
+              value={statusFilter} 
+              onChange={(e) => {
+                const value = e.target.value;
+                setStatusFilter(value);
+                void loadIssues(value === 'all' ? undefined : value);
+              }}
+            >
               {STATUS_FILTERS.map((filter) => (
                 <option key={filter.value} value={filter.value}>{filter.label}</option>
               ))}
             </select>
-            <Button size="sm" onClick={() => void loadIssues(statusFilter === 'all' ? undefined : statusFilter)} loading={loadingIssues}>Refresh</Button>
+            <button 
+              type="button"
+              onClick={() => void loadIssues(statusFilter === 'all' ? undefined : statusFilter)} 
+              disabled={loadingIssues}
+              className="premium-action-button"
+            >
+              {loadingIssues ? '⏳ Refreshing...' : '🔄 Refresh'}
+            </button>
           </div>
         </div>
 
-        {loadingIssues && <div className="text-slate-600">Loading issues...</div>}
-        {loadingError && <div className="text-red-600 mb-4">{loadingError}</div>}
+        {loadingIssues && <div className="premium-empty-state"><div>⏳ Loading issues...</div></div>}
+        {loadingError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
+            ⚠️ {loadingError}
+          </div>
+        )}
         {!loadingIssues && !loadingError && filteredIssues.length === 0 && (
-          <div className="text-slate-600">No issues found.</div>
+          <div className="premium-empty-state">
+            <div className="premium-empty-state-icon">📭</div>
+            <h3>No issues found</h3>
+            <p>Great! All reported issues have been resolved.</p>
+          </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredIssues.map((issue) => (
-            <div key={issue.id} className="border rounded p-4 bg-white shadow-sm">
+            <div 
+              key={issue.id} 
+              className="border border-slate-200 rounded-lg p-4 bg-gradient-to-br from-white to-slate-50 hover:shadow-md transition-shadow"
+            >
               <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="text-sm text-slate-500 mb-1">{issue.location} • {issue.createdAt ? new Date(issue.createdAt).toLocaleString() : 'Unknown date'}</div>
-                  <div className="font-medium text-slate-900">{issue.description}</div>
-                  <div className="text-sm text-slate-600 mt-2">
-                    Reported by {issue.reporterName || 'you'}{issue.reporterEmail ? ` (${issue.reporterEmail})` : ''}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium text-slate-500">📍 {issue.location}</span>
+                    <span className="text-xs text-slate-400">•</span>
+                    <span className="text-xs text-slate-500">
+                      {issue.createdAt ? new Date(issue.createdAt).toLocaleDateString() : 'Unknown date'}
+                    </span>
+                  </div>
+                  <div className="font-medium text-slate-900 mb-2">{issue.description}</div>
+                  <div className="text-xs text-slate-600">
+                    👤 {issue.reporterName || 'Anonymous'}{issue.reporterEmail ? ` • ${issue.reporterEmail}` : ''}
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${issue.status === 'open' ? 'bg-yellow-100 text-yellow-800' : issue.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : issue.status === 'fixed' || issue.status === 'closed' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}`}>
-                    {issue.status ? issue.status.replace('_', ' ') : 'pending'}
+                <div className="flex-shrink-0">
+                  <span className={`premium-badge ${
+                    issue.status === 'open' || !issue.status ? 'warning' :
+                    issue.status === 'in_progress' ? 'info' :
+                    issue.status === 'fixed' || issue.status === 'closed' ? 'success' :
+                    'info'
+                  }`}>
+                    {issue.status ? issue.status.replace('_', ' ').toUpperCase() : 'PENDING'}
                   </span>
                 </div>
               </div>
               {issue.attachmentUrl && (
-                <div className="mt-3">
-                  <a href={issue.attachmentUrl} target="_blank" rel="noreferrer" className="text-primary-600 underline text-sm">View attachment</a>
+                <div className="mt-3 pt-3 border-t border-slate-200">
+                  <a 
+                    href={issue.attachmentUrl} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="text-amber-600 hover:text-amber-700 underline text-sm font-medium"
+                  >
+                    📎 View attachment
+                  </a>
                 </div>
               )}
             </div>

@@ -2,7 +2,6 @@ import React from 'react';
 import { useUIStore } from '../context/store';
 import { Activity, BarChart3, Bell, CalendarDays, CheckSquare, FileCheck2, FileText, GitBranch, Hotel, LayoutDashboard, Map, Megaphone, Receipt, ShieldCheck, Users, Wrench } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import hodophileLogo from '../assets/emblem.png';
 
 interface SidebarProps {
   navItems: { label: string; href: string; icon: string }[];
@@ -69,7 +68,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ navItems, currentPath, onNavig
         } md:relative md:translate-x-0 z-40 mt-16 md:mt-0`}
       >
         <div className="sidebar-brand">
-          <img src={hodophileLogo} alt="Hodophile logo" className="h-auto w-full max-w-[175px] object-contain" />
           <button
             type="button"
             onClick={() => setCollapsed((value) => !value)}
