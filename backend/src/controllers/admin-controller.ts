@@ -1016,16 +1016,11 @@ export const adminController = {
           SELECT
             created_at,
             actual_price,
-            CASE
-              WHEN EXTRACT(MONTH FROM created_at) = 1 THEN '2025-01'
-              ELSE to_char(created_at, 'YYYY-MM')
-            END AS month_period,
-            to_char(created_at, 'Mon YYYY') AS month_label,
-            'Q' || EXTRACT(QUARTER FROM created_at)::int || ' ' || to_char(created_at, 'YYYY') AS quarter_label,
-            to_char(created_at, 'YYYY') AS year_period,
-            to_char(date_trunc('month', created_at), 'YYYY-MM') AS month_key,
-            'Q' || EXTRACT(QUARTER FROM created_at)::int || '-' || to_char(created_at, 'YYYY') AS quarter_key,
-            to_char(created_at, 'YYYY') AS year_key
+            TO_CHAR(created_at, 'YYYY-MM') AS month_key,
+            TO_CHAR(created_at, 'Mon YYYY') AS month_label,
+            'Q' || EXTRACT(QUARTER FROM created_at)::int || '-' || TO_CHAR(created_at, 'YYYY') AS quarter_key,
+            'Q' || EXTRACT(QUARTER FROM created_at)::int || ' ' || TO_CHAR(created_at, 'YYYY') AS quarter_label,
+            TO_CHAR(created_at, 'YYYY') AS year_key
           FROM leads
           WHERE COALESCE(actual_price, 0) > 0
             AND (status = 'booked' OR status = 'completed' OR lead_outcome = 'confirmed' OR pipeline_stage = 'confirmed')
@@ -1038,7 +1033,6 @@ export const adminController = {
             COUNT(*)::int AS bookings
           FROM confirmed_leads
           GROUP BY month_key, month_label
-          ORDER BY month_key
         ),
         quarterly AS (
           SELECT
@@ -1048,7 +1042,6 @@ export const adminController = {
             COUNT(*)::int AS bookings
           FROM confirmed_leads
           GROUP BY quarter_key, quarter_label
-          ORDER BY quarter_key
         ),
         yearly AS (
           SELECT
@@ -1058,18 +1051,26 @@ export const adminController = {
             COUNT(*)::int AS bookings
           FROM confirmed_leads
           GROUP BY year_key
-          ORDER BY year_key
         )
         SELECT
-          json_agg(monthly ORDER BY period) AS monthly,
-          json_agg(quarterly ORDER BY period) AS quarterly,
-          json_agg(yearly ORDER BY period) AS yearly
-        FROM (
-          SELECT
-            (SELECT json_agg(row_to_json(m)) FROM (SELECT * FROM monthly) m) AS monthly,
-            (SELECT json_agg(row_to_json(q)) FROM (SELECT * FROM quarterly) q) AS quarterly,
-            (SELECT json_agg(row_to_json(y)) FROM (SELECT * FROM yearly) y) AS yearly
-        ) s
+          COALESCE((
+            SELECT json_agg(row_to_json(m))
+            FROM (
+              SELECT * FROM monthly ORDER BY period
+            ) m
+          ), '[]'::json) AS monthly,
+          COALESCE((
+            SELECT json_agg(row_to_json(q))
+            FROM (
+              SELECT * FROM quarterly ORDER BY period
+            ) q
+          ), '[]'::json) AS quarterly,
+          COALESCE((
+            SELECT json_agg(row_to_json(y))
+            FROM (
+              SELECT * FROM yearly ORDER BY period
+            ) y
+          ), '[]'::json) AS yearly
       `;
 
       const result = await query(sql);
