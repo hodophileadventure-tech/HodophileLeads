@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common';
-import hodophileLogo from '../assets/hodophile-logo.png';
+import hodophileLogo from '../assets/hodophile-logo-black.png';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -31,10 +31,7 @@ export const LoginPage: React.FC = () => {
       <div className="grid w-full max-w-5xl overflow-hidden rounded-xl border border-white/10 bg-white shadow-2xl lg:grid-cols-[1.05fr_.95fr]">
         <div className="login-intro hidden flex-col justify-between bg-[#17232d] p-10 text-white lg:flex">
           <div>
-            <div className="flex items-center gap-3">
-              <img src={hodophileLogo} alt="Hodophile logo" className="h-16 w-auto rounded-md bg-white/10 p-1 shadow-sm" />
-              <span className="font-display text-lg font-extrabold tracking-[.12em] text-white">HODOPHILE</span>
-            </div>
+            <img src={hodophileLogo} alt="Hodophile logo" className="h-auto w-full max-w-[520px] object-contain" />
             <p className="mt-20 max-w-sm font-display text-4xl font-bold leading-tight text-white">Every journey starts with a better conversation.</p>
             <p className="mt-5 max-w-sm text-sm leading-6 text-slate-300">A focused workspace for turning travel enquiries into memorable experiences.</p>
           </div>
@@ -42,10 +39,7 @@ export const LoginPage: React.FC = () => {
         </div>
         <div className="p-7 sm:p-10">
           <div className="mb-9 lg:hidden">
-            <div className="flex items-center gap-3">
-              <img src={hodophileLogo} alt="Hodophile logo" className="h-14 w-auto rounded-md border border-slate-200 bg-white p-1 shadow-sm" />
-              <p className="font-display text-2xl font-extrabold tracking-[.12em] text-slate-900">HODOPHILE</p>
-            </div>
+            <img src={hodophileLogo} alt="Hodophile logo" className="h-auto w-full max-w-[360px] object-contain" />
             <p className="mt-2 text-sm text-slate-500">Travel operations platform</p>
           </div>
           <div className="mb-8">
