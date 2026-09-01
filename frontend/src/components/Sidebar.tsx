@@ -2,7 +2,7 @@ import React from 'react';
 import { useUIStore } from '../context/store';
 import { Activity, BarChart3, Bell, CalendarDays, CheckSquare, FileCheck2, FileText, GitBranch, Hotel, LayoutDashboard, Map, Megaphone, Receipt, ShieldCheck, Users, Wrench } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import hodophileLogo from '../assets/hodophile-logo-black.png';
+import hodophileLogo from '../assets/emblem.png';
 
 interface SidebarProps {
   navItems: { label: string; href: string; icon: string }[];

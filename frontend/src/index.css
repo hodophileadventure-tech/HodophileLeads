@@ -158,9 +158,9 @@
 
   /* Brand header and sidebar styles */
   .brand-header {
-    background: var(--brand) !important;
+    background: #f3f0ea !important;
     color: #000000 !important;
-    border-color: rgba(0,0,0,0.06) !important;
+    border-color: rgba(0,0,0,0.08) !important;
   }
 
   .brand-header .text-primary-500 { color: #000000 !important; }

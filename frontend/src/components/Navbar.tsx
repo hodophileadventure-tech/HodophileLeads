@@ -4,7 +4,7 @@ import { notificationsAPI } from '../utils/api-service';
 import { useDataStore, useUIStore } from '../context/store';
 import RemindersPanel from './RemindersPanel';
 import { ChangePasswordModal } from './ChangePasswordModal';
-import hodophileLogo from '../assets/hodophile-logo-black.png';
+import hodophileLogo from '../assets/header-logo.jpeg';
 
 export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => void }> = ({ onNotificationClick }) => {
   const { user, logout } = useAuth();
@@ -64,10 +64,10 @@ export const Navbar: React.FC<{ onNotificationClick?: (notification: any) => voi
       <div className="px-6 py-4 flex items-center w-full">
         <div className="flex items-center gap-4">
           <div className="md:hidden flex items-center gap-2">
-            <img src={hodophileLogo} alt="Hodophile logo" className="mb-1 h-auto w-[240px] max-w-[240px] object-contain drop-shadow-sm" />
+            <img src={hodophileLogo} alt="Hodophile logo" className="mb-0 h-auto w-[260px] max-w-full object-contain" />
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <img src={hodophileLogo} alt="Hodophile logo" className="mb-1 h-auto w-[360px] max-w-[360px] object-contain drop-shadow-sm" />
+            <img src={hodophileLogo} alt="Hodophile logo" className="mb-0 h-auto w-[720px] max-w-full object-contain" />
           </div>
         </div>
 
