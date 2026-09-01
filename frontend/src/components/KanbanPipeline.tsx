@@ -75,49 +75,90 @@ export const KanbanPipeline: React.FC<KanbanPipelineProps> = ({ leads, onSelectL
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex items-center gap-2 mb-3">
-        <button onClick={() => setOverdueOnly(false)} className={`text-xs px-3 py-1 rounded ${!overdueOnly ? 'bg-primary-500 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+    <div className="space-y-4">
+      {/* Premium Filter Bar */}
+      <div className="flex items-center gap-3 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <span className="text-sm font-semibold text-slate-700">View:</span>
+        <button 
+          onClick={() => setOverdueOnly(false)} 
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            !overdueOnly 
+              ? 'bg-amber-500 text-white shadow-md hover:shadow-lg' 
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
           All Leads
         </button>
-        <button onClick={() => setOverdueOnly(true)} className={`text-xs px-3 py-1 rounded ${overdueOnly ? 'bg-red-600 text-white animate-pulse' : 'bg-slate-200 dark:bg-slate-700'}`}>
-          Overdue Reminders ({overdueLeadIds.length})
+        <button 
+          onClick={() => setOverdueOnly(true)} 
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+            overdueOnly 
+              ? 'bg-red-500 text-white shadow-md hover:shadow-lg animate-pulse' 
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <span className="text-lg">⚠️</span>
+          Overdue ({overdueLeadIds.length})
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8 gap-4 min-w-[1200px] xl:min-w-0">
-        {COLUMNS.map((column) => (
-          <div
-            key={column.key}
-            className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 min-h-[300px]"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => onDropCard(e, column.key)}
-          >
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold text-sm">{column.label}</h3>
-              <span className="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700">
-                {grouped[column.key].length}
-              </span>
-            </div>
-            <div className="space-y-3">
-                      {grouped[column.key].map((lead) => {
-                const lifecycle = getLeadLifecycleStyle(lead as any);
-                const wrapperClass = `${lifecycle.row} rounded-lg`;
-                const overdueClass = overdueLeadIds.includes(lead.id) ? 'animate-pulse ring-2 ring-red-500' : '';
-                return (
-                  <div
-                    key={lead.id}
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData('text/leadId', lead.id)}
-                  >
-                    <div className={`${wrapperClass} ${overdueClass}`.trim()}>
-                      <LeadCard lead={lead} onClick={() => onSelectLead?.(lead)} />
+
+      {/* Kanban Grid */}
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8 gap-4 min-w-[1200px] xl:min-w-0">
+          {COLUMNS.map((column) => (
+            <div
+              key={column.key}
+              className="kanban-column flex flex-col min-h-[500px]"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => onDropCard(e, column.key)}
+            >
+              {/* Column Header */}
+              <div className="kanban-column-header sticky top-0 z-10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wide">{column.label}</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-white rounded-full text-xs font-bold text-slate-700 border border-slate-300">
+                      {grouped[column.key].length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Column Cards */}
+              <div className="flex-1 overflow-y-auto space-y-3 p-3">
+                {grouped[column.key].map((lead) => {
+                  const lifecycle = getLeadLifecycleStyle(lead as any);
+                  const overdueClass = overdueLeadIds.includes(lead.id) 
+                    ? 'ring-2 ring-red-500 ring-offset-2 animate-pulse' 
+                    : '';
+                  return (
+                    <div
+                      key={lead.id}
+                      draggable
+                      onDragStart={(e) => e.dataTransfer.setData('text/leadId', lead.id)}
+                      className="transition-transform hover:scale-105 active:scale-95"
+                    >
+                      <div className={`${overdueClass}`.trim()}>
+                        <LeadCard lead={lead} onClick={() => onSelectLead?.(lead)} />
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Empty State */}
+                {grouped[column.key].length === 0 && (
+                  <div className="flex items-center justify-center py-12 text-slate-400">
+                    <div className="text-center">
+                      <p className="text-sm">No leads</p>
                     </div>
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

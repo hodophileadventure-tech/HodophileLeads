@@ -387,138 +387,193 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-amber-600">Sales workspace</p>
-          <h1 className="mt-1 text-3xl font-bold text-[var(--text)]">Leads</h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">Manage, prioritize and convert your sales pipeline.</p>
-        </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-          <span className="rounded-md bg-slate-100 px-2.5 py-1.5">{filteredLeads.length} visible</span>
-          <span className="rounded-md bg-amber-50 px-2.5 py-1.5 text-amber-700">{statusCounts.active} active</span>
+      {/* Premium Page Header */}
+      <div className="mb-6">
+        <div className="flex flex-col gap-4 bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-6 text-white shadow-lg md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">📊 Sales Pipeline</p>
+            <h1 className="text-4xl font-bold mb-2">Leads Management</h1>
+            <p className="text-slate-300">Convert prospects into customers with intelligent pipeline management</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-3 text-center border border-white/20">
+              <p className="text-amber-400 text-sm font-semibold">{filteredLeads.length}</p>
+              <p className="text-xs text-slate-300">Visible</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-3 text-center border border-white/20">
+              <p className="text-green-400 text-sm font-semibold">{statusCounts.active}</p>
+              <p className="text-xs text-slate-300">Active</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Status Tabs */}
-      <div className="flex gap-1 overflow-x-auto border-b border-[var(--line)] pb-1">
-        {statusTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveFilter(tab.key)}
-            className={`whitespace-nowrap rounded-t-md px-3 py-2 text-xs font-semibold transition-colors ${
-              activeFilter === tab.key
-                ? `${tab.color}`
-                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Status Tabs - Premium Style */}
+      <div className="mb-6 overflow-x-auto">
+        <div className="flex gap-2 pb-2 min-w-max">
+          {statusTabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveFilter(tab.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                activeFilter === tab.key
+                  ? `${tab.color} shadow-md transform scale-105`
+                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Main Content */}
-      <main className="space-y-5">
-        <section className="rounded-lg border border-[var(--line)] bg-white p-4 shadow-sm">
+      <main className="space-y-6">
+        {/* Filters Section */}
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4">
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm font-bold text-[var(--text)]">Filter pipeline</p>
-                <div className="flex gap-2">
-                  <Button
-                    variant={leadView === 'kanban' ? 'primary' : 'secondary'}
-                    size="sm"
-                    onClick={() => setLeadView('kanban')}
-                  >
-                    Kanban
-                  </Button>
-                  <Button
-                    variant={leadView === 'list' ? 'primary' : 'secondary'}
-                    size="sm"
-                    onClick={() => setLeadView('list')}
-                  >
-                    List
-                  </Button>
-                  <LeadForm onSuccess={onRefreshLeads} onOpenChange={(isOpen) => setPipelineCollapsed(isOpen)} />
-                </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-slate-900 uppercase tracking-wide">🔍 Search & Filter</p>
               </div>
-              <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="flex gap-2">
+                <Button
+                  variant={leadView === 'kanban' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setLeadView('kanban')}
+                  className="font-semibold"
+                >
+                  📊 Kanban
+                </Button>
+                <Button
+                  variant={leadView === 'list' ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setLeadView('list')}
+                  className="font-semibold"
+                >
+                  📋 List
+                </Button>
+                <LeadForm onSuccess={onRefreshLeads} onOpenChange={(isOpen) => setPipelineCollapsed(isOpen)} />
+              </div>
+            </div>
+
+            {/* Search & Filters Grid */}
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
                 <input
-                  className="input-field"
-                  placeholder="Search client, phone or email"
+                  className="input-field pl-10"
+                  placeholder="Client, phone or email"
                   value={leadSearchQuery}
                   onChange={(e) => setLeadSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') void handleLeadSearch();
                   }}
                 />
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">📍</span>
                 <input
-                  className="input-field"
-                  placeholder="Enter location"
+                  className="input-field pl-10"
+                  placeholder="Destination"
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
                 />
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">📅</span>
                 <input
-                  className="input-field"
-                  placeholder="Enter month"
+                  className="input-field pl-10"
+                  placeholder="Travel month"
                   value={travelMonthFilter}
                   onChange={(e) => setTravelMonthFilter(e.target.value)}
                 />
-                <div className="flex items-center gap-2 rounded-md border border-[var(--line)] px-3">
-                  <span className="text-xs font-semibold text-slate-500">Tour type</span>
-                  {(['private', 'group'] as const).map((type) => {
-                    const active = tourTypeFilters.includes(type);
-                    return (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setTourTypeFilters((prev) =>
-                          prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type]
-                        )}
-                        className={`rounded px-2 py-1 text-xs ${active ? 'bg-primary-500 text-white' : 'bg-slate-100 text-slate-700'}`}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
-                    );
-                  })}
-                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 bg-slate-50">
+                <span className="text-xs font-semibold text-slate-600">Tour:</span>
+                {(['private', 'group'] as const).map((type) => {
+                  const active = tourTypeFilters.includes(type);
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setTourTypeFilters((prev) =>
+                        prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type]
+                      )}
+                      className={`rounded px-3 py-1 text-xs font-semibold transition-all ${
+                        active 
+                          ? 'bg-amber-500 text-white shadow-md' 
+                          : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {type === 'private' ? '👤' : '👥'} {type}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-semibold text-slate-500">Created</label>
-                <input type="date" className="input-field !w-auto !py-1.5 text-xs" value={dateRangeStart} onChange={(e) => setDateRangeStart(e.target.value)} />
-                <span className="text-xs text-slate-400">to</span>
-                <input type="date" className="input-field !w-auto !py-1.5 text-xs" value={dateRangeEnd} onChange={(e) => setDateRangeEnd(e.target.value)} />
+
+            {/* Date Range & Actions */}
+            <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">📆 Created:</span>
+                <input 
+                  type="date" 
+                  className="input-field !w-auto !py-2 text-sm" 
+                  value={dateRangeStart} 
+                  onChange={(e) => setDateRangeStart(e.target.value)} 
+                />
+                <span className="text-xs text-slate-500 font-medium">to</span>
+                <input 
+                  type="date" 
+                  className="input-field !w-auto !py-2 text-sm" 
+                  value={dateRangeEnd} 
+                  onChange={(e) => setDateRangeEnd(e.target.value)} 
+                />
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => void handleApplyLeadFilters()}>Apply filters</Button>
-                <Button size="sm" variant="secondary" onClick={() => void handleClearLeadFilters()}>Clear</Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => void handleApplyLeadFilters()}
+                  className="font-semibold"
+                >
+                  ✓ Apply
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={() => void handleClearLeadFilters()}
+                  className="font-semibold"
+                >
+                  ↻ Reset
+                </Button>
               </div>
             </div>
           </div>
         </section>
 
         {selectedLead && (
-          <section className="card" ref={leadDetailRef}>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                <div className="space-y-3">
-                  <h2 className="text-2xl font-bold">{selectedLead.clientName}</h2>
+          <section className="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm" ref={leadDetailRef}>
+            <div className="flex flex-col gap-6">
+              {/* Header */}
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 pb-6 border-b border-slate-200">
+                <div className="flex-1">
+                  <h2 className="text-3xl font-bold text-slate-900 mb-2">{selectedLead.clientName}</h2>
                   {nextPendingFollowUp && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      {formatKarachiFollowUpReminder(nextPendingFollowUp.dueDate)}
+                    <p className="text-sm text-slate-600 bg-blue-50 px-3 py-2 rounded-lg inline-block">
+                      ⏰ {formatKarachiFollowUpReminder(nextPendingFollowUp.dueDate)}
                       {nextPendingFollowUp.title ? ` — ${nextPendingFollowUp.title}` : ''}
                     </p>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex flex-wrap gap-3 items-start">
                   {selectedLead.potential && (
-                    <Badge color="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Potential</Badge>
+                    <Badge color="bg-green-100 text-green-800">⭐ Potential</Badge>
                   )}
-                  <div>
-                    <label className="text-xs text-slate-400 block">Lead Status</label>
+                  <div className="w-full md:w-auto">
+                    <label className="text-xs text-slate-600 font-semibold block mb-2 uppercase tracking-wide">Lead Status</label>
                     <select
-                      className="input-field text-sm"
+                      className="input-field text-sm font-semibold w-full"
                       value={getLeadLifecycleState(selectedLead)}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -926,19 +981,28 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
           />
         )}
 
-        <section className={`card ${pipelineCollapsed ? 'max-h-20 overflow-hidden' : ''}`}>
-          <h2 className="text-2xl font-semibold mb-4">Pipeline View</h2>
-          {leadView === 'kanban' ? (
-            <KanbanPipeline leads={filteredLeads} onSelectLead={setSelectedLead} onMoveStage={moveLeadStage} />
-          ) : (
-            <LeadList leads={filteredLeads} onSelectLead={setSelectedLead} />
-          )}
+        <section className={`rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all ${pipelineCollapsed ? 'max-h-20' : ''}`}>
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">📈</span>
+              <h2 className="text-2xl font-bold text-slate-900">Pipeline View</h2>
+            </div>
+            {leadView === 'kanban' ? (
+              <KanbanPipeline leads={filteredLeads} onSelectLead={setSelectedLead} onMoveStage={moveLeadStage} />
+            ) : (
+              <LeadList leads={filteredLeads} onSelectLead={setSelectedLead} />
+            )}
+          </div>
         </section>
 
         {onLoadMoreLeads && leads.length >= 100 && (
-          <div className="flex justify-center pt-2">
-            <Button variant="secondary" onClick={() => void onLoadMoreLeads()}>
-              Load more leads
+          <div className="flex justify-center pt-4">
+            <Button 
+              variant="secondary" 
+              onClick={() => void onLoadMoreLeads()}
+              className="font-semibold"
+            >
+              ⬇️ Load More Leads
             </Button>
           </div>
         )}

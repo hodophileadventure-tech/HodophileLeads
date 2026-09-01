@@ -63,6 +63,27 @@
     animation: fadeInUp 420ms cubic-bezier(.2,.9,.3,1) both;
   }
 
+  /* Premium CRM lead card styling */
+  .lead-card {
+    @apply bg-white rounded-xl border border-slate-200 shadow-md p-5 transition-all duration-300 hover:shadow-xl hover:border-amber-200 cursor-pointer relative overflow-hidden;
+  }
+
+  .lead-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #FCC000, #FFD34D);
+    opacity: 0;
+    transition: opacity 300ms;
+  }
+
+  .lead-card:hover::before {
+    opacity: 1;
+  }
+
   /* Improve contrast for stat tiles that use bg-*-100 classes */
   .card[class*="bg-"] {
     padding: 1rem;
@@ -103,6 +124,40 @@
   .input-field:focus {
     box-shadow: 0 0 0 6px rgba(252,192,0,0.12);
     transform: translateY(-1px);
+  }
+
+  /* Kanban column premium styling */
+  .kanban-column {
+    @apply bg-gradient-to-b from-slate-50 to-white rounded-xl border border-slate-200 shadow-sm;
+  }
+
+  .kanban-column-header {
+    @apply px-4 py-3 border-b border-slate-200 rounded-t-xl bg-gradient-to-r from-slate-100 to-slate-50;
+  }
+
+  /* Premium status badges */
+  .status-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold transition-colors;
+  }
+
+  .status-badge-new {
+    @apply bg-blue-100 text-blue-800 border border-blue-200;
+  }
+
+  .status-badge-active {
+    @apply bg-green-100 text-green-800 border border-green-200;
+  }
+
+  .status-badge-pending {
+    @apply bg-amber-100 text-amber-800 border border-amber-200;
+  }
+
+  .status-badge-completed {
+    @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
+  }
+
+  .status-badge-cancelled {
+    @apply bg-red-100 text-red-800 border border-red-200;
   }
 
   /* Animations */
