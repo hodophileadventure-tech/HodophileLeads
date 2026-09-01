@@ -187,6 +187,8 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
   );
 
   const handleOpenLead = (lead: Lead) => {
+    if (selectedLead?.id === lead.id) return;
+
     setSelectedLead(lead);
     requestAnimationFrame(() => {
       leadPageTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -118,7 +118,13 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead, onClick }) => {
   return (
     <div
       className="lead-card group relative cursor-pointer"
-      onClick={onClick}
+      onClick={(event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest('button, input, select, textarea, a')) {
+          return;
+        }
+        onClick?.();
+      }}
       onKeyDown={(event) => {
         if ((event.key === 'Enter' || event.key === ' ') && onClick) {
           event.preventDefault();
