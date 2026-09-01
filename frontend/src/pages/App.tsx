@@ -651,11 +651,29 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'daily-reports' && isAdminLike && (
-              <DailyReportsPage />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>📊 Performance Reporting</p>
+                  <h1>Daily Reports</h1>
+                  <p className="subtitle">Track daily performance metrics, agent productivity, and team reports</p>
+                </div>
+                <section className="premium-section">
+                  <DailyReportsPage />
+                </section>
+              </div>
             )}
 
             {currentPage === 'dev-panel' && isAdminLike && (
-              <DeveloperPanel />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>🛠️ System Administration</p>
+                  <h1>Developer Panel</h1>
+                  <p className="subtitle">System diagnostics, API testing, and development tools</p>
+                </div>
+                <section className="premium-section">
+                  <DeveloperPanel />
+                </section>
+              </div>
             )}
 
             {currentPage === 'git-history' && isAdminLike && (
@@ -673,7 +691,16 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'agent' && (
-              <AgentPanel />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>🧭 Agent Hub</p>
+                  <h1>Agent Panel</h1>
+                  <p className="subtitle">Personal dashboard, leads, quotations, and performance metrics</p>
+                </div>
+                <section className="premium-section">
+                  <AgentPanel />
+                </section>
+              </div>
             )}
 
             {currentPage === 'created-quotations' && user?.role === 'agent' && (
@@ -748,8 +775,15 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'itineraries' && (
-              <div>
-                <ItinerariesPanel />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>🗺️ Trip Planning</p>
+                  <h1>Itineraries</h1>
+                  <p className="subtitle">Create and manage travel itineraries for your clients</p>
+                </div>
+                <section className="premium-section">
+                  <ItinerariesPanel />
+                </section>
               </div>
             )}
 
@@ -795,6 +829,12 @@ export const App: React.FC = () => {
 
             {currentPage === 'pending-quotes' && ['admin', 'manager', 'agent'].includes(user?.role || '') && (
               <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>📊 Quote Management</p>
+                  <h1>Pending Quotations</h1>
+                  <p className="subtitle">Review quotation requests from clients and agents</p>
+                </div>
+                <div className="premium-section">
                 {selectedQuoteRequest ? (
                   <div>
                     <Button 
@@ -978,11 +1018,18 @@ export const App: React.FC = () => {
                     setSelectedQuoteRequest(request);
                   }} />
                 )}
+                </div>
               </div>
             )}
 
             {currentPage === 'pending-invoices' && ['admin', 'manager'].includes(user?.role || '') && (
               <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>📄 Invoice Management</p>
+                  <h1>Pending Invoices</h1>
+                  <p className="subtitle">Review and process invoices pending approval</p>
+                </div>
+                <div className="premium-section">
                 {selectedQuoteRequest ? (
                   <div>
                     <Button 
@@ -1172,6 +1219,7 @@ export const App: React.FC = () => {
                     setSelectedQuoteRequest(request);
                   }} defaultRequestType="invoice" />
                 )}
+                </div>
               </div>
             )}
 
@@ -1189,7 +1237,14 @@ export const App: React.FC = () => {
 
             {currentPage === 'quoteinvoice' && user?.role === 'admin' && (
               <div className="space-y-6">
-                <QuoteInvoicePage />
+                <div className="premium-page-header">
+                  <p>🪪 Commercial Documents</p>
+                  <h1>Quotes & Invoices</h1>
+                  <p className="subtitle">Create and manage quotations and invoices for clients</p>
+                </div>
+                <section className="premium-section">
+                  <QuoteInvoicePage />
+                </section>
               </div>
             )}
             {currentPage === 'quoteinvoice' && user?.role !== 'admin' && (
@@ -1406,19 +1461,55 @@ export const App: React.FC = () => {
             )}
 
             {currentPage === 'lead-transfer' && (isAdminLike || user?.role === 'manager') && (
-              <LeadTransferPanel />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>🔄 Lead Distribution</p>
+                  <h1>Transfer Leads</h1>
+                  <p className="subtitle">Reassign leads between team members and manage lead ownership</p>
+                </div>
+                <section className="premium-section">
+                  <LeadTransferPanel />
+                </section>
+              </div>
             )}
 
             {currentPage === 'hotels' && (isAdminLike || user?.role === 'manager') && (
-              <HotelsPanel />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>🏨 Accommodation Management</p>
+                  <h1>Hotel Directory</h1>
+                  <p className="subtitle">Browse, manage, and track hotel partnerships and bookings</p>
+                </div>
+                <section className="premium-section">
+                  <HotelsPanel />
+                </section>
+              </div>
             )}
 
             {currentPage === 'admin-users' && isAdminLike && (
-              <AdminPage />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>👥 Team Management</p>
+                  <h1>Users & Roles</h1>
+                  <p className="subtitle">Create and manage user accounts, assign roles, and configure permissions</p>
+                </div>
+                <section className="premium-section">
+                  <AdminPage />
+                </section>
+              </div>
             )}
 
             {currentPage === 'attendance' && (isAdminLike || user?.role === 'agent') && (
-              <AttendancePage />
+              <div className="space-y-6">
+                <div className="premium-page-header">
+                  <p>📅 Workforce Management</p>
+                  <h1>Attendance Tracking</h1>
+                  <p className="subtitle">Mark and monitor team attendance, generate attendance reports</p>
+                </div>
+                <section className="premium-section">
+                  <AttendancePage />
+                </section>
+              </div>
             )}
 
             {currentPage === 'tasks' && isAdminLike && (
