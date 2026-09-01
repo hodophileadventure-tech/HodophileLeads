@@ -1009,6 +1009,88 @@ export const adminController = {
     }
   },
 
+  async revenueTrends(req: any, res: any, next: any) {
+    try {
+      const sql = `
+        WITH confirmed_leads AS (
+          SELECT
+            created_at,
+            actual_price,
+            CASE
+              WHEN EXTRACT(MONTH FROM created_at) = 1 THEN '2025-01'
+              ELSE to_char(created_at, 'YYYY-MM')
+            END AS month_period,
+            to_char(created_at, 'Mon YYYY') AS month_label,
+            'Q' || EXTRACT(QUARTER FROM created_at)::int || ' ' || to_char(created_at, 'YYYY') AS quarter_label,
+            to_char(created_at, 'YYYY') AS year_period,
+            to_char(date_trunc('month', created_at), 'YYYY-MM') AS month_key,
+            'Q' || EXTRACT(QUARTER FROM created_at)::int || '-' || to_char(created_at, 'YYYY') AS quarter_key,
+            to_char(created_at, 'YYYY') AS year_key
+          FROM leads
+          WHERE COALESCE(actual_price, 0) > 0
+            AND (status = 'booked' OR status = 'completed' OR lead_outcome = 'confirmed' OR pipeline_stage = 'confirmed')
+        ),
+        monthly AS (
+          SELECT
+            month_key AS period,
+            month_label AS label,
+            COALESCE(SUM(actual_price), 0)::numeric AS revenue,
+            COUNT(*)::int AS bookings
+          FROM confirmed_leads
+          GROUP BY month_key, month_label
+          ORDER BY month_key
+        ),
+        quarterly AS (
+          SELECT
+            quarter_key AS period,
+            quarter_label AS label,
+            COALESCE(SUM(actual_price), 0)::numeric AS revenue,
+            COUNT(*)::int AS bookings
+          FROM confirmed_leads
+          GROUP BY quarter_key, quarter_label
+          ORDER BY quarter_key
+        ),
+        yearly AS (
+          SELECT
+            year_key AS period,
+            year_key AS label,
+            COALESCE(SUM(actual_price), 0)::numeric AS revenue,
+            COUNT(*)::int AS bookings
+          FROM confirmed_leads
+          GROUP BY year_key
+          ORDER BY year_key
+        )
+        SELECT
+          json_agg(monthly ORDER BY period) AS monthly,
+          json_agg(quarterly ORDER BY period) AS quarterly,
+          json_agg(yearly ORDER BY period) AS yearly
+        FROM (
+          SELECT
+            (SELECT json_agg(row_to_json(m)) FROM (SELECT * FROM monthly) m) AS monthly,
+            (SELECT json_agg(row_to_json(q)) FROM (SELECT * FROM quarterly) q) AS quarterly,
+            (SELECT json_agg(row_to_json(y)) FROM (SELECT * FROM yearly) y) AS yearly
+        ) s
+      `;
+
+      const result = await query(sql);
+      const payload = result.rows?.[0] || {};
+
+      const monthly = Array.isArray(payload.monthly) ? payload.monthly : [];
+      const quarterly = Array.isArray(payload.quarterly) ? payload.quarterly : [];
+      const yearly = Array.isArray(payload.yearly) ? payload.yearly : [];
+
+      res.json({
+        series: {
+          monthly,
+          quarterly,
+          yearly
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async transferLead(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const leadId = req.params.id;
