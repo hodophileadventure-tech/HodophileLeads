@@ -150,33 +150,27 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         payload.createdAt = formData.createdAt;
       }
 
-      // Map selected leadStatus into payload fields
+      // Only send lifecycle fields when the user changed the lifecycle selection.
       const status = (formData as any).leadStatus || 'new';
-      
-      // Reset potential flag unless explicitly setting to potential
-      if (status !== 'potential') {
-        payload.potential = false;
-      } else {
-        payload.potential = true;
-      }
+      const initialStatus = initialData?.id ? buildLeadFormState(initialData).leadStatus : null;
+      const lifecycleChanged = !initialData?.id || status !== initialStatus;
 
-      if (status === 'dead') {
-        // mark as completed/dead
-        (payload as any).status = 'completed';
-        (payload as any).temperature = 'dead';
-      } else if (status === 'confirmed') {
-        (payload as any).leadOutcome = 'confirmed';
-        (payload as any).status = 'booked';
-      } else if (status === 'in_progress') {
-        (payload as any).status = 'contacted';
-      } else if (status === 'new') {
-        // Truly new lead - keep status=new but ensure potential=false
-        (payload as any).status = 'new';
-        payload.potential = false;
-      } else if (status === 'potential') {
-        // Potential lead - keep status=new but set potential=true
-        (payload as any).status = 'new';
-        payload.potential = true;
+      if (lifecycleChanged) {
+        payload.potential = status === 'potential';
+
+        if (status === 'dead') {
+          (payload as any).status = 'completed';
+          (payload as any).temperature = 'dead';
+        } else if (status === 'confirmed') {
+          payload.leadOutcome = 'confirmed';
+          payload.status = 'booked';
+        } else if (status === 'in_progress') {
+          (payload as any).status = 'contacted';
+        } else if (status === 'new') {
+          (payload as any).status = 'new';
+        } else if (status === 'potential') {
+          (payload as any).status = 'new';
+        }
       }
 
       if (initialData?.id) {

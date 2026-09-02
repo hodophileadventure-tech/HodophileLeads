@@ -30,6 +30,23 @@ describe('Lead model update', () => {
     expect(params).toContain(true);
   });
 
+  it('does not reopen a completed lead from a stale form update', async () => {
+    (query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ id: 'lead-1', status: 'completed', temperature: 'dead', has_progressed: true }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'lead-1', status: 'completed', temperature: 'dead' }] });
+
+    await leadsModel.update('lead-1', {
+      clientName: 'Updated name',
+      status: 'contacted',
+      agentRemarks: 'Unrelated note'
+    } as any);
+
+    const [sql, params] = (query as jest.Mock).mock.calls.at(-1);
+    expect(sql).toContain('status = $');
+    expect(params).toContain('completed');
+    expect(params).not.toContain('contacted');
+  });
+
   it('does not auto-unconfirm a completed booking when hotel and transport are present', () => {
     const lead = {
       status: 'booked',

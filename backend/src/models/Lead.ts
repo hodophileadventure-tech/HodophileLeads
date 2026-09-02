@@ -262,7 +262,7 @@ export const leadsModel = {
     let currentLead: any = null;
     if (normalizedData.status && hasProgressedColumnExists && !client) {
       try {
-        const currentResult = await executor('SELECT id, status, has_progressed FROM leads WHERE id = $1', [id]);
+        const currentResult = await executor('SELECT id, status, temperature, has_progressed FROM leads WHERE id = $1', [id]);
         currentLead = currentResult.rows[0];
       } catch (e: any) {
         console.warn('[Lead.update] Could not fetch current lead for status check', e?.message);
@@ -274,6 +274,13 @@ export const leadsModel = {
       const oldStatus = currentLead.status;
       const newStatus = normalizedData.status;
       const hasProgressed = currentLead.has_progressed === true;
+
+      const isClosedAsDead = oldStatus === 'completed' || currentLead.temperature === 'dead';
+      const isBackwardLifecycleWrite = ['new', 'contacted', 'interested', 'negotiation'].includes(newStatus);
+      if (isClosedAsDead && isBackwardLifecycleWrite) {
+        console.warn('[Lead.update] Ignoring stale lifecycle update for closed lead', { leadId: id, oldStatus, newStatus });
+        normalizedData.status = oldStatus;
+      }
 
       // Prevent reverting to 'new' if lead has already progressed
       if (newStatus === 'new' && hasProgressed) {
