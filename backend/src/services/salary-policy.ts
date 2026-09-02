@@ -83,7 +83,9 @@ export function calculateMonthlySalaryDeductions(input: SalaryDeductionInput): S
   const monthlySalary = Number(input.monthlySalary || 0);
   const dailyRate = getDailySalaryRate(monthlySalary);
   const normalized = normalizeAttendancePenalties(input);
-  const effectiveAbsenceDays = normalized.absentDays + (normalized.halfDays * 0.5) + (normalized.lateDays * (1 / 6));
+  // A single or double late mark is not a salary penalty by itself.
+  // Only completed absence-equivalent penalties (full absences and converted half-days) count.
+  const effectiveAbsenceDays = normalized.absentDays + (normalized.halfDays * 0.5);
   const deductionAmount = Number((effectiveAbsenceDays * dailyRate).toFixed(2));
 
   return {

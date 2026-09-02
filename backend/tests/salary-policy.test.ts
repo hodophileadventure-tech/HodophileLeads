@@ -22,6 +22,19 @@ describe('salary policy', () => {
     expect(result.effectiveAbsenceDays).toBe(1);
   });
 
+  it('does not deduct salary for a single late mark', () => {
+    const result = calculateMonthlySalaryDeductions({
+      monthlySalary: 30000,
+      absentDays: 0,
+      lateDays: 1,
+      halfDays: 0
+    });
+
+    expect(result.deductionAmount).toBe(0);
+    expect(result.netSalary).toBe(30000);
+    expect(result.effectiveAbsenceDays).toBe(0);
+  });
+
   it('normalizes 3 late marks as half-day equivalent and 2 half-days as an absent day', () => {
     const fromLate = normalizeAttendancePenalties({ absentDays: 0, lateDays: 3, halfDays: 0 });
     const fromLateAndHalf = normalizeAttendancePenalties({ absentDays: 0, lateDays: 3, halfDays: 1 });
