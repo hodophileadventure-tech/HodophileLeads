@@ -225,10 +225,17 @@ export const dashboardController = {
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status NOT IN ('completed', 'canceled') AND f.due_date < NOW())::int as overdue_followups,
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3 AND f.status NOT IN ('completed', 'canceled') AND f.due_date >= NOW() + INTERVAL '1 day')::int as active_followups
         FROM leads l
-        WHERE l.agent_id = $1 AND (
-          (l.created_at >= $2 AND l.created_at <= $3) OR
-          (l.updated_at >= $2 AND l.updated_at <= $3)
-        )
+        WHERE l.agent_id = $1
+          AND l.created_at <= $3
+          AND EXISTS (
+            SELECT 1
+            FROM audit_logs al
+            WHERE al.entity_type = 'lead'
+              AND al.entity_id = l.id
+              AND al.created_at >= $2
+              AND al.created_at <= $3
+              AND (al.user_id = $1 OR al.changes->>'agentId' = $1::text)
+          )
       `, [resolvedAgentId, start.toISOString(), end.toISOString()]);
 
       const stats = result.rows[0] || {};
@@ -402,7 +409,16 @@ export const dashboardController = {
         ) fu ON true
         WHERE l.agent_id = $1
           AND (${sectionFilters[String(section)]})
-          AND ((l.created_at >= $2 AND l.created_at <= $3) OR (l.updated_at >= $2 AND l.updated_at <= $3))
+          AND l.created_at <= $3
+          AND EXISTS (
+            SELECT 1
+            FROM audit_logs al
+            WHERE al.entity_type = 'lead'
+              AND al.entity_id = l.id
+              AND al.created_at >= $2
+              AND al.created_at <= $3
+              AND (al.user_id = $1 OR al.changes->>'agentId' = $1::text)
+          )
         ORDER BY l.updated_at DESC
         LIMIT 200
       `, [resolvedAgentId, start.toISOString(), end.toISOString()]);
