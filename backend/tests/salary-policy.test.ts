@@ -27,12 +27,27 @@ describe('salary policy', () => {
       monthlySalary: 30000,
       absentDays: 0,
       lateDays: 1,
-      halfDays: 0
+      halfDays: 0,
+      markedDays: 30
     });
 
     expect(result.deductionAmount).toBe(0);
     expect(result.netSalary).toBe(30000);
     expect(result.effectiveAbsenceDays).toBe(0);
+  });
+
+  it('ignores blank/unmarked days when calculating salary and deductions', () => {
+    const result = calculateMonthlySalaryDeductions({
+      monthlySalary: 30000,
+      absentDays: 0,
+      lateDays: 0,
+      halfDays: 0,
+      markedDays: 20
+    });
+
+    expect(result.monthlySalary).toBe(20000);
+    expect(result.deductionAmount).toBe(0);
+    expect(result.netSalary).toBe(20000);
   });
 
   it('normalizes 3 late marks as half-day equivalent and 2 half-days as an absent day', () => {

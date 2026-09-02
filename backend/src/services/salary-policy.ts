@@ -6,6 +6,7 @@ export interface SalaryDeductionInput {
   absentDays?: number;
   lateDays?: number;
   halfDays?: number;
+  markedDays?: number;
 }
 
 export interface NormalizedAttendancePenalty {
@@ -42,9 +43,10 @@ export interface SalarySlipSummary {
   netSalary: number;
 }
 
-export function getDailySalaryRate(monthlySalary: number): number {
+export function getDailySalaryRate(monthlySalary: number, markedDays = 30): number {
   const baseSalary = Number(monthlySalary || 0);
-  if (!Number.isFinite(baseSalary) || baseSalary <= 0) {
+  const eligibleDays = Number(markedDays || 0);
+  if (!Number.isFinite(baseSalary) || baseSalary <= 0 || !Number.isFinite(eligibleDays) || eligibleDays <= 0) {
     return 0;
   }
 
@@ -81,22 +83,23 @@ export function normalizeAttendancePenalties(input: Partial<SalaryDeductionInput
 
 export function calculateMonthlySalaryDeductions(input: SalaryDeductionInput): SalaryDeductionResult {
   const monthlySalary = Number(input.monthlySalary || 0);
-  const dailyRate = getDailySalaryRate(monthlySalary);
   const normalized = normalizeAttendancePenalties(input);
-  // A single or double late mark is not a salary penalty by itself.
-  // Only completed absence-equivalent penalties (full absences and converted half-days) count.
+  const markedDays = input.markedDays === undefined ? 30 : Number(input.markedDays || 0);
+  const salaryBase = markedDays > 0 ? Number((monthlySalary * (markedDays / 30)).toFixed(2)) : 0;
+  const dailyRate = markedDays > 0 ? Number((salaryBase / markedDays).toFixed(2)) : 0;
+  // Only count days with attendance entered. Blank/unmarked days are excluded from both salary and deductions.
   const effectiveAbsenceDays = normalized.absentDays + (normalized.halfDays * 0.5);
   const deductionAmount = Number((effectiveAbsenceDays * dailyRate).toFixed(2));
 
   return {
-    monthlySalary,
+    monthlySalary: salaryBase,
     dailyRate,
     absentDays: normalized.absentDays,
     lateDays: normalized.lateDays,
     halfDays: normalized.halfDays,
     effectiveAbsenceDays: Number(effectiveAbsenceDays.toFixed(2)),
     deductionAmount,
-    netSalary: Number((monthlySalary - deductionAmount).toFixed(2))
+    netSalary: Number((salaryBase - deductionAmount).toFixed(2))
   };
 }
 
@@ -125,6 +128,7 @@ export async function generateMonthlySalaryReport(month: string, sendEmails = tr
   );
 
   const slips: SalarySlipSummary[] = result.rows.map((employee: any) => {
+    const markedDays = Number(employee.marked_days || 0);
     const normalized = normalizeAttendancePenalties({
       absentDays: Number(employee.absent_days || 0),
       lateDays: Number(employee.late_days || 0),
@@ -135,7 +139,8 @@ export async function generateMonthlySalaryReport(month: string, sendEmails = tr
       monthlySalary: Number(employee.salary || 0),
       absentDays: normalized.absentDays,
       lateDays: normalized.lateDays,
-      halfDays: normalized.halfDays
+      halfDays: normalized.halfDays,
+      markedDays
     });
 
     return {
