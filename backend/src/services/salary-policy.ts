@@ -32,7 +32,9 @@ export interface SalarySlipSummary {
   email: string;
   roleName?: string;
   month: string;
+  originalMonthlySalary: number;
   monthlySalary: number;
+  payableSalary: number;
   dailyRate: number;
   presentDays: number;
   lateDays: number;
@@ -129,6 +131,7 @@ export async function generateMonthlySalaryReport(month: string, sendEmails = tr
 
   const slips: SalarySlipSummary[] = result.rows.map((employee: any) => {
     const markedDays = Number(employee.marked_days || 0);
+    const originalMonthlySalary = Number(employee.salary || 0);
     const normalized = normalizeAttendancePenalties({
       absentDays: Number(employee.absent_days || 0),
       lateDays: Number(employee.late_days || 0),
@@ -136,7 +139,7 @@ export async function generateMonthlySalaryReport(month: string, sendEmails = tr
     });
 
     const calculation = calculateMonthlySalaryDeductions({
-      monthlySalary: Number(employee.salary || 0),
+      monthlySalary: originalMonthlySalary,
       absentDays: normalized.absentDays,
       lateDays: normalized.lateDays,
       halfDays: normalized.halfDays,
@@ -149,7 +152,9 @@ export async function generateMonthlySalaryReport(month: string, sendEmails = tr
       email: employee.email,
       roleName: employee.role_name,
       month: normalizedMonth,
+      originalMonthlySalary,
       monthlySalary: calculation.monthlySalary,
+      payableSalary: calculation.monthlySalary,
       dailyRate: calculation.dailyRate,
       presentDays: Number(employee.present_days || 0),
       lateDays: calculation.lateDays,

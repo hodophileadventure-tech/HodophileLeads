@@ -44,6 +44,7 @@ export default function AttendancePage() {
     month: string;
     originalMonthlySalary?: number;
     monthlySalary: number;
+    payableSalary?: number;
     dailyRate: number;
     presentDays: number;
     lateDays: number;
@@ -142,8 +143,8 @@ export default function AttendancePage() {
       slip.email,
       slip.roleName || 'Employee',
       slip.month,
-      Number(slip.originalMonthlySalary ?? slip.monthlySalary ?? 0),
-      Number(slip.monthlySalary || 0),
+      Number(slip.originalMonthlySalary ?? 0),
+      Number(slip.payableSalary ?? slip.monthlySalary ?? 0),
       Number(slip.deductionAmount || 0),
       Number(slip.netSalary || 0),
       Number(slip.presentDays || 0),
@@ -174,6 +175,7 @@ export default function AttendancePage() {
     month: string;
     originalMonthlySalary?: number;
     monthlySalary: number;
+    payableSalary?: number;
     dailyRate?: number;
     deductionAmount: number;
     netSalary: number;
@@ -212,8 +214,8 @@ export default function AttendancePage() {
       ['Employee', slip.employeeName],
       ['Email', slip.email],
       ['Role', slip.roleName || 'Employee'],
-      ['Original Salary', `PKR ${Number(slip.originalMonthlySalary ?? slip.monthlySalary ?? 0).toLocaleString('en-PK')}`],
-      ['Payable Salary', `PKR ${Number(slip.monthlySalary || 0).toLocaleString('en-PK')}`],
+      ['Original Salary', `PKR ${Number(slip.originalMonthlySalary ?? 0).toLocaleString('en-PK')}`],
+      ['Payable Salary', `PKR ${Number(slip.payableSalary ?? slip.monthlySalary ?? 0).toLocaleString('en-PK')}`],
       ['Daily Rate', `PKR ${Number(slip.dailyRate || 0).toLocaleString('en-PK')}`],
     ];
 
@@ -331,8 +333,8 @@ export default function AttendancePage() {
                   <tr key={slip.employeeId} className="border-t border-slate-200">
                     <td className="px-4 py-3"><div className="font-medium text-slate-900">{slip.employeeName}</div><div className="text-xs text-slate-500">{slip.email}</div></td>
                     <td className="px-4 py-3 text-slate-600">{slip.roleName || 'Employee'}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-900">PKR {Number(slip.originalMonthlySalary ?? slip.monthlySalary ?? 0).toLocaleString('en-PK')}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-900">PKR {Number(slip.monthlySalary || 0).toLocaleString('en-PK')}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">PKR {Number(slip.originalMonthlySalary ?? 0).toLocaleString('en-PK')}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">PKR {Number(slip.payableSalary ?? slip.monthlySalary ?? 0).toLocaleString('en-PK')}</td>
                     <td className="px-4 py-3 text-amber-700">PKR {Number(slip.deductionAmount || 0).toLocaleString('en-PK')}</td>
                     <td className="px-4 py-3 font-bold text-emerald-700">PKR {Number(slip.netSalary || 0).toLocaleString('en-PK')}</td>
                     <td className="px-4 py-3">{slip.presentDays}</td>
