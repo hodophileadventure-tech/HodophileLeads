@@ -35,6 +35,25 @@ export default function AttendancePage() {
   const [monthlyEmployees, setMonthlyEmployees] = useState<MonthlyEmployee[]>([]);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [salarySlips, setSalarySlips] = useState<Array<{
+    employeeId: string;
+    employeeName: string;
+    email: string;
+    roleName?: string;
+    month: string;
+    monthlySalary: number;
+    dailyRate: number;
+    presentDays: number;
+    lateDays: number;
+    halfDays: number;
+    absentDays: number;
+    effectiveAbsenceDays: number;
+    deductionAmount: number;
+    netSalary: number;
+  }>>([]);
+  const [salaryLoading, setSalaryLoading] = useState(false);
+  const [salaryMessage, setSalaryMessage] = useState('');
+  const [salaryError, setSalaryError] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -95,20 +114,74 @@ export default function AttendancePage() {
     half_day: result.half_day + employee.half_day,
   }), { present: 0, absent: 0, late: 0, half_day: 0 });
 
+  const generateSalarySlips = async () => {
+    setSalaryLoading(true);
+    setSalaryError('');
+    setSalaryMessage('');
+    try {
+      const response = await axios.post(`${API_PREFIX}/admin/attendance/salary-slips`, { month }, authConfig());
+      const slips = response.data.slips || [];
+      setSalarySlips(slips);
+      setSalaryMessage(`Generated ${slips.length} salary slip${slips.length === 1 ? '' : 's'} for ${month}.`);
+    } catch (err: any) {
+      setSalaryError(err.response?.data?.error || 'Failed to generate salary slips');
+      setSalarySlips([]);
+    } finally {
+      setSalaryLoading(false);
+    }
+  };
+
+  const downloadSalarySlips = () => {
+    if (!salarySlips.length) return;
+
+    const headers = ['Employee Name', 'Email', 'Role', 'Month', 'Monthly Salary', 'Deduction Amount', 'Net Salary', 'Present Days', 'Late Days', 'Half Days', 'Absent Days'];
+    const rows = salarySlips.map((slip) => [
+      slip.employeeName,
+      slip.email,
+      slip.roleName || 'Employee',
+      slip.month,
+      Number(slip.monthlySalary || 0),
+      Number(slip.deductionAmount || 0),
+      Number(slip.netSalary || 0),
+      Number(slip.presentDays || 0),
+      Number(slip.lateDays || 0),
+      Number(slip.halfDays || 0),
+      Number(slip.absentDays || 0),
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((values) => values.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `salary-slips-${month}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">Employee Attendance</h1><p className="mt-1 text-gray-600">Mark attendance for your team by date.</p></div>
         <div className="flex items-end gap-3"><label className="text-sm font-medium text-gray-700">Date<input type="date" value={date} onChange={event => setDate(event.target.value)} className="mt-1 block rounded border border-gray-300 px-3 py-2" /></label><button onClick={save} disabled={locked || saving || loading || employees.length === 0} className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50">{locked ? 'Sheet Locked' : saving ? 'Saving...' : 'Save & Lock'}</button></div>
       </div>
-      {(message || error) && <div className={`rounded border p-3 ${error ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>{error || message}</div>}
+      {(message || error || salaryMessage || salaryError) && <div className={`rounded border p-3 ${salaryError || error ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>{salaryError || error || salaryMessage || message}</div>}
       {locked && !error && <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">This date has been saved and locked. Attendance cannot be changed.</div>}
       <div className="flex flex-wrap gap-3 text-sm"><span className="rounded bg-gray-100 px-3 py-1">Total: {employees.length}</span><span className="rounded bg-green-100 px-3 py-1 text-green-800">Present: {counts.present || 0}</span><span className="rounded bg-yellow-100 px-3 py-1 text-yellow-800">Late: {counts.late || 0}</span><span className="rounded bg-red-100 px-3 py-1 text-red-800">Absent: {counts.absent || 0}</span><span className="rounded bg-orange-100 px-3 py-1 text-orange-800">Half Day: {counts.half_day || 0}</span></div>
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white"><table className="w-full"><thead className="bg-gray-50"><tr><th className="px-5 py-3 text-left text-sm font-semibold">Employee</th><th className="px-5 py-3 text-left text-sm font-semibold">Role</th><th className="px-5 py-3 text-left text-sm font-semibold">Status</th><th className="px-5 py-3 text-left text-sm font-semibold">Note</th></tr></thead><tbody className="divide-y divide-gray-200">{loading ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">Loading employees...</td></tr> : employees.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-gray-500">No employees found.</td></tr> : employees.map(employee => <tr key={employee.user_id}><td className="px-5 py-3"><div className="font-medium text-gray-900">{employee.name}</div><div className="text-xs text-gray-500">{employee.email}</div></td><td className="px-5 py-3 text-sm text-gray-600">{employee.role_name || 'Employee'}</td><td className="px-5 py-3"><select disabled={locked} value={employee.status || ''} onChange={event => updateEmployee(employee.user_id, { status: event.target.value as AttendanceStatus })} className="rounded border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100"><option value="">Select status</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></td><td className="px-5 py-3"><input disabled={locked} value={employee.note || ''} onChange={event => updateEmployee(employee.user_id, { note: event.target.value })} placeholder="Optional note" className="w-full min-w-48 rounded border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100" /></td></tr>)}</tbody></table></div>
       <section className="overflow-hidden border-2 border-sky-700 bg-white shadow-sm">
         <div className="flex flex-col gap-3 bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div><h2 className="text-2xl font-black tracking-tight text-blue-950">Attendance Sheet</h2><p className="text-sm font-medium text-blue-950/80">Daily attendance register</p></div>
-          <label className="text-sm font-bold text-blue-950">Month<input type="month" value={month} onChange={event => setMonth(event.target.value)} className="ml-2 rounded border border-blue-900/30 bg-white px-2 py-1 font-semibold" /></label>
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-bold text-blue-950">Month<input type="month" value={month} onChange={event => setMonth(event.target.value)} className="ml-2 rounded border border-blue-900/30 bg-white px-2 py-1 font-semibold" /></label>
+            <button onClick={generateSalarySlips} disabled={salaryLoading} className="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">{salaryLoading ? 'Generating...' : 'Salary Slip'}</button>
+            <button onClick={downloadSalarySlips} disabled={!salarySlips.length} className="rounded bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50">Download CSV</button>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 border-b border-slate-300 bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-wide">
           <span className="text-slate-600">Legend:</span><span className="text-green-700">P Present</span><span className="text-red-700">A Absent</span><span className="text-amber-700">L Late</span><span className="text-orange-700">H Half day</span>
@@ -124,6 +197,46 @@ export default function AttendancePage() {
           </table>
         </div>
       </section>
+
+      {salarySlips.length > 0 && (
+        <section className="overflow-hidden rounded-lg border border-emerald-200 bg-white shadow-sm">
+          <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-3">
+            <h3 className="text-xl font-bold text-emerald-900">Salary Slips for {month}</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-emerald-50 text-emerald-900">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Employee</th>
+                  <th className="px-4 py-3 font-semibold">Role</th>
+                  <th className="px-4 py-3 font-semibold">Monthly Salary</th>
+                  <th className="px-4 py-3 font-semibold">Deduction</th>
+                  <th className="px-4 py-3 font-semibold">Net Salary</th>
+                  <th className="px-4 py-3 font-semibold">Present</th>
+                  <th className="px-4 py-3 font-semibold">Late</th>
+                  <th className="px-4 py-3 font-semibold">Half</th>
+                  <th className="px-4 py-3 font-semibold">Absent</th>
+                </tr>
+              </thead>
+              <tbody>
+                {salarySlips.map(slip => (
+                  <tr key={slip.employeeId} className="border-t border-slate-200">
+                    <td className="px-4 py-3"><div className="font-medium text-slate-900">{slip.employeeName}</div><div className="text-xs text-slate-500">{slip.email}</div></td>
+                    <td className="px-4 py-3 text-slate-600">{slip.roleName || 'Employee'}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">₹{Number(slip.monthlySalary || 0).toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3 text-amber-700">₹{Number(slip.deductionAmount || 0).toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3 font-bold text-emerald-700">₹{Number(slip.netSalary || 0).toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3">{slip.presentDays}</td>
+                    <td className="px-4 py-3">{slip.lateDays}</td>
+                    <td className="px-4 py-3">{slip.halfDays}</td>
+                    <td className="px-4 py-3">{slip.absentDays}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
