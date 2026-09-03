@@ -10,14 +10,16 @@ import { normalizeFollowUp } from '../utils/followup-utils';
 
 interface DashboardProps { onNavigate?: (page: 'leads' | 'followups' | 'analytics') => void; }
 interface DashboardStats { totalLeads?: number; hotLeads?: number; totalConfirmed?: number; bookingsThisMonth?: number; totalRevenue?: number; pendingPayments?: number; monthlyTarget?: number; monthlyTargetProgress?: number; }
-interface PipelineRow { status?: string; count?: number | string; }
+interface PipelineRow { status?: string; count?: number | string; potential?: boolean; }
+interface StatusGroup { label: string; statuses: string[]; tone: string; potential?: boolean; }
 
-const statusGroups = [
+const statusGroups: StatusGroup[] = [
   { label: 'New', statuses: ['new'], tone: 'bg-sky-500' },
   { label: 'Contacted', statuses: ['contacted'], tone: 'bg-cyan-500' },
   { label: 'Follow-up', statuses: ['interested', 'negotiation'], tone: 'bg-amber-400' },
   { label: 'Confirmed', statuses: ['booked', 'completed'], tone: 'bg-emerald-500' },
-  { label: 'Cancelled', statuses: ['canceled'], tone: 'bg-rose-500' }
+  { label: 'Cancelled', statuses: ['canceled'], tone: 'bg-rose-500' },
+  { label: 'Potential Leads', statuses: [], tone: 'bg-violet-500', potential: true }
 ];
 
 const formatUpdated = (date: Date) => date.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
@@ -69,7 +71,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const pipelineSummary = useMemo(() => {
     const total = pipeline.reduce((sum, row) => sum + Number(row.count || 0), 0);
     return statusGroups.map((group) => {
-      const count = pipeline.filter((row) => group.statuses.includes(String(row.status || '').toLowerCase())).reduce((sum, row) => sum + Number(row.count || 0), 0);
+      const count = pipeline.filter((row) => group.potential
+        ? row.potential
+        : group.statuses.includes(String(row.status || '').toLowerCase()))
+        .reduce((sum, row) => sum + Number(row.count || 0), 0);
       return { ...group, count, percent: total ? Math.round((count / total) * 100) : 0 };
     });
   }, [pipeline]);

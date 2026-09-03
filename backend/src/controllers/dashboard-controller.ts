@@ -115,10 +115,10 @@ export const dashboardController = {
     try {
       const scopeAgentId = getLeadScopeAgentId(req.user?.role, req.user?.id);
       const result = await query(`
-        SELECT status, COUNT(*) as count, temperature
+        SELECT status, COUNT(*) as count, temperature, potential
         FROM leads
         ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
-        GROUP BY status, temperature
+        GROUP BY status, temperature, potential
         ORDER BY status
       `, scopeAgentId ? [scopeAgentId] : []);
 
