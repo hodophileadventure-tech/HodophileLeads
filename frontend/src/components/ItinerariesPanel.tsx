@@ -25,6 +25,7 @@ const privateImageFiles = [
   '6Days-Swat-&-Shogran.jpg',
   '7Days-Swat-&-Kashmir.jpg',
   '8Days Fairy Meadows & Skardu.jpg',
+  "Charna-Island-(Sep'26).jpg (1).jpeg",
   'Naran & Shogran.jpg',
 ];
 
