@@ -216,6 +216,33 @@ export const dashboardController = {
           COUNT(*) FILTER (WHERE potential = true AND status NOT IN ('booked', 'completed', 'canceled', 'negotiation', 'interested', 'contacted', 'spam') AND temperature IS DISTINCT FROM 'dead')::int as potential_leads,
           COUNT(*) FILTER (WHERE temperature = 'cold' AND status = 'new' AND potential = false)::int as pan_leads,
           COUNT(*) FILTER (WHERE status = 'new' AND potential = false AND temperature IS DISTINCT FROM 'cold')::int as new_leads,
+          COUNT(*) FILTER (WHERE COALESCE(NULLIF(TRIM(agent_remarks), ''), NULLIF(TRIM(remarks), '')) IS NOT NULL)::int as documented_leads,
+          COUNT(*) FILTER (WHERE NULLIF(TRIM(notes), '') IS NOT NULL)::int as documented_gaps,
+          COUNT(*) FILTER (WHERE EXISTS (
+            SELECT 1 FROM follow_ups f
+            WHERE f.lead_id = l.id
+              AND f.created_at >= $2 AND f.created_at <= $3
+              AND NULLIF(TRIM(f.action_plan), '') IS NOT NULL
+          ))::int as action_plan_filled,
+          COUNT(*) FILTER (WHERE EXISTS (
+            SELECT 1 FROM follow_ups f
+            WHERE f.lead_id = l.id
+              AND f.created_at >= $2 AND f.created_at <= $3
+              AND (NULLIF(TRIM(f.completion_notes), '') IS NOT NULL OR EXISTS (
+                SELECT 1 FROM audit_logs al2
+                WHERE al2.entity_type = 'follow_up'
+                  AND al2.entity_id = f.id
+                  AND al2.action = 'complete'
+                  AND NULLIF(TRIM(al2.changes->>'completionNotes'), '') IS NOT NULL
+              ))
+          ))::int as completion_noted_filled,
+          COUNT(*) FILTER (WHERE EXISTS (
+            SELECT 1 FROM follow_ups f
+            WHERE f.lead_id = l.id
+              AND f.created_at >= $2 AND f.created_at <= $3
+              AND f.status NOT IN ('completed', 'canceled')
+              AND f.due_date > NOW()
+          ))::int as next_followup_scheduled,
           COUNT(*)::int as total_leads,
           -- Follow-up stats use due dates because stored status can lag behind the calendar.
           (SELECT COUNT(*)::int FROM follow_ups f WHERE f.lead_id IN (SELECT id FROM leads l WHERE l.agent_id = $1) AND f.created_at >= $2 AND f.created_at <= $3)::int as total_followups,
@@ -249,6 +276,11 @@ export const dashboardController = {
         spamLeads: parseInt(stats.spam_leads) || 0,
         canceledLeads: parseInt(stats.canceled_leads) || 0,
         panLeads: parseInt(stats.pan_leads) || 0,
+        documentedLeads: parseInt(stats.documented_leads) || 0,
+        documentedGaps: parseInt(stats.documented_gaps) || 0,
+        actionPlanFilled: parseInt(stats.action_plan_filled) || 0,
+        completionNotedFilled: parseInt(stats.completion_noted_filled) || 0,
+        nextFollowupScheduled: parseInt(stats.next_followup_scheduled) || 0,
         totalLeads: parseInt(stats.total_leads) || 0,
         deadLeads: parseInt(stats.dead_leads) || 0,
         totalFollowups: parseInt(stats.total_followups) || 0,
@@ -288,6 +320,11 @@ export const dashboardController = {
         'spamLeads',
         'canceledLeads',
         'panLeads',
+        'documentedLeads',
+        'documentedGaps',
+        'actionPlanFilled',
+        'completionNotedFilled',
+        'nextFollowupScheduled',
         'totalFollowups',
         'completedFollowups',
         'dueFollowups',
@@ -358,6 +395,11 @@ export const dashboardController = {
         spamLeads: `status = 'spam'`,
         canceledLeads: `status = 'canceled'`,
         panLeads: `temperature = 'cold' AND status = 'new' AND potential = false`
+        ,documentedLeads: `COALESCE(NULLIF(TRIM(agent_remarks), ''), NULLIF(TRIM(remarks), '')) IS NOT NULL`
+        ,documentedGaps: `NULLIF(TRIM(notes), '') IS NOT NULL`
+        ,actionPlanFilled: `EXISTS (SELECT 1 FROM follow_ups f WHERE f.lead_id = l.id AND f.created_at >= $2 AND f.created_at <= $3 AND NULLIF(TRIM(f.action_plan), '') IS NOT NULL)`
+        ,completionNotedFilled: `EXISTS (SELECT 1 FROM follow_ups f WHERE f.lead_id = l.id AND f.created_at >= $2 AND f.created_at <= $3 AND (NULLIF(TRIM(f.completion_notes), '') IS NOT NULL OR EXISTS (SELECT 1 FROM audit_logs al2 WHERE al2.entity_type = 'follow_up' AND al2.entity_id = f.id AND al2.action = 'complete' AND NULLIF(TRIM(al2.changes->>'completionNotes'), '') IS NOT NULL)))`
+        ,nextFollowupScheduled: `EXISTS (SELECT 1 FROM follow_ups f WHERE f.lead_id = l.id AND f.created_at >= $2 AND f.created_at <= $3 AND f.status NOT IN ('completed', 'canceled') AND f.due_date > NOW())`
       };
 
       const result = await query(`
@@ -371,6 +413,7 @@ export const dashboardController = {
           l.canceled_reason,
           l.agent_remarks,
           l.remarks,
+          l.notes,
           l.created_at,
           l.updated_at,
           fu.title AS follow_up_title,

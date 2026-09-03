@@ -17,6 +17,11 @@ interface SummaryData {
   spamLeads: number;
   canceledLeads: number;
   panLeads: number;
+  documentedLeads: number;
+  documentedGaps: number;
+  actionPlanFilled: number;
+  completionNotedFilled: number;
+  nextFollowupScheduled: number;
   totalLeads: number;
   totalFollowups: number;
   completedFollowups: number;
@@ -309,6 +314,30 @@ export const QuickSummary: React.FC<QuickSummaryProps> = ({ agents }) => {
               <p className="text-2xl font-bold text-red-600 dark:text-red-300">{data.canceledLeads}</p>
               <p className="text-xs font-medium text-red-700 dark:text-red-200">{getPercent(data.canceledLeads, data.totalLeads)}%</p>
             </button>
+          </div>
+
+          <div className="mb-2 mt-6">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Documentation &amp; Next Steps</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { key: 'documentedLeads', label: 'Documented Leads', value: data.documentedLeads, className: 'bg-indigo-50 dark:bg-indigo-900/30' },
+              { key: 'documentedGaps', label: 'Documented Gaps', value: data.documentedGaps, className: 'bg-orange-50 dark:bg-orange-900/30' },
+              { key: 'actionPlanFilled', label: 'Action Plan Filled', value: data.actionPlanFilled, className: 'bg-cyan-50 dark:bg-cyan-900/30' },
+              { key: 'completionNotedFilled', label: 'Completion Noted', value: data.completionNotedFilled, className: 'bg-teal-50 dark:bg-teal-900/30' },
+              { key: 'nextFollowupScheduled', label: 'Next Follow-up Scheduled', value: data.nextFollowupScheduled, className: 'bg-lime-50 dark:bg-lime-900/30' }
+            ].map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => toggleDetails(item.key)}
+                className={`text-left p-3 rounded-lg ${item.className}`}
+              >
+                <p className="text-xs text-slate-600 dark:text-slate-400">{item.label}</p>
+                <p className="text-2xl font-bold">{item.value}</p>
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{getPercent(item.value, data.totalLeads)}%</p>
+              </button>
+            ))}
           </div>
 
           <div className="mb-2 mt-6">
