@@ -44,6 +44,7 @@ export const leadSchema = Joi.object({
   transportPreference: Joi.string().allow('').optional(),
   hotelPreference: Joi.string().allow('').optional(),
   createdAt: Joi.string().isoDate().optional(),
+  inquiredAt: Joi.string().isoDate().optional().allow(null, ''),
   tourType: Joi.string().allow('').optional(),
   hotelInfo: hotelInfoSchema.optional(),
   hotelOptions: Joi.array().items(hotelInfoSchema).optional(),

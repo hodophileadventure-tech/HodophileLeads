@@ -81,6 +81,7 @@ const mapLeadRow = (row: any) => {
     islamabadStay: row.islamabadStay || row.islamabad_stay || null,
     tourType: row.tourType || row.tour_type || null,
     createdAt: row.createdAt || row.created_at,
+    inquiredAt: row.inquiredAt || row.inquired_at || null,
     updatedAt: row.updatedAt || row.updated_at,
     canceledReason: row.canceledReason || row.canceled_reason || null,
     canceledBy: row.canceledBy || row.canceled_by || null,
@@ -163,8 +164,8 @@ export const leadsModel = {
 
     const sql = `
       INSERT INTO leads (
-          client_name, email, phone, destination, destinations, source, temperature, status, budget, trip_budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, tour_type, agent_remarks, remarks, potential, lead_outcome, islamabad_stay
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)
+            client_name, email, phone, destination, destinations, source, temperature, status, budget, trip_budget, travel_dates, hotel_info, hotel_options, persons, agent_id, created_at, updated_at, profile_id, address, gender, age, adults, kids, tour_type, agent_remarks, remarks, potential, lead_outcome, islamabad_stay, inquired_at
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)
       RETURNING *
     `;
 
@@ -212,7 +213,8 @@ export const leadsModel = {
       (data as any).remarks || null,
       (data as any).potential ? true : false,
       (data as any).leadOutcome || (data as any).lead_outcome || null,
-      (data as any).islamabadStay || (data as any).islamabad_stay || null
+      (data as any).islamabadStay || (data as any).islamabad_stay || null,
+      (data as any).inquiredAt || (data as any).inquired_at || null
     ];
 
     // handle profile by phone
@@ -336,6 +338,7 @@ export const leadsModel = {
       'remarks',
       'potential',
       'created_at',
+      'inquired_at',
       'lead_outcome',
       'is_b2b',
       'special_requests',

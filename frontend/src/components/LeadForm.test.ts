@@ -15,6 +15,7 @@ describe('buildLeadFormState', () => {
       destination: 'Dubai',
       travelDates: { from: '2026-10-05', to: '2026-10-12' },
       createdAt: '2026-08-15T00:00:00.000Z',
+      inquiredAt: '2026-08-14T16:45:00.000Z',
       adults: 2,
       kids: 1,
       tourType: 'private',
@@ -31,6 +32,7 @@ describe('buildLeadFormState', () => {
     expect(form.leadStatus).toBe('potential');
     expect(form.adults).toBe(2);
     expect(form.kids).toBe(1);
+    expect(form.inquiredAt).toBe('2026-08-14T16:45');
   });
 
   it('creates a blank form state for a new lead', () => {

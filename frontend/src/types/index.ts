@@ -67,6 +67,7 @@ export interface Lead {
   transportPreference?: string;
   hotelPreference?: string;
   potential?: boolean;
+  inquiredAt?: string | null;
   hotelInfo?: LeadHotelInfo;
   hotelOptions?: LeadHotelInfo[];
   createdAt: string;

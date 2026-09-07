@@ -68,6 +68,7 @@ export interface Lead {
   actualPrice?: number | null;
   hasProgressed?: boolean;
   potential?: boolean;
+  inquiredAt?: string | null;
 }
 
 export interface LeadHotelInfo {

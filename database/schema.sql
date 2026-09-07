@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS leads (
   canceled_reason TEXT,
   canceled_by UUID REFERENCES users(id),
   canceled_at TIMESTAMP,
+  inquired_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT valid_temperature CHECK (temperature IN ('hot', 'warm', 'cold', 'dead')),

@@ -23,6 +23,7 @@ const createEmptyLeadFormState = () => ({
   travelDates: { from: '', to: '' },
   tourType: '',
   createdAt: new Date().toISOString().slice(0, 10),
+  inquiredAt: '',
   adults: '',
   kids: '',
   persons: 1,
@@ -56,6 +57,7 @@ export const buildLeadFormState = (initialData?: Partial<Lead>) => {
     destination: initialData.destination || '',
     travelDates: initialData.travelDates || { from: '', to: '' },
     createdAt: initialData.createdAt ? initialData.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+    inquiredAt: initialData.inquiredAt ? initialData.inquiredAt.slice(0, 16) : '',
     adults: initialData.adults ?? (initialData.persons ? initialData.persons : ''),
     kids: initialData.kids ?? '',
     tourType: (initialData as any).tourType || '',
@@ -130,7 +132,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         tripBudget: (formData as any).tripBudget === '' ? undefined : Number((formData as any).tripBudget),
         agentRemarks: (formData as any).agentRemarks,
         remarks: (formData as any).remarks,
-        potential: (formData as any).potential
+        potential: (formData as any).potential,
+        inquiredAt: (formData as any).inquiredAt || undefined
       };
 
       if ((formData as any).islamabadStay !== undefined && (formData as any).islamabadStay !== '') {
@@ -197,6 +200,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
         travelDates: { from: '', to: '' },
         tourType: '',
         createdAt: new Date().toISOString().slice(0, 10),
+        inquiredAt: '',
         adults: '',
         kids: '',
         agentRemarks: '',
@@ -282,6 +286,16 @@ export const LeadForm: React.FC<LeadFormProps> = ({ onSuccess, initialData, onOp
               type="date"
               value={formData.createdAt || ''}
               onChange={(e) => handleChange('createdAt', e.target.value)}
+              className="input-field"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Inquired At</label>
+            <input
+              type="datetime-local"
+              value={(formData as any).inquiredAt || ''}
+              onChange={(e) => handleChange('inquiredAt', e.target.value)}
               className="input-field"
             />
           </div>
