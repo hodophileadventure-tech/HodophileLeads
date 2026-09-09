@@ -196,13 +196,13 @@ export const leadsController = {
         SELECT
           COUNT(*)::int AS all,
           COUNT(*) FILTER (WHERE potential = true) ::int AS potential,
-          COUNT(*) FILTER (WHERE potential = false AND (lead_outcome = 'confirmed' OR status = 'booked'))::int AS confirmed,
-          COUNT(*) FILTER (WHERE potential = false AND status = 'spam')::int AS spam,
-          COUNT(*) FILTER (WHERE potential = false AND status = 'canceled')::int AS cancelled,
-          COUNT(*) FILTER (WHERE potential = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked') AND status <> 'spam' AND status <> 'canceled' AND temperature = 'dead')::int AS dead,
-          COUNT(*) FILTER (WHERE potential = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked') AND status <> 'spam' AND status <> 'canceled' AND temperature <> 'dead' AND status IN ('contacted', 'interested', 'negotiation'))::int AS in_progress,
+          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND (lead_outcome = 'confirmed' OR status = 'booked'))::int AS confirmed,
+          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND status = 'spam')::int AS spam,
+          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND status = 'canceled')::int AS cancelled,
+          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked') AND status <> 'spam' AND status <> 'canceled' AND temperature = 'dead')::int AS dead,
+          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked') AND status <> 'spam' AND status <> 'canceled' AND temperature <> 'dead' AND status IN ('contacted', 'interested', 'negotiation'))::int AS in_progress,
           COUNT(*) FILTER (
-            WHERE potential = false
+            WHERE COALESCE(potential, false) = false
               AND NOT (lead_outcome = 'confirmed' OR status = 'booked')
               AND status <> 'spam'
               AND status <> 'canceled'
