@@ -199,14 +199,14 @@ export const leadsController = {
           COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed'))::int AS confirmed,
           COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND status = 'spam')::int AS spam,
           COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND status = 'canceled')::int AS cancelled,
-          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed') AND status <> 'spam' AND status <> 'canceled' AND temperature = 'dead')::int AS dead,
-          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed') AND status <> 'spam' AND status <> 'canceled' AND temperature <> 'dead' AND (status IN ('contacted', 'interested', 'negotiation') OR pipeline_stage IN ('availability_check', 'quoted', 'payment_pending', 'on_trip')))::int AS in_progress,
+          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed') AND status IS DISTINCT FROM 'spam' AND status IS DISTINCT FROM 'canceled' AND temperature = 'dead')::int AS dead,
+          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed') AND status IS DISTINCT FROM 'spam' AND status IS DISTINCT FROM 'canceled' AND temperature IS DISTINCT FROM 'dead' AND (status IN ('contacted', 'interested', 'negotiation') OR pipeline_stage IN ('availability_check', 'quoted', 'payment_pending', 'on_trip')))::int AS in_progress,
           COUNT(*) FILTER (
             WHERE COALESCE(potential, false) = false
               AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed')
-              AND status <> 'spam'
-              AND status <> 'canceled'
-              AND temperature <> 'dead'
+              AND status IS DISTINCT FROM 'spam'
+              AND status IS DISTINCT FROM 'canceled'
+              AND temperature IS DISTINCT FROM 'dead'
               AND status NOT IN ('contacted', 'interested', 'negotiation')
               AND pipeline_stage NOT IN ('availability_check', 'quoted', 'payment_pending', 'on_trip')
           )::int AS new
