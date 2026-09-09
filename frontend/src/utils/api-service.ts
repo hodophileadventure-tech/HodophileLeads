@@ -12,6 +12,17 @@ export const leadsAPI = {
       ...(offset !== undefined ? { offset } : {}),
     }
   }),
+  counts: () => apiClient.get<{
+    all: number;
+    active: number;
+    potential: number;
+    in_progress: number;
+    dead: number;
+    confirmed: number;
+    cancelled: number;
+    spam: number;
+    new: number;
+  }>('/leads/counts'),
   getById: (id: string) => apiClient.get<Lead>(`/leads/${id}`),
   getHealth: (id: string) => apiClient.get(`/leads/${id}/health`),
   create: (data: Partial<Lead>) => apiClient.post<Lead>('/leads', data),

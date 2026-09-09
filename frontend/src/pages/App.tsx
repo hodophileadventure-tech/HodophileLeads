@@ -60,6 +60,7 @@ export const App: React.FC = () => {
   const { user } = useAuth();
   const { darkMode } = useUIStore();
   const { leads, followUps, setLeads, setFollowUps, updateLead } = useDataStore();
+  const [leadCounts, setLeadCounts] = useState<Partial<Record<'all' | 'active' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'cancelled' | 'spam' | 'new', number>>>({});
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState<any[]>([]);
@@ -264,8 +265,12 @@ export const App: React.FC = () => {
   };
 
   const refreshLeads = async () => {
-    const response = await leadsAPI.list(100, undefined, 0);
+    const [response, countsResponse] = await Promise.all([
+      leadsAPI.list(100, undefined, 0),
+      leadsAPI.counts()
+    ]);
     setLeads(response.data);
+    setLeadCounts(countsResponse.data);
     await loadFollowUps();
   };
 
@@ -294,8 +299,12 @@ export const App: React.FC = () => {
 
     const fetchLeads = async () => {
       try {
-        const response = await leadsAPI.list(100, undefined, 0);
+        const [response, countsResponse] = await Promise.all([
+          leadsAPI.list(100, undefined, 0),
+          leadsAPI.counts()
+        ]);
         setLeads(response.data);
+        setLeadCounts(countsResponse.data);
         await loadFollowUps();
         
         // Fetch agents for manager panel
@@ -683,6 +692,7 @@ export const App: React.FC = () => {
             {currentPage === 'leads' && (
               <LeadsPage
                 leads={leads}
+                leadCounts={leadCounts}
                 followUps={followUps}
                 onRefreshLeads={refreshLeads}
                 onLoadMoreLeads={loadMoreLeads}

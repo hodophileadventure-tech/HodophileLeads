@@ -44,6 +44,7 @@ type StatusFilter = 'all' | 'active' | 'potential' | 'in_progress' | 'dead' | 'c
 
 interface LeadsPageProps {
   leads: Lead[];
+  leadCounts?: Partial<Record<'all' | 'active' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'cancelled' | 'spam' | 'new', number>>;
   followUps: FollowUp[];
   onRefreshLeads: () => Promise<void>;
   onLoadMoreLeads?: () => Promise<void>;
@@ -52,6 +53,7 @@ interface LeadsPageProps {
 
 export const LeadsPage: React.FC<LeadsPageProps> = ({
   leads,
+  leadCounts,
   followUps,
   onRefreshLeads,
   onLoadMoreLeads,
@@ -200,7 +202,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
 
   // Count leads by status
   const statusCounts = useMemo(() => {
-    return {
+    const loadedCounts = {
       all: leads.length,
       active: leads.filter((lead) => {
         const lifecycle = getLeadLifecycleState(lead);
@@ -214,7 +216,9 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
       spam: leads.filter((lead) => getLeadLifecycleState(lead) === 'spam').length,
       new: leads.filter((lead) => getLeadLifecycleState(lead) === 'new').length,
     };
-  }, [leads]);
+
+    return { ...loadedCounts, ...leadCounts };
+  }, [leads, leadCounts]);
 
   // Scroll modals into view when they open
   useEffect(() => {

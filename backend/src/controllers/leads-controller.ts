@@ -189,6 +189,47 @@ const confirmLeadAndEnqueue = async (leadId: string, updateData: Partial<any>) =
 };
 
 export const leadsController = {
+  async counts(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const scopeAgentId = req.user.role === 'agent' ? String(req.user.id) : undefined;
+      const result = await query(`
+        SELECT
+          COUNT(*)::int AS all,
+          COUNT(*) FILTER (WHERE potential = true) ::int AS potential,
+          COUNT(*) FILTER (WHERE potential = false AND (lead_outcome = 'confirmed' OR status = 'booked'))::int AS confirmed,
+          COUNT(*) FILTER (WHERE potential = false AND status = 'spam')::int AS spam,
+          COUNT(*) FILTER (WHERE potential = false AND status = 'canceled')::int AS cancelled,
+          COUNT(*) FILTER (WHERE potential = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked') AND status <> 'spam' AND status <> 'canceled' AND temperature = 'dead')::int AS dead,
+          COUNT(*) FILTER (WHERE potential = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked') AND status <> 'spam' AND status <> 'canceled' AND temperature <> 'dead' AND status IN ('contacted', 'interested', 'negotiation'))::int AS in_progress,
+          COUNT(*) FILTER (
+            WHERE potential = false
+              AND NOT (lead_outcome = 'confirmed' OR status = 'booked')
+              AND status <> 'spam'
+              AND status <> 'canceled'
+              AND temperature <> 'dead'
+              AND status NOT IN ('contacted', 'interested', 'negotiation')
+          )::int AS new
+        FROM leads
+        ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
+      `, scopeAgentId ? [scopeAgentId] : []);
+
+      const counts = result.rows[0] || {};
+      res.json({
+        all: Number(counts.all || 0),
+        active: Number(counts.confirmed || 0) + Number(counts.in_progress || 0),
+        potential: Number(counts.potential || 0),
+        in_progress: Number(counts.in_progress || 0),
+        dead: Number(counts.dead || 0),
+        confirmed: Number(counts.confirmed || 0),
+        cancelled: Number(counts.cancelled || 0),
+        spam: Number(counts.spam || 0),
+        new: Number(counts.new || 0)
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async list(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const defaultLimit = 100;

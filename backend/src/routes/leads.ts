@@ -45,6 +45,7 @@ leadsRouter.param('id', (req, _res, next, id) => {
 });
 
 leadsRouter.get('/', leadsController.list);
+leadsRouter.get('/counts', leadsController.counts);
 leadsRouter.get('/search', leadsController.searchByPhone);
 leadsRouter.post('/', leadsController.create);
 leadsRouter.get('/:id', leadsController.getById);

@@ -196,6 +196,25 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
     return statusTotals;
   }, [pipeline]);
 
+  const visiblePipeline = useMemo(() => {
+    const grouped = new Map<string, PipelineRow>();
+
+    for (const row of pipeline) {
+      const status = row.status || 'unknown';
+      const temperature = row.temperature || 'unknown';
+      const key = `${status}::${temperature}`;
+      const existing = grouped.get(key);
+
+      if (existing) {
+        existing.count = Number(existing.count || 0) + Number(row.count || 0);
+      } else {
+        grouped.set(key, { status, temperature, count: Number(row.count || 0) });
+      }
+    }
+
+    return Array.from(grouped.values());
+  }, [pipeline]);
+
   const refreshAgentsAndStats = async () => {
     try {
       const resp = await (adminAPI as any).getAgents();
@@ -622,13 +641,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ isAdmin,
       <Card>
         <h2 className="text-xl font-bold mb-4">Pipeline Breakdown</h2>
 
-        {pipeline.length === 0 ? (
+        {visiblePipeline.length === 0 ? (
           <p className="text-slate-600 dark:text-slate-400">No pipeline data available yet.</p>
         ) : (
           <div className="space-y-3">
-            {pipeline.map((row, index) => (
+            {visiblePipeline.map((row) => (
               <div
-                key={`${row.status}-${row.temperature}-${index}`}
+                key={`${row.status}-${row.temperature}`}
                 className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2"
               >
                 <div>
