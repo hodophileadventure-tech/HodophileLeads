@@ -192,39 +192,44 @@ export const leadsController = {
   async counts(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const scopeAgentId = req.user.role === 'agent' ? String(req.user.id) : undefined;
-      const result = await query(`
-        SELECT
-          COUNT(*)::int AS all,
-          COUNT(*) FILTER (WHERE potential = true) ::int AS potential,
-          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed'))::int AS confirmed,
-          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND status = 'spam')::int AS spam,
-          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND status = 'canceled')::int AS cancelled,
-          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed') AND status IS DISTINCT FROM 'spam' AND status IS DISTINCT FROM 'canceled' AND temperature = 'dead')::int AS dead,
-          COUNT(*) FILTER (WHERE COALESCE(potential, false) = false AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed') AND status IS DISTINCT FROM 'spam' AND status IS DISTINCT FROM 'canceled' AND temperature IS DISTINCT FROM 'dead' AND (status IN ('contacted', 'interested', 'negotiation') OR pipeline_stage IN ('availability_check', 'quoted', 'payment_pending', 'on_trip')))::int AS in_progress,
-          COUNT(*) FILTER (
-            WHERE COALESCE(potential, false) = false
-              AND NOT (lead_outcome = 'confirmed' OR status = 'booked' OR pipeline_stage = 'confirmed')
-              AND status IS DISTINCT FROM 'spam'
-              AND status IS DISTINCT FROM 'canceled'
-              AND temperature IS DISTINCT FROM 'dead'
-              AND status NOT IN ('contacted', 'interested', 'negotiation')
-              AND pipeline_stage NOT IN ('availability_check', 'quoted', 'payment_pending', 'on_trip')
-          )::int AS new
-        FROM leads
-        ${scopeAgentId ? 'WHERE agent_id = $1' : ''}
-      `, scopeAgentId ? [scopeAgentId] : []);
+      const leads = await leadsModel.findAll(scopeAgentId, 0, 0);
+      const counts = {
+        all: leads.length,
+        potential: 0,
+        confirmed: 0,
+        spam: 0,
+        cancelled: 0,
+        dead: 0,
+        in_progress: 0,
+        new: 0
+      };
 
-      const counts = result.rows[0] || {};
+      for (const lead of leads) {
+        if (lead.potential) {
+          counts.potential += 1;
+        } else if (lead.leadOutcome === 'confirmed') {
+          counts.confirmed += 1;
+        } else if (lead.status === 'spam') {
+          counts.spam += 1;
+        } else if (lead.status === 'canceled') {
+          counts.cancelled += 1;
+        } else if (lead.temperature === 'dead') {
+          counts.dead += 1;
+        } else if (lead.pipelineStage === 'confirmed' || lead.status === 'booked') {
+          counts.confirmed += 1;
+        } else if (
+          ['availability_check', 'quoted', 'payment_pending', 'on_trip'].includes(lead.pipelineStage || '') ||
+          ['contacted', 'interested', 'negotiation'].includes(lead.status || '')
+        ) {
+          counts.in_progress += 1;
+        } else {
+          counts.new += 1;
+        }
+      }
+
       res.json({
-        all: Number(counts.all || 0),
-        active: Number(counts.confirmed || 0) + Number(counts.in_progress || 0),
-        potential: Number(counts.potential || 0),
-        in_progress: Number(counts.in_progress || 0),
-        dead: Number(counts.dead || 0),
-        confirmed: Number(counts.confirmed || 0),
-        cancelled: Number(counts.cancelled || 0),
-        spam: Number(counts.spam || 0),
-        new: Number(counts.new || 0)
+        ...counts,
+        active: counts.confirmed + counts.in_progress
       });
     } catch (error) {
       next(error);
