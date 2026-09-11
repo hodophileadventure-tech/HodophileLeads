@@ -794,6 +794,9 @@ export const AgentPanel: React.FC = () => {
                 {lifecycle.state !== 'confirmed' && (
                   <Button variant="primary" onClick={() => openConfirm(lead)}>Confirm</Button>
                 )}
+                {lifecycle.state === 'confirmed' && (
+                  <Button variant="primary" onClick={() => openConfirm(lead)}>Edit Confirmation</Button>
+                )}
                 <Button 
                   variant="danger" 
                   onClick={() => deleteLead(lead)}

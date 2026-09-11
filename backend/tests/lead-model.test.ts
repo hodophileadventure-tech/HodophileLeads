@@ -47,6 +47,21 @@ describe('Lead model update', () => {
     expect(params).not.toContain('contacted');
   });
 
+  it('does not mark a new lead as progressed when it is marked dead', async () => {
+    (query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ id: 'lead-1', status: 'new', temperature: 'warm', has_progressed: false }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'lead-1', status: 'completed', temperature: 'dead', has_progressed: false }] });
+
+    await leadsModel.update('lead-1', {
+      status: 'completed',
+      temperature: 'dead'
+    } as any);
+
+    const [sql, params] = (query as jest.Mock).mock.calls.at(-1);
+    expect(sql).not.toContain('has_progressed');
+    expect(params).not.toContain(true);
+  });
+
   it('does not auto-unconfirm a completed booking when hotel and transport are present', () => {
     const lead = {
       status: 'booked',

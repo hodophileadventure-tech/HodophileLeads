@@ -290,8 +290,10 @@ export const leadsModel = {
         delete normalizedData.status;
       }
 
-      // Auto-mark as progressed if changing from 'new' to something else
-      if (oldStatus === 'new' && newStatus !== 'new' && !hasProgressed) {
+      // Only active lifecycle changes count as progression. Terminal statuses such as
+      // completed/dead, canceled, and spam must not set this flag.
+      const isProgressingStatus = ['contacted', 'interested', 'negotiation', 'booked'].includes(newStatus);
+      if (oldStatus === 'new' && isProgressingStatus && !hasProgressed) {
         normalizedData.has_progressed = true;
         console.log('[Lead.update] Auto-marking lead as progressed', { leadId: id, oldStatus, newStatus });
       }
