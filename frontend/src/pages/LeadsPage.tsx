@@ -631,6 +631,11 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                       <option value="canceled">Canceled</option>
                     </select>
                   </div>
+                  {getLeadLifecycleState(selectedLead) === 'confirmed' && (
+                    <Button variant="primary" onClick={() => setShowConfirmForm(true)}>
+                      Edit Confirmation
+                    </Button>
+                  )}
                   <Button variant="danger" onClick={cancelLead}>
                     Cancel Lead
                   </Button>
