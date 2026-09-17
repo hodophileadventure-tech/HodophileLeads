@@ -503,6 +503,22 @@ export const CreativeWorkPanel: React.FC = () => {
                           onChange={(e) => updateSheetDraft(member.id, 'title', e.target.value)}
                           placeholder="Write task here"
                         />
+                        {latestTask?.attachments && latestTask.attachments.length > 0 && (
+                          <div className="mt-2 max-w-[220px] rounded-md bg-emerald-50 px-2 py-1.5 text-xs dark:bg-emerald-950/30">
+                            <div className="font-semibold text-emerald-700 dark:text-emerald-300">Submitted files</div>
+                            {latestTask.attachments.map((file) => (
+                              <a
+                                key={`task-${file.id}`}
+                                href={resolveAssetUrl(file.file_path, taskAssetBaseUrl)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block truncate text-emerald-700 underline dark:text-emerald-300"
+                              >
+                                {file.original_filename}
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 pr-4">
                         <input
