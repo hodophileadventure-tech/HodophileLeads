@@ -50,7 +50,16 @@ export class AuthorizationService {
         `SELECT EXISTS(
           SELECT 1 FROM role_permissions rp
           JOIN permissions p ON rp.permission_id = p.id
+          JOIN roles r ON r.id = rp.role_id
           JOIN users u ON u.role_id = rp.role_id
+          WHERE u.id = $1
+            AND p.resource = $2
+            AND p.action = $3
+        ) OR EXISTS(
+          SELECT 1 FROM role_permissions rp
+          JOIN permissions p ON rp.permission_id = p.id
+          JOIN roles r ON r.id = rp.role_id
+          JOIN users u ON LOWER(REPLACE(COALESCE(u.role, ''), ' ', '_')) = r.slug
           WHERE u.id = $1
             AND p.resource = $2
             AND p.action = $3
