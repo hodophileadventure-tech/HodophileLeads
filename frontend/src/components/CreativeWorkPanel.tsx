@@ -67,17 +67,21 @@ export const CreativeWorkPanel: React.FC = () => {
       const response = await tasksAPI.list();
       const loadedTasks: TaskRecord[] = response.data?.data || [];
       const tasksWithAttachments = await Promise.all(loadedTasks.map(async (task) => {
+        let attachments = task.attachments || [];
+        let latestSubmission = task.latestSubmission;
         try {
           const attachmentResponse = await tasksAPI.listAttachments(task.id);
-          const submissionResponse = await tasksAPI.listSubmissions(task.id);
-          return {
-            ...task,
-            attachments: attachmentResponse.data?.data || [],
-            latestSubmission: submissionResponse.data?.data?.[0]
-          };
+          attachments = attachmentResponse.data?.data || [];
         } catch {
-          return task;
+          // Keep the task visible even if an auxiliary attachment request fails.
         }
+        try {
+          const submissionResponse = await tasksAPI.listSubmissions(task.id);
+          latestSubmission = submissionResponse.data?.data?.[0];
+        } catch {
+          // Submission metadata is optional; attachment links should still render.
+        }
+        return { ...task, attachments, latestSubmission };
       }));
       setTasks(tasksWithAttachments);
     } catch (err) {
@@ -536,6 +540,22 @@ export const CreativeWorkPanel: React.FC = () => {
                         {rowDraft.referenceFiles.length > 0 && (
                           <div className="mt-1 max-w-[220px] text-xs text-slate-500">
                             {rowDraft.referenceFiles.map((file) => file.name).join(', ')}
+                          </div>
+                        )}
+                        {latestTask?.attachments && latestTask.attachments.length > 0 && (
+                          <div className="mt-2 rounded-md bg-emerald-50 px-2 py-1.5 text-xs dark:bg-emerald-950/30">
+                            <div className="font-semibold text-emerald-700 dark:text-emerald-300">Submitted files</div>
+                            {latestTask.attachments.map((file) => (
+                              <a
+                                key={`visible-${file.id}`}
+                                href={resolveAssetUrl(file.file_path, taskAssetBaseUrl)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block truncate text-emerald-700 underline dark:text-emerald-300"
+                              >
+                                {file.original_filename}
+                              </a>
+                            ))}
                           </div>
                         )}
                       </td>
