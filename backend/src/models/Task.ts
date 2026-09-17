@@ -172,7 +172,7 @@ export const taskModel = {
       assigned: ['in_progress', 'cancelled'],
       in_progress: ['submitted', 'cancelled'],
       submitted: ['approved', 'revision_requested', 'cancelled'],
-      revision_requested: ['in_progress', 'cancelled'],
+      revision_requested: ['in_progress', 'submitted', 'cancelled'],
       approved: [],
       cancelled: []
     };
