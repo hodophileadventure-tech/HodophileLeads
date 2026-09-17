@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getAssignableUsers, getTaskStatusLabel } from './task-assignment';
+import { getAssignableUsers, getTaskStatusLabel, isTaskComplete } from './task-assignment';
 
 describe('task assignment helpers', () => {
   it('keeps all active users assignable for admin work', () => {
@@ -22,5 +22,11 @@ describe('task assignment helpers', () => {
     expect(getTaskStatusLabel('in_progress')).toBe('In progress');
     expect(getTaskStatusLabel('submitted')).toBe('Completed');
     expect(getTaskStatusLabel('revision_requested')).toBe('Not complete');
+  });
+
+  it('marks task completion from the submission state', () => {
+    expect(isTaskComplete('submitted')).toBe(true);
+    expect(isTaskComplete('approved')).toBe(true);
+    expect(isTaskComplete('revision_requested')).toBe(false);
   });
 });

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
 import { tasksAPI, adminAPI } from '../utils/api-service';
-import { getAssignableUsers, getTaskStatusLabel } from '../utils/task-assignment';
+import { getAssignableUsers, isTaskComplete } from '../utils/task-assignment';
 
 interface TaskRecord {
   id: string;
@@ -30,27 +30,6 @@ const roleLabel = (role?: string) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const formatDate = (value?: string) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-};
-
-const statusColor: Record<TaskRecord['status'], string> = {
-  assigned: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
-  in_progress: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-  submitted: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
-  revision_requested: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
-  approved: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
-  cancelled: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
-};
-
-const priorityColor: Record<TaskRecord['priority'], string> = {
-  low: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-};
 
 export const CreativeWorkPanel: React.FC = () => {
   const { user } = useAuth();
@@ -58,20 +37,10 @@ export const CreativeWorkPanel: React.FC = () => {
   const [users, setUsers] = useState<Array<{ id: string; name: string; role_slug?: string; role_name?: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [assignedTo, setAssignedTo] = useState('');
-  const [deadline, setDeadline] = useState('');
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [attachment, setAttachment] = useState<File | null>(null);
   const [submissionTask, setSubmissionTask] = useState<TaskRecord | null>(null);
   const [submissionNotes, setSubmissionNotes] = useState('');
   const [submissionAttachment, setSubmissionAttachment] = useState<File | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [assigneeFilter, setAssigneeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [deadlineFilter, setDeadlineFilter] = useState('all');
+  const [sheetDrafts, setSheetDrafts] = useState<Record<string, { title: string; deadline: string; priority: 'low' | 'medium' | 'high' }>>({});
 
   const isAdmin = user?.role === 'admin';
   const normalizedRole = String(user?.role || '').replace(/_/g, ' ');
@@ -119,39 +88,59 @@ export const CreativeWorkPanel: React.FC = () => {
     void fetchUsers();
   }, [user?.id]);
 
+  const assignableUsers = useMemo(() => getAssignableUsers(users), [users]);
+
+  const getLatestTaskForUser = (userId: string) => {
+    return [...tasks]
+      .filter((task) => String(task.assigned_to || '') === String(userId))
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0];
+  };
+
+  const updateSheetDraft = (userId: string, field: 'title' | 'deadline' | 'priority', value: string) => {
+    setSheetDrafts((prev) => ({
+      ...prev,
+      [userId]: {
+        title: prev[userId]?.title ?? '',
+        deadline: prev[userId]?.deadline ?? '',
+        priority: prev[userId]?.priority ?? 'medium',
+        [field]: value,
+      }
+    }));
+  };
+
+  const assignTaskToUser = async (userId: string) => {
+    if (!canAssignTasks) return;
+    const draft = sheetDrafts[userId] || { title: '', deadline: '', priority: 'medium' };
+    if (!draft.title?.trim() || !draft.deadline) {
+      setError('Please enter a task and deadline for this user before assigning.');
+      return;
+    }
+
+    try {
+      setError('');
+      await tasksAPI.create({
+        title: draft.title.trim(),
+        description: 'Assigned from assignment sheet',
+        assigned_to: userId,
+        deadline: draft.deadline,
+        priority: draft.priority,
+      });
+      setSheetDrafts((prev) => ({
+        ...prev,
+        [userId]: { title: '', deadline: '', priority: 'medium' }
+      }));
+      await fetchTasks();
+    } catch (err) {
+      console.error('Failed to assign sheet task', err);
+      setError('Failed to save the task to this user.');
+    }
+  };
+
   const filteredTasks = useMemo(() => {
     if (!user?.id) return [];
     const visibleTasks = canAssignTasks ? tasks : tasks.filter((task) => String(task.assigned_to || '') === String(user.id) || String(task.created_by || '') === String(user.id));
-
-    return [...visibleTasks]
-      .filter((task) => {
-        const assigneeName = task.assigned_to_name || task.assigned_to || 'Unassigned';
-        const matchesSearch = !searchTerm || [task.title, task.description || '', assigneeName].join(' ').toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesAssignee = assigneeFilter === 'all' || String(task.assigned_to || '') === assigneeFilter;
-        const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-        const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
-
-        if (!matchesSearch || !matchesAssignee || !matchesStatus || !matchesPriority) {
-          return false;
-        }
-
-        if (deadlineFilter === 'all') return true;
-
-        const deadline = task.deadline ? new Date(task.deadline) : null;
-        if (!deadline || Number.isNaN(deadline.getTime())) return false;
-
-        const now = new Date();
-        const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-        if (deadlineFilter === 'overdue') return diffDays < 0;
-        if (deadlineFilter === 'today') return diffDays === 0;
-        if (deadlineFilter === 'upcoming') return diffDays > 0;
-        return true;
-      })
-      .sort((a, b) => new Date(a.deadline || 0).getTime() - new Date(b.deadline || 0).getTime());
-  }, [tasks, user?.id, isAdmin, searchTerm, assigneeFilter, statusFilter, priorityFilter, deadlineFilter]);
-
-  const assignableUsers = useMemo(() => getAssignableUsers(users), [users]);
+    return [...visibleTasks].sort((a, b) => new Date(a.deadline || 0).getTime() - new Date(b.deadline || 0).getTime());
+  }, [tasks, user?.id, canAssignTasks]);
 
   const taskMetrics = useMemo(() => ({
     total: filteredTasks.length,
@@ -160,40 +149,6 @@ export const CreativeWorkPanel: React.FC = () => {
     completed: filteredTasks.filter((task) => task.status === 'submitted' || task.status === 'approved').length,
     overdue: filteredTasks.filter((task) => task.deadline && new Date(task.deadline).getTime() < Date.now() && task.status !== 'approved' && task.status !== 'submitted').length
   }), [filteredTasks]);
-
-  const createTask = async () => {
-    if (!canAssignTasks) return;
-    if (!title.trim() || !assignedTo || !deadline) {
-      setError('Please fill in task title, assignee, and deadline.');
-      return;
-    }
-
-    try {
-      setError('');
-      const response = await tasksAPI.create({
-        title: title.trim(),
-        description: description.trim(),
-        assigned_to: assignedTo,
-        deadline,
-        priority,
-      });
-      if (attachment) {
-        const formData = new FormData();
-        formData.append('attachment', attachment);
-        await tasksAPI.uploadAttachment(response.data?.data?.id, formData);
-      }
-      setTitle('');
-      setDescription('');
-      setAssignedTo('');
-      setDeadline('');
-      setPriority('medium');
-      setAttachment(null);
-      await fetchTasks();
-    } catch (err) {
-      console.error('Failed to create task', err);
-      setError('Failed to assign task.');
-    }
-  };
 
   const updateTaskAction = async (taskId: string, action: 'start' | 'submit' | 'approve' | 'request-revision') => {
     if (action === 'submit') {
@@ -262,47 +217,10 @@ export const CreativeWorkPanel: React.FC = () => {
 
       {canAssignTasks && (
         <section className="card space-y-4">
-          <h2 className="text-xl font-bold">Assign New Task</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              className="input-field"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Task title"
-            />
-            <select className="input-field" value={priority} onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}>
-              <option value="low">Low priority</option>
-              <option value="medium">Medium priority</option>
-              <option value="high">High priority</option>
-            </select>
-            <select className="input-field" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
-              <option value="">Select assignee</option>
-              {assignableUsers.map((item) => (
-                <option key={item.id} value={item.id}>{item.name} {item.role_name || item.role_slug ? `(${item.role_name || item.role_slug})` : ''}</option>
-              ))}
-            </select>
-            <input
-              type="datetime-local"
-              className="input-field"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-            />
-            <input
-              type="file"
-              className="input-field"
-              onChange={(e) => setAttachment(e.target.files?.[0] || null)}
-              accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip"
-            />
-          </div>
-          <textarea
-            className="input-field min-h-[120px]"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the task, deliverables, and content brief"
-          />
-          <div className="flex justify-end">
-            <Button variant="primary" onClick={createTask}>Assign Task</Button>
-          </div>
+          <h2 className="text-xl font-bold">Sheet View Assignment</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Enter the task in the row for each person. The task is assigned automatically to that user when you click Assign.
+          </p>
         </section>
       )}
 
@@ -336,99 +254,94 @@ export const CreativeWorkPanel: React.FC = () => {
           )}
         </div>
 
-        {canAssignTasks && (
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
-            <input
-              className="input-field"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search task or user"
-            />
-            <select className="input-field" value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
-              <option value="all">All users</option>
-              {assignableUsers.map((userItem) => (
-                <option key={userItem.id} value={userItem.id}>{userItem.name}</option>
-              ))}
-            </select>
-            <select className="input-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="all">All status</option>
-              <option value="assigned">Pending</option>
-              <option value="in_progress">In progress</option>
-              <option value="submitted">Completed</option>
-              <option value="revision_requested">Not complete</option>
-              <option value="approved">Approved</option>
-            </select>
-            <select className="input-field" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
-              <option value="all">All priority</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-            <select className="input-field" value={deadlineFilter} onChange={(e) => setDeadlineFilter(e.target.value)}>
-              <option value="all">All deadlines</option>
-              <option value="overdue">Overdue</option>
-              <option value="today">Due today</option>
-              <option value="upcoming">Upcoming</option>
-            </select>
-          </div>
-        )}
-
         {loading ? (
           <div className="flex justify-center py-8"><Spinner size="md" /></div>
-        ) : filteredTasks.length === 0 ? (
-          <p className="text-slate-600 dark:text-slate-400">No tasks match your current filters.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
               <thead>
                 <tr className="text-left text-slate-600 dark:text-slate-300">
-                  <th className="pb-3 pr-4 font-semibold">User</th>
+                  <th className="pb-3 pr-4 font-semibold">Name</th>
                   <th className="pb-3 pr-4 font-semibold">Task</th>
                   <th className="pb-3 pr-4 font-semibold">Deadline</th>
                   <th className="pb-3 pr-4 font-semibold">Priority</th>
-                  <th className="pb-3 pr-4 font-semibold">Status</th>
+                  <th className="pb-3 pr-4 font-semibold">Done</th>
+                  <th className="pb-3 pr-4 font-semibold">Files</th>
                   <th className="pb-3 pr-4 font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {filteredTasks.map((task) => (
-                  <tr key={task.id} className="align-top">
-                    <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">
-                      {task.assigned_to_name || task.assigned_to || 'Unassigned'}
-                    </td>
-                    <td className="py-3 pr-4">
-                      <div className="font-medium text-slate-800 dark:text-slate-100">{task.title}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{task.description || 'No description provided.'}</div>
-                    </td>
-                    <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{formatDate(task.deadline)}</td>
-                    <td className="py-3 pr-4">
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${priorityColor[task.priority]}`}>
-                        {task.priority}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4">
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusColor[task.status]}`}>
-                        {getTaskStatusLabel(task.status)}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4">
-                      <div className="flex flex-wrap gap-2">
-                        {!isAdmin && task.status === 'assigned' && (
-                          <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'start')}>Start</Button>
+                {assignableUsers.map((member) => {
+                  const latestTask = getLatestTaskForUser(member.id);
+                  const rowDraft = sheetDrafts[member.id] || { title: '', deadline: '', priority: 'medium' };
+                  const done = latestTask ? isTaskComplete(latestTask.status) : false;
+
+                  return (
+                    <tr key={member.id} className="align-top">
+                      <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">{member.name}</td>
+                      <td className="py-3 pr-4">
+                        <input
+                          className="input-field min-w-[220px]"
+                          value={rowDraft.title}
+                          onChange={(e) => updateSheetDraft(member.id, 'title', e.target.value)}
+                          placeholder="Write task here"
+                        />
+                      </td>
+                      <td className="py-3 pr-4">
+                        <input
+                          type="date"
+                          className="input-field"
+                          value={rowDraft.deadline}
+                          onChange={(e) => updateSheetDraft(member.id, 'deadline', e.target.value)}
+                        />
+                      </td>
+                      <td className="py-3 pr-4">
+                        <select
+                          className="input-field"
+                          value={rowDraft.priority}
+                          onChange={(e) => updateSheetDraft(member.id, 'priority', e.target.value as 'low' | 'medium' | 'high')}
+                        >
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                        </select>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <input type="checkbox" checked={done} readOnly className="h-4 w-4" />
+                      </td>
+                      <td className="py-3 pr-4">
+                        {latestTask?.attachments && latestTask.attachments.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {latestTask.attachments.map((file) => (
+                              <a key={file.id} href={file.file_path} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
+                                Download {file.original_filename}
+                              </a>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500">No file</span>
                         )}
-                        {!isAdmin && (task.status === 'in_progress' || task.status === 'revision_requested') && (
-                          <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'submit')}>Submit</Button>
-                        )}
-                        {isAdmin && task.status === 'submitted' && (
-                          <>
-                            <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'approve')}>Approve</Button>
-                            <Button size="sm" variant="secondary" onClick={() => updateTaskAction(task.id, 'request-revision')}>Not complete</Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="primary" onClick={() => assignTaskToUser(member.id)}>Assign</Button>
+                          {latestTask && !isAdmin && latestTask.status === 'assigned' && (
+                            <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'start')}>Start</Button>
+                          )}
+                          {latestTask && !isAdmin && (latestTask.status === 'in_progress' || latestTask.status === 'revision_requested') && (
+                            <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'submit')}>Submit</Button>
+                          )}
+                          {latestTask && isAdmin && latestTask.status === 'submitted' && (
+                            <>
+                              <Button size="sm" variant="primary" onClick={() => updateTaskAction(latestTask.id, 'approve')}>Approve</Button>
+                              <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'request-revision')}>Not complete</Button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
