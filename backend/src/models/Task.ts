@@ -93,6 +93,7 @@ export const taskModel = {
     priority?: string;
     assigned_to?: string;
     created_by?: string;
+    visible_to?: string;
     is_overdue?: boolean;
     limit?: number;
     offset?: number;
@@ -108,6 +109,12 @@ export const taskModel = {
     `;
     const params: any[] = [];
     let paramIndex = 1;
+
+    if (filters?.visible_to) {
+      sql += ` AND (t.assigned_to = $${paramIndex} OR t.created_by = $${paramIndex})`;
+      params.push(filters.visible_to);
+      paramIndex++;
+    }
 
     if (filters?.status) {
       sql += ` AND t.status = $${paramIndex}`;

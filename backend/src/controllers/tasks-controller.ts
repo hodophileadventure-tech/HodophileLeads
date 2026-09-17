@@ -28,7 +28,7 @@ export const tasksController = {
 
       const canViewAll = await authorizationService.hasPermission(req.user.id, 'tasks', 'view_all');
       const tasks = await taskModel.findAll({
-        ...(canViewAll ? {} : { assigned_to: req.user.id }),
+        ...(canViewAll ? {} : { visible_to: req.user.id }),
         limit: 100
       });
       const workbook = new ExcelJS.Workbook();
@@ -162,9 +162,9 @@ export const tasksController = {
           limit: 100
         });
       } else {
-        // Show only own tasks
+        // Show tasks assigned to or created by the current user.
         tasks = await taskModel.findAll({
-          assigned_to: req.user.id,
+          visible_to: req.user.id,
           limit: 100
         });
       }
