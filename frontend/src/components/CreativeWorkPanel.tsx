@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
 import { tasksAPI, adminAPI } from '../utils/api-service';
-import { getAssignableUsers, isTaskComplete } from '../utils/task-assignment';
+import { getAssignableUsers, getTaskStatusLabel, isTaskComplete } from '../utils/task-assignment';
 
 interface TaskRecord {
   id: string;
@@ -150,6 +150,14 @@ export const CreativeWorkPanel: React.FC = () => {
     overdue: filteredTasks.filter((task) => task.deadline && new Date(task.deadline).getTime() < Date.now() && task.status !== 'approved' && task.status !== 'submitted').length
   }), [filteredTasks]);
 
+  const taskCountByUser = useMemo(() => {
+    return filteredTasks.reduce<Record<string, number>>((counts, task) => {
+      const userId = String(task.assigned_to || '');
+      counts[userId] = (counts[userId] || 0) + 1;
+      return counts;
+    }, {});
+  }, [filteredTasks]);
+
   const updateTaskAction = async (taskId: string, action: 'start' | 'submit' | 'approve' | 'request-revision') => {
     if (action === 'submit') {
       const task = tasks.find((item) => item.id === taskId);
@@ -278,7 +286,12 @@ export const CreativeWorkPanel: React.FC = () => {
 
                   return (
                     <tr key={member.id} className="align-top">
-                      <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">{member.name}</td>
+                      <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">
+                        <div>{member.name}</div>
+                        <div className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                          {taskCountByUser[String(member.id)] || 0} assigned
+                        </div>
+                      </td>
                       <td className="py-3 pr-4">
                         <input
                           className="input-field min-w-[220px]"
@@ -383,6 +396,63 @@ export const CreativeWorkPanel: React.FC = () => {
           </div>
         )}
       </section>
+
+      {canAssignTasks && (
+        <section className="card">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">All Assigned Tasks</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              One row per task, so you can compare assignees, status, priority, and deadlines at a glance.
+            </p>
+          </div>
+
+          {filteredTasks.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">No tasks have been assigned yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
+                <thead>
+                  <tr className="text-left text-slate-600 dark:text-slate-300">
+                    <th className="pb-3 pr-4 font-semibold">Assigned to</th>
+                    <th className="pb-3 pr-4 font-semibold">Task</th>
+                    <th className="pb-3 pr-4 font-semibold">Status</th>
+                    <th className="pb-3 pr-4 font-semibold">Priority</th>
+                    <th className="pb-3 pr-4 font-semibold">Deadline</th>
+                    <th className="pb-3 pr-4 font-semibold">Assigned by</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                  {filteredTasks.map((task) => (
+                    <tr key={task.id} className="align-top">
+                      <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">
+                        {task.assigned_to_name || 'Unknown user'}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <div className="font-medium text-slate-800 dark:text-slate-100">{task.title}</div>
+                        {task.description && (
+                          <div className="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">{task.description}</div>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                          {getTaskStatusLabel(task.status)}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4 capitalize">{task.priority}</td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
+                        {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
+                        {task.created_by_name || 'Unknown user'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
 
       {submissionTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
