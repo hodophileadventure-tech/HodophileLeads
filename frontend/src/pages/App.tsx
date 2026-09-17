@@ -469,7 +469,7 @@ export const App: React.FC = () => {
 
   const normalizedRole = String(user?.role || '').toLowerCase().replace(/\s+/g, '_');
   const isCreativeRole = ['content_creator', 'video_editor'].includes(normalizedRole);
-  const isSalesAgent = normalizedRole === 'agent';
+  const isTaskAssignee = ['agent', 'software_engineer'].includes(normalizedRole);
   const isAdminLike = normalizedRole === 'admin' || normalizedRole === 'qa' || normalizedRole === 'quality_assurance';
 
   const navItems = isCreativeRole
@@ -483,7 +483,7 @@ export const App: React.FC = () => {
         { label: 'Leads', href: 'leads', icon: '🧾' },
         { label: 'Follow-ups', href: 'followups', icon: '🕒' },
         { label: 'Report Issue', href: 'report-issue', icon: '🐞' },
-        ...(isSalesAgent ? [{ label: 'My Tasks', href: 'tasks', icon: '✅' }] : []),
+        ...(isTaskAssignee ? [{ label: 'My Tasks', href: 'tasks', icon: '✅' }] : []),
         ...(isAdminLike ? [{ label: 'Users & Roles', href: 'admin-users', icon: '👥' }] : []),
         ...((isAdminLike || user?.role === 'agent') ? [{ label: 'Attendance', href: 'attendance', icon: '📅' }] : []),
         ...(isAdminLike ? [{ label: 'Task Management', href: 'tasks', icon: '✅' }] : []),
@@ -1524,7 +1524,7 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'tasks' && (isAdminLike || isSalesAgent) && (
+            {currentPage === 'tasks' && (isAdminLike || isTaskAssignee || normalizedRole === 'manager' || normalizedRole === 'sales_manager') && (
               <CreativeWorkPanel />
             )}
 
