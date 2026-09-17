@@ -4,6 +4,7 @@ import { Button, Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
 import { tasksAPI, adminAPI } from '../utils/api-service';
 import { getAssignableUsers, isTaskComplete } from '../utils/task-assignment';
+import { resolveAssetUrl } from '../utils/resolveAssetUrl';
 
 interface TaskRecord {
   id: string;
@@ -30,6 +31,8 @@ const roleLabel = (role?: string) => {
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
+
+const taskAssetBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
 
 
 export const CreativeWorkPanel: React.FC = () => {
@@ -538,7 +541,7 @@ export const CreativeWorkPanel: React.FC = () => {
                         {latestTask?.attachments && latestTask.attachments.length > 0 ? (
                           <div className="flex flex-col gap-1">
                             {latestTask.attachments.map((file) => (
-                              <a key={file.id} href={file.file_path} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
+                              <a key={file.id} href={resolveAssetUrl(file.file_path, taskAssetBaseUrl)} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
                                 Download {file.original_filename}
                               </a>
                             ))}
@@ -590,7 +593,7 @@ export const CreativeWorkPanel: React.FC = () => {
                         {task.attachments && task.attachments.length > 0 ? (
                           <div className="flex flex-col gap-1">
                             {task.attachments.map((file) => (
-                              <a key={file.id} href={file.file_path} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
+                              <a key={file.id} href={resolveAssetUrl(file.file_path, taskAssetBaseUrl)} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
                                 Download {file.original_filename}
                               </a>
                             ))}

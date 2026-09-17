@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useUIStore, useDataStore } from '../context/store';
-import { leadsAPI, followUpsAPI, quoteRequestsAPI, adminAPI } from '../utils/api-service';
+import { leadsAPI, followUpsAPI, quoteRequestsAPI, adminAPI, notificationsAPI } from '../utils/api-service';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { Dashboard } from '../components/Dashboard.tsx';
@@ -59,7 +59,7 @@ const writeDismissedFollowUps = (items: Record<string, number>) => {
 export const App: React.FC = () => {
   const { user } = useAuth();
   const { darkMode } = useUIStore();
-  const { leads, followUps, setLeads, setFollowUps, updateLead } = useDataStore();
+  const { leads, followUps, notifications, setLeads, setFollowUps, updateLead } = useDataStore();
   const [leadCounts, setLeadCounts] = useState<Partial<Record<'all' | 'active' | 'potential' | 'in_progress' | 'dead' | 'confirmed' | 'cancelled' | 'spam' | 'new', number>>>({});
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [loading, setLoading] = useState(true);
@@ -123,6 +123,7 @@ export const App: React.FC = () => {
     };
   }, [selectedLead?.id]);
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
+  const [activeTaskDeadlineAlarm, setActiveTaskDeadlineAlarm] = useState<any | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
@@ -233,6 +234,17 @@ export const App: React.FC = () => {
     writeDismissedFollowUps(next);
     stopAlarmAudio();
     setActiveAlarm(null);
+  };
+
+  const dismissTaskDeadlineAlarm = async () => {
+    if (!activeTaskDeadlineAlarm) return;
+    stopAlarmAudio();
+    setActiveTaskDeadlineAlarm(null);
+    try {
+      await notificationsAPI.markRead(activeTaskDeadlineAlarm.id);
+    } catch (error) {
+      console.error('Failed to mark task deadline alert as read:', error);
+    }
   };
 
   const completeActiveFollowUp = async (item: FollowUp | null) => {
@@ -366,6 +378,14 @@ export const App: React.FC = () => {
   }, [activeAlarm, dismissedFollowUps, followUps, user]);
 
   useEffect(() => {
+    if (!user || !Array.isArray(notifications)) return;
+    const deadlineNotification = notifications.find((item: any) =>
+      item.type === 'task_deadline_soon' && !item.is_read
+    );
+    setActiveTaskDeadlineAlarm(deadlineNotification || null);
+  }, [notifications, user]);
+
+  useEffect(() => {
     const handleFollowUpsUpdated = () => {
       void refreshLeads();
     };
@@ -404,7 +424,7 @@ export const App: React.FC = () => {
   const { isCRMMuted } = useUIStore();
 
   useEffect(() => {
-    if (!activeAlarm) {
+    if (!activeAlarm && !activeTaskDeadlineAlarm) {
       stopAlarmAudio();
       return;
     }
@@ -418,8 +438,8 @@ export const App: React.FC = () => {
 
     primeAlarmAudio();
 
-    if (!alarmAudioRef.current) {
-      alarmAudioRef.current = new Audio('/followup-alarm.wav');
+    if (!alarmAudioRef.current || activeTaskDeadlineAlarm) {
+      alarmAudioRef.current = new Audio(activeTaskDeadlineAlarm ? '/task-deadline-alarm.mp3' : '/followup-alarm.wav');
       alarmAudioRef.current.loop = true;
       alarmAudioRef.current.volume = 1;
       alarmAudioRef.current.preload = 'auto';
@@ -436,7 +456,7 @@ export const App: React.FC = () => {
     return () => {
       stopAlarmAudio();
     };
-  }, [activeAlarm, isCRMMuted]);
+  }, [activeAlarm, activeTaskDeadlineAlarm, isCRMMuted]);
 
   useEffect(() => {
     const showSuccess = (message: string) => {
@@ -1610,6 +1630,42 @@ export const App: React.FC = () => {
                     {isCRMMuted 
                       ? '🔇 CRM is muted - no alerts will sound until you unmute.'
                       : 'Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.'}
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeTaskDeadlineAlarm && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+                <div className="w-full max-w-lg animate-pulse rounded-2xl border-2 border-amber-500 bg-white p-5 shadow-2xl dark:bg-slate-900">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold uppercase tracking-wide text-amber-600">Task deadline alert</p>
+                      <h3 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">Deadline coming up</h3>
+                      <p className="mt-3 text-slate-700 dark:text-slate-200">
+                        <strong>{activeTaskDeadlineAlarm.payload?.assigned_to_name || 'Team member'}</strong> has a task due soon.
+                      </p>
+                      <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+                        {activeTaskDeadlineAlarm.payload?.task_title || 'Assigned task'}
+                      </p>
+                      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Deadline: {activeTaskDeadlineAlarm.payload?.deadline_label || new Date(activeTaskDeadlineAlarm.payload?.deadline).toLocaleString()}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">30 min alert</span>
+                  </div>
+                  <div className="mt-5 flex justify-end gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => useUIStore.setState({ isCRMMuted: !isCRMMuted })}
+                    >
+                      {isCRMMuted ? '🔇 Unmute' : '🔊 Mute'}
+                    </Button>
+                    <Button variant="primary" onClick={() => { void dismissTaskDeadlineAlarm(); }}>
+                      Acknowledge
+                    </Button>
+                  </div>
+                  <div className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                    {isCRMMuted ? 'CRM is muted.' : 'The alert sound will continue until you acknowledge this deadline.'}
                   </div>
                 </div>
               </div>
