@@ -142,6 +142,46 @@ export const tasksController = {
     }
   },
 
+  async updateTask(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+      const task = await taskModel.findById(req.params.id);
+      if (!task) return res.status(404).json({ error: 'Task not found' });
+
+      const canManage = task.created_by === req.user.id || await authorizationService.hasPermission(req.user.id, 'tasks', 'view_all');
+      if (!canManage) return res.status(403).json({ error: 'Only the task assigner or task manager can edit this task' });
+      if (['submitted', 'approved', 'cancelled'].includes(task.status)) {
+        return res.status(400).json({ error: 'This task cannot be edited after submission' });
+      }
+
+      const { title, description, deadline, priority, assigned_to } = req.body;
+      if (!title || !deadline) return res.status(400).json({ error: 'Title and deadline are required' });
+      const updated = await taskModel.update(req.params.id, { title, description, deadline, priority, assigned_to });
+      res.json({ data: updated, message: 'Task updated' });
+    } catch (error: any) {
+      console.error('Update task error:', error);
+      res.status(400).json({ error: error.message });
+    }
+  },
+
+  async deleteTask(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+      const task = await taskModel.findById(req.params.id);
+      if (!task) return res.status(404).json({ error: 'Task not found' });
+
+      const canManage = task.created_by === req.user.id || await authorizationService.hasPermission(req.user.id, 'tasks', 'view_all');
+      if (!canManage) return res.status(403).json({ error: 'Only the task assigner or task manager can delete this task' });
+      if (task.status !== 'assigned') return res.status(400).json({ error: 'Only pending tasks can be deleted' });
+
+      await taskModel.delete(req.params.id);
+      res.json({ message: 'Task deleted' });
+    } catch (error: any) {
+      console.error('Delete task error:', error);
+      res.status(400).json({ error: error.message });
+    }
+  },
+
   // =========================================================================
   // List Tasks
   // =========================================================================

@@ -87,6 +87,18 @@ tasksRouter.get(
   tasksController.getTask
 );
 
+tasksRouter.put(
+  '/:id',
+  authorizationService.requirePermission('tasks', 'create'),
+  tasksController.updateTask
+);
+
+tasksRouter.delete(
+  '/:id',
+  authorizationService.requirePermission('tasks', 'create'),
+  tasksController.deleteTask
+);
+
 // ============================================================================
 // Task Workflow Actions
 // ============================================================================

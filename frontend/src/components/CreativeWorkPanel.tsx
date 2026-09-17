@@ -46,6 +46,8 @@ export const CreativeWorkPanel: React.FC = () => {
   const [exportAssigneeId, setExportAssigneeId] = useState('');
   const [taskFilter, setTaskFilter] = useState<'all' | 'assigned' | 'in_progress' | 'submitted' | 'revision_requested' | 'approved'>('all');
   const [activityToast, setActivityToast] = useState('');
+  const [editingTask, setEditingTask] = useState<TaskRecord | null>(null);
+  const [editDraft, setEditDraft] = useState({ title: '', deadline: '', priority: 'medium' as 'low' | 'medium' | 'high' });
 
   const isAdmin = user?.role === 'admin';
   const normalizedRole = String(user?.role || '').replace(/_/g, ' ');
@@ -185,6 +187,45 @@ export const CreativeWorkPanel: React.FC = () => {
       setError('Could not export the task sheet.');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const openTaskEditor = (task: TaskRecord) => {
+    setEditingTask(task);
+    setEditDraft({
+      title: task.title,
+      deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '',
+      priority: task.priority
+    });
+  };
+
+  const saveTaskEdit = async () => {
+    if (!editingTask || !editDraft.title.trim() || !editDraft.deadline) return;
+    try {
+      await tasksAPI.update(editingTask.id, {
+        title: editDraft.title.trim(),
+        assigned_to: editingTask.assigned_to || '',
+        deadline: editDraft.deadline,
+        priority: editDraft.priority
+      });
+      setEditingTask(null);
+      notifyActivity('Task details updated');
+      await fetchTasks();
+    } catch (err) {
+      console.error('Failed to update task', err);
+      setError('Could not update this task.');
+    }
+  };
+
+  const deleteTask = async (task: TaskRecord) => {
+    if (!window.confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
+    try {
+      await tasksAPI.delete(task.id);
+      notifyActivity('Task deleted');
+      await fetchTasks();
+    } catch (err) {
+      console.error('Failed to delete task', err);
+      setError('Only pending tasks can be deleted.');
     }
   };
 
@@ -587,6 +628,7 @@ export const CreativeWorkPanel: React.FC = () => {
                     <th className="pb-3 pr-4 font-semibold">Deadline</th>
                     <th className="pb-3 pr-4 font-semibold">Assigned at</th>
                     <th className="pb-3 pr-4 font-semibold">Assigned by</th>
+                    <th className="pb-3 pr-4 font-semibold">Manage</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -616,6 +658,14 @@ export const CreativeWorkPanel: React.FC = () => {
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
                         {task.created_by_name || 'Unknown user'}
                       </td>
+                      <td className="py-3 pr-4">
+                        {task.status === 'assigned' ? (
+                          <div className="flex flex-wrap gap-2">
+                            <Button size="sm" variant="secondary" onClick={() => openTaskEditor(task)}>Edit</Button>
+                            <Button size="sm" variant="danger" onClick={() => deleteTask(task)}>Delete</Button>
+                          </div>
+                        ) : <span className="text-xs text-slate-400">Locked after start</span>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -623,6 +673,51 @@ export const CreativeWorkPanel: React.FC = () => {
             </div>
           )}
         </section>
+      )}
+
+      {editingTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="w-full max-w-lg space-y-5 rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Task management</p>
+              <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">Edit assigned task</h2>
+              <p className="mt-1 text-sm text-slate-500">Update the pending task before work begins.</p>
+            </div>
+            <input
+              className="input-field"
+              value={editDraft.title}
+              onChange={(event) => setEditDraft((draft) => ({ ...draft, title: event.target.value }))}
+              placeholder="Task title"
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="text-sm font-medium text-slate-600">
+                Deadline
+                <input
+                  type="datetime-local"
+                  className="input-field mt-1"
+                  value={editDraft.deadline}
+                  onChange={(event) => setEditDraft((draft) => ({ ...draft, deadline: event.target.value }))}
+                />
+              </label>
+              <label className="text-sm font-medium text-slate-600">
+                Priority
+                <select
+                  className="input-field mt-1"
+                  value={editDraft.priority}
+                  onChange={(event) => setEditDraft((draft) => ({ ...draft, priority: event.target.value as 'low' | 'medium' | 'high' }))}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setEditingTask(null)}>Cancel</Button>
+              <Button variant="primary" onClick={saveTaskEdit}>Save changes</Button>
+            </div>
+          </div>
+        </div>
       )}
 
       {submissionTask && (

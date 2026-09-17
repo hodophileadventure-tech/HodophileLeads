@@ -101,6 +101,8 @@ export const dashboardAPI = {
 export const tasksAPI = {
   list: () => apiClient.get('/tasks'),
   create: (data: { title: string; description?: string; assigned_to: string; start_date?: string; deadline: string; priority?: 'low' | 'medium' | 'high' }) => apiClient.post('/tasks', data),
+  update: (taskId: string, data: { title: string; description?: string; assigned_to: string; deadline: string; priority: 'low' | 'medium' | 'high' }) => apiClient.put(`/tasks/${taskId}`, data),
+  delete: (taskId: string) => apiClient.delete(`/tasks/${taskId}`),
   exportSpreadsheet: (assignedTo?: string) => apiClient.get('/tasks/export', {
     params: assignedTo ? { assigned_to: assignedTo } : undefined,
     responseType: 'blob'
