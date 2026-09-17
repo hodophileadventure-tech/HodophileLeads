@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
 import { tasksAPI, adminAPI } from '../utils/api-service';
+import { getAssignableUsers, getTaskStatusLabel } from '../utils/task-assignment';
 
 interface TaskRecord {
   id: string;
@@ -66,8 +67,15 @@ export const CreativeWorkPanel: React.FC = () => {
   const [submissionTask, setSubmissionTask] = useState<TaskRecord | null>(null);
   const [submissionNotes, setSubmissionNotes] = useState('');
   const [submissionAttachment, setSubmissionAttachment] = useState<File | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [assigneeFilter, setAssigneeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [deadlineFilter, setDeadlineFilter] = useState('all');
 
   const isAdmin = user?.role === 'admin';
+  const normalizedRole = String(user?.role || '').replace(/_/g, ' ');
+  const canAssignTasks = isAdmin || normalizedRole === 'content creator';
 
   const fetchTasks = async () => {
     try {
@@ -97,7 +105,7 @@ export const CreativeWorkPanel: React.FC = () => {
   };
 
   const fetchUsers = async () => {
-    if (!isAdmin) return;
+    if (!canAssignTasks) return;
     try {
       const response = await adminAPI.getUsers();
       setUsers(response.data?.users || []);
@@ -113,12 +121,48 @@ export const CreativeWorkPanel: React.FC = () => {
 
   const filteredTasks = useMemo(() => {
     if (!user?.id) return [];
-    if (isAdmin) return tasks;
-    return tasks.filter((task) => String(task.assigned_to || '') === String(user.id) || String(task.created_by || '') === String(user.id));
-  }, [tasks, user?.id, isAdmin]);
+    const visibleTasks = canAssignTasks ? tasks : tasks.filter((task) => String(task.assigned_to || '') === String(user.id) || String(task.created_by || '') === String(user.id));
+
+    return [...visibleTasks]
+      .filter((task) => {
+        const assigneeName = task.assigned_to_name || task.assigned_to || 'Unassigned';
+        const matchesSearch = !searchTerm || [task.title, task.description || '', assigneeName].join(' ').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesAssignee = assigneeFilter === 'all' || String(task.assigned_to || '') === assigneeFilter;
+        const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+        const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+
+        if (!matchesSearch || !matchesAssignee || !matchesStatus || !matchesPriority) {
+          return false;
+        }
+
+        if (deadlineFilter === 'all') return true;
+
+        const deadline = task.deadline ? new Date(task.deadline) : null;
+        if (!deadline || Number.isNaN(deadline.getTime())) return false;
+
+        const now = new Date();
+        const diffDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (deadlineFilter === 'overdue') return diffDays < 0;
+        if (deadlineFilter === 'today') return diffDays === 0;
+        if (deadlineFilter === 'upcoming') return diffDays > 0;
+        return true;
+      })
+      .sort((a, b) => new Date(a.deadline || 0).getTime() - new Date(b.deadline || 0).getTime());
+  }, [tasks, user?.id, isAdmin, searchTerm, assigneeFilter, statusFilter, priorityFilter, deadlineFilter]);
+
+  const assignableUsers = useMemo(() => getAssignableUsers(users), [users]);
+
+  const taskMetrics = useMemo(() => ({
+    total: filteredTasks.length,
+    pending: filteredTasks.filter((task) => task.status === 'assigned').length,
+    inProgress: filteredTasks.filter((task) => task.status === 'in_progress').length,
+    completed: filteredTasks.filter((task) => task.status === 'submitted' || task.status === 'approved').length,
+    overdue: filteredTasks.filter((task) => task.deadline && new Date(task.deadline).getTime() < Date.now() && task.status !== 'approved' && task.status !== 'submitted').length
+  }), [filteredTasks]);
 
   const createTask = async () => {
-    if (!isAdmin) return;
+    if (!canAssignTasks) return;
     if (!title.trim() || !assignedTo || !deadline) {
       setError('Please fill in task title, assignee, and deadline.');
       return;
@@ -208,15 +252,15 @@ export const CreativeWorkPanel: React.FC = () => {
               {isAdmin ? 'Task Assignment Center' : `${roleLabel(user?.role)} Workspace`}
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              {isAdmin
-                ? 'Assign work to creators and editors, then review submissions before approval.'
+              {canAssignTasks
+                ? 'Assign work to teammates, then review submissions before approval.'
                 : 'Review your assigned tasks, work on them, and submit them for approval.'}
             </p>
           </div>
         </div>
       </section>
 
-      {isAdmin && (
+      {canAssignTasks && (
         <section className="card space-y-4">
           <h2 className="text-xl font-bold">Assign New Task</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -233,11 +277,9 @@ export const CreativeWorkPanel: React.FC = () => {
             </select>
             <select className="input-field" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
               <option value="">Select assignee</option>
-              {users
-                .filter((item) => ['content_creator', 'video_editor', 'content creator', 'video editor'].includes(String(item.role_slug || item.role_name || '')))
-                .map((item) => (
-                  <option key={item.id} value={item.id}>{item.name} ({item.role_name || item.role_slug || 'Role'})</option>
-                ))}
+              {assignableUsers.map((item) => (
+                <option key={item.id} value={item.id}>{item.name} {item.role_name || item.role_slug ? `(${item.role_name || item.role_slug})` : ''}</option>
+              ))}
             </select>
             <input
               type="datetime-local"
@@ -271,73 +313,124 @@ export const CreativeWorkPanel: React.FC = () => {
       )}
 
       <section className="card">
-        <h2 className="text-xl font-bold mb-4">{isAdmin ? 'All Assigned Work' : 'My Tasks'}</h2>
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-xl font-bold">{canAssignTasks ? 'Assignment Sheet' : 'My Task Sheet'}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track every user, deadline, task, and approval in one place.</p>
+          </div>
+          {canAssignTasks && (
+            <div className="flex flex-wrap gap-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                Total: <span className="font-semibold">{taskMetrics.total}</span>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+                Pending: <span className="font-semibold">{taskMetrics.pending}</span>
+              </div>
+              <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-700 dark:bg-sky-900/30 dark:text-sky-200">
+                In progress: <span className="font-semibold">{taskMetrics.inProgress}</span>
+              </div>
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                Completed: <span className="font-semibold">{taskMetrics.completed}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {canAssignTasks && (
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+            <input
+              className="input-field"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search task or user"
+            />
+            <select className="input-field" value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
+              <option value="all">All users</option>
+              {assignableUsers.map((userItem) => (
+                <option key={userItem.id} value={userItem.id}>{userItem.name}</option>
+              ))}
+            </select>
+            <select className="input-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All status</option>
+              <option value="assigned">Pending</option>
+              <option value="in_progress">In progress</option>
+              <option value="submitted">Completed</option>
+              <option value="revision_requested">Not complete</option>
+              <option value="approved">Approved</option>
+            </select>
+            <select className="input-field" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+              <option value="all">All priority</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            <select className="input-field" value={deadlineFilter} onChange={(e) => setDeadlineFilter(e.target.value)}>
+              <option value="all">All deadlines</option>
+              <option value="overdue">Overdue</option>
+              <option value="today">Due today</option>
+              <option value="upcoming">Upcoming</option>
+            </select>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-8"><Spinner size="md" /></div>
         ) : filteredTasks.length === 0 ? (
-          <p className="text-slate-600 dark:text-slate-400">No tasks assigned yet.</p>
+          <p className="text-slate-600 dark:text-slate-400">No tasks match your current filters.</p>
         ) : (
-          <div className="space-y-4">
-            {filteredTasks.map((task) => (
-              <div key={task.id} className="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-semibold">{task.title}</h3>
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusColor[task.status]}`}>
-                        {task.status.replace('_', ' ')}
-                      </span>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
+              <thead>
+                <tr className="text-left text-slate-600 dark:text-slate-300">
+                  <th className="pb-3 pr-4 font-semibold">User</th>
+                  <th className="pb-3 pr-4 font-semibold">Task</th>
+                  <th className="pb-3 pr-4 font-semibold">Deadline</th>
+                  <th className="pb-3 pr-4 font-semibold">Priority</th>
+                  <th className="pb-3 pr-4 font-semibold">Status</th>
+                  <th className="pb-3 pr-4 font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                {filteredTasks.map((task) => (
+                  <tr key={task.id} className="align-top">
+                    <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">
+                      {task.assigned_to_name || task.assigned_to || 'Unassigned'}
+                    </td>
+                    <td className="py-3 pr-4">
+                      <div className="font-medium text-slate-800 dark:text-slate-100">{task.title}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{task.description || 'No description provided.'}</div>
+                    </td>
+                    <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{formatDate(task.deadline)}</td>
+                    <td className="py-3 pr-4">
                       <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${priorityColor[task.priority]}`}>
                         {task.priority}
                       </span>
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">{task.description || 'No description provided.'}</p>
-                    {task.attachments?.map((file) => (
-                      <a
-                        key={file.id}
-                        href={file.file_path}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm text-blue-600 underline"
-                      >
-                        Attachment: {file.original_filename}
-                      </a>
-                    ))}
-                    {task.latestSubmission && (
-                      <div className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800">
-                        <p className="font-semibold">Submission notes</p>
-                        <p className="mt-1 whitespace-pre-wrap text-slate-600 dark:text-slate-300">
-                          {task.latestSubmission.submission_notes || 'No submission notes provided.'}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Sent for approval: {formatDate(task.latestSubmission.submitted_at)}
-                        </p>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusColor[task.status]}`}>
+                        {getTaskStatusLabel(task.status)}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <div className="flex flex-wrap gap-2">
+                        {!isAdmin && task.status === 'assigned' && (
+                          <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'start')}>Start</Button>
+                        )}
+                        {!isAdmin && (task.status === 'in_progress' || task.status === 'revision_requested') && (
+                          <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'submit')}>Submit</Button>
+                        )}
+                        {isAdmin && task.status === 'submitted' && (
+                          <>
+                            <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'approve')}>Approve</Button>
+                            <Button size="sm" variant="secondary" onClick={() => updateTaskAction(task.id, 'request-revision')}>Not complete</Button>
+                          </>
+                        )}
                       </div>
-                    )}
-                    <div className="flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
-                      <span>Assigned by: {task.created_by_name || 'Admin'}</span>
-                      <span>Deadline: {formatDate(task.deadline)}</span>
-                      <span>Created: {formatDate(task.created_at)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {!isAdmin && task.status === 'assigned' && (
-                      <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'start')}>Start</Button>
-                    )}
-                    {!isAdmin && (task.status === 'in_progress' || task.status === 'revision_requested') && (
-                      <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'submit')}>Send for Approval</Button>
-                    )}
-                    {isAdmin && task.status === 'submitted' && (
-                      <>
-                        <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'approve')}>Approve</Button>
-                        <Button size="sm" variant="secondary" onClick={() => updateTaskAction(task.id, 'request-revision')}>Request Changes</Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </section>
