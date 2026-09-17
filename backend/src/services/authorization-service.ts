@@ -139,9 +139,9 @@ export class AuthorizationService {
    */
   async canAccessTask(userId: string, taskId: string): Promise<boolean> {
     try {
-      // Employee can see own tasks
+      // Assignees and task creators can see the task and its attachments.
       const ownResult = await query(
-        'SELECT EXISTS(SELECT 1 FROM tasks WHERE id = $1 AND assigned_to = $2) as is_own',
+        'SELECT EXISTS(SELECT 1 FROM tasks WHERE id = $1 AND (assigned_to = $2 OR created_by = $2)) as is_own',
         [taskId, userId]
       );
 
