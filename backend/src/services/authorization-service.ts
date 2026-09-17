@@ -163,14 +163,12 @@ export class AuthorizationService {
     const hasPermission = await this.hasPermission(userId, 'tasks', 'approve');
     if (!hasPermission) return false;
 
-    // Additional: Cannot approve own task
     const taskResult = await query(
-      'SELECT created_by FROM tasks WHERE id = $1',
+      'SELECT id FROM tasks WHERE id = $1',
       [taskId]
     );
 
-    if (taskResult.rows.length === 0) return false;
-    return taskResult.rows[0].created_by !== userId;
+    return taskResult.rows.length > 0;
   }
 
   /**
