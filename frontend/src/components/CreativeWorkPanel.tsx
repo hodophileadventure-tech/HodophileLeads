@@ -115,6 +115,12 @@ export const CreativeWorkPanel: React.FC = () => {
       .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0];
   };
 
+  const getTasksForUser = (userId: string) => tasks.filter((task) => String(task.assigned_to || '') === String(userId));
+
+  const getSubmittedTaskForUser = (userId: string) => getTasksForUser(userId)
+    .filter((task) => task.status === 'submitted')
+    .sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime())[0];
+
   const updateSheetDraft = (userId: string, field: 'title' | 'deadline' | 'priority', value: string) => {
     setSheetDrafts((prev) => ({
       ...prev,
@@ -485,6 +491,9 @@ export const CreativeWorkPanel: React.FC = () => {
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {canAssignTasks ? assignableUsers.map((member) => {
                   const latestTask = getLatestTaskForUser(member.id);
+                  const userTasks = getTasksForUser(member.id);
+                  const submittedTask = getSubmittedTaskForUser(member.id);
+                  const userFiles = userTasks.flatMap((task) => (task.attachments || []).map((file) => ({ ...file, taskTitle: task.title })));
                   const rowDraft = sheetDrafts[member.id] || { title: '', deadline: '', priority: 'medium', referenceFiles: [] };
                   const done = latestTask ? isTaskComplete(latestTask.status) : false;
 
@@ -503,18 +512,19 @@ export const CreativeWorkPanel: React.FC = () => {
                           onChange={(e) => updateSheetDraft(member.id, 'title', e.target.value)}
                           placeholder="Write task here"
                         />
-                        {latestTask?.attachments && latestTask.attachments.length > 0 && (
+                        {userFiles.length > 0 && (
                           <div className="mt-2 max-w-[220px] rounded-md bg-emerald-50 px-2 py-1.5 text-xs dark:bg-emerald-950/30">
                             <div className="font-semibold text-emerald-700 dark:text-emerald-300">Submitted files</div>
-                            {latestTask.attachments.map((file) => (
+                            {userFiles.map((file) => (
                               <a
                                 key={`task-${file.id}`}
                                 href={resolveAssetUrl(file.file_path, taskAssetBaseUrl)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="block truncate text-emerald-700 underline dark:text-emerald-300"
+                                title={file.taskTitle}
                               >
-                                {file.original_filename}
+                                {file.original_filename} <span className="no-underline opacity-70">({file.taskTitle})</span>
                               </a>
                             ))}
                           </div>
@@ -576,9 +586,9 @@ export const CreativeWorkPanel: React.FC = () => {
                         )}
                       </td>
                       <td className="py-3 pr-4">
-                        {latestTask?.attachments && latestTask.attachments.length > 0 ? (
+                        {userFiles.length > 0 ? (
                           <div className="flex flex-col gap-1">
-                            {latestTask.attachments.map((file) => (
+                            {userFiles.map((file) => (
                               <a key={file.id} href={resolveAssetUrl(file.file_path, taskAssetBaseUrl)} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
                                 Download {file.original_filename}
                               </a>
@@ -603,10 +613,10 @@ export const CreativeWorkPanel: React.FC = () => {
                           {latestTask && !isAdmin && isCurrentUserAssignee(latestTask) && (latestTask.status === 'in_progress' || latestTask.status === 'revision_requested') && (
                             <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'submit')}>Submit</Button>
                           )}
-                          {latestTask && canAssignTasks && latestTask.status === 'submitted' && (
+                          {submittedTask && canAssignTasks && (
                             <>
-                              <Button size="sm" variant="primary" onClick={() => updateTaskAction(latestTask.id, 'approve')}>Approve</Button>
-                              <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'request-revision')}>Not complete</Button>
+                              <Button size="sm" variant="primary" onClick={() => updateTaskAction(submittedTask.id, 'approve')}>Approve</Button>
+                              <Button size="sm" variant="secondary" onClick={() => updateTaskAction(submittedTask.id, 'request-revision')}>Not complete</Button>
                             </>
                           )}
                         </div>
