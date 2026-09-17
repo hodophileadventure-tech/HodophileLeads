@@ -38,3 +38,5 @@ export const getTaskStatusLabel = (status?: string) => {
       return 'Pending';
   }
 };
+
+export const isTaskComplete = (status?: string) => ['submitted', 'approved'].includes(String(status || ''));
