@@ -89,7 +89,8 @@ adminRouter.post('/roles/:roleId/permissions', roleMiddleware(['admin', 'qa']), 
 adminRouter.post('/users', roleMiddleware(['admin', 'qa']), adminRoleUserController.createUser);
 
 // List all users
-adminRouter.get('/users', roleMiddleware(['admin', 'qa']), adminRoleUserController.listUsers);
+// Content creators need access to this endpoint so they can pick assignees in the task sheet.
+adminRouter.get('/users', roleMiddleware(['admin', 'qa', 'content_creator']), adminRoleUserController.listUsers);
 
 // Get specific user
 adminRouter.get('/users/:id', roleMiddleware(['admin', 'qa']), adminRoleUserController.getUser);
