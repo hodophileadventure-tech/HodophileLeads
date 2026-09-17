@@ -58,6 +58,12 @@ tasksRouter.get(
 );
 
 tasksRouter.get(
+  '/export',
+  authorizationService.requirePermission('tasks', 'view'),
+  tasksController.exportTasksSpreadsheet
+);
+
+tasksRouter.get(
   '/:id/attachments',
   authorizationService.requirePermission('tasks', 'view'),
   tasksController.listAttachments

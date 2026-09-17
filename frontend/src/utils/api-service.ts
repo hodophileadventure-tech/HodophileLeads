@@ -101,6 +101,7 @@ export const dashboardAPI = {
 export const tasksAPI = {
   list: () => apiClient.get('/tasks'),
   create: (data: { title: string; description?: string; assigned_to: string; start_date?: string; deadline: string; priority?: 'low' | 'medium' | 'high' }) => apiClient.post('/tasks', data),
+  exportSpreadsheet: () => apiClient.get('/tasks/export', { responseType: 'blob' }),
   listAttachments: (taskId: string) => apiClient.get(`/tasks/${taskId}/attachments`),
   listSubmissions: (taskId: string) => apiClient.get(`/tasks/${taskId}/submissions`),
   uploadAttachment: (taskId: string, formData: FormData) => apiClient.post(`/tasks/${taskId}/attachments`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),

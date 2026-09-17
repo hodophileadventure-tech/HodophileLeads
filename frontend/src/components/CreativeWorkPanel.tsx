@@ -40,7 +40,8 @@ export const CreativeWorkPanel: React.FC = () => {
   const [submissionTask, setSubmissionTask] = useState<TaskRecord | null>(null);
   const [submissionNotes, setSubmissionNotes] = useState('');
   const [submissionAttachment, setSubmissionAttachment] = useState<File | null>(null);
-  const [sheetDrafts, setSheetDrafts] = useState<Record<string, { title: string; deadline: string; priority: 'low' | 'medium' | 'high' }>>({});
+  const [sheetDrafts, setSheetDrafts] = useState<Record<string, { title: string; deadline: string; priority: 'low' | 'medium' | 'high'; referenceFile?: File }>>({});
+  const [exporting, setExporting] = useState(false);
 
   const isAdmin = user?.role === 'admin';
   const normalizedRole = String(user?.role || '').replace(/_/g, ' ');
@@ -108,9 +109,21 @@ export const CreativeWorkPanel: React.FC = () => {
     }));
   };
 
+  const updateSheetReferenceFile = (userId: string, file?: File) => {
+    setSheetDrafts((prev) => ({
+      ...prev,
+      [userId]: {
+        title: prev[userId]?.title ?? '',
+        deadline: prev[userId]?.deadline ?? '',
+        priority: prev[userId]?.priority ?? 'medium',
+        referenceFile: file,
+      }
+    }));
+  };
+
   const assignTaskToUser = async (userId: string) => {
     if (!canAssignTasks) return;
-    const draft = sheetDrafts[userId] || { title: '', deadline: '', priority: 'medium' };
+    const draft = sheetDrafts[userId] || { title: '', deadline: '', priority: 'medium' as const };
     if (!draft.title?.trim() || !draft.deadline) {
       setError('Please enter a task and deadline for this user before assigning.');
       return;
@@ -118,13 +131,18 @@ export const CreativeWorkPanel: React.FC = () => {
 
     try {
       setError('');
-      await tasksAPI.create({
+      const response = await tasksAPI.create({
         title: draft.title.trim(),
         description: 'Assigned from assignment sheet',
         assigned_to: userId,
         deadline: draft.deadline,
         priority: draft.priority,
       });
+      if (draft.referenceFile) {
+        const formData = new FormData();
+        formData.append('attachment', draft.referenceFile);
+        await tasksAPI.uploadAttachment(response.data?.data?.id, formData);
+      }
       setSheetDrafts((prev) => ({
         ...prev,
         [userId]: { title: '', deadline: '', priority: 'medium' }
@@ -133,6 +151,26 @@ export const CreativeWorkPanel: React.FC = () => {
     } catch (err) {
       console.error('Failed to assign sheet task', err);
       setError('Failed to save the task to this user.');
+    }
+  };
+
+  const exportTaskSheet = async () => {
+    try {
+      setExporting(true);
+      const response = await tasksAPI.exportSpreadsheet();
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tripnexus-tasks-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export task sheet', err);
+      setError('Could not export the task sheet.');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -245,6 +283,11 @@ export const CreativeWorkPanel: React.FC = () => {
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track every user, deadline, task, and approval in one place.</p>
           </div>
           {canAssignTasks && (
+            <Button size="sm" variant="secondary" onClick={exportTaskSheet} loading={exporting}>
+              Export Excel
+            </Button>
+          )}
+          {canAssignTasks && (
             <div className="flex flex-wrap gap-2">
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                 Total: <span className="font-semibold">{taskMetrics.total}</span>
@@ -272,8 +315,10 @@ export const CreativeWorkPanel: React.FC = () => {
                   <th className="pb-3 pr-4 font-semibold">Name</th>
                   <th className="pb-3 pr-4 font-semibold">Task</th>
                   <th className="pb-3 pr-4 font-semibold">Deadline</th>
+                  <th className="pb-3 pr-4 font-semibold">Assigned at</th>
                   <th className="pb-3 pr-4 font-semibold">Priority</th>
                   <th className="pb-3 pr-4 font-semibold">Done</th>
+                  <th className="pb-3 pr-4 font-semibold">Reference file</th>
                   <th className="pb-3 pr-4 font-semibold">Files</th>
                   <th className="pb-3 pr-4 font-semibold">Action</th>
                 </tr>
@@ -302,11 +347,14 @@ export const CreativeWorkPanel: React.FC = () => {
                       </td>
                       <td className="py-3 pr-4">
                         <input
-                          type="date"
+                          type="datetime-local"
                           className="input-field"
                           value={rowDraft.deadline}
                           onChange={(e) => updateSheetDraft(member.id, 'deadline', e.target.value)}
                         />
+                      </td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
+                        {latestTask?.created_at ? new Date(latestTask.created_at).toLocaleString() : 'Not assigned'}
                       </td>
                       <td className="py-3 pr-4">
                         <select
@@ -321,6 +369,17 @@ export const CreativeWorkPanel: React.FC = () => {
                       </td>
                       <td className="py-3 pr-4">
                         <input type="checkbox" checked={done} readOnly className="h-4 w-4" />
+                      </td>
+                      <td className="py-3 pr-4">
+                        <input
+                          type="file"
+                          className="input-field min-w-[220px] text-xs"
+                          onChange={(e) => updateSheetReferenceFile(member.id, e.target.files?.[0])}
+                          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.txt"
+                        />
+                        {rowDraft.referenceFile && (
+                          <div className="mt-1 text-xs text-slate-500">{rowDraft.referenceFile.name}</div>
+                        )}
                       </td>
                       <td className="py-3 pr-4">
                         {latestTask?.attachments && latestTask.attachments.length > 0 ? (
@@ -364,7 +423,8 @@ export const CreativeWorkPanel: React.FC = () => {
                         <div className="font-medium text-slate-800 dark:text-slate-100">{task.title}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400">{task.description || 'No description provided.'}</div>
                       </td>
-                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}</td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline'}</td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.created_at ? new Date(task.created_at).toLocaleString() : 'Unknown'}</td>
                       <td className="py-3 pr-4 capitalize">{task.priority}</td>
                       <td className="py-3 pr-4"><input type="checkbox" checked={done} readOnly className="h-4 w-4" /></td>
                       <td className="py-3 pr-4">
@@ -418,6 +478,7 @@ export const CreativeWorkPanel: React.FC = () => {
                     <th className="pb-3 pr-4 font-semibold">Status</th>
                     <th className="pb-3 pr-4 font-semibold">Priority</th>
                     <th className="pb-3 pr-4 font-semibold">Deadline</th>
+                    <th className="pb-3 pr-4 font-semibold">Assigned at</th>
                     <th className="pb-3 pr-4 font-semibold">Assigned by</th>
                   </tr>
                 </thead>
@@ -441,6 +502,9 @@ export const CreativeWorkPanel: React.FC = () => {
                       <td className="py-3 pr-4 capitalize">{task.priority}</td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
                         {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
+                        {task.created_at ? new Date(task.created_at).toLocaleString() : 'Unknown'}
                       </td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
                         {task.created_by_name || 'Unknown user'}

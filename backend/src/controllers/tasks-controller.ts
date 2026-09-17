@@ -9,6 +9,7 @@ import { taskService } from '../services/task-service';
 import { taskModel } from '../models/Task';
 import { taskSubmissionModel } from '../models/TaskSubmission';
 import { taskCommentModel } from '../models/TaskComment';
+import ExcelJS from 'exceljs';
 import type { Request } from 'express';
 
 interface AuthenticatedRequest extends Request {
@@ -21,6 +22,55 @@ interface AuthenticatedRequest extends Request {
 }
 
 export const tasksController = {
+  async exportTasksSpreadsheet(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
+      const canViewAll = await authorizationService.hasPermission(req.user.id, 'tasks', 'view_all');
+      const tasks = await taskModel.findAll({
+        ...(canViewAll ? {} : { assigned_to: req.user.id }),
+        limit: 100
+      });
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'TRIPNEXUS';
+      workbook.created = new Date();
+      const sheet = workbook.addWorksheet('Task Sheet');
+      const headers = ['Assigned To', 'Task', 'Description', 'Status', 'Priority', 'Deadline', 'Assigned At', 'Assigned By', 'Reference Files'];
+
+      sheet.columns = headers.map((header) => ({
+        header,
+        key: header,
+        width: header === 'Description' || header === 'Reference Files' ? 32 : Math.max(16, header.length + 4)
+      }));
+      sheet.getRow(1).font = { bold: true };
+      sheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+      for (const task of tasks) {
+        const attachments = await taskModel.findAttachments(task.id);
+        sheet.addRow({
+          'Assigned To': task.assigned_to_name || '',
+          Task: task.title,
+          Description: task.description || '',
+          Status: task.status,
+          Priority: task.priority,
+          Deadline: task.deadline,
+          'Assigned At': task.created_at,
+          'Assigned By': task.created_by_name || '',
+          'Reference Files': attachments.map((file) => file.original_filename).join(', ')
+        });
+      }
+
+      sheet.autoFilter = { from: 'A1', to: 'I1' };
+      const buffer = await workbook.xlsx.writeBuffer();
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="tripnexus-tasks-${new Date().toISOString().slice(0, 10)}.xlsx"`);
+      res.send(Buffer.from(buffer));
+    } catch (error: any) {
+      console.error('Export tasks error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
   async listAttachments(req: AuthenticatedRequest, res: Response) {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const canAccess = await authorizationService.canAccessTask(req.user.id, req.params.id);
