@@ -277,6 +277,8 @@ export const CreativeWorkPanel: React.FC = () => {
     high: 'text-rose-600'
   })[priority];
 
+  const isCurrentUserAssignee = (task: TaskRecord) => String(task.assigned_to || '') === String(user?.id || '');
+
   const updateTaskAction = async (taskId: string, action: 'start' | 'submit' | 'approve' | 'request-revision') => {
     if (action === 'submit') {
       const task = tasks.find((item) => item.id === taskId);
@@ -559,10 +561,10 @@ export const CreativeWorkPanel: React.FC = () => {
                               <Button size="sm" variant="danger" onClick={() => deleteTask(latestTask)}>Delete</Button>
                             </>
                           )}
-                          {latestTask && !isAdmin && latestTask.status === 'assigned' && (
+                          {latestTask && !isAdmin && isCurrentUserAssignee(latestTask) && latestTask.status === 'assigned' && (
                             <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'start')}>Start</Button>
                           )}
-                          {latestTask && !isAdmin && (latestTask.status === 'in_progress' || latestTask.status === 'revision_requested') && (
+                          {latestTask && !isAdmin && isCurrentUserAssignee(latestTask) && (latestTask.status === 'in_progress' || latestTask.status === 'revision_requested') && (
                             <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'submit')}>Submit</Button>
                           )}
                           {latestTask && canAssignTasks && latestTask.status === 'submitted' && (
@@ -602,10 +604,10 @@ export const CreativeWorkPanel: React.FC = () => {
                       </td>
                       <td className="py-3 pr-4">
                         <div className="flex flex-wrap gap-2">
-                          {task.status === 'assigned' && (
+                          {isCurrentUserAssignee(task) && task.status === 'assigned' && (
                             <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'start')}>Start</Button>
                           )}
-                          {(task.status === 'in_progress' || task.status === 'revision_requested') && (
+                          {isCurrentUserAssignee(task) && (task.status === 'in_progress' || task.status === 'revision_requested') && (
                             <Button size="sm" variant="secondary" onClick={() => updateTaskAction(task.id, 'submit')}>Submit</Button>
                           )}
                         </div>
