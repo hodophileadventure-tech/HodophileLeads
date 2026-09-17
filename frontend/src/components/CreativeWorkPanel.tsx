@@ -271,7 +271,7 @@ export const CreativeWorkPanel: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {assignableUsers.map((member) => {
+                {canAssignTasks ? assignableUsers.map((member) => {
                   const latestTask = getLatestTaskForUser(member.id);
                   const rowDraft = sheetDrafts[member.id] || { title: '', deadline: '', priority: 'medium' };
                   const done = latestTask ? isTaskComplete(latestTask.status) : false;
@@ -336,6 +336,42 @@ export const CreativeWorkPanel: React.FC = () => {
                               <Button size="sm" variant="primary" onClick={() => updateTaskAction(latestTask.id, 'approve')}>Approve</Button>
                               <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'request-revision')}>Not complete</Button>
                             </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }) : filteredTasks.map((task) => {
+                  const done = isTaskComplete(task.status);
+
+                  return (
+                    <tr key={task.id} className="align-top">
+                      <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">{task.assigned_to_name || 'You'}</td>
+                      <td className="py-3 pr-4">
+                        <div className="font-medium text-slate-800 dark:text-slate-100">{task.title}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{task.description || 'No description provided.'}</div>
+                      </td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}</td>
+                      <td className="py-3 pr-4 capitalize">{task.priority}</td>
+                      <td className="py-3 pr-4"><input type="checkbox" checked={done} readOnly className="h-4 w-4" /></td>
+                      <td className="py-3 pr-4">
+                        {task.attachments && task.attachments.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {task.attachments.map((file) => (
+                              <a key={file.id} href={file.file_path} target="_blank" rel="noreferrer" className="text-blue-600 underline text-xs">
+                                Download {file.original_filename}
+                              </a>
+                            ))}
+                          </div>
+                        ) : <span className="text-xs text-slate-500">No file</span>}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <div className="flex flex-wrap gap-2">
+                          {task.status === 'assigned' && (
+                            <Button size="sm" variant="primary" onClick={() => updateTaskAction(task.id, 'start')}>Start</Button>
+                          )}
+                          {(task.status === 'in_progress' || task.status === 'revision_requested') && (
+                            <Button size="sm" variant="secondary" onClick={() => updateTaskAction(task.id, 'submit')}>Submit</Button>
                           )}
                         </div>
                       </td>
