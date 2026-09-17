@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, CheckCircle2, Clock3, Flag, ListFilter, Sparkles } from 'lucide-react';
 import { Button, Spinner } from './common';
 import { useAuth } from '../context/AuthContext';
 import { tasksAPI, adminAPI } from '../utils/api-service';
-import { getAssignableUsers, getTaskStatusLabel, isTaskComplete } from '../utils/task-assignment';
+import { getAssignableUsers, isTaskComplete } from '../utils/task-assignment';
 
 interface TaskRecord {
   id: string;
@@ -43,10 +44,17 @@ export const CreativeWorkPanel: React.FC = () => {
   const [sheetDrafts, setSheetDrafts] = useState<Record<string, { title: string; deadline: string; priority: 'low' | 'medium' | 'high'; referenceFiles: File[] }>>({});
   const [exporting, setExporting] = useState(false);
   const [exportAssigneeId, setExportAssigneeId] = useState('');
+  const [taskFilter, setTaskFilter] = useState<'all' | 'assigned' | 'in_progress' | 'submitted' | 'revision_requested' | 'approved'>('all');
+  const [activityToast, setActivityToast] = useState('');
 
   const isAdmin = user?.role === 'admin';
   const normalizedRole = String(user?.role || '').replace(/_/g, ' ');
   const canAssignTasks = ['admin', 'manager', 'sales manager', 'content creator'].includes(normalizedRole);
+
+  const notifyActivity = (message: string) => {
+    setActivityToast(message);
+    window.setTimeout(() => setActivityToast(''), 3600);
+  };
 
   const fetchTasks = async () => {
     try {
@@ -149,6 +157,7 @@ export const CreativeWorkPanel: React.FC = () => {
         ...prev,
         [userId]: { title: '', deadline: '', priority: 'medium', referenceFiles: [] }
       }));
+      notifyActivity(`Task assigned to ${users.find((member) => String(member.id) === String(userId))?.name || 'team member'}`);
       await fetchTasks();
     } catch (err) {
       console.error('Failed to assign sheet task', err);
@@ -170,6 +179,7 @@ export const CreativeWorkPanel: React.FC = () => {
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
+      notifyActivity('Excel task sheet downloaded');
     } catch (err) {
       console.error('Failed to export task sheet', err);
       setError('Could not export the task sheet.');
@@ -200,6 +210,29 @@ export const CreativeWorkPanel: React.FC = () => {
     }, {});
   }, [filteredTasks]);
 
+  const visibleTaskRows = useMemo(() => {
+    if (taskFilter === 'all') return filteredTasks;
+    return filteredTasks.filter((task) => task.status === taskFilter);
+  }, [filteredTasks, taskFilter]);
+
+  const statusMeta = (status: TaskRecord['status']) => {
+    const meta: Record<TaskRecord['status'], { label: string; className: string }> = {
+      assigned: { label: 'Pending', className: 'bg-amber-50 text-amber-700 ring-amber-200' },
+      in_progress: { label: 'In progress', className: 'bg-sky-50 text-sky-700 ring-sky-200' },
+      submitted: { label: 'Submitted', className: 'bg-violet-50 text-violet-700 ring-violet-200' },
+      revision_requested: { label: 'Needs revision', className: 'bg-rose-50 text-rose-700 ring-rose-200' },
+      approved: { label: 'Approved', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+      cancelled: { label: 'Cancelled', className: 'bg-slate-100 text-slate-600 ring-slate-200' },
+    };
+    return meta[status];
+  };
+
+  const priorityMeta = (priority: TaskRecord['priority']) => ({
+    low: 'text-slate-500',
+    medium: 'text-amber-600',
+    high: 'text-rose-600'
+  })[priority];
+
   const updateTaskAction = async (taskId: string, action: 'start' | 'submit' | 'approve' | 'request-revision') => {
     if (action === 'submit') {
       const task = tasks.find((item) => item.id === taskId);
@@ -219,6 +252,7 @@ export const CreativeWorkPanel: React.FC = () => {
       };
 
       await methods[action](taskId, action === 'request-revision' ? { review_notes: 'Please revise and resubmit this task.' } : undefined);
+      notifyActivity(action === 'start' ? 'Task moved to In progress' : action === 'approve' ? 'Task approved successfully' : 'Revision requested from assignee');
       await fetchTasks();
     } catch (err) {
       console.error(`Failed to ${action} task`, err);
@@ -241,6 +275,7 @@ export const CreativeWorkPanel: React.FC = () => {
       setSubmissionTask(null);
       setSubmissionNotes('');
       setSubmissionAttachment(null);
+      notifyActivity('Task submitted for approval');
       await fetchTasks();
     } catch (err) {
       console.error('Failed to send task for approval', err);
@@ -250,19 +285,48 @@ export const CreativeWorkPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {activityToast && (
+        <div className="toast-success fixed right-5 top-20 z-[60] flex items-center gap-3 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-emerald-800 shadow-xl">
+          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+          {activityToast}
+        </div>
+      )}
       <section className="card">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+              <Sparkles className="h-3.5 w-3.5" /> Live workflow
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
               {isAdmin ? 'Task Assignment Center' : `${roleLabel(user?.role)} Workspace`}
             </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">
               {canAssignTasks
-                ? 'Assign work to teammates, then review submissions before approval.'
-                : 'Review your assigned tasks, work on them, and submit them for approval.'}
+                ? 'Coordinate the team, keep priorities visible, and move submitted work through approval.'
+                : 'See what needs your attention, submit finished work, and keep the handoff moving.'}
             </p>
           </div>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Synced just now
+          </div>
         </div>
+      </section>
+
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: 'All tasks', value: taskMetrics.total, icon: ListFilter, tone: 'text-slate-700 bg-slate-100' },
+          { label: 'Needs action', value: taskMetrics.pending + taskMetrics.overdue, icon: AlertCircle, tone: 'text-rose-700 bg-rose-100' },
+          { label: 'In progress', value: taskMetrics.inProgress, icon: Clock3, tone: 'text-sky-700 bg-sky-100' },
+          { label: 'Completed', value: taskMetrics.completed, icon: CheckCircle2, tone: 'text-emerald-700 bg-emerald-100' }
+        ].map(({ label, value, icon: Icon, tone }) => (
+          <div key={label} className="card !p-4 transition-transform duration-200 hover:-translate-y-0.5">
+            <div className="flex items-start justify-between">
+              <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}><Icon className="h-4 w-4" /></span>
+              <span className="text-2xl font-bold text-slate-900 dark:text-white">{value}</span>
+            </div>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+          </div>
+        ))}
       </section>
 
       {canAssignTasks && (
@@ -320,6 +384,29 @@ export const CreativeWorkPanel: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="mb-5 flex flex-wrap items-center gap-2 border-b border-slate-100 pb-4 dark:border-slate-800">
+          <span className="mr-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <ListFilter className="h-4 w-4" /> View
+          </span>
+          {[
+            { value: 'all', label: 'All' },
+            { value: 'assigned', label: 'Pending' },
+            { value: 'in_progress', label: 'In progress' },
+            { value: 'submitted', label: 'Submitted' },
+            { value: 'revision_requested', label: 'Needs revision' },
+            { value: 'approved', label: 'Approved' }
+          ].map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => setTaskFilter(filter.value as typeof taskFilter)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${taskFilter === filter.value ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
 
         {loading ? (
@@ -433,7 +520,7 @@ export const CreativeWorkPanel: React.FC = () => {
                       </td>
                     </tr>
                   );
-                }) : filteredTasks.map((task) => {
+                }) : visibleTaskRows.map((task) => {
                   const done = isTaskComplete(task.status);
 
                   return (
@@ -445,7 +532,7 @@ export const CreativeWorkPanel: React.FC = () => {
                       </td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline'}</td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.created_at ? new Date(task.created_at).toLocaleString() : 'Unknown'}</td>
-                      <td className="py-3 pr-4 capitalize">{task.priority}</td>
+                      <td className={`py-3 pr-4 font-semibold capitalize ${priorityMeta(task.priority)}`}><Flag className="mr-1 inline h-3.5 w-3.5" />{task.priority}</td>
                       <td className="py-3 pr-4"><input type="checkbox" checked={done} readOnly className="h-4 w-4" /></td>
                       <td className="py-3 pr-4">
                         {task.attachments && task.attachments.length > 0 ? (
@@ -503,7 +590,7 @@ export const CreativeWorkPanel: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                  {filteredTasks.map((task) => (
+                  {visibleTaskRows.map((task) => (
                     <tr key={task.id} className="align-top">
                       <td className="py-3 pr-4 font-medium text-slate-800 dark:text-slate-100">
                         {task.assigned_to_name || 'Unknown user'}
@@ -515,11 +602,11 @@ export const CreativeWorkPanel: React.FC = () => {
                         )}
                       </td>
                       <td className="py-3 pr-4">
-                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                          {getTaskStatusLabel(task.status)}
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusMeta(task.status).className}`}>
+                          {statusMeta(task.status).label}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 capitalize">{task.priority}</td>
+                      <td className={`py-3 pr-4 font-semibold capitalize ${priorityMeta(task.priority)}`}><Flag className="mr-1 inline h-3.5 w-3.5" />{task.priority}</td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
                         {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}
                       </td>
