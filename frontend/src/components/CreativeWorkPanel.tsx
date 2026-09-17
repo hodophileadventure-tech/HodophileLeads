@@ -390,6 +390,11 @@ export const CreativeWorkPanel: React.FC = () => {
           <div>
             <h2 className="text-xl font-bold">{canAssignTasks ? 'Assignment Sheet' : 'My Task Sheet'}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track every user, deadline, task, and approval in one place.</p>
+            {canAssignTasks && (
+              <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                Pending tasks can be edited or deleted from the Manage task column.
+              </p>
+            )}
           </div>
           {canAssignTasks && (
             <div className="flex flex-wrap items-center gap-2">
@@ -465,7 +470,7 @@ export const CreativeWorkPanel: React.FC = () => {
                   <th className="pb-3 pr-4 font-semibold">Done</th>
                   <th className="pb-3 pr-4 font-semibold">Reference file</th>
                   <th className="pb-3 pr-4 font-semibold">Files</th>
-                  <th className="pb-3 pr-4 font-semibold">Action</th>
+                  <th className="pb-3 pr-4 font-semibold">Manage task</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -545,6 +550,12 @@ export const CreativeWorkPanel: React.FC = () => {
                       <td className="py-3 pr-4">
                         <div className="flex flex-wrap gap-2">
                           <Button size="sm" variant="primary" onClick={() => assignTaskToUser(member.id)}>Assign</Button>
+                          {latestTask && canAssignTasks && latestTask.status === 'assigned' && (
+                            <>
+                              <Button size="sm" variant="secondary" onClick={() => openTaskEditor(latestTask)}>Edit</Button>
+                              <Button size="sm" variant="danger" onClick={() => deleteTask(latestTask)}>Delete</Button>
+                            </>
+                          )}
                           {latestTask && !isAdmin && latestTask.status === 'assigned' && (
                             <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'start')}>Start</Button>
                           )}
