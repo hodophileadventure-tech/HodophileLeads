@@ -72,7 +72,7 @@ tasksRouter.get(
 tasksRouter.post(
   '/:id/attachments',
   authorizationService.requirePermission('tasks', 'create'),
-  taskUpload.single('attachment'),
+  taskUpload.array('attachment', 20),
   tasksController.uploadAttachment
 );
 

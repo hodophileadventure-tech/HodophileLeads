@@ -40,8 +40,9 @@ export const CreativeWorkPanel: React.FC = () => {
   const [submissionTask, setSubmissionTask] = useState<TaskRecord | null>(null);
   const [submissionNotes, setSubmissionNotes] = useState('');
   const [submissionAttachment, setSubmissionAttachment] = useState<File | null>(null);
-  const [sheetDrafts, setSheetDrafts] = useState<Record<string, { title: string; deadline: string; priority: 'low' | 'medium' | 'high'; referenceFile?: File }>>({});
+  const [sheetDrafts, setSheetDrafts] = useState<Record<string, { title: string; deadline: string; priority: 'low' | 'medium' | 'high'; referenceFiles: File[] }>>({});
   const [exporting, setExporting] = useState(false);
+  const [exportAssigneeId, setExportAssigneeId] = useState('');
 
   const isAdmin = user?.role === 'admin';
   const normalizedRole = String(user?.role || '').replace(/_/g, ' ');
@@ -104,26 +105,27 @@ export const CreativeWorkPanel: React.FC = () => {
         title: prev[userId]?.title ?? '',
         deadline: prev[userId]?.deadline ?? '',
         priority: prev[userId]?.priority ?? 'medium',
+        referenceFiles: prev[userId]?.referenceFiles ?? [],
         [field]: value,
       }
     }));
   };
 
-  const updateSheetReferenceFile = (userId: string, file?: File) => {
+  const updateSheetReferenceFiles = (userId: string, files: File[]) => {
     setSheetDrafts((prev) => ({
       ...prev,
       [userId]: {
         title: prev[userId]?.title ?? '',
         deadline: prev[userId]?.deadline ?? '',
         priority: prev[userId]?.priority ?? 'medium',
-        referenceFile: file,
+        referenceFiles: files,
       }
     }));
   };
 
   const assignTaskToUser = async (userId: string) => {
     if (!canAssignTasks) return;
-    const draft = sheetDrafts[userId] || { title: '', deadline: '', priority: 'medium' as const };
+    const draft = sheetDrafts[userId] || { title: '', deadline: '', priority: 'medium' as const, referenceFiles: [] };
     if (!draft.title?.trim() || !draft.deadline) {
       setError('Please enter a task and deadline for this user before assigning.');
       return;
@@ -138,14 +140,14 @@ export const CreativeWorkPanel: React.FC = () => {
         deadline: draft.deadline,
         priority: draft.priority,
       });
-      if (draft.referenceFile) {
+      if (draft.referenceFiles.length > 0) {
         const formData = new FormData();
-        formData.append('attachment', draft.referenceFile);
-        await tasksAPI.uploadAttachment(response.data?.data?.id, formData);
+        draft.referenceFiles.forEach((file) => formData.append('attachment', file));
+        await tasksAPI.uploadAttachments(response.data?.data?.id, formData);
       }
       setSheetDrafts((prev) => ({
         ...prev,
-        [userId]: { title: '', deadline: '', priority: 'medium' }
+        [userId]: { title: '', deadline: '', priority: 'medium', referenceFiles: [] }
       }));
       await fetchTasks();
     } catch (err) {
@@ -157,11 +159,13 @@ export const CreativeWorkPanel: React.FC = () => {
   const exportTaskSheet = async () => {
     try {
       setExporting(true);
-      const response = await tasksAPI.exportSpreadsheet();
+      const response = await tasksAPI.exportSpreadsheet(exportAssigneeId || undefined);
       const url = URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `tripnexus-tasks-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const selectedName = assignableUsers.find((member) => String(member.id) === exportAssigneeId)?.name;
+      const filenamePart = selectedName ? selectedName.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'all';
+      link.download = `tripnexus-tasks-${filenamePart}-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -283,9 +287,22 @@ export const CreativeWorkPanel: React.FC = () => {
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track every user, deadline, task, and approval in one place.</p>
           </div>
           {canAssignTasks && (
-            <Button size="sm" variant="secondary" onClick={exportTaskSheet} loading={exporting}>
-              Export Excel
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                className="input-field min-w-[190px]"
+                value={exportAssigneeId}
+                onChange={(event) => setExportAssigneeId(event.target.value)}
+                aria-label="Choose tasks to export"
+              >
+                <option value="">All team tasks</option>
+                {assignableUsers.map((member) => (
+                  <option key={member.id} value={member.id}>{member.name}'s tasks</option>
+                ))}
+              </select>
+              <Button size="sm" variant="secondary" onClick={exportTaskSheet} loading={exporting}>
+                Export Excel
+              </Button>
+            </div>
           )}
           {canAssignTasks && (
             <div className="flex flex-wrap gap-2">
@@ -326,7 +343,7 @@ export const CreativeWorkPanel: React.FC = () => {
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {canAssignTasks ? assignableUsers.map((member) => {
                   const latestTask = getLatestTaskForUser(member.id);
-                  const rowDraft = sheetDrafts[member.id] || { title: '', deadline: '', priority: 'medium' };
+                  const rowDraft = sheetDrafts[member.id] || { title: '', deadline: '', priority: 'medium', referenceFiles: [] };
                   const done = latestTask ? isTaskComplete(latestTask.status) : false;
 
                   return (
@@ -374,11 +391,14 @@ export const CreativeWorkPanel: React.FC = () => {
                         <input
                           type="file"
                           className="input-field min-w-[220px] text-xs"
-                          onChange={(e) => updateSheetReferenceFile(member.id, e.target.files?.[0])}
+                          multiple
+                          onChange={(e) => updateSheetReferenceFiles(member.id, Array.from(e.target.files || []))}
                           accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.txt"
                         />
-                        {rowDraft.referenceFile && (
-                          <div className="mt-1 text-xs text-slate-500">{rowDraft.referenceFile.name}</div>
+                        {rowDraft.referenceFiles.length > 0 && (
+                          <div className="mt-1 max-w-[220px] text-xs text-slate-500">
+                            {rowDraft.referenceFiles.map((file) => file.name).join(', ')}
+                          </div>
                         )}
                       </td>
                       <td className="py-3 pr-4">

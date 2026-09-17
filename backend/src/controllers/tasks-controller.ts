@@ -27,8 +27,11 @@ export const tasksController = {
       if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
       const canViewAll = await authorizationService.hasPermission(req.user.id, 'tasks', 'view_all');
+      const assignedTo = String(req.query.assigned_to || '').trim();
       const tasks = await taskModel.findAll({
-        ...(canViewAll ? {} : { visible_to: req.user.id }),
+        ...(canViewAll
+          ? (assignedTo ? { assigned_to: assignedTo } : {})
+          : { visible_to: req.user.id }),
         limit: 100
       });
       const workbook = new ExcelJS.Workbook();
@@ -83,7 +86,8 @@ export const tasksController = {
 
   async uploadAttachment(req: AuthenticatedRequest, res: Response) {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-    if (!req.file) return res.status(400).json({ error: 'Attachment file is required' });
+    const files = (req.files as Express.Multer.File[]) || [];
+    if (files.length === 0) return res.status(400).json({ error: 'At least one attachment file is required' });
 
     const task = await taskModel.findById(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
@@ -91,17 +95,19 @@ export const tasksController = {
     const canUpload = task.created_by === req.user.id || await authorizationService.hasPermission(req.user.id, 'tasks', 'create');
     if (!canUpload) return res.status(403).json({ error: 'Forbidden' });
 
-    const file = req.file as Express.Multer.File;
-    const attachment = await taskModel.addAttachment({
-      task_id: req.params.id,
-      original_filename: file.originalname,
-      stored_filename: file.filename,
-      mime_type: file.mimetype,
-      file_size_bytes: file.size,
-      file_path: `/uploads/tasks/${file.filename}`,
-      uploaded_by: req.user.id
-    });
-    res.status(201).json({ data: attachment });
+    const attachments = [];
+    for (const file of files) {
+      attachments.push(await taskModel.addAttachment({
+        task_id: req.params.id,
+        original_filename: file.originalname,
+        stored_filename: file.filename,
+        mime_type: file.mimetype,
+        file_size_bytes: file.size,
+        file_path: `/uploads/tasks/${file.filename}`,
+        uploaded_by: req.user.id
+      }));
+    }
+    res.status(201).json({ data: attachments });
   },
   
   // =========================================================================
