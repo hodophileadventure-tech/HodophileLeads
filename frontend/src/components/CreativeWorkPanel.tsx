@@ -46,7 +46,7 @@ export const CreativeWorkPanel: React.FC = () => {
 
   const isAdmin = user?.role === 'admin';
   const normalizedRole = String(user?.role || '').replace(/_/g, ' ');
-  const canAssignTasks = isAdmin || normalizedRole === 'content creator';
+  const canAssignTasks = ['admin', 'manager', 'sales manager', 'content creator'].includes(normalizedRole);
 
   const fetchTasks = async () => {
     try {

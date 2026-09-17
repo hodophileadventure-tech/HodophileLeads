@@ -90,7 +90,7 @@ adminRouter.post('/users', roleMiddleware(['admin', 'qa']), adminRoleUserControl
 
 // List all users
 // Content creators need access to this endpoint so they can pick assignees in the task sheet.
-adminRouter.get('/users', roleMiddleware(['admin', 'qa', 'content_creator']), adminRoleUserController.listUsers);
+adminRouter.get('/users', roleMiddleware(['admin', 'qa', 'manager', 'content_creator']), adminRoleUserController.listUsers);
 
 // Get specific user
 adminRouter.get('/users/:id', roleMiddleware(['admin', 'qa']), adminRoleUserController.getUser);
