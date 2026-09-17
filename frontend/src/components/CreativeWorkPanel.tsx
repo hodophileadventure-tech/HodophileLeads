@@ -331,7 +331,7 @@ export const CreativeWorkPanel: React.FC = () => {
                           {latestTask && !isAdmin && (latestTask.status === 'in_progress' || latestTask.status === 'revision_requested') && (
                             <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'submit')}>Submit</Button>
                           )}
-                          {latestTask && isAdmin && latestTask.status === 'submitted' && (
+                          {latestTask && canAssignTasks && latestTask.status === 'submitted' && (
                             <>
                               <Button size="sm" variant="primary" onClick={() => updateTaskAction(latestTask.id, 'approve')}>Approve</Button>
                               <Button size="sm" variant="secondary" onClick={() => updateTaskAction(latestTask.id, 'request-revision')}>Not complete</Button>
