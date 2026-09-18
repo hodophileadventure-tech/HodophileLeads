@@ -348,10 +348,10 @@ export const CreativeWorkPanel: React.FC = () => {
           {activityToast}
         </div>
       )}
-      <section className="card">
+      <section className="task-premium-shell task-premium-hero">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+            <div className="task-premium-badge">
               <Sparkles className="h-3.5 w-3.5" /> Live workflow
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -363,20 +363,20 @@ export const CreativeWorkPanel: React.FC = () => {
                 : 'See what needs your attention, submit finished work, and keep the handoff moving.'}
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <div className="task-premium-status-pill">
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Synced just now
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="task-premium-kpi-grid">
         {[
           { label: 'All tasks', value: taskMetrics.total, icon: ListFilter, tone: 'text-slate-700 bg-slate-100' },
           { label: 'Needs action', value: taskMetrics.pending + taskMetrics.overdue, icon: AlertCircle, tone: 'text-rose-700 bg-rose-100' },
           { label: 'In progress', value: taskMetrics.inProgress, icon: Clock3, tone: 'text-sky-700 bg-sky-100' },
           { label: 'Completed', value: taskMetrics.completed, icon: CheckCircle2, tone: 'text-emerald-700 bg-emerald-100' }
         ].map(({ label, value, icon: Icon, tone }) => (
-          <div key={label} className="card !p-4 transition-transform duration-200 hover:-translate-y-0.5">
+          <div key={label} className="task-premium-stat">
             <div className="flex items-start justify-between">
               <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tone}`}><Icon className="h-4 w-4" /></span>
               <span className="text-2xl font-bold text-slate-900 dark:text-white">{value}</span>
@@ -387,7 +387,7 @@ export const CreativeWorkPanel: React.FC = () => {
       </section>
 
       {canAssignTasks && (
-        <section className="card space-y-4">
+        <section className="task-premium-shell task-premium-mini-panel">
           <h2 className="text-xl font-bold">Sheet View Assignment</h2>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Enter the task in the row for each person. The task is assigned automatically to that user when you click Assign.
@@ -401,7 +401,7 @@ export const CreativeWorkPanel: React.FC = () => {
         </div>
       )}
 
-      <section className="card">
+      <section className="task-premium-shell">
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-4">
           <div>
             <h2 className="text-xl font-bold">{canAssignTasks ? 'Assignment Sheet' : 'My Task Sheet'}</h2>
@@ -432,23 +432,23 @@ export const CreativeWorkPanel: React.FC = () => {
           )}
           {canAssignTasks && (
             <div className="flex flex-wrap gap-2">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              <div className="task-premium-stat-chip total">
                 Total: <span className="font-semibold">{taskMetrics.total}</span>
               </div>
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+              <div className="task-premium-stat-chip pending">
                 Pending: <span className="font-semibold">{taskMetrics.pending}</span>
               </div>
-              <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-700 dark:bg-sky-900/30 dark:text-sky-200">
+              <div className="task-premium-stat-chip progress">
                 In progress: <span className="font-semibold">{taskMetrics.inProgress}</span>
               </div>
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+              <div className="task-premium-stat-chip success">
                 Completed: <span className="font-semibold">{taskMetrics.completed}</span>
               </div>
             </div>
           )}
         </div>
 
-        <div className="mb-5 flex flex-wrap items-center gap-2 border-b border-slate-100 pb-4 dark:border-slate-800">
+        <div className="task-premium-filter-bar">
           <span className="mr-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
             <ListFilter className="h-4 w-4" /> View
           </span>
@@ -464,7 +464,7 @@ export const CreativeWorkPanel: React.FC = () => {
               key={filter.value}
               type="button"
               onClick={() => setTaskFilter(filter.value as typeof taskFilter)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${taskFilter === filter.value ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}
+              className={`task-premium-filter-btn ${taskFilter === filter.value ? 'active' : ''}`}
             >
               {filter.label}
             </button>
@@ -474,8 +474,8 @@ export const CreativeWorkPanel: React.FC = () => {
         {loading ? (
           <div className="flex justify-center py-8"><Spinner size="md" /></div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
+          <div className="task-premium-table-shell">
+            <table className="task-premium-table min-w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-600 dark:text-slate-300">
                   <th className="pb-3 pr-4 font-semibold">Name</th>
