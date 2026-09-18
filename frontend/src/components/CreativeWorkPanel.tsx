@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { tasksAPI, adminAPI } from '../utils/api-service';
 import { getAssignableUsers, isTaskComplete } from '../utils/task-assignment';
 import { resolveAssetUrl } from '../utils/resolveAssetUrl';
+import { formatKarachiDateTime, toKarachiDateTimeInputValue } from '../utils/helpers';
 
 interface TaskRecord {
   id: string;
@@ -207,7 +208,7 @@ export const CreativeWorkPanel: React.FC = () => {
     setEditingTask(task);
     setEditDraft({
       title: task.title,
-      deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '',
+      deadline: toKarachiDateTimeInputValue(task.deadline),
       priority: task.priority
     });
   };
@@ -633,7 +634,7 @@ export const CreativeWorkPanel: React.FC = () => {
                         <div className="font-medium text-slate-800 dark:text-slate-100">{task.title}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400">{task.description || 'No description provided.'}</div>
                       </td>
-                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline'}</td>
+                      <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.deadline ? formatKarachiDateTime(task.deadline) : 'No deadline'}</td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">{task.created_at ? new Date(task.created_at).toLocaleString() : 'Unknown'}</td>
                       <td className={`py-3 pr-4 font-semibold capitalize ${priorityMeta(task.priority)}`}><Flag className="mr-1 inline h-3.5 w-3.5" />{task.priority}</td>
                       <td className="py-3 pr-4"><input type="checkbox" checked={done} readOnly className="h-4 w-4" /></td>
@@ -712,7 +713,7 @@ export const CreativeWorkPanel: React.FC = () => {
                       </td>
                       <td className={`py-3 pr-4 font-semibold capitalize ${priorityMeta(task.priority)}`}><Flag className="mr-1 inline h-3.5 w-3.5" />{task.priority}</td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
-                        {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}
+                        {task.deadline ? formatKarachiDateTime(task.deadline) : 'No deadline'}
                       </td>
                       <td className="py-3 pr-4 text-slate-700 dark:text-slate-200">
                         {task.created_at ? new Date(task.created_at).toLocaleString() : 'Unknown'}
