@@ -103,11 +103,11 @@
   .task-premium-stat-chip.success { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
 
   .task-premium-table-shell {
-    @apply overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.04)];
+    @apply overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.04)];
   }
 
   .task-premium-table {
-    @apply w-full border-collapse text-sm;
+    @apply min-w-max border-collapse text-sm;
   }
 
   .task-premium-table thead {
