@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { tasksAPI, adminAPI } from '../utils/api-service';
 import { getAssignableUsers, isTaskComplete } from '../utils/task-assignment';
 import { resolveAssetUrl } from '../utils/resolveAssetUrl';
-import { formatKarachiDateTime, toKarachiDateTimeInputValue } from '../utils/helpers';
+import { formatKarachiDateTime, parseKarachiDateTimeToISOString, toKarachiDateTimeInputValue } from '../utils/helpers';
 
 interface TaskRecord {
   id: string;
@@ -161,7 +161,7 @@ export const CreativeWorkPanel: React.FC = () => {
         title: draft.title.trim(),
         description: 'Assigned from assignment sheet',
         assigned_to: userId,
-        deadline: draft.deadline,
+        deadline: parseKarachiDateTimeToISOString(draft.deadline),
         priority: draft.priority,
       });
       if (draft.referenceFiles.length > 0) {
@@ -219,7 +219,7 @@ export const CreativeWorkPanel: React.FC = () => {
       await tasksAPI.update(editingTask.id, {
         title: editDraft.title.trim(),
         assigned_to: editingTask.assigned_to || '',
-        deadline: editDraft.deadline,
+        deadline: parseKarachiDateTimeToISOString(editDraft.deadline),
         priority: editDraft.priority
       });
       setEditingTask(null);
