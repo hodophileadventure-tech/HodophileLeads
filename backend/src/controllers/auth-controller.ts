@@ -8,7 +8,7 @@ import crypto from 'crypto';
 const ATTENDANCE_TIMEZONE = process.env.ATTENDANCE_TIMEZONE || 'Asia/Karachi';
 const ATTENDANCE_GRACE_MINUTES = Number(process.env.ATTENDANCE_GRACE_MINUTES || 15);
 
-async function markLoginAttendance(userId: string, role: string) {
+export async function markLoginAttendance(userId: string, role: string) {
   if (role === 'admin') return;
 
   await query(
@@ -18,24 +18,28 @@ async function markLoginAttendance(userId: string, role: string) {
         to_char(CURRENT_TIMESTAMP AT TIME ZONE $2, 'YYYY-MM-DD HH24:MI:SS') AS login_time
      )
     INSERT INTO attendance (user_id, attendance_date, status, marked_by, note)
-         SELECT u.id, local_clock.attendance_date,
-            CASE WHEN local_clock.current_time > (u.reporting_time + ($3::int * INTERVAL '1 minute'))::time
-              THEN 'late' ELSE 'present' END,
-           u.id,
-           'Login time: ' || local_clock.login_time
-     FROM users u CROSS JOIN local_clock
+     SELECT u.id,
+            local_clock.attendance_date,
+            CASE
+              WHEN local_clock.current_time > (u.reporting_time + ($3::int * INTERVAL '1 minute'))::time THEN 'late'
+              ELSE 'present'
+            END,
+            u.id,
+            'Login time: ' || local_clock.login_time
+     FROM users u
+     CROSS JOIN local_clock
      WHERE u.id = $1
        AND (u.working_days = 'monday-saturday' OR EXTRACT(ISODOW FROM local_clock.attendance_date) BETWEEN 1 AND 5)
-      AND u.attendance_exempt = FALSE
+       AND u.attendance_exempt = FALSE
+       AND NOT EXISTS (
+         SELECT 1
+         FROM attendance a
+         WHERE a.user_id = u.id
+           AND a.attendance_date = local_clock.attendance_date
+       )
        AND NOT EXISTS (
          SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = local_clock.attendance_date
-       )
-     ON CONFLICT (user_id, attendance_date) DO UPDATE
-       SET status = EXCLUDED.status, note = EXCLUDED.note, updated_at = NOW()
-       WHERE attendance.marked_by = EXCLUDED.marked_by
-         AND NOT EXISTS (
-           SELECT 1 FROM attendance_sheets s WHERE s.attendance_date = EXCLUDED.attendance_date
-         )`,
+       )`,
     [userId, ATTENDANCE_TIMEZONE, ATTENDANCE_GRACE_MINUTES]
   );
 }

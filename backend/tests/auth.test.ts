@@ -1,5 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { generateToken, verifyToken } from '../src/utils/auth';
+import { markLoginAttendance } from '../src/controllers/auth-controller';
+import { query } from '../src/utils/database';
+
+jest.mock('../src/utils/database', () => ({
+  query: jest.fn()
+}));
 
 describe('auth utils', () => {
   test('generates and verifies a token payload', () => {
@@ -21,5 +27,20 @@ describe('auth utils', () => {
 
   test('rejects invalid token', () => {
     expect(verifyToken('invalid.token.value')).toBeNull();
+  });
+
+  test('does not mark attendance again for the same user/date on re-login', async () => {
+    const mockedQuery = query as jest.MockedFunction<typeof query>;
+    mockedQuery.mockResolvedValue({ rows: [] } as any);
+
+    await markLoginAttendance('user-1', 'agent');
+
+    expect(mockedQuery).toHaveBeenCalledTimes(1);
+    const sql = mockedQuery.mock.calls[0][0] as string;
+
+    expect(sql).toContain('NOT EXISTS (');
+    expect(sql).toContain('FROM attendance a');
+    expect(sql).toContain('a.user_id = u.id');
+    expect(sql).toContain('a.attendance_date = local_clock.attendance_date');
   });
 });
