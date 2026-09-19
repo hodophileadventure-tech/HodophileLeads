@@ -496,6 +496,7 @@ export const App: React.FC = () => {
     ? [
         { label: 'Workspace', href: 'dashboard', icon: '🎬' },
         { label: 'My Tasks', href: 'dashboard', icon: '✅' },
+        { label: 'Itineraries', href: 'itineraries', icon: '🗺️' },
         { label: 'Report Issue', href: 'report-issue', icon: '🐞' }
       ]
     : [
