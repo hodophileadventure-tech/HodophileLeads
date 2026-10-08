@@ -550,6 +550,20 @@ body {
   font-weight: 600;
 }
 
+.summary-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.summary-value {
+  min-width: 80px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
 .summary-row.summary-total-row {
   font-weight: 700;
 }
@@ -568,7 +582,12 @@ body {
 .summary-row strong {
   color: #111827;
   font-weight: 700;
-  font-size: 19px;
+  font-size: 15px;
+}
+
+.summary-total-value,
+.summary-balance-value {
+  font-size: 17px;
 }
 
 .summary-divider {

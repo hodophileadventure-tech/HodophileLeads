@@ -541,26 +541,26 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
 
             <section className="invoice-summary-section">
               <div className="summary-row">
-                <span>Subtotal</span>
-                <span>{subtotal.toLocaleString('en-US')}</span>
+                <span className="summary-label">Subtotal</span>
+                <span className="summary-value">{subtotal.toLocaleString('en-US')}</span>
               </div>
               <div className="summary-row">
-                <span>Discount</span>
-                <span>{discountValue.toLocaleString('en-US')}</span>
+                <span className="summary-label">Discount</span>
+                <span className="summary-value">{discountValue.toLocaleString('en-US')}</span>
               </div>
               <div className="summary-divider" />
               <div className="summary-row summary-total-row">
-                <span>Total Due</span>
-                <span>{totalDue.toLocaleString('en-US')}</span>
+                <span className="summary-label">Total Due</span>
+                <span className="summary-value summary-total-value">{totalDue.toLocaleString('en-US')}</span>
               </div>
               <div className="summary-row">
-                <span>Advance Amount</span>
-                <span>{parseNumber(advance).toLocaleString('en-US')}</span>
+                <span className="summary-label">Advance Amount</span>
+                <span className="summary-value">{parseNumber(advance).toLocaleString('en-US')}</span>
               </div>
               <div className="summary-divider" />
               <div className="summary-row summary-balance-row">
-                <span>Balance Due</span>
-                <strong>{balance.toLocaleString('en-US')}</strong>
+                <span className="summary-label">Balance Due</span>
+                <strong className="summary-value summary-balance-value">{balance.toLocaleString('en-US')}</strong>
               </div>
             </section>
 
