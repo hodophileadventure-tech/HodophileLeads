@@ -798,7 +798,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                         </td>
                       </tr>
                       <tr className="pdf-footer-row">
-                        <td colSpan={3}>
+                        <td colSpan={2}>
                           <div className="pdf-left-box">
                             <div className="pdf-notes pdf-package-includes-box">
                               <div className="notes-title">PACKAGE INCLUDES:</div>
@@ -808,7 +808,7 @@ export const QuoteInvoicePage: React.FC<QuoteInvoicePageProps> = ({
                             </div>
                           </div>
                         </td>
-                        <td>
+                        <td colSpan={2}>
                           <table className="pdf-summary">
                             <tbody>
                               <tr>

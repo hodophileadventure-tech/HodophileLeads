@@ -814,15 +814,12 @@ body {
   font-weight: 700;
   font-size: clamp(11px, 0.95vw, 15px);
   width: 42%;
-  max-width: 0;
   padding-left: 8px;
   padding-right: 8px;
   white-space: nowrap;
   min-width: 0;
   border-left: 0;
   vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .pdf-footer-row td {
