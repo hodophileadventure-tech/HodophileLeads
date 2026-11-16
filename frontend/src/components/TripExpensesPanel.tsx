@@ -124,7 +124,7 @@ export const TripExpensesPanel: React.FC = () => {
   ];
 
   return (
-    <section className="space-y-6">
+    <section className="trip-expenses-panel space-y-6">
       <header className="relative overflow-hidden border-b border-emerald-200 pb-5">
         <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[linear-gradient(120deg,transparent,rgba(16,185,129,0.07))] md:block" aria-hidden="true" />
         <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -251,7 +251,7 @@ export const TripExpensesPanel: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="bg-emerald-950 px-5 py-5 text-white">
+              <div className="trip-expense-hero bg-emerald-950 px-5 py-5 text-white">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.17em] text-amber-300">Cost breakdown</p>
@@ -263,11 +263,11 @@ export const TripExpensesPanel: React.FC = () => {
                 <div className="mt-5 grid grid-cols-3 divide-x divide-white/15 border-t border-white/15 pt-4">
                   <div className="min-w-0 pr-2">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-100/70">Invoice</p>
-                    <p className="mt-1 truncate text-sm font-semibold tabular-nums text-white">{selectedLead.soldPrice == null ? 'Unavailable' : currency(selectedLead.soldPrice)}</p>
+                    <p className="trip-expense-hero-value mt-1 truncate text-sm font-semibold tabular-nums text-white">{selectedLead.soldPrice == null ? 'Unavailable' : currency(selectedLead.soldPrice)}</p>
                   </div>
                   <div className="min-w-0 px-3">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-100/70">Trip cost</p>
-                    <p className="mt-1 truncate text-sm font-semibold tabular-nums text-white">{currency(totalCost)}</p>
+                    <p className="trip-expense-hero-value mt-1 truncate text-sm font-semibold tabular-nums text-white">{currency(totalCost)}</p>
                   </div>
                   <div className="min-w-0 pl-3">
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-100/70">Net profit</p>

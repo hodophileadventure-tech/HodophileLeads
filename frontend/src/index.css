@@ -295,6 +295,11 @@
     color: var(--text) !important;
   }
 
+  body .trip-expenses-panel .trip-expense-hero h2,
+  body .trip-expenses-panel .trip-expense-hero .trip-expense-hero-value {
+    color: #ffffff !important;
+  }
+
   /* Replace very dark background utility classes with light surface */
   .bg-black, .bg-slate-900, .bg-neutral-900,
   .dark .bg-black, .dark .bg-slate-900, .dark .bg-neutral-900 {
