@@ -5,28 +5,9 @@ import { LeadForm } from './LeadForm';
 import ConfirmedLeadForm from './ConfirmedLeadForm';
 import { Badge, Button } from './common';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
-import { formatKarachiFollowUpReminder, getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
+import { getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
-import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
-const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
-
-const readDismissedFollowUps = (): Record<string, number> => {
-  try {
-    const raw = localStorage.getItem(DISMISSED_FOLLOW_UPS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const writeDismissedFollowUps = (items: Record<string, number>) => {
-  try {
-    localStorage.setItem(DISMISSED_FOLLOW_UPS_KEY, JSON.stringify(items));
-  } catch {
-    // ignore storage errors
-  }
-};
 
 export const AgentPanel: React.FC = () => {
   const { user } = useAuth();
@@ -37,15 +18,11 @@ export const AgentPanel: React.FC = () => {
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [followUpLead, setFollowUpLead] = useState<Lead | null>(null);
-  const [showCompletionRemarkModal, setShowCompletionRemarkModal] = useState(false);
-  const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
-  const [completionRemarks, setCompletionRemarks] = useState('');
   const quotePanelRef = useRef<HTMLDivElement | null>(null);
   const followUpModalRef = useRef<HTMLDivElement | null>(null);
   const [followUpTitle, setFollowUpTitle] = useState('Follow up with client');
   const [followUpNote, setFollowUpNote] = useState('');
   const [followUpDateTime, setFollowUpDateTime] = useState('');
-  const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'phone' | 'agent'>('phone');
   const [dateRangeStart, setDateRangeStart] = useState('');
@@ -66,27 +43,8 @@ export const AgentPanel: React.FC = () => {
   const [screenShareStatus, setScreenShareStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle');
   const [screenShareError, setScreenShareError] = useState('');
   const [screenShareNotice, setScreenShareNotice] = useState('');
-  const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
-
-  const stopAlarmAudio = () => {
-    try {
-      alarmAudioRef.current?.pause();
-      if (alarmAudioRef.current) alarmAudioRef.current.currentTime = 0;
-    } catch {
-      // ignore audio cleanup errors
-    }
-  };
-
-  const dismissFollowUp = (item: FollowUp | null) => {
-    if (!item) return;
-    const dueAt = new Date(item.dueDate).getTime();
-    const next = { ...readDismissedFollowUps(), [item.id]: Number.isFinite(dueAt) ? dueAt : Date.now() + 60 * 60 * 1000 };
-    writeDismissedFollowUps(next);
-    stopAlarmAudio();
-    setActiveAlarm(null);
-  };
 
   const getFollowUpTimeRemaining = (dueDate: string) => {
     const dueAt = new Date(dueDate).getTime();
@@ -172,38 +130,6 @@ export const AgentPanel: React.FC = () => {
     } catch (error: any) {
       setScreenShareStatus('error');
       setScreenShareError(error?.message || 'Failed to start screen capture');
-    }
-  };
-
-  const completeActiveFollowUp = async (item: FollowUp | null) => {
-    if (!item) return;
-    stopAlarmAudio();
-    setActiveAlarm(null);
-    setCompletionFollowUp(item);
-    setCompletionRemarks('');
-    setShowCompletionRemarkModal(true);
-  };
-
-  const confirmCompleteFollowUp = async () => {
-    if (!completionFollowUp) return;
-    try {
-      await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
-      // completed
-      
-      const next = { ...readDismissedFollowUps(), [completionFollowUp.id]: Date.now() + 24 * 60 * 60 * 1000 };
-      writeDismissedFollowUps(next);
-      setActiveAlarm(null);
-      setShowCompletionRemarkModal(false);
-      setCompletionFollowUp(null);
-      setCompletionRemarks('');
-      
-      // Reload leads to show updated remarks
-      await loadLeads();
-      
-      window.dispatchEvent(new Event('followups-updated'));
-    } catch (error) {
-      console.error('Failed to complete follow-up:', error);
-      alert('Failed to mark follow-up complete: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -378,25 +304,6 @@ export const AgentPanel: React.FC = () => {
   const openQuotePreview = (request: QuoteRequest) => {
     window.dispatchEvent(new CustomEvent('open-quote-preview', { detail: { request } }));
   };
-
-  useEffect(() => {
-    if (!activeAlarm) {
-      stopAlarmAudio();
-      return;
-    }
-
-    if (!alarmAudioRef.current) {
-      alarmAudioRef.current = new Audio('/followup-alarm.wav');
-      alarmAudioRef.current.loop = true;
-      alarmAudioRef.current.volume = 1;
-    }
-
-    void alarmAudioRef.current.play().catch(() => {});
-
-    return () => {
-      stopAlarmAudio();
-    };
-  }, [activeAlarm]);
 
   const handleNewLead = (lead: Lead) => {
     setLeads((prev) => {
@@ -1021,9 +928,6 @@ export const AgentPanel: React.FC = () => {
                     setShowFollowUpModal(false);
                     setFollowUpLead(null);
                     const created = normalizeFollowUp(response.data);
-                    if (shouldTriggerFollowUpAlarm(created.dueDate, Date.now())) {
-                      setActiveAlarm(created);
-                    }
                     window.dispatchEvent(new CustomEvent('followup-due', { detail: created }));
                     window.dispatchEvent(new Event('followups-updated'));
                   } catch (err) {
@@ -1085,78 +989,6 @@ export const AgentPanel: React.FC = () => {
         </div>
       )}
 
-      {showCompletionRemarkModal && completionFollowUp && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-5 shadow-2xl">
-            <h3 className="text-xl font-bold mb-1">Mark Follow-up Complete</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Add remarks about this follow-up (optional). These will be saved to the lead.</p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Remarks / Notes</label>
-                <textarea
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 dark:bg-slate-800 dark:text-white"
-                  rows={5}
-                  placeholder="e.g., Client confirmed dates, requires hotel confirmation, waiting for payment..."
-                  value={completionRemarks}
-                  onChange={(e) => setCompletionRemarks(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-2">
-              <Button 
-                variant="secondary" 
-                onClick={() => {
-                  setShowCompletionRemarkModal(false);
-                  setCompletionFollowUp(null);
-                  setCompletionRemarks('');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={confirmCompleteFollowUp}
-              >
-                Mark Complete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeAlarm && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border-2 border-red-500 p-5 shadow-2xl animate-pulse">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm uppercase tracking-wide text-red-500 font-semibold">Follow Up Alert</p>
-                <h3 className="text-2xl font-bold mt-1">This lead has follow up, do follow up</h3>
-                <p className="mt-2 text-slate-600 dark:text-slate-300">{activeAlarm.title}</p>
-                <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
-                  {activeAlarm.clientName
-                    ? `${activeAlarm.clientName}${activeAlarm.phone ? ` · ${activeAlarm.phone}` : ''}`
-                    : activeAlarm.phone
-                      ? `Phone: ${activeAlarm.phone}`
-                      : `Lead ID: ${activeAlarm.leadId}`}
-                </p>
-                {activeAlarm.createdByName && (
-                  <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Created by {activeAlarm.createdByName}</p>
-                )}
-                <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">{formatKarachiFollowUpReminder(activeAlarm.dueDate)}</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Button variant="primary" onClick={() => { void completeActiveFollowUp(activeAlarm); }}>
-                  Mark Complete
-                </Button>
-                <Button variant="secondary" onClick={() => dismissFollowUp(activeAlarm)}>Dismiss</Button>
-              </div>
-            </div>
-            <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-200">
-              Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

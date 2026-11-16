@@ -32,7 +32,7 @@ import { TripExpensesPanel } from '../components/TripExpensesPanel';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
-import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
+import { FOLLOW_UP_ALARM_SNOOZE_MS, shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks' | 'attendance' | 'trip-expenses';
 
@@ -126,6 +126,10 @@ export const App: React.FC = () => {
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [activeTaskDeadlineAlarm, setActiveTaskDeadlineAlarm] = useState<any | null>(null);
   const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
+  const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
+  const [completionActionPlan, setCompletionActionPlan] = useState('');
+  const [completionRemarks, setCompletionRemarks] = useState('');
+  const [savingFollowUpCompletion, setSavingFollowUpCompletion] = useState(false);
   const [selectedQuoteRequest, setSelectedQuoteRequest] = useState<QuoteRequest | null>(null);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState('');
@@ -229,8 +233,7 @@ export const App: React.FC = () => {
 
   const dismissFollowUp = (item: FollowUp | null) => {
     if (!item) return;
-    const dueAt = new Date(item.dueDate).getTime();
-    const next = { ...readDismissedFollowUps(), [item.id]: Number.isFinite(dueAt) ? dueAt : Date.now() + 60 * 60 * 1000 };
+    const next = { ...readDismissedFollowUps(), [item.id]: Date.now() + FOLLOW_UP_ALARM_SNOOZE_MS };
     setDismissedFollowUps(next);
     writeDismissedFollowUps(next);
     stopAlarmAudio();
@@ -250,17 +253,38 @@ export const App: React.FC = () => {
 
   const completeActiveFollowUp = async (item: FollowUp | null) => {
     if (!item) return;
+    dismissFollowUp(item);
+    setCompletionFollowUp(item);
+    setCompletionActionPlan(item.actionPlan || '');
+    setCompletionRemarks(item.completionNotes || '');
+  };
+
+  const confirmCompleteFollowUp = async () => {
+    if (!completionFollowUp || !completionActionPlan.trim() || savingFollowUpCompletion) return;
+
+    setSavingFollowUpCompletion(true);
     try {
-      stopAlarmAudio();
-      await followUpsAPI.complete(item.id);
-      const next = { ...readDismissedFollowUps(), [item.id]: Date.now() + 24 * 60 * 60 * 1000 };
+      if (completionActionPlan.trim() !== (completionFollowUp.actionPlan || '').trim()) {
+        await followUpsAPI.saveActionPlan(completionFollowUp.id, completionActionPlan.trim());
+      }
+      await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
+
+      const next = { ...readDismissedFollowUps() };
+      delete next[completionFollowUp.id];
       setDismissedFollowUps(next);
       writeDismissedFollowUps(next);
-      setActiveAlarm(null);
+      setFollowUps(followUps.map((item) => item.id === completionFollowUp.id
+        ? { ...item, status: 'completed', actionPlan: completionActionPlan.trim(), completionNotes: completionRemarks }
+        : item));
+      setCompletionFollowUp(null);
+      setCompletionActionPlan('');
+      setCompletionRemarks('');
       window.dispatchEvent(new Event('followups-updated'));
     } catch (error) {
       console.error('Failed to complete follow-up:', error);
-      alert('Failed to mark follow-up complete.');
+      alert('Failed to mark follow-up complete: ' + (error instanceof Error ? error.message : String(error)));
+    } finally {
+      setSavingFollowUpCompletion(false);
     }
   };
 
@@ -342,7 +366,10 @@ export const App: React.FC = () => {
 
 
   useEffect(() => {
-    if (!user) return;
+    if (user?.role !== 'agent') {
+      setActiveAlarm(null);
+      return;
+    }
 
     let mounted = true;
     const checkFollowUps = async () => {
@@ -352,9 +379,9 @@ export const App: React.FC = () => {
         const now = Date.now();
         const soonest = (response.data || [])
           .map(normalizeFollowUp)
-          .filter((item) => item.status !== 'completed')
-          .filter((item) => (dismissedFollowUps[item.id] || 0) < now)
-          .filter((item) => shouldTriggerFollowUpAlarm(item.dueDate, now))
+          .filter((item) => item.id !== completionFollowUp?.id)
+          .filter((item) => item.status !== 'completed' && item.status !== 'canceled')
+          .filter((item) => shouldTriggerFollowUpAlarm(item.dueDate, now, dismissedFollowUps[item.id] || 0))
           .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
 
         if (soonest && (!activeAlarm || activeAlarm.id !== soonest.id)) {
@@ -376,7 +403,7 @@ export const App: React.FC = () => {
       mounted = false;
       window.clearInterval(timer);
     };
-  }, [activeAlarm, dismissedFollowUps, followUps, user]);
+  }, [activeAlarm, completionFollowUp, dismissedFollowUps, followUps, user?.role]);
 
   useEffect(() => {
     if (!user || !Array.isArray(notifications)) return;
@@ -396,21 +423,23 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (user?.role !== 'agent') return;
+
     const handleFollowupDue = (event: Event) => {
       const customEvent = event as CustomEvent<FollowUp>;
       const item = normalizeFollowUp(customEvent.detail);
       if (!item) return;
       const dueAt = new Date(item.dueDate).getTime();
       if (Number.isNaN(dueAt)) return;
-      if ((dismissedFollowUps[item.id] || 0) >= Date.now()) return;
-      if (item.status !== 'completed' && shouldTriggerFollowUpAlarm(item.dueDate, Date.now())) {
+      if (item.status !== 'completed' && item.status !== 'canceled' &&
+          shouldTriggerFollowUpAlarm(item.dueDate, Date.now(), dismissedFollowUps[item.id] || 0)) {
         setActiveAlarm(item);
       }
     };
 
     window.addEventListener('followup-due', handleFollowupDue as EventListener);
     return () => window.removeEventListener('followup-due', handleFollowupDue as EventListener);
-  }, [dismissedFollowUps]);
+  }, [dismissedFollowUps, user?.role]);
 
   useEffect(() => {
     const handleUnlock = () => primeAlarmAudio();
@@ -425,7 +454,8 @@ export const App: React.FC = () => {
   const { isCRMMuted } = useUIStore();
 
   useEffect(() => {
-    if (!activeAlarm && !activeTaskDeadlineAlarm) {
+    const hasAgentFollowUpAlarm = user?.role === 'agent' && Boolean(activeAlarm);
+    if (!hasAgentFollowUpAlarm && !activeTaskDeadlineAlarm) {
       stopAlarmAudio();
       return;
     }
@@ -457,7 +487,7 @@ export const App: React.FC = () => {
     return () => {
       stopAlarmAudio();
     };
-  }, [activeAlarm, activeTaskDeadlineAlarm, isCRMMuted]);
+  }, [activeAlarm, activeTaskDeadlineAlarm, isCRMMuted, user?.role]);
 
   useEffect(() => {
     const showSuccess = (message: string) => {
@@ -1587,7 +1617,7 @@ export const App: React.FC = () => {
                 {successToast}
               </div>
             )}
-            {activeAlarm && (
+            {activeAlarm && user?.role === 'agent' && (
               <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                 <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border-2 border-red-500 p-5 shadow-2xl animate-pulse">
                   <div className="flex items-start justify-between gap-4">
@@ -1637,6 +1667,66 @@ export const App: React.FC = () => {
                     {isCRMMuted 
                       ? '🔇 CRM is muted - no alerts will sound until you unmute.'
                       : 'Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.'}
+                  </div>
+                </div>
+              </div>
+            )}
+            {completionFollowUp && user?.role === 'agent' && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+                <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+                  <h3 className="text-xl font-bold">Complete Follow-up</h3>
+                  <p className="mb-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Add an action plan before completing this follow-up.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium" htmlFor="follow-up-completion-action-plan">
+                        Action Plan (required)
+                      </label>
+                      <textarea
+                        id="follow-up-completion-action-plan"
+                        className="w-full rounded-lg border border-slate-300 p-3 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        rows={4}
+                        value={completionActionPlan}
+                        onChange={(event) => setCompletionActionPlan(event.target.value)}
+                        placeholder="Describe the action taken or next steps..."
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium" htmlFor="follow-up-completion-remarks">
+                        Completion Notes (optional)
+                      </label>
+                      <textarea
+                        id="follow-up-completion-remarks"
+                        className="w-full rounded-lg border border-slate-300 p-3 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        rows={3}
+                        value={completionRemarks}
+                        onChange={(event) => setCompletionRemarks(event.target.value)}
+                        placeholder="Add any notes about the conversation..."
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end gap-2">
+                    <Button
+                      variant="secondary"
+                      disabled={savingFollowUpCompletion}
+                      onClick={() => {
+                        dismissFollowUp(completionFollowUp);
+                        setCompletionFollowUp(null);
+                        setCompletionActionPlan('');
+                        setCompletionRemarks('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="primary"
+                      disabled={!completionActionPlan.trim() || savingFollowUpCompletion}
+                      onClick={() => { void confirmCompleteFollowUp(); }}
+                    >
+                      {savingFollowUpCompletion ? 'Saving...' : 'Save and Mark Complete'}
+                    </Button>
                   </div>
                 </div>
               </div>
