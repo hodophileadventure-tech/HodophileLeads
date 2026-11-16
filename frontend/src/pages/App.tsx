@@ -28,12 +28,13 @@ import { Button, Spinner } from '../components/common';
 import AdminPage from './AdminPage';
 import AttendancePage from './AttendancePage';
 import { AdminRevenueDashboard } from '../components/AdminRevenueDashboard.tsx';
+import { TripExpensesPanel } from '../components/TripExpensesPanel';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 
-type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks' | 'attendance';
+type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks' | 'attendance' | 'trip-expenses';
 
  
 
@@ -513,6 +514,7 @@ export const App: React.FC = () => {
         ...(user?.role === 'admin' ? [{ label: 'Pending Quotes', href: 'pending-quotes', icon: '📝' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Pending Invoices', href: 'pending-invoices', icon: '🧾' }] : []),
         ...(user?.role === 'admin' ? [{ label: 'Quotation Approvals', href: 'quotation-approvals', icon: '✅' }] : []),
+        ...(user?.role === 'admin' ? [{ label: 'Trip Expenses', href: 'trip-expenses', icon: '💰' }] : []),
         ...(user?.role === 'manager' ? [{ label: 'Manager Quotations', href: 'manager-quotations', icon: '📝' }] : []),
         ...(user?.role === 'manager' ? [{ label: 'Quick Summary', href: 'quick-summary', icon: '📋' }] : []),
         ...(isAdminLike || user?.role === 'manager' ? [{ label: 'Transfer Leads', href: 'lead-transfer', icon: '🔄' }] : []),
@@ -1530,6 +1532,10 @@ export const App: React.FC = () => {
                   <AdminPage />
                 </section>
               </div>
+            )}
+
+            {currentPage === 'trip-expenses' && user?.role === 'admin' && (
+              <TripExpensesPanel />
             )}
 
             {currentPage === 'attendance' && (isAdminLike || user?.role === 'agent') && (

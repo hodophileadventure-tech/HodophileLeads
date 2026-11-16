@@ -6,6 +6,7 @@ import { adminController } from '../controllers/admin-controller';
 import { quoteRequestsController } from '../controllers/quote-requests-controller';
 import { adminRoleUserController } from '../controllers/admin-role-user-controller';
 import { attendanceController } from '../controllers/attendance-controller';
+import { tripExpensesController } from '../controllers/trip-expenses-controller';
 
 export const adminRouter = Router();
 
@@ -50,6 +51,8 @@ adminRouter.get('/agents/follow-up-stats', roleMiddleware(['admin', 'qa', 'manag
 // revenue stats per agent
 adminRouter.get('/agents/revenue-stats', roleMiddleware(['admin', 'qa', 'manager']), adminController.revenueStats);
 adminRouter.get('/revenue-trends', roleMiddleware(['admin', 'qa', 'manager']), adminController.revenueTrends);
+adminRouter.get('/trip-expenses', roleMiddleware(['admin']), tripExpensesController.list);
+adminRouter.put('/trip-expenses/:leadId', roleMiddleware(['admin']), tripExpensesController.save);
 adminRouter.get('/quote-requests', roleMiddleware(['admin']), quoteRequestsController.listPending);
 adminRouter.post('/screen-captures/:requestId', roleMiddleware(['agent']), adminController.submitScreenCapture);
 // Issue reporting

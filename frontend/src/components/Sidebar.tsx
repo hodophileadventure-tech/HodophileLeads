@@ -26,6 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ navItems, currentPath, onNavig
     'Pending Quotes': FileText,
     'Pending Invoices': FileCheck2,
     'Quotation Approvals': ShieldCheck,
+    'Trip Expenses': Receipt,
     'Manager Quotations': FileText,
     'Quick Summary': Activity,
     'Transfer Leads': GitBranch,
@@ -43,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ navItems, currentPath, onNavig
   const getSection = (label: string) => {
     if (['Dashboard', 'Workspace'].includes(label)) return 'Overview';
     if (['Leads', 'Follow-ups', 'Agent Panel'].includes(label)) return 'Sales';
-    if (['Quotes & Invoices', 'Pending Quotes', 'Pending Invoices', 'Quotation Approvals', 'Manager Quotations', 'Created Quotations'].includes(label)) return 'Commercial';
+    if (['Quotes & Invoices', 'Pending Quotes', 'Pending Invoices', 'Quotation Approvals', 'Trip Expenses', 'Manager Quotations', 'Created Quotations'].includes(label)) return 'Commercial';
     if (['Hotel Directory', 'Itineraries', 'Transfer Leads'].includes(label)) return 'Operations';
     if (['Users & Roles', 'Attendance', 'Task Management', 'My Tasks'].includes(label)) return 'People';
     if (['Analytics', 'Quick Summary', 'Daily Reports'].includes(label)) return 'Analytics';

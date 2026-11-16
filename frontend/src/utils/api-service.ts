@@ -1,6 +1,29 @@
 import apiClient from './api';
 import type { Lead, FollowUp, Itinerary, Payment, AvailabilityMatrix, QuoteRequest } from '../types';
 
+export interface TripExpenseRecord {
+  leadId: string;
+  clientName: string;
+  phone: string | null;
+  destination: string | null;
+  soldPrice: number | null;
+  hotelCost: number;
+  transportCost: number;
+  fuelCost: number;
+  tollTaxesCost: number;
+  parkingCost: number;
+  foodCost: number;
+  tourGuideCost: number;
+  otherCost: number;
+  otherExpenseNote: string;
+  updatedAt: string | null;
+}
+
+export type TripExpenseUpdate = Pick<TripExpenseRecord,
+  'hotelCost' | 'transportCost' | 'fuelCost' | 'tollTaxesCost' | 'parkingCost' |
+  'foodCost' | 'tourGuideCost' | 'otherCost' | 'otherExpenseNote'
+>;
+
 export const leadsAPI = {
   list: (limit?: number, filters?: { phone?: string; startDate?: string; endDate?: string; status?: string }, offset?: number) => apiClient.get<Lead[]>('/leads', {
     params: {
@@ -139,7 +162,9 @@ export const adminAPI = {
     responseType: 'blob'
   }),
   listQuoteRequests: () => apiClient.get<QuoteRequest[]>('/admin/quote-requests'),
-  saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData })
+  saveQuoteRequest: (requestId: string, documentData: any) => apiClient.post(`/admin/quote-requests/${requestId}/save`, { documentData }),
+  getTripExpenses: () => apiClient.get<TripExpenseRecord[]>('/admin/trip-expenses'),
+  saveTripExpenses: (leadId: string, data: TripExpenseUpdate) => apiClient.put<TripExpenseRecord>(`/admin/trip-expenses/${leadId}`, data)
 };
 
 export const reportsAPI = {
