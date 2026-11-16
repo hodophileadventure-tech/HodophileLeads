@@ -7,6 +7,7 @@ export interface TripExpenseRecord {
   phone: string | null;
   destination: string | null;
   soldPrice: number | null;
+  hasExpenses: boolean;
   hotelCost: number;
   transportCost: number;
   fuelCost: number;

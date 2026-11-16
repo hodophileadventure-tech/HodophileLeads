@@ -140,10 +140,21 @@ export const TripExpensesPanel: React.FC = () => {
             <div className="max-h-[70vh] overflow-auto">
               <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800">
-                  <tr><th className="px-4 py-3">Client</th><th className="px-4 py-3">Destination</th><th className="px-4 py-3 text-right">Invoice</th></tr>
+                  <tr>
+                    <th className="px-4 py-3">Client</th>
+                    <th className="px-4 py-3">Destination</th>
+                    <th className="px-4 py-3">Expenses</th>
+                    <th className="px-4 py-3 text-right">Invoice</th>
+                    <th className="px-4 py-3 text-right">Trip cost</th>
+                    <th className="px-4 py-3 text-right">Net profit</th>
+                  </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredLeads.map((lead) => (
+                  {filteredLeads.map((lead) => {
+                    const leadCost = getExpenseTotal(toDraft(lead));
+                    const leadProfit = lead.soldPrice == null ? null : lead.soldPrice - leadCost;
+
+                    return (
                     <tr key={lead.leadId}>
                       <td className="px-4 py-3">
                         <button
@@ -156,11 +167,23 @@ export const TripExpensesPanel: React.FC = () => {
                         <p className="mt-1 text-xs text-slate-500">{lead.phone || 'No phone'}</p>
                       </td>
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{lead.destination || '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className={lead.hasExpenses ? 'font-medium text-emerald-700' : 'text-slate-500'}>
+                          {lead.hasExpenses ? 'Saved' : 'Not saved'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-right font-medium text-slate-800 dark:text-slate-200">
                         {lead.soldPrice == null ? '—' : currency(lead.soldPrice)}
                       </td>
+                      <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
+                        {lead.hasExpenses ? currency(leadCost) : '—'}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-semibold ${leadProfit != null && leadProfit < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
+                        {lead.hasExpenses && leadProfit != null ? currency(leadProfit) : '—'}
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

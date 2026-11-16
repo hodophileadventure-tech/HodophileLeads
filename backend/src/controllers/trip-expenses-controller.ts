@@ -19,6 +19,7 @@ const mapExpense = (row: any) => ({
   phone: row.phone,
   destination: row.destination,
   soldPrice: row.sold_price == null ? null : Number(row.sold_price),
+  hasExpenses: row.has_expenses === true || row.has_expenses === 't' || Boolean(row.updated_at),
   hotelCost: Number(row.hotel_cost || 0),
   transportCost: Number(row.transport_cost || 0),
   fuelCost: Number(row.fuel_cost || 0),
@@ -46,6 +47,7 @@ export const tripExpensesController = {
           l.phone,
           l.destination,
           l.actual_price AS sold_price,
+          (e.lead_id IS NOT NULL) AS has_expenses,
           COALESCE(e.hotel_cost, 0) AS hotel_cost,
           COALESCE(e.transport_cost, 0) AS transport_cost,
           COALESCE(e.fuel_cost, 0) AS fuel_cost,
@@ -112,7 +114,7 @@ export const tripExpensesController = {
         FROM leads WHERE id = $1
       `, [req.params.leadId]);
 
-      res.json(mapExpense({ ...leadResult.rows[0], ...result.rows[0] }));
+      res.json(mapExpense({ ...leadResult.rows[0], ...result.rows[0], has_expenses: true }));
     } catch (error) {
       next(error);
     }
