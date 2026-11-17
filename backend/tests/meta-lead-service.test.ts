@@ -2,13 +2,15 @@ import { isEligibleOtherAgent, isUmrahFormName, mapMetaLead } from '../src/servi
 
 describe('Meta Lead Ads field mapping', () => {
   it('excludes the selected agents from non-Umrah round-robin assignment', () => {
-    expect(isEligibleOtherAgent('Altamash')).toBe(false);
-    expect(isEligibleOtherAgent('Joti Ashok')).toBe(false);
-    expect(isEligibleOtherAgent('Sameer Khan')).toBe(false);
-    expect(isEligibleOtherAgent('Maqsood Khan')).toBe(false);
-    expect(isEligibleOtherAgent('Sameer')).toBe(true);
-    expect(isEligibleOtherAgent('Ayman Maqsood')).toBe(true);
-    expect(isEligibleOtherAgent('Faryha Salman')).toBe(true);
+    expect(isEligibleOtherAgent('Altamash', 'agent')).toBe(false);
+    expect(isEligibleOtherAgent('Joti Ashok', 'agent')).toBe(false);
+    expect(isEligibleOtherAgent('Sameer Khan', 'agent')).toBe(false);
+    expect(isEligibleOtherAgent('Maqsood Khan', 'agent')).toBe(false);
+    expect(isEligibleOtherAgent('Sameer', 'agent')).toBe(true);
+    expect(isEligibleOtherAgent('Ayman Maqsood', 'agent')).toBe(true);
+    expect(isEligibleOtherAgent('Faryha Salman', 'agent')).toBe(true);
+    expect(isEligibleOtherAgent('Samik', 'video_editor')).toBe(false);
+    expect(isEligibleOtherAgent('A creative user', 'content_creator')).toBe(false);
   });
 
   it('identifies Umrah forms by their form name', () => {

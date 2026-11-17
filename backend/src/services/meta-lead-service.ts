@@ -88,7 +88,8 @@ export const isUmrahFormName = (formName: string) => formName.toLowerCase().incl
 
 const excludedOtherAgentNames = ['altamash', 'joti ashok', 'sameer khan', 'maqsood khan', 'test'];
 
-export const isEligibleOtherAgent = (name: string) =>
+export const isEligibleOtherAgent = (name: string, roleSlug: string | null | undefined) =>
+  roleSlug?.trim().toLowerCase() === 'agent' &&
   !excludedOtherAgentNames.includes(name.trim().toLowerCase());
 
 const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
@@ -126,19 +127,22 @@ const getNextOtherAgentId = async (client: any, umrahAgentId: string) => {
      FOR UPDATE`
   );
   const agents = await client.query(
-    `SELECT id
-     FROM users
-     WHERE role = 'agent'
-       AND id <> $1
-       AND NOT (LOWER(TRIM(name)) = ANY($2::text[]))
-     ORDER BY id`,
-    [umrahAgentId, excludedOtherAgentNames]
+    `SELECT u.id, u.name, r.slug AS role_slug
+     FROM users u
+     LEFT JOIN roles r ON r.id = u.role_id
+     WHERE u.role = 'agent'
+       AND u.id <> $1
+     ORDER BY u.id`,
+    [umrahAgentId]
   );
-  if (agents.rowCount === 0) {
+  const eligibleAgents = agents.rows.filter((row: { name: string; role_slug: string | null }) =>
+    isEligibleOtherAgent(row.name, row.role_slug)
+  );
+  if (eligibleAgents.length === 0) {
     throw new Error('No other CRM agents are available for non-Umrah leads');
   }
 
-  const agentIds = agents.rows.map((row: { id: string }) => String(row.id));
+  const agentIds = eligibleAgents.map((row: { id: string }) => String(row.id));
   const lastIndex = agentIds.indexOf(String(state.rows[0].last_agent_id || ''));
   const nextAgentId = agentIds[(lastIndex + 1) % agentIds.length];
   await client.query(
@@ -187,7 +191,10 @@ export const importMetaLead = async (leadId: string, pageId: string, formId?: st
     let agentId: string;
     if (isUmrah) {
       const agent = await client.query(
-        "SELECT id FROM users WHERE id = $1 AND role = 'agent'",
+        `SELECT u.id
+         FROM users u
+         JOIN roles r ON r.id = u.role_id
+         WHERE u.id = $1 AND r.slug = 'agent'`,
         [umrahAgentId]
       );
       if (agent.rowCount === 0) throw new Error('META_UMRAH_AGENT_ID must identify an existing agent');
