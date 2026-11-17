@@ -68,4 +68,27 @@ describe('Meta Lead Ads field mapping', () => {
     expect(normalizeMetaPhone('<test lead: dummy data for whatsapp_number>')).toBeUndefined();
     expect(normalizeMetaPhone('123456789012345678901')).toBeUndefined();
   });
+
+  it('uses the city field as destination without mistaking traveler count for a destination', () => {
+    const lead = mapMetaLead({
+      id: '12345',
+      field_data: [
+        { name: 'how_many_people_are_travelling?', values: ['2_people'] },
+        { name: 'city', values: ['Karachi'] },
+      ],
+    });
+
+    expect(lead.destination).toBe('Karachi');
+  });
+
+  it('does not use a traveler-count answer as destination when no destination field exists', () => {
+    const lead = mapMetaLead({
+      id: '12345',
+      field_data: [
+        { name: 'how_many_people_are_travelling?', values: ['2_people'] },
+      ],
+    });
+
+    expect(lead.destination).toBeUndefined();
+  });
 });

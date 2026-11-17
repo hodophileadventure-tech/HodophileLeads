@@ -65,9 +65,16 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
     getFirstValue(values, 'phonenumber', 'phone', 'mobile', 'mobilenumber', 'whatsappnumber')
   );
   const email = getFirstValue(values, 'email');
-  const destination = getFirstValue(values, 'destination', 'traveldestination', 'country', 'destinationcountry') ||
+  const destination = getFirstValue(
+    values,
+    'destination',
+    'traveldestination',
+    'country',
+    'destinationcountry',
+    'city'
+  ) ||
     Array.from(values.entries()).find(([key]) =>
-      key.includes('destination') || (key.includes('travel') && !/date|budget|type|duration/.test(key))
+      key.includes('destination') || /^(where|which|what).*(travel|trip|visit|go)/.test(key)
     )?.[1];
   const from = getFirstValue(values, 'travelstartdate', 'startdate', 'departuredate', 'dateoftravel');
   const to = getFirstValue(values, 'travelenddate', 'enddate', 'returndate');
