@@ -18,6 +18,10 @@ export const getMetaLeadRetryDelayMs = (retryCount: number) => {
 
 export const processMetaLeadEvents = async () => {
   const events = await metaLeadWebhookEventModel.reservePending(BATCH_SIZE);
+  if (events.length > 0) {
+    console.info(`[Meta Lead Worker] Processing ${events.length} queued event(s)`);
+  }
+
   for (const event of events) {
     try {
       let payload = event.leadPayload;
@@ -60,13 +64,17 @@ export const processMetaLeadEvents = async () => {
   }
 };
 
+const runMetaLeadWorker = async () => {
+  try {
+    await processMetaLeadEvents();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : error;
+    console.error('[Meta Lead Worker] Worker failed', message);
+  }
+};
+
 export const startMetaLeadWorker = () => {
-  cron.schedule('* * * * *', async () => {
-    try {
-      await processMetaLeadEvents();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : error;
-      console.error('[Meta Lead Worker] Worker failed', message);
-    }
-  });
+  cron.schedule('* * * * *', runMetaLeadWorker);
+  console.info('[Meta Lead Worker] Started; polling every minute');
+  void runMetaLeadWorker();
 };

@@ -197,6 +197,12 @@ const start = async () => {
   }
 
   try {
+    startMetaLeadWorker();
+  } catch (err) {
+    console.error('Failed to start Meta lead worker:', err);
+  }
+
+  try {
     // start background workers
     startFollowUpWorker();
     startReportWorker();
@@ -204,7 +210,6 @@ const start = async () => {
     startScreenCaptureCleanup();
     startTaskOverdueWorker();
     startMonthlyPayrollWorker();
-    startMetaLeadWorker();
   } catch (err) {
     console.error('Failed to start background workers:', err);
   }
