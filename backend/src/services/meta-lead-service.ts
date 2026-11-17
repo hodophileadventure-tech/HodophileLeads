@@ -13,6 +13,11 @@ type MetaLead = {
   field_data?: MetaField[];
 };
 
+type MetaLeadForm = {
+  id: string;
+  name?: string;
+};
+
 const fieldValueMap = (fields: MetaField[] = []) => {
   const values = new Map<string, string>();
   for (const field of fields) {
@@ -79,39 +84,79 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
   };
 };
 
-const fetchMetaLead = async (leadId: string): Promise<MetaLead> => {
+export const isUmrahFormName = (formName: string) => formName.toLowerCase().includes('umrah');
+
+const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
   const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
   if (!accessToken) throw new Error('META_PAGE_ACCESS_TOKEN is not configured');
 
-  const version = process.env.META_GRAPH_API_VERSION || 'v24.0';
-  if (!/^v\d+\.\d+$/.test(version)) throw new Error('META_GRAPH_API_VERSION must look like v24.0');
+  const version = process.env.META_GRAPH_API_VERSION || 'v27.0';
+  if (!/^v\d+\.\d+$/.test(version)) throw new Error('META_GRAPH_API_VERSION must look like v27.0');
 
   try {
-    const response = await axios.get<MetaLead>(`https://graph.facebook.com/${version}/${leadId}`, {
+    const response = await axios.get<T>(`https://graph.facebook.com/${version}/${objectId}`, {
       params: {
         access_token: accessToken,
-        fields: 'id,created_time,form_id,field_data',
+        fields,
       },
       timeout: 10000,
     });
     return response.data;
   } catch (error) {
     const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-    throw new Error(`Meta Graph API could not retrieve lead ${leadId}${status ? ` (HTTP ${status})` : ''}`);
+    throw new Error(`Meta Graph API could not retrieve ${objectId}${status ? ` (HTTP ${status})` : ''}`);
   }
+};
+
+const getNextOtherAgentId = async (client: any, umrahAgentId: string) => {
+  await client.query(
+    `INSERT INTO meta_lead_assignment_state (assignment_key, last_agent_id)
+     VALUES ('other_forms', NULL)
+     ON CONFLICT (assignment_key) DO NOTHING`
+  );
+  const state = await client.query(
+    `SELECT last_agent_id
+     FROM meta_lead_assignment_state
+     WHERE assignment_key = 'other_forms'
+     FOR UPDATE`
+  );
+  const agents = await client.query(
+    "SELECT id FROM users WHERE role = 'agent' AND id <> $1 ORDER BY id",
+    [umrahAgentId]
+  );
+  if (agents.rowCount === 0) {
+    throw new Error('No other CRM agents are available for non-Umrah leads');
+  }
+
+  const agentIds = agents.rows.map((row: { id: string }) => String(row.id));
+  const lastIndex = agentIds.indexOf(String(state.rows[0].last_agent_id || ''));
+  const nextAgentId = agentIds[(lastIndex + 1) % agentIds.length];
+  await client.query(
+    `UPDATE meta_lead_assignment_state
+     SET last_agent_id = $1, updated_at = CURRENT_TIMESTAMP
+     WHERE assignment_key = 'other_forms'`,
+    [nextAgentId]
+  );
+  return nextAgentId;
 };
 
 export const importMetaLead = async (leadId: string, pageId: string, formId?: string, platform?: string) => {
   if (!/^\d+$/.test(leadId)) throw new Error('Meta lead ID is invalid');
+  if (formId && !/^\d+$/.test(formId)) throw new Error('Meta form ID is invalid');
 
-  const metaLead = await fetchMetaLead(leadId);
+  const metaLead = await graphApiGet<MetaLead>(leadId, 'id,created_time,form_id,field_data');
   const lead = mapMetaLead(metaLead, platform);
   if (!lead.phone) {
     throw new Error(`Meta lead ${leadId} has no phone number; include a phone field in the Meta form`);
   }
 
-  const agentId = process.env.META_DEFAULT_AGENT_ID;
-  if (!agentId) throw new Error('META_DEFAULT_AGENT_ID is not configured');
+  const umrahAgentId = process.env.META_UMRAH_AGENT_ID;
+  if (!umrahAgentId) throw new Error('META_UMRAH_AGENT_ID is not configured');
+  const resolvedFormId = formId || metaLead.form_id;
+  const form = resolvedFormId
+    ? await graphApiGet<MetaLeadForm>(resolvedFormId, 'id,name')
+    : undefined;
+  const isUmrah = Boolean(form?.name && isUmrahFormName(form.name));
 
   const client = await getClient();
   try {
@@ -129,11 +174,17 @@ export const importMetaLead = async (leadId: string, pageId: string, formId?: st
       return { imported: false, duplicate: true };
     }
 
-    const agent = await client.query(
-      "SELECT id FROM users WHERE id = $1 AND role = 'agent'",
-      [agentId]
-    );
-    if (agent.rowCount === 0) throw new Error('META_DEFAULT_AGENT_ID must identify an existing agent');
+    let agentId: string;
+    if (isUmrah) {
+      const agent = await client.query(
+        "SELECT id FROM users WHERE id = $1 AND role = 'agent'",
+        [umrahAgentId]
+      );
+      if (agent.rowCount === 0) throw new Error('META_UMRAH_AGENT_ID must identify an existing agent');
+      agentId = String(agent.rows[0].id);
+    } else {
+      agentId = await getNextOtherAgentId(client, umrahAgentId);
+    }
 
     const profileResult = await client.query(
       `INSERT INTO client_profiles (phone, name, email)

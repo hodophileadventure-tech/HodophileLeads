@@ -1,6 +1,11 @@
-import { mapMetaLead } from '../src/services/meta-lead-service';
+import { isUmrahFormName, mapMetaLead } from '../src/services/meta-lead-service';
 
 describe('Meta Lead Ads field mapping', () => {
+  it('identifies Umrah forms by their form name', () => {
+    expect(isUmrahFormName('Umrah Form-777')).toBe(true);
+    expect(isUmrahFormName('New 7 Nov 2026-copy')).toBe(false);
+  });
+
   it('maps common Meta form fields into a new CRM lead', () => {
     const lead = mapMetaLead({
       id: '12345',

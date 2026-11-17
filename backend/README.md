@@ -65,10 +65,10 @@ the Graph API, and imports it once into the CRM.
    for production.
 3. Configure the following backend environment variables (never put these in
    frontend code): `META_WEBHOOK_VERIFY_TOKEN`, `META_APP_SECRET`,
-   `META_PAGE_ACCESS_TOKEN`, `META_PAGE_ID`, and `META_DEFAULT_AGENT_ID`.
-   The default agent ID must be an existing CRM user whose role is `agent`
+   `META_PAGE_ACCESS_TOKEN`, `META_PAGE_ID`, and `META_UMRAH_AGENT_ID`.
+   The Umrah agent ID must be an existing CRM user whose role is `agent`
    (find candidates with `SELECT id, name, email FROM users WHERE role = 'agent';`).
-   `META_GRAPH_API_VERSION` is optional and defaults to `v24.0`.
+   `META_GRAPH_API_VERSION` is optional and defaults to `v27.0`.
 4. Set the Meta webhook callback URL to the endpoint above and use the exact
    `META_WEBHOOK_VERIFY_TOKEN` value as its verify token. Subscribe the Page
    to `leadgen` for the app.
@@ -76,7 +76,10 @@ the Graph API, and imports it once into the CRM.
    phone number; submissions without one cannot be imported and are reported
    in backend logs. Those submissions need to be handled from Meta separately.
 
-Set `META_PAGE_ID` to the Page ID you subscribed. Meta lead IDs are stored in
+Umrah forms (form names containing `umrah`) are assigned to `META_UMRAH_AGENT_ID`.
+Other forms are assigned in round-robin order to the remaining CRM users with
+the `agent` role. The assignment cursor is stored in
+`meta_lead_assignment_state`; all Meta lead IDs are stored in
 `meta_lead_imports` to prevent webhook retries from creating duplicate leads.
 
 ## Build
