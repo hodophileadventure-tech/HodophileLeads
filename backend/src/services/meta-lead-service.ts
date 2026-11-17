@@ -86,6 +86,11 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
 
 export const isUmrahFormName = (formName: string) => formName.toLowerCase().includes('umrah');
 
+const excludedOtherAgentNames = ['altamash', 'joti ashok', 'sameer khan', 'maqsood khan', 'test'];
+
+export const isEligibleOtherAgent = (name: string) =>
+  !excludedOtherAgentNames.includes(name.trim().toLowerCase());
+
 const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
   const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
   if (!accessToken) throw new Error('META_PAGE_ACCESS_TOKEN is not configured');
@@ -121,8 +126,13 @@ const getNextOtherAgentId = async (client: any, umrahAgentId: string) => {
      FOR UPDATE`
   );
   const agents = await client.query(
-    "SELECT id FROM users WHERE role = 'agent' AND id <> $1 ORDER BY id",
-    [umrahAgentId]
+    `SELECT id
+     FROM users
+     WHERE role = 'agent'
+       AND id <> $1
+       AND NOT (LOWER(TRIM(name)) = ANY($2::text[]))
+     ORDER BY id`,
+    [umrahAgentId, excludedOtherAgentNames]
   );
   if (agents.rowCount === 0) {
     throw new Error('No other CRM agents are available for non-Umrah leads');

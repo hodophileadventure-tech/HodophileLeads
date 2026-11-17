@@ -77,8 +77,9 @@ the Graph API, and imports it once into the CRM.
    in backend logs. Those submissions need to be handled from Meta separately.
 
 Umrah forms (form names containing `umrah`) are assigned to `META_UMRAH_AGENT_ID`.
-Other forms are assigned in round-robin order to the remaining CRM users with
-the `agent` role. The assignment cursor is stored in
+Other forms are assigned in round-robin order to CRM users with the `agent`
+role, excluding the Umrah agent and the accounts named Altamash, Joti Ashok,
+Sameer Khan, Maqsood Khan, and test. The assignment cursor is stored in
 `meta_lead_assignment_state`; all Meta lead IDs are stored in
 `meta_lead_imports` to prevent webhook retries from creating duplicate leads.
 

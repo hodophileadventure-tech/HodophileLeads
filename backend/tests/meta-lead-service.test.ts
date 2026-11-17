@@ -1,6 +1,16 @@
-import { isUmrahFormName, mapMetaLead } from '../src/services/meta-lead-service';
+import { isEligibleOtherAgent, isUmrahFormName, mapMetaLead } from '../src/services/meta-lead-service';
 
 describe('Meta Lead Ads field mapping', () => {
+  it('excludes the selected agents from non-Umrah round-robin assignment', () => {
+    expect(isEligibleOtherAgent('Altamash')).toBe(false);
+    expect(isEligibleOtherAgent('Joti Ashok')).toBe(false);
+    expect(isEligibleOtherAgent('Sameer Khan')).toBe(false);
+    expect(isEligibleOtherAgent('Maqsood Khan')).toBe(false);
+    expect(isEligibleOtherAgent('Sameer')).toBe(true);
+    expect(isEligibleOtherAgent('Ayman Maqsood')).toBe(true);
+    expect(isEligibleOtherAgent('Faryha Salman')).toBe(true);
+  });
+
   it('identifies Umrah forms by their form name', () => {
     expect(isUmrahFormName('Umrah Form-777')).toBe(true);
     expect(isUmrahFormName('New 7 Nov 2026-copy')).toBe(false);
