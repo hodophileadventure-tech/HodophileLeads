@@ -33,6 +33,7 @@ import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { FOLLOW_UP_ALARM_SNOOZE_MS, shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
+import { isCreativeRole as isCreativeRoleSlug, normalizeRoleSlug } from '../utils/role-utils';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks' | 'attendance' | 'trip-expenses';
 
@@ -334,6 +335,14 @@ export const App: React.FC = () => {
       return;
     }
 
+    if (isCreativeRoleSlug(user.role)) {
+      setLeads([]);
+      setFollowUps([]);
+      setLeadCounts({});
+      setLoading(false);
+      return;
+    }
+
     const fetchLeads = async () => {
       try {
         const [response, countsResponse] = await Promise.all([
@@ -361,7 +370,7 @@ export const App: React.FC = () => {
     };
 
     fetchLeads();
-  }, [user, setLeads]);
+  }, [user, setFollowUps, setLeads]);
 
 
 
@@ -518,12 +527,12 @@ export const App: React.FC = () => {
     return leads.find((lead) => String(lead.id) === String(activeAlarm.leadId)) || null;
   }, [activeAlarm, leads]);
 
-  const normalizedRole = String(user?.role || '').toLowerCase().replace(/\s+/g, '_');
-  const isCreativeRole = ['content_creator', 'video_editor'].includes(normalizedRole);
+  const normalizedRole = normalizeRoleSlug(user?.role);
+  const isCreative = isCreativeRoleSlug(normalizedRole);
   const isTaskAssignee = ['agent', 'software_engineer'].includes(normalizedRole);
   const isAdminLike = normalizedRole === 'admin' || normalizedRole === 'qa' || normalizedRole === 'quality_assurance';
 
-  const navItems = isCreativeRole
+  const navItems = isCreative
     ? [
         { label: 'Workspace', href: 'dashboard', icon: '🎬' },
         { label: 'My Tasks', href: 'dashboard', icon: '✅' },
@@ -665,7 +674,7 @@ export const App: React.FC = () => {
             )}
             {currentPage === 'dashboard' && (
               <div className="space-y-6">
-                {isCreativeRole ? (
+                {isCreative ? (
                   <CreativeWorkPanel />
                 ) : (
                   <>
@@ -744,7 +753,7 @@ export const App: React.FC = () => {
               <GitHistoryPanel />
             )}
 
-            {currentPage === 'leads' && (
+            {currentPage === 'leads' && !isCreative && (
               <LeadsPage
                 leads={leads}
                 leadCounts={leadCounts}
@@ -755,7 +764,7 @@ export const App: React.FC = () => {
               />
             )}
 
-            {currentPage === 'agent' && (
+            {currentPage === 'agent' && !isCreative && (
               <div className="space-y-6">
                 <div className="premium-page-header">
                   <p>🧭 Agent Hub</p>
@@ -852,7 +861,7 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'followups' && (
+            {currentPage === 'followups' && !isCreative && (
               <div className="space-y-6">
                 <div className="premium-page-header">
                   <p>✅ Task Management</p>

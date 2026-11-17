@@ -1,4 +1,9 @@
-import { isEligibleOtherAgent, isUmrahFormName, mapMetaLead } from '../src/services/meta-lead-service';
+import {
+  isEligibleOtherAgent,
+  isUmrahFormName,
+  mapMetaLead,
+  normalizeMetaPhone,
+} from '../src/services/meta-lead-service';
 
 describe('Meta Lead Ads field mapping', () => {
   it('excludes the selected agents from non-Umrah round-robin assignment', () => {
@@ -56,5 +61,11 @@ describe('Meta Lead Ads field mapping', () => {
 
     expect(lead.clientName).toBe('Taylor Person');
     expect(lead.source).toBe('facebook');
+  });
+
+  it('normalizes valid phone numbers and rejects Meta test placeholders instead of truncating', () => {
+    expect(normalizeMetaPhone('+31 (0) 6 1234 5678')).toBe('+310612345678');
+    expect(normalizeMetaPhone('<test lead: dummy data for whatsapp_number>')).toBeUndefined();
+    expect(normalizeMetaPhone('123456789012345678901')).toBeUndefined();
   });
 });

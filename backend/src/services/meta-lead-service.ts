@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { getClient } from '../utils/database';
+import { getClient, query } from '../utils/database';
 
 type MetaField = {
   name: string;
   values?: string[];
 };
 
-type MetaLead = {
+export type MetaLead = {
   id: string;
   created_time?: string;
   form_id?: string;
@@ -43,6 +43,17 @@ const parseNumber = (value?: string) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
+export const normalizeMetaPhone = (value?: string) => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (/^<\s*test lead:/i.test(trimmed)) return undefined;
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length < 7 || digits.length > 19) return undefined;
+
+  const normalized = `${trimmed.startsWith('+') ? '+' : ''}${digits}`;
+  return normalized.length <= 20 ? normalized : undefined;
+};
+
 export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
   const fields = metaLead.field_data || [];
   const values = fieldValueMap(fields);
@@ -50,7 +61,9 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
   const lastName = getFirstValue(values, 'lastname');
   const clientName = getFirstValue(values, 'fullname', 'name') ||
     [firstName, lastName].filter(Boolean).join(' ') || undefined;
-  const phone = getFirstValue(values, 'phonenumber', 'phone', 'mobile', 'mobilenumber', 'whatsappnumber');
+  const phone = normalizeMetaPhone(
+    getFirstValue(values, 'phonenumber', 'phone', 'mobile', 'mobilenumber', 'whatsappnumber')
+  );
   const email = getFirstValue(values, 'email');
   const destination = getFirstValue(values, 'destination', 'traveldestination', 'country', 'destinationcountry') ||
     Array.from(values.entries()).find(([key]) =>
@@ -92,12 +105,21 @@ export const isEligibleOtherAgent = (name: string, roleSlug: string | null | und
   roleSlug?.trim().toLowerCase() === 'agent' &&
   !excludedOtherAgentNames.includes(name.trim().toLowerCase());
 
+export class MetaLeadImportError extends Error {
+  constructor(message: string, readonly retryable: boolean) {
+    super(message);
+    this.name = 'MetaLeadImportError';
+  }
+}
+
 const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
   const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
-  if (!accessToken) throw new Error('META_PAGE_ACCESS_TOKEN is not configured');
+  if (!accessToken) throw new MetaLeadImportError('META_PAGE_ACCESS_TOKEN is not configured', false);
 
   const version = process.env.META_GRAPH_API_VERSION || 'v27.0';
-  if (!/^v\d+\.\d+$/.test(version)) throw new Error('META_GRAPH_API_VERSION must look like v27.0');
+  if (!/^v\d+\.\d+$/.test(version)) {
+    throw new MetaLeadImportError('META_GRAPH_API_VERSION must look like v27.0', false);
+  }
 
   try {
     const response = await axios.get<T>(`https://graph.facebook.com/${version}/${objectId}`, {
@@ -110,8 +132,29 @@ const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
     return response.data;
   } catch (error) {
     const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-    throw new Error(`Meta Graph API could not retrieve ${objectId}${status ? ` (HTTP ${status})` : ''}`);
+    const graphError = axios.isAxiosError(error) ? error.response?.data?.error : undefined;
+    const details = graphError?.message ? `: ${graphError.message}` : '';
+    const code = graphError?.code
+      ? ` (Meta code ${graphError.code}${graphError.error_subcode ? `/${graphError.error_subcode}` : ''})`
+      : '';
+    const retryable = status === undefined || status === 429 || status >= 500;
+    throw new MetaLeadImportError(
+      `Meta Graph API could not retrieve ${objectId}${status ? ` (HTTP ${status})` : ''}${details}${code}`,
+      retryable
+    );
   }
+};
+
+export const fetchMetaLeadById = (leadId: string) =>
+  graphApiGet<MetaLead>(leadId, 'id,created_time,form_id,field_data');
+
+export const isRetryableMetaLeadError = (error: unknown) => {
+  if (error instanceof MetaLeadImportError) return error.retryable;
+  const code = typeof error === 'object' && error && 'code' in error
+    ? String((error as { code?: unknown }).code || '')
+    : '';
+  if (code.startsWith('22') || code.startsWith('23')) return false;
+  return true;
 };
 
 const getNextOtherAgentId = async (client: any, umrahAgentId: string) => {
@@ -154,14 +197,26 @@ const getNextOtherAgentId = async (client: any, umrahAgentId: string) => {
   return nextAgentId;
 };
 
-export const importMetaLead = async (leadId: string, pageId: string, formId?: string, platform?: string) => {
-  if (!/^\d+$/.test(leadId)) throw new Error('Meta lead ID is invalid');
-  if (formId && !/^\d+$/.test(formId)) throw new Error('Meta form ID is invalid');
+export const importMetaLead = async (
+  leadId: string,
+  pageId: string,
+  formId?: string,
+  platform?: string,
+  cachedMetaLead?: MetaLead
+) => {
+  if (!/^\d+$/.test(leadId)) throw new MetaLeadImportError('Meta lead ID is invalid', false);
+  if (formId && !/^\d+$/.test(formId)) throw new MetaLeadImportError('Meta form ID is invalid', false);
 
-  const metaLead = await graphApiGet<MetaLead>(leadId, 'id,created_time,form_id,field_data');
+  const existingImport = await query(
+    'SELECT 1 FROM meta_lead_imports WHERE meta_lead_id = $1',
+    [leadId]
+  );
+  if (existingImport.rows.length > 0) return { imported: false, duplicate: true };
+
+  const metaLead = cachedMetaLead || await fetchMetaLeadById(leadId);
   const lead = mapMetaLead(metaLead, platform);
   if (!lead.phone) {
-    throw new Error(`Meta lead ${leadId} has no phone number; include a phone field in the Meta form`);
+    throw new MetaLeadImportError(`Meta lead ${leadId} has no valid phone number`, false);
   }
 
   const umrahAgentId = process.env.META_UMRAH_AGENT_ID;

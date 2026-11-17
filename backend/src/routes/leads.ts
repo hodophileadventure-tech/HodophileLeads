@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
-import { authMiddleware, validateUserExists } from '../middleware/auth';
+import { authMiddleware, roleMiddleware, validateUserExists } from '../middleware/auth';
 import { leadsController } from '../controllers/leads-controller';
 import { quoteRequestsController } from '../controllers/quote-requests-controller';
 
@@ -34,6 +34,7 @@ import { validateUuid } from '../utils/validation';
 
 leadsRouter.use(authMiddleware);
 leadsRouter.use(validateUserExists);
+leadsRouter.use(roleMiddleware(['admin', 'qa', 'manager', 'agent', 'software_engineer']));
 
 leadsRouter.param('id', (req, _res, next, id) => {
   try {

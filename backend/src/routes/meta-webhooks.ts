@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import express, { Router, Request, Response } from 'express';
-import { importMetaLead } from '../services/meta-lead-service';
+import { metaLeadWebhookEventModel } from '../models/MetaLeadWebhookEvent';
 
 export const metaWebhooksRouter = Router();
 
@@ -59,21 +59,19 @@ metaWebhooksRouter.post('/webhook', express.raw({ type: 'application/json', limi
         continue;
       }
       try {
-        const result = await importMetaLead(
-          String(value.leadgen_id),
-          String(value.page_id),
-          value.form_id ? String(value.form_id) : undefined,
-          value.platform ? String(value.platform) : undefined
+        const inserted = await metaLeadWebhookEventModel.enqueue({
+          metaLeadId: String(value.leadgen_id),
+          pageId: String(value.page_id),
+          formId: value.form_id ? String(value.form_id) : null,
+          platform: value.platform ? String(value.platform) : null,
+        });
+        console.info(
+          `[Meta webhook] ${inserted ? 'Queued' : 'Already queued'} lead ${value.leadgen_id}`
         );
-        if (result.duplicate) {
-          console.info(`[Meta webhook] Lead ${value.leadgen_id} was already imported`);
-        } else {
-          console.info(`[Meta webhook] Imported lead ${value.leadgen_id} as ${result.leadId}`);
-        }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown import error';
-        console.error(`[Meta webhook] Failed to import lead ${value.leadgen_id}: ${message}`);
-        return res.status(500).json({ message: 'Unable to import Meta lead; Meta may retry the webhook' });
+        console.error(`[Meta webhook] Failed to persist lead event ${value.leadgen_id}: ${message}`);
+        return res.status(503).json({ message: 'Unable to save Meta lead event; Meta may retry the webhook' });
       }
     }
   }

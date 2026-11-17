@@ -73,8 +73,9 @@ the Graph API, and imports it once into the CRM.
    `META_WEBHOOK_VERIFY_TOKEN` value as its verify token. Subscribe the Page
    to `leadgen` for the app.
 5. Include a phone-number field in each instant form. CRM leads require a
-   phone number; submissions without one cannot be imported and are reported
-   in backend logs. Those submissions need to be handled from Meta separately.
+   valid phone number. Phone values are normalized to digits and an optional
+   leading `+`; Meta test placeholders and values that cannot fit the CRM field
+   are rejected rather than truncated.
 
 Umrah forms (form names containing `umrah`) are assigned to `META_UMRAH_AGENT_ID`.
 Other forms are assigned in round-robin order to CRM users with the `agent`
@@ -82,6 +83,30 @@ role, excluding the Umrah agent and the accounts named Altamash, Joti Ashok,
 Sameer Khan, Maqsood Khan, and test. The assignment cursor is stored in
 `meta_lead_assignment_state`; all Meta lead IDs are stored in
 `meta_lead_imports` to prevent webhook retries from creating duplicate leads.
+
+The webhook first saves each lead event in `meta_lead_webhook_events` and only
+then acknowledges Meta. A background worker fetches and imports the lead, retries
+transient failures with capped exponential backoff, and records permanent
+failures for review. Successfully imported event payloads are cleared from the
+queue; payloads for failed imports remain available for recovery. To inspect
+failures, query:
+
+```sql
+SELECT meta_lead_id, form_id, status, retry_count, last_error, created_at
+FROM meta_lead_webhook_events
+WHERE status = 'failed'
+ORDER BY created_at DESC;
+```
+
+After correcting a configuration or data issue, an administrator can requeue
+one event from the database:
+
+```sql
+UPDATE meta_lead_webhook_events
+SET status = 'pending', retry_count = 0, last_error = NULL,
+    next_attempt_at = CURRENT_TIMESTAMP
+WHERE meta_lead_id = '<Meta lead ID>' AND status = 'failed';
+```
 
 ## Build
 

@@ -30,6 +30,7 @@ import { initWebsocket } from './utils/wsServer';
 import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
 import { startMonthlyPayrollWorker } from './workers/monthlyPayrollWorker';
 import { metaWebhooksRouter } from './routes/meta-webhooks';
+import { startMetaLeadWorker } from './workers/metaLeadWorker';
 
 dotenv.config();
 
@@ -203,6 +204,7 @@ const start = async () => {
     startScreenCaptureCleanup();
     startTaskOverdueWorker();
     startMonthlyPayrollWorker();
+    startMetaLeadWorker();
   } catch (err) {
     console.error('Failed to start background workers:', err);
   }

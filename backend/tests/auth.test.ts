@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { generateToken, verifyToken } from '../src/utils/auth';
 import { markLoginAttendance } from '../src/controllers/auth-controller';
+import { roleMiddleware } from '../src/middleware/auth';
 import { query } from '../src/utils/database';
 
 jest.mock('../src/utils/database', () => ({
@@ -42,5 +43,51 @@ describe('auth utils', () => {
     expect(sql).toContain('FROM attendance a');
     expect(sql).toContain('a.user_id = u.id');
     expect(sql).toContain('a.attendance_date = local_clock.attendance_date');
+  });
+});
+
+describe('lead route role access', () => {
+  const middleware = roleMiddleware(['admin', 'qa', 'manager', 'agent', 'software_engineer']);
+
+  it('blocks creative roles from sales lead routes', () => {
+    const req = { user: { role: 'graphic_designer' } } as any;
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    } as any;
+    const next = jest.fn();
+
+    middleware(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('allows sales agents on lead routes', () => {
+    const req = { user: { role: 'agent' } } as any;
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    } as any;
+    const next = jest.fn();
+
+    middleware(req, res, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('preserves software engineer lead-route access', () => {
+    const req = { user: { role: 'software_engineer' } } as any;
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    } as any;
+    const next = jest.fn();
+
+    middleware(req, res, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
   });
 });
