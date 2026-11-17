@@ -29,6 +29,7 @@ import { createServer } from 'http';
 import { initWebsocket } from './utils/wsServer';
 import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
 import { startMonthlyPayrollWorker } from './workers/monthlyPayrollWorker';
+import { metaWebhooksRouter } from './routes/meta-webhooks';
 
 dotenv.config();
 
@@ -80,6 +81,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use('/api/integrations/meta', metaWebhooksRouter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

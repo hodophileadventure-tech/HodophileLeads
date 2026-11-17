@@ -51,6 +51,34 @@ See `.env.example` for all required variables.
 
 PostgreSQL is required. See database/ folder for schema and seed data.
 
+## Meta Lead Ads integration
+
+The backend can receive Facebook and Instagram instant-form submissions at
+`https://<your-public-backend-host>/api/integrations/meta/webhook`. The endpoint
+verifies Meta's webhook challenge and request signature, fetches each lead from
+the Graph API, and imports it once into the CRM.
+
+1. Deploy the backend at a public HTTPS URL and run the database migrations.
+2. Create/configure a Meta app with the Webhooks product and subscribe to the
+   Page `leadgen` webhook field. The app needs `leads_retrieval` and
+   `pages_manage_metadata`; Meta may require app review/business verification
+   for production.
+3. Configure the following backend environment variables (never put these in
+   frontend code): `META_WEBHOOK_VERIFY_TOKEN`, `META_APP_SECRET`,
+   `META_PAGE_ACCESS_TOKEN`, `META_PAGE_ID`, and `META_DEFAULT_AGENT_ID`.
+   The default agent ID must be an existing CRM user whose role is `agent`
+   (find candidates with `SELECT id, name, email FROM users WHERE role = 'agent';`).
+   `META_GRAPH_API_VERSION` is optional and defaults to `v24.0`.
+4. Set the Meta webhook callback URL to the endpoint above and use the exact
+   `META_WEBHOOK_VERIFY_TOKEN` value as its verify token. Subscribe the Page
+   to `leadgen` for the app.
+5. Include a phone-number field in each instant form. CRM leads require a
+   phone number; submissions without one cannot be imported and are reported
+   in backend logs. Those submissions need to be handled from Meta separately.
+
+Set `META_PAGE_ID` to the Page ID you subscribed. Meta lead IDs are stored in
+`meta_lead_imports` to prevent webhook retries from creating duplicate leads.
+
 ## Build
 
 ```bash

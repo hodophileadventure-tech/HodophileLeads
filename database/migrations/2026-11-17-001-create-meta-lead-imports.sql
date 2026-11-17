@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS meta_lead_imports (
+  meta_lead_id VARCHAR(100) PRIMARY KEY,
+  page_id VARCHAR(100) NOT NULL,
+  form_id VARCHAR(100),
+  lead_id UUID REFERENCES leads(id) ON DELETE SET NULL,
+  imported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
