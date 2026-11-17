@@ -69,7 +69,7 @@ describe('Meta Lead Ads field mapping', () => {
     expect(normalizeMetaPhone('123456789012345678901')).toBeUndefined();
   });
 
-  it('uses the city field as destination without mistaking traveler count for a destination', () => {
+  it('does not use a home city or traveler count as the travel destination', () => {
     const lead = mapMetaLead({
       id: '12345',
       field_data: [
@@ -78,7 +78,7 @@ describe('Meta Lead Ads field mapping', () => {
       ],
     });
 
-    expect(lead.destination).toBe('Karachi');
+    expect(lead.destination).toBeUndefined();
   });
 
   it('does not use a traveler-count answer as destination when no destination field exists', () => {
@@ -90,5 +90,16 @@ describe('Meta Lead Ads field mapping', () => {
     });
 
     expect(lead.destination).toBeUndefined();
+  });
+
+  it('maps an explicit travel question to the requested destination', () => {
+    const lead = mapMetaLead({
+      id: '12345',
+      field_data: [
+        { name: 'where_would_you_like_to_travel?', values: ['Hunza'] },
+      ],
+    });
+
+    expect(lead.destination).toBe('Hunza');
   });
 });

@@ -69,9 +69,7 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
     values,
     'destination',
     'traveldestination',
-    'country',
     'destinationcountry',
-    'city'
   ) ||
     Array.from(values.entries()).find(([key]) =>
       key.includes('destination') || /^(where|which|what).*(travel|trip|visit|go)/.test(key)

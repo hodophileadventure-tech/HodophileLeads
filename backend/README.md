@@ -83,8 +83,8 @@ role, excluding the Umrah agent and the accounts named Altamash, Joti Ashok,
 Sameer Khan, Maqsood Khan, and test. The assignment cursor is stored in
 `meta_lead_assignment_state`; all Meta lead IDs are stored in
 `meta_lead_imports` to prevent webhook retries from creating duplicate leads.
-The Meta form's `city` answer is treated as the travel destination; traveler
-count answers are never used as destinations.
+Destination is mapped only from explicit destination fields or travel-location
+questions; generic city and traveler-count answers are not treated as destinations.
 
 The webhook first saves each lead event in `meta_lead_webhook_events` and only
 then acknowledges Meta. A background worker fetches and imports the lead, retries
