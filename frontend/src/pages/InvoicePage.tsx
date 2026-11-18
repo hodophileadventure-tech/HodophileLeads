@@ -18,6 +18,13 @@ import './InvoicePage.css';
 
 type Row = { id: string; particulars: string; persons: string; price: string; amount: string };
 
+const defaultFooterNotes = [
+  'Detailed Itinerary already shared with you via provided WhatsApp number. ONLY ONE JEEP ride includes in package.',
+  'NOTE: ONLY ONE JEEP ride includes in package, other than pay yourself.',
+  'You are requested to read and follow our TERMS & CONDITIONS as mentioned in detailed trip itinerary.',
+  'Please cooperate with your Driver cum Guide.',
+];
+
 type InvoicePageProps = {
   onPreviewGenerated?: (dataUrl: string) => void;
   generatePreviewOnMount?: boolean;
@@ -74,9 +81,18 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
 
   const [discount, setDiscount] = useState<string>('');
   const [advance, setAdvance] = useState<string>('');
+  const [footerNotes, setFooterNotes] = useState<string[]>(defaultFooterNotes);
 
   const previewCanvasRef = useRef<HTMLDivElement | null>(null);
   const previewDocRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!initialDocumentData) return;
+    const savedNotes = initialDocumentData.footerNotes;
+    if (Array.isArray(savedNotes)) {
+      setFooterNotes(savedNotes.map((note) => String(note)));
+    }
+  }, [initialDocumentData]);
 
   // Debug helper: if `?forcePreview=1` or `?mockInvoice=1` is present, populate sample data
   React.useEffect(() => {
@@ -138,6 +154,9 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   const addRow = () =>
     setRows((c) => [...c, { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' }]);
   const removeRow = (id: string) => setRows((c) => c.filter((r) => r.id !== id));
+  const updateFooterNote = (index: number, value: string) => {
+    setFooterNotes((current) => current.map((note, noteIndex) => (noteIndex === index ? value : note)));
+  };
 
   const subtotal = useMemo(() => rows.reduce((s, r) => s + parseNumber(r.amount), 0), [rows]);
   const discountValue = useMemo(() => Math.round((subtotal * parseNumber(discount)) / 100), [subtotal, discount]);
@@ -335,6 +354,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         packageIncludes: rows.map((row) => row.particulars).filter(Boolean),
         packageName: destination,
         packageDescription: destination,
+        footerNotes,
         amount: String(totalDue),
       };
 
@@ -436,6 +456,21 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
           <div>
             <label>Balance Due</label>
             <input value={balance.toLocaleString('en-US')} readOnly />
+          </div>
+
+          <div className="invoice-form-spanning">
+            <label>Invoice Notes</label>
+            <div className="invoice-footer-notes-editor">
+              {footerNotes.map((note, index) => (
+                <textarea
+                  key={index}
+                  rows={2}
+                  value={note}
+                  aria-label={`Invoice note ${index + 1}`}
+                  onChange={(event) => updateFooterNote(index, event.target.value)}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="invoice-form-actions">
@@ -566,10 +601,9 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
 
             <section className="invoice-footer-notes">
               <ul>
-                <li>Detailed Itinerary already shared with you via provided WhatsApp number. <strong>ONLY ONE JEEP ride includes in package.</strong></li>
-                <li><strong className="invoice-note">NOTE:</strong> ONLY ONE JEEP ride includes in package, other than pay yourself.</li>
-                <li>You are requested to read and follow our <strong>TERMS & CONDITIONS</strong> as mentioned in detailed trip itinerary.</li>
-                <li>Please cooperate with your Driver cum Guide.</li>
+                {footerNotes.map((note, index) => (
+                  <li key={index}>{note}</li>
+                ))}
               </ul>
             </section>
 

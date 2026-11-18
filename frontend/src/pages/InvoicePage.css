@@ -86,6 +86,23 @@ body {
   background: #f9fafb;
 }
 
+.invoice-form-grid textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #111827;
+  background: #f9fafb;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.invoice-footer-notes-editor {
+  display: grid;
+  gap: 8px;
+}
+
 .invoice-form-spanning {
   grid-column: 1 / -1;
   display: grid;
