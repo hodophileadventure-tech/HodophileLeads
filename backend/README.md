@@ -115,6 +115,27 @@ SET status = 'pending', retry_count = 0, last_error = NULL,
 WHERE meta_lead_id = '<Meta lead ID>' AND status = 'failed';
 ```
 
+## WhatsApp Cloud API chat
+
+The CRM can receive and send WhatsApp messages through the official Meta WhatsApp
+Cloud API. Configure these backend environment variables (never expose the
+tokens in frontend code):
+
+- `WA_ACCESS_TOKEN`
+- `WA_PHONE_NUMBER_ID`
+- `WA_WEBHOOK_VERIFY_TOKEN`
+- `META_APP_SECRET` (shared webhook signature verification)
+- `META_GRAPH_API_VERSION` (optional, defaults to `v27.0`)
+
+Subscribe the WhatsApp product to the backend callback:
+`https://<public-backend-host>/api/integrations/whatsapp/webhook`.
+Subscribe to `messages` and complete Meta's webhook verification using
+`WA_WEBHOOK_VERIFY_TOKEN`.
+
+Incoming webhook messages are matched to CRM leads by normalized phone number,
+stored in `whatsapp_conversations` and `whatsapp_messages`, and pushed to the
+assigned agent through the existing WebSocket connection.
+
 ## Build
 
 ```bash

@@ -20,6 +20,8 @@ async function initWS(_token: string | null, _userId: string, onNotification: (n
         const msg = JSON.parse(evt.data);
         if (msg?.event === 'notification') {
           onNotification(msg.payload);
+        } else if (msg?.event === 'whatsapp-message') {
+          window.dispatchEvent(new CustomEvent('whatsapp-message', { detail: msg.payload }));
         } else if (msg?.event === 'screen-capture-request' || msg?.event === 'screen-capture-result') {
           window.dispatchEvent(new CustomEvent(msg.event, { detail: msg.payload }));
         }

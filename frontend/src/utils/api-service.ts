@@ -71,6 +71,13 @@ export const attachmentsAPI = {
 // search leads by phone for profile-centric lookup
 (leadsAPI as any).searchByPhone = (phone: string) => apiClient.get(`/leads/search`, { params: { phone } });
 
+export const whatsappAPI = {
+  listMessages: (leadId: string) =>
+    apiClient.get(`/integrations/whatsapp/conversations/${leadId}/messages`),
+  sendMessage: (leadId: string, text: string) =>
+    apiClient.post(`/integrations/whatsapp/conversations/${leadId}/messages`, { text }),
+};
+
 export const followUpsAPI = {
   list: (leadId?: string) => apiClient.get<FollowUp[]>('/follow-ups', { params: { leadId } }),
   create: (data: Partial<FollowUp>) => apiClient.post<FollowUp>('/follow-ups', data),
