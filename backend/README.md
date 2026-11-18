@@ -100,6 +100,11 @@ WHERE status = 'failed'
 ORDER BY created_at DESC;
 ```
 
+Meta access-token errors (Graph API code `190`) are retried with backoff even
+after the normal retry limit. Previously failed token-error events are picked
+up for another attempt after 15 minutes, so replacing an expired token in the
+backend environment does not require manually requeuing those events.
+
 After correcting a configuration or data issue, an administrator can requeue
 one event from the database:
 

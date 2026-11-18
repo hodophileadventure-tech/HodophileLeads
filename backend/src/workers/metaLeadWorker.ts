@@ -3,6 +3,7 @@ import { metaLeadWebhookEventModel } from '../models/MetaLeadWebhookEvent';
 import {
   fetchMetaLeadById,
   importMetaLead,
+  isMetaLeadAuthError,
   isRetryableMetaLeadError,
 } from '../services/meta-lead-service';
 
@@ -47,11 +48,14 @@ export const processMetaLeadEvents = async () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown import error';
       const retryable = isRetryableMetaLeadError(error);
+      const authError = isMetaLeadAuthError(error);
       try {
-        if (retryable && event.retryCount < MAX_ATTEMPTS) {
+        if (retryable && (authError || event.retryCount < MAX_ATTEMPTS)) {
           const nextAttemptAt = new Date(Date.now() + getMetaLeadRetryDelayMs(event.retryCount)).toISOString();
           await metaLeadWebhookEventModel.scheduleRetry(event.metaLeadId, message, nextAttemptAt);
-          console.warn(`[Meta Lead Worker] Retry scheduled for ${event.metaLeadId}: ${message}`);
+          console.warn(
+            `[Meta Lead Worker] Retry scheduled for ${event.metaLeadId}${authError ? ' (Meta token/auth error; will keep retrying until resolved)' : ''}: ${message}`
+          );
         } else {
           await metaLeadWebhookEventModel.markFailed(event.metaLeadId, message);
           console.error(`[Meta Lead Worker] Permanently failed ${event.metaLeadId}: ${message}`);

@@ -45,6 +45,11 @@ export const metaLeadWebhookEventModel = {
          FROM meta_lead_webhook_events
          WHERE (status = 'pending' AND next_attempt_at <= CURRENT_TIMESTAMP)
             OR (status = 'processing' AND updated_at < CURRENT_TIMESTAMP - INTERVAL '10 minutes')
+            OR (
+              status = 'failed'
+              AND last_error LIKE '%(Meta code 190%'
+              AND updated_at < CURRENT_TIMESTAMP - INTERVAL '15 minutes'
+            )
          ORDER BY created_at
          LIMIT $1
          FOR UPDATE SKIP LOCKED

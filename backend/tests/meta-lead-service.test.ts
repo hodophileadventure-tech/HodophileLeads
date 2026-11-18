@@ -1,5 +1,6 @@
 import {
   isEligibleOtherAgent,
+  isRetryableMetaGraphError,
   isUmrahFormName,
   mapMetaLead,
   normalizeMetaPhone,
@@ -67,6 +68,12 @@ describe('Meta Lead Ads field mapping', () => {
     expect(normalizeMetaPhone('+31 (0) 6 1234 5678')).toBe('+310612345678');
     expect(normalizeMetaPhone('<test lead: dummy data for whatsapp_number>')).toBeUndefined();
     expect(normalizeMetaPhone('123456789012345678901')).toBeUndefined();
+  });
+
+  it('treats expired Meta access tokens as recoverable but not ordinary permission errors', () => {
+    expect(isRetryableMetaGraphError(400, 190)).toBe(true);
+    expect(isRetryableMetaGraphError(400, 10)).toBe(false);
+    expect(isRetryableMetaGraphError(503, 1)).toBe(true);
   });
 
   it('does not use a home city or traveler count as the travel destination', () => {

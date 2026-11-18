@@ -111,11 +111,18 @@ export const isEligibleOtherAgent = (name: string, roleSlug: string | null | und
   !excludedOtherAgentNames.includes(name.trim().toLowerCase());
 
 export class MetaLeadImportError extends Error {
-  constructor(message: string, readonly retryable: boolean) {
+  constructor(
+    message: string,
+    readonly retryable: boolean,
+    readonly authError = false
+  ) {
     super(message);
     this.name = 'MetaLeadImportError';
   }
 }
+
+export const isRetryableMetaGraphError = (status?: number, graphCode?: number) =>
+  graphCode === 190 || status === undefined || status === 429 || status >= 500;
 
 const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
   const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
@@ -142,10 +149,12 @@ const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
     const code = graphError?.code
       ? ` (Meta code ${graphError.code}${graphError.error_subcode ? `/${graphError.error_subcode}` : ''})`
       : '';
-    const retryable = status === undefined || status === 429 || status >= 500;
+    const authError = Number(graphError?.code) === 190;
+    const retryable = isRetryableMetaGraphError(status, Number(graphError?.code));
     throw new MetaLeadImportError(
       `Meta Graph API could not retrieve ${objectId}${status ? ` (HTTP ${status})` : ''}${details}${code}`,
-      retryable
+      retryable,
+      authError
     );
   }
 };
@@ -161,6 +170,9 @@ export const isRetryableMetaLeadError = (error: unknown) => {
   if (code.startsWith('22') || code.startsWith('23')) return false;
   return true;
 };
+
+export const isMetaLeadAuthError = (error: unknown) =>
+  error instanceof MetaLeadImportError && error.authError;
 
 const getNextOtherAgentId = async (client: any, umrahAgentId: string) => {
   await client.query(

@@ -11,6 +11,7 @@ jest.mock('../src/models/MetaLeadWebhookEvent', () => ({
 jest.mock('../src/services/meta-lead-service', () => ({
   fetchMetaLeadById: jest.fn(),
   importMetaLead: jest.fn(),
+  isMetaLeadAuthError: jest.fn((error: { authError?: boolean }) => error.authError === true),
   isRetryableMetaLeadError: jest.fn((error: { retryable?: boolean }) => error.retryable !== false),
 }));
 
@@ -87,5 +88,27 @@ describe('Meta lead webhook worker', () => {
 
     expect(mockedModel.markFailed).toHaveBeenCalledWith('12345', 'still unavailable');
     expect(mockedModel.scheduleRetry).not.toHaveBeenCalled();
+  });
+
+  it('keeps retrying token errors after the normal retry limit', async () => {
+    mockedModel.reservePending.mockResolvedValue([
+      { ...event, leadPayload: { id: '12345' }, retryCount: 20 },
+    ]);
+    const expiredTokenError = new Error('Meta token expired') as Error & {
+      retryable: boolean;
+      authError: boolean;
+    };
+    expiredTokenError.retryable = true;
+    expiredTokenError.authError = true;
+    mockedImportMetaLead.mockRejectedValue(expiredTokenError);
+
+    await processMetaLeadEvents();
+
+    expect(mockedModel.scheduleRetry).toHaveBeenCalledWith(
+      '12345',
+      'Meta token expired',
+      expect.any(String)
+    );
+    expect(mockedModel.markFailed).not.toHaveBeenCalled();
   });
 });
