@@ -141,7 +141,14 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
 
 export const isUmrahFormName = (formName: string) => formName.toLowerCase().includes('umrah');
 
-const excludedOtherAgentNames = ['altamash', 'joti ashok', 'sameer khan', 'maqsood khan', 'test'];
+const excludedOtherAgentNames = [
+  'altamash',
+  'amna',
+  'joti ashok',
+  'sameer khan',
+  'maqsood khan',
+  'test',
+];
 
 export const isEligibleOtherAgent = (name: string, roleSlug: string | null | undefined) =>
   roleSlug?.trim().toLowerCase() === 'agent' &&

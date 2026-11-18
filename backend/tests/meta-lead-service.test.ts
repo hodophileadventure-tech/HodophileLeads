@@ -14,6 +14,7 @@ describe('Meta Lead Ads field mapping', () => {
     expect(isEligibleOtherAgent('Joti Ashok', 'agent')).toBe(false);
     expect(isEligibleOtherAgent('Sameer Khan', 'agent')).toBe(false);
     expect(isEligibleOtherAgent('Maqsood Khan', 'agent')).toBe(false);
+    expect(isEligibleOtherAgent('Amna', 'agent')).toBe(false);
     expect(isEligibleOtherAgent('Sameer', 'agent')).toBe(true);
     expect(isEligibleOtherAgent('Ayman Maqsood', 'agent')).toBe(true);
     expect(isEligibleOtherAgent('Faryha Salman', 'agent')).toBe(true);
