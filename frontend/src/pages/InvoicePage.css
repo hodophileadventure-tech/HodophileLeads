@@ -103,6 +103,37 @@ body {
   gap: 8px;
 }
 
+.invoice-footer-note-editor {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.invoice-footer-note-colors {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.invoice-footer-note-colors label {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.invoice-footer-note-colors input[type='color'] {
+  width: 44px;
+  height: 36px;
+  padding: 3px;
+}
+
 .invoice-form-spanning {
   grid-column: 1 / -1;
   display: grid;

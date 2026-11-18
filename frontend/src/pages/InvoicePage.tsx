@@ -18,12 +18,28 @@ import './InvoicePage.css';
 
 type Row = { id: string; particulars: string; persons: string; price: string; amount: string };
 
+type FooterNote = {
+  text: string;
+  color: string;
+  highlights: string;
+  highlightColor: string;
+};
+
 const defaultFooterNotes = [
   'Detailed Itinerary already shared with you via provided WhatsApp number. ONLY ONE JEEP ride includes in package.',
   'NOTE: ONLY ONE JEEP ride includes in package, other than pay yourself.',
   'You are requested to read and follow our TERMS & CONDITIONS as mentioned in detailed trip itinerary.',
   'Please cooperate with your Driver cum Guide.',
 ];
+
+const defaultFooterNoteColors = ['#000000', '#b91c1c', '#000000', '#000000'];
+const createDefaultFooterNotes = (): FooterNote[] =>
+  defaultFooterNotes.map((text, index) => ({
+    text,
+    color: defaultFooterNoteColors[index],
+    highlights: index === 1 ? 'NOTE:' : index === 0 ? 'ONLY ONE JEEP ride includes in package.' : index === 2 ? 'TERMS & CONDITIONS' : '',
+    highlightColor: index === 1 || index === 0 || index === 2 ? '#b91c1c' : '#000000',
+  }));
 
 type InvoicePageProps = {
   onPreviewGenerated?: (dataUrl: string) => void;
@@ -81,7 +97,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
 
   const [discount, setDiscount] = useState<string>('');
   const [advance, setAdvance] = useState<string>('');
-  const [footerNotes, setFooterNotes] = useState<string[]>(defaultFooterNotes);
+  const [footerNotes, setFooterNotes] = useState<FooterNote[]>(() => createDefaultFooterNotes());
 
   const previewCanvasRef = useRef<HTMLDivElement | null>(null);
   const previewDocRef = useRef<HTMLDivElement | null>(null);
@@ -90,7 +106,22 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     if (!initialDocumentData) return;
     const savedNotes = initialDocumentData.footerNotes;
     if (Array.isArray(savedNotes)) {
-      setFooterNotes(savedNotes.map((note) => String(note)));
+      setFooterNotes(savedNotes.map((note, index) => {
+        if (typeof note === 'string') {
+          return {
+            text: note,
+            color: defaultFooterNoteColors[index] || '#000000',
+            highlights: '',
+            highlightColor: '#b91c1c',
+          };
+        }
+        return {
+          text: String(note.text || ''),
+          color: String(note.color || '#000000'),
+          highlights: String(note.highlights || ''),
+          highlightColor: String(note.highlightColor || '#b91c1c'),
+        };
+      }));
     }
   }, [initialDocumentData]);
 
@@ -155,7 +186,47 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     setRows((c) => [...c, { id: crypto.randomUUID(), particulars: '', persons: '', price: '', amount: '' }]);
   const removeRow = (id: string) => setRows((c) => c.filter((r) => r.id !== id));
   const updateFooterNote = (index: number, value: string) => {
-    setFooterNotes((current) => current.map((note, noteIndex) => (noteIndex === index ? value : note)));
+    setFooterNotes((current) => current.map((note, noteIndex) => (noteIndex === index ? { ...note, text: value } : note)));
+  };
+  const updateFooterNoteColor = (index: number, field: 'color' | 'highlightColor', value: string) => {
+    setFooterNotes((current) => current.map((note, noteIndex) => (
+      noteIndex === index ? { ...note, [field]: value } : note
+    )));
+  };
+  const updateFooterNoteHighlights = (index: number, value: string) => {
+    setFooterNotes((current) => current.map((note, noteIndex) => (
+      noteIndex === index ? { ...note, highlights: value } : note
+    )));
+  };
+  const renderFooterNote = (note: FooterNote) => {
+    const highlightTerms = note.highlights
+      .split(',')
+      .map((term) => term.trim())
+      .filter(Boolean);
+
+    const lines = note.text.split('\n');
+    return lines.map((line, lineIndex) => {
+      let content: React.ReactNode = line;
+      if (highlightTerms.length > 0) {
+        const pattern = highlightTerms
+          .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          .join('|');
+        const parts = line.split(new RegExp(`(${pattern})`, 'g'));
+        content = parts.map((part, partIndex) => (
+          <React.Fragment key={partIndex}>
+            {highlightTerms.includes(part)
+              ? <strong style={{ color: note.highlightColor }}>{part}</strong>
+              : part}
+          </React.Fragment>
+        ));
+      }
+      return (
+        <React.Fragment key={lineIndex}>
+          {lineIndex > 0 && <br />}
+          {content}
+        </React.Fragment>
+      );
+    });
   };
 
   const subtotal = useMemo(() => rows.reduce((s, r) => s + parseNumber(r.amount), 0), [rows]);
@@ -462,13 +533,43 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
             <label>Invoice Notes</label>
             <div className="invoice-footer-notes-editor">
               {footerNotes.map((note, index) => (
-                <textarea
-                  key={index}
-                  rows={2}
-                  value={note}
-                  aria-label={`Invoice note ${index + 1}`}
-                  onChange={(event) => updateFooterNote(index, event.target.value)}
-                />
+                <div className="invoice-footer-note-editor" key={index}>
+                  <textarea
+                    rows={3}
+                    value={note.text}
+                    aria-label={`Invoice note ${index + 1}`}
+                    onChange={(event) => updateFooterNote(index, event.target.value)}
+                  />
+                  <div className="invoice-footer-note-colors">
+                    <label>
+                      Text
+                      <input
+                        type="color"
+                        value={note.color}
+                        onChange={(event) => updateFooterNoteColor(index, 'color', event.target.value)}
+                        aria-label={`Text color for invoice note ${index + 1}`}
+                      />
+                    </label>
+                    <label>
+                      Highlight words
+                      <input
+                        type="text"
+                        value={note.highlights}
+                        onChange={(event) => updateFooterNoteHighlights(index, event.target.value)}
+                        placeholder="NOTE:, TERMS & CONDITIONS"
+                      />
+                    </label>
+                    <label>
+                      Highlight
+                      <input
+                        type="color"
+                        value={note.highlightColor}
+                        onChange={(event) => updateFooterNoteColor(index, 'highlightColor', event.target.value)}
+                        aria-label={`Highlight color for invoice note ${index + 1}`}
+                      />
+                    </label>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -602,7 +703,9 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
             <section className="invoice-footer-notes">
               <ul>
                 {footerNotes.map((note, index) => (
-                  <li key={index}>{note}</li>
+                  <li key={index} style={{ color: note.color, whiteSpace: 'pre-wrap' }}>
+                    {renderFooterNote(note)}
+                  </li>
                 ))}
               </ul>
             </section>
