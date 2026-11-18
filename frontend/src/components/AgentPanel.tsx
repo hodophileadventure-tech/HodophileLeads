@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { leadsAPI, followUpsAPI, attachmentsAPI, adminAPI, quoteRequestsAPI } from '../utils/api-service';
 import { LeadForm } from './LeadForm';
@@ -35,6 +35,9 @@ export const AgentPanel: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
+  const handlePreviewGenerated = useCallback((dataUrl: string) => {
+    setPreviewDataUrl(dataUrl || null);
+  }, []);
   // These setters are intentionally no-ops for AgentPanel since loading/errors
   // are handled inside the Created Quotations tab UI. Keep setters to avoid
   // changing other call sites that expect them.
@@ -814,7 +817,7 @@ export const AgentPanel: React.FC = () => {
                     viewOnly
                     initialDocumentData={selectedRequest.documentData}
                     generatePreviewOnMount
-                    onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl || null)}
+                    onPreviewGenerated={handlePreviewGenerated}
                   />
                 ) : (
                   <QuoteInvoicePage
@@ -836,7 +839,7 @@ export const AgentPanel: React.FC = () => {
                     initialQuotationNumber={selectedRequest.quotationNumber}
                     viewOnly={true}
                     generatePreviewOnMount
-                    onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl || null)}
+                    onPreviewGenerated={handlePreviewGenerated}
                   />
                 )}
               </div>

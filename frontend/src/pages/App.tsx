@@ -848,7 +848,7 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-col gap-2">
-                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event(selectedQuoteRequest.requestType === 'invoice' ? 'generate-invoice-preview' : 'generate-quote-preview'))}>Regenerate</button>
                           {previewDataUrl && (
                             <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                           )}
@@ -1111,7 +1111,7 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-col gap-2 flex-shrink-0">
-                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event(selectedQuoteRequest.requestType === 'invoice' ? 'generate-invoice-preview' : 'generate-quote-preview'))}>Regenerate</button>
                           {previewDataUrl && (
                             <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                           )}
@@ -1563,7 +1563,7 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-col gap-2 flex-shrink-0">
-                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event(selectedQuoteRequest.requestType === 'invoice' ? 'generate-invoice-preview' : 'generate-quote-preview'))}>Regenerate</button>
                           {previewDataUrl && (
                             <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                           )}

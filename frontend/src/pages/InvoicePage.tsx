@@ -100,12 +100,17 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   const [discount, setDiscount] = useState<string>('');
   const [advance, setAdvance] = useState<string>('');
   const [footerNotes, setFooterNotes] = useState<FooterNote[]>(() => createDefaultFooterNotes());
+  const [isHydrated, setIsHydrated] = useState(!initialDocumentData);
 
   const previewCanvasRef = useRef<HTMLDivElement | null>(null);
   const previewDocRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!initialDocumentData) return;
+    if (!initialDocumentData) {
+      setIsHydrated(true);
+      return;
+    }
+    setIsHydrated(false);
     setDate(initialDocumentData.date || new Date().toISOString().split('T')[0]);
     setTravelDate(initialDocumentData.travelDate || new Date().toISOString().split('T')[0]);
     setPersons(initialDocumentData.persons || '');
@@ -146,6 +151,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
         };
       }));
     }
+    const frameId = window.requestAnimationFrame(() => setIsHydrated(true));
+    return () => window.cancelAnimationFrame(frameId);
   }, [initialDocumentData]);
 
   // Debug helper: if `?forcePreview=1` or `?mockInvoice=1` is present, populate sample data
@@ -173,6 +180,10 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   useEffect(() => {
     let active = true;
     const loadInvoiceNumber = async () => {
+      if (initialDocumentData?.invoiceNumber && date === initialDocumentData.date) {
+        setInvoiceNumber(initialDocumentData.invoiceNumber);
+        return;
+      }
       const nextNumber = await fetchNextInvoiceNumber(date);
       if (active) {
         setInvoiceNumber(nextNumber);
@@ -182,7 +193,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
     return () => {
       active = false;
     };
-  }, [date]);
+  }, [date, initialDocumentData]);
 
 
   const parseNumber = (v: string) => {
@@ -286,9 +297,12 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   }, [onPreviewGenerated]);
 
   React.useEffect(() => {
-    if (!generatePreviewOnMount || !onPreviewGenerated) return;
-    generatePreview();
-  }, [generatePreview, generatePreviewOnMount, onPreviewGenerated]);
+    if (!generatePreviewOnMount || !onPreviewGenerated || !isHydrated) return;
+    const timeoutId = window.setTimeout(() => {
+      generatePreview();
+    }, 300);
+    return () => window.clearTimeout(timeoutId);
+  }, [generatePreview, generatePreviewOnMount, onPreviewGenerated, isHydrated]);
 
   React.useEffect(() => {
     const listener = async () => {
