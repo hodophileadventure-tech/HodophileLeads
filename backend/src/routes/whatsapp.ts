@@ -51,6 +51,7 @@ whatsappRouter.get('/webhook', (req: Request, res: Response) => {
   const challenge = req.query['hub.challenge'];
   if (verifyToken && mode === 'subscribe' && typeof token === 'string' &&
       constantTimeEquals(token, verifyToken)) {
+    res.set('Content-Type', 'text/plain');
     return res.status(200).send(typeof challenge === 'string' ? challenge : '');
   }
   return res.sendStatus(403);

@@ -128,7 +128,7 @@ tokens in frontend code):
 - `META_GRAPH_API_VERSION` (optional, defaults to `v27.0`)
 
 Subscribe the WhatsApp product to the backend callback:
-`https://<public-backend-host>/api/integrations/whatsapp/webhook`.
+`https://www.leadmanagerhodophile.nl/api/integrations/whatsapp/webhook`.
 Subscribe to `messages` and complete Meta's webhook verification using
 `WA_WEBHOOK_VERIFY_TOKEN`.
 
