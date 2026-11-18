@@ -1,9 +1,11 @@
 import {
   isEligibleOtherAgent,
+  inferMetaPlatformFromAd,
   isRetryableMetaGraphError,
   isUmrahFormName,
   mapMetaLead,
   normalizeMetaPhone,
+  normalizeMetaPlatform,
 } from '../src/services/meta-lead-service';
 
 describe('Meta Lead Ads field mapping', () => {
@@ -108,5 +110,28 @@ describe('Meta Lead Ads field mapping', () => {
     });
 
     expect(lead.destination).toBe('Hunza');
+  });
+
+  it('normalizes Facebook and Instagram platform values', () => {
+    expect(normalizeMetaPlatform('fb')).toBe('facebook');
+    expect(normalizeMetaPlatform('Facebook')).toBe('facebook');
+    expect(normalizeMetaPlatform('ig')).toBe('instagram');
+    expect(normalizeMetaPlatform('Instagram')).toBe('instagram');
+
+    const instagramLead = mapMetaLead({
+      id: '12345',
+      platform: 'ig',
+      field_data: [{ name: 'phone', values: ['123456789'] }],
+    });
+    expect(instagramLead.source).toBe('instagram');
+  });
+
+  it('infers Instagram from Instagram creative placement metadata', () => {
+    expect(inferMetaPlatformFromAd({
+      creative: { instagram_actor_id: '123456' },
+    })).toBe('instagram');
+    expect(inferMetaPlatformFromAd({
+      adset: { targeting: { publisher_platforms: ['instagram'] } },
+    })).toBe('instagram');
   });
 });

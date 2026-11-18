@@ -59,11 +59,12 @@ metaWebhooksRouter.post('/webhook', express.raw({ type: 'application/json', limi
         continue;
       }
       try {
+        const platform = value.platform || change.platform || entry.platform || payload.platform;
         const inserted = await metaLeadWebhookEventModel.enqueue({
           metaLeadId: String(value.leadgen_id),
           pageId: String(value.page_id),
           formId: value.form_id ? String(value.form_id) : null,
-          platform: value.platform ? String(value.platform) : null,
+          platform: platform ? String(platform) : null,
         });
         console.info(
           `[Meta webhook] ${inserted ? 'Queued' : 'Already queued'} lead ${value.leadgen_id}`

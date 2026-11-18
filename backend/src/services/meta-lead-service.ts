@@ -10,6 +10,8 @@ export type MetaLead = {
   id: string;
   created_time?: string;
   form_id?: string;
+  platform?: string;
+  ad_id?: string;
   field_data?: MetaField[];
 };
 
@@ -54,6 +56,40 @@ export const normalizeMetaPhone = (value?: string) => {
   return normalized.length <= 20 ? normalized : undefined;
 };
 
+export const normalizeMetaPlatform = (platform?: string) => {
+  const normalized = platform?.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === 'ig' || normalized === 'instagram') return 'instagram';
+  if (normalized === 'fb' || normalized === 'facebook') return 'facebook';
+  return undefined;
+};
+
+export const inferMetaPlatformFromAd = (ad: any): string | undefined => {
+  const creative = ad?.creative || {};
+  const objectStory = creative.object_story_spec || {};
+  const targetingPlatforms = ad?.adset?.targeting?.publisher_platforms;
+  if (
+    creative.instagram_actor_id ||
+    creative.effective_instagram_media_id ||
+    creative.instagram_story_id ||
+    objectStory.instagram_actor_id ||
+    (Array.isArray(targetingPlatforms) &&
+      targetingPlatforms.length === 1 &&
+      String(targetingPlatforms[0]).toLowerCase() === 'instagram')
+  ) {
+    return 'instagram';
+  }
+
+  if (
+    Array.isArray(targetingPlatforms) &&
+    targetingPlatforms.length === 1 &&
+    String(targetingPlatforms[0]).toLowerCase() === 'facebook'
+  ) {
+    return 'facebook';
+  }
+  return undefined;
+};
+
 export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
   const fields = metaLead.field_data || [];
   const values = fieldValueMap(fields);
@@ -84,6 +120,9 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
     .join('\n')
     .slice(0, 10000);
   const createdTime = metaLead.created_time ? new Date(metaLead.created_time) : undefined;
+  const source = normalizeMetaPlatform(platform) ||
+    normalizeMetaPlatform(metaLead.platform) ||
+    'facebook';
 
   return {
     clientName,
@@ -94,9 +133,7 @@ export const mapMetaLead = (metaLead: MetaLead, platform?: string) => {
       ? { from: from || dates || to || '', to: to || dates || from || '' }
       : undefined,
     budget: budget ?? 0,
-    source: platform?.toLowerCase() === 'ig' || platform?.toLowerCase() === 'instagram'
-      ? 'instagram'
-      : 'facebook',
+    source,
     inquiredAt: createdTime && Number.isFinite(createdTime.getTime()) ? createdTime.toISOString() : undefined,
     remarks: responses ? `Meta Lead Ads form responses:\n${responses}` : 'Imported from Meta Lead Ads.',
   };
@@ -160,7 +197,27 @@ const graphApiGet = async <T>(objectId: string, fields: string): Promise<T> => {
 };
 
 export const fetchMetaLeadById = (leadId: string) =>
-  graphApiGet<MetaLead>(leadId, 'id,created_time,form_id,field_data');
+  graphApiGet<MetaLead>(leadId, 'id,created_time,form_id,field_data,platform,ad_id');
+
+export const resolveMetaLeadPlatform = async (
+  metaLead: MetaLead,
+  webhookPlatform?: string
+) => {
+  const explicitPlatform = normalizeMetaPlatform(webhookPlatform) ||
+    normalizeMetaPlatform(metaLead.platform);
+  if (explicitPlatform) return explicitPlatform;
+  if (!metaLead.ad_id) return 'facebook';
+
+  try {
+    const ad = await graphApiGet<any>(
+      metaLead.ad_id,
+      'creative{effective_instagram_media_id,instagram_actor_id,instagram_story_id,object_story_spec},adset{targeting}'
+    );
+    return inferMetaPlatformFromAd(ad) || 'facebook';
+  } catch {
+    return 'facebook';
+  }
+};
 
 export const isRetryableMetaLeadError = (error: unknown) => {
   if (error instanceof MetaLeadImportError) return error.retryable;
@@ -224,14 +281,24 @@ export const importMetaLead = async (
   if (!/^\d+$/.test(leadId)) throw new MetaLeadImportError('Meta lead ID is invalid', false);
   if (formId && !/^\d+$/.test(formId)) throw new MetaLeadImportError('Meta form ID is invalid', false);
 
+  const metaLead = cachedMetaLead || await fetchMetaLeadById(leadId);
+  const resolvedPlatform = await resolveMetaLeadPlatform(metaLead, platform);
+
   const existingImport = await query(
-    'SELECT 1 FROM meta_lead_imports WHERE meta_lead_id = $1',
+    'SELECT lead_id FROM meta_lead_imports WHERE meta_lead_id = $1',
     [leadId]
   );
-  if (existingImport.rows.length > 0) return { imported: false, duplicate: true };
+  if (existingImport.rows.length > 0) {
+    if (existingImport.rows[0].lead_id) {
+      await query(
+        'UPDATE leads SET source = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        [resolvedPlatform, existingImport.rows[0].lead_id]
+      );
+    }
+    return { imported: false, duplicate: true };
+  }
 
-  const metaLead = cachedMetaLead || await fetchMetaLeadById(leadId);
-  const lead = mapMetaLead(metaLead, platform);
+  const lead = mapMetaLead(metaLead, resolvedPlatform);
   if (!lead.phone) {
     throw new MetaLeadImportError(`Meta lead ${leadId} has no valid phone number`, false);
   }
