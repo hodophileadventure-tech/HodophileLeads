@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { quoteRequestsAPI } from '../utils/api-service';
 import { QuoteInvoicePage } from './QuoteInvoicePage';
+import InvoicePage from './InvoicePage';
 import { Button, Modal } from '../components/common';
 import type { QuoteRequest } from '../types';
 
@@ -406,26 +407,37 @@ export default function AdminQuotationApprovalsPage({
 
       {/* Middle: Quotation Preview */}
       <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
-        <QuoteInvoicePage
-          key={`${selectedRequest.id}-${selectedRequest.updatedAt ?? selectedRequest.createdAt}`}
-          leadId={selectedRequest.leadId}
-          requestId={selectedRequest.id}
-          requestType={selectedRequest.requestType}
-          requestStatus={selectedRequest.status as any}
-          initialDocumentData={selectedRequest.documentData}
-          initialQuotationNumber={selectedRequest.quotationNumber}
-          viewOnly={false}
-          generatePreviewOnMount
-          embedded={true}
-          leadData={{
-            clientName: selectedRequest.leadClientName,
-            phone: selectedRequest.leadPhone,
-            destination: selectedRequest.leadDestination,
-            travelDates: selectedRequest.leadTravelDates,
-            persons: selectedRequest.leadPersons,
-            address: '',
-          }}
-        />
+        {selectedRequest.requestType === 'invoice' ? (
+          <InvoicePage
+            key={`${selectedRequest.id}-${selectedRequest.updatedAt ?? selectedRequest.createdAt}`}
+            leadId={selectedRequest.leadId}
+            requestId={selectedRequest.id}
+            requestType="invoice"
+            initialDocumentData={selectedRequest.documentData}
+            generatePreviewOnMount
+          />
+        ) : (
+          <QuoteInvoicePage
+            key={`${selectedRequest.id}-${selectedRequest.updatedAt ?? selectedRequest.createdAt}`}
+            leadId={selectedRequest.leadId}
+            requestId={selectedRequest.id}
+            requestType={selectedRequest.requestType}
+            requestStatus={selectedRequest.status as any}
+            initialDocumentData={selectedRequest.documentData}
+            initialQuotationNumber={selectedRequest.quotationNumber}
+            viewOnly={false}
+            generatePreviewOnMount
+            embedded={true}
+            leadData={{
+              clientName: selectedRequest.leadClientName,
+              phone: selectedRequest.leadPhone,
+              destination: selectedRequest.leadDestination,
+              travelDates: selectedRequest.leadTravelDates,
+              persons: selectedRequest.leadPersons,
+              address: '',
+            }}
+          />
+        )}
       </main>
 
       {/* Right: Approval Actions */}

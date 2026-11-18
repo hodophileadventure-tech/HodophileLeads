@@ -50,6 +50,7 @@ type InvoicePageProps = {
   requestType?: 'quotation' | 'invoice';
   initialDocumentData?: any;
   onSaved?: () => void;
+  viewOnly?: boolean;
 };
 
 export const InvoicePage: React.FC<InvoicePageProps> = ({
@@ -61,6 +62,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
   requestType = 'invoice',
   initialDocumentData,
   onSaved,
+  viewOnly = false,
 }) => {
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [travelDate, setTravelDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -104,9 +106,30 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
 
   useEffect(() => {
     if (!initialDocumentData) return;
+    setDate(initialDocumentData.date || new Date().toISOString().split('T')[0]);
+    setTravelDate(initialDocumentData.travelDate || new Date().toISOString().split('T')[0]);
+    setPersons(initialDocumentData.persons || '');
+    setDestination(initialDocumentData.destination || '');
+    setInvoiceNumber(initialDocumentData.invoiceNumber || defaultInvoiceNumber(initialDocumentData.date || new Date().toISOString().split('T')[0]));
+    setCustomerName(initialDocumentData.customerName || '');
+    setNumber(initialDocumentData.phone || '');
+    setCity(initialDocumentData.city || '');
+    setDiscount(initialDocumentData.discount || '');
+    setAdvance(initialDocumentData.advanceAmount || '');
+
+    if (Array.isArray(initialDocumentData.tableRows)) {
+      setRows(initialDocumentData.tableRows.map((row: any) => ({
+        id: String(row.id || crypto.randomUUID()),
+        particulars: String(row.particulars || ''),
+        persons: String(row.persons || ''),
+        price: String(row.price || ''),
+        amount: String(row.amount || ''),
+      })));
+    }
+
     const savedNotes = initialDocumentData.footerNotes;
     if (Array.isArray(savedNotes)) {
-      setFooterNotes(savedNotes.map((note, index) => {
+      setFooterNotes(savedNotes.map((note: string | FooterNote, index: number) => {
         if (typeof note === 'string') {
           return {
             text: note,
@@ -446,7 +469,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
 
   return (
     <div className="invoice-page-root">
-      <section className="invoice-form-panel">
+      {!viewOnly && <section className="invoice-form-panel">
         <h2>Invoice Form</h2>
         <div className="invoice-form-grid">
           <div>
@@ -579,7 +602,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({
             <button type="button" onClick={saveInvoice}>Save Invoice</button>
           </div>
         </div>
-      </section>
+      </section>}
 
       <section className="invoice-preview-panel" style={hidePreview ? { position: 'absolute', left: '-10000px', top: 0, opacity: 0, pointerEvents: 'none' } : undefined} aria-hidden={hidePreview ? 'true' : undefined}>
         <h2>Preview</h2>

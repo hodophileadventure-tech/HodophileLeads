@@ -8,6 +8,7 @@ import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { getKarachiLocalDateTimeString, getLeadLifecycleState, getLeadLifecycleStyle, parseKarachiDateTimeToISOString, calculateLeadDataHealth, getDataHealthColor } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
 import { QuoteInvoicePage } from '../pages/QuoteInvoicePage';
+import InvoicePage from '../pages/InvoicePage';
 
 export const AgentPanel: React.FC = () => {
   const { user } = useAuth();
@@ -768,7 +769,7 @@ export const AgentPanel: React.FC = () => {
                   )}
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="secondary" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>
+                  <Button variant="secondary" onClick={() => window.dispatchEvent(new Event(selectedRequest.requestType === 'invoice' ? 'generate-invoice-preview' : 'generate-quote-preview'))}>
                     🔄 Regenerate Preview
                   </Button>
                   {previewDataUrl && (
@@ -800,60 +801,66 @@ export const AgentPanel: React.FC = () => {
 
               {/* Quotation Details Form */}
               <div className="border rounded-lg p-6 bg-white dark:bg-slate-900 shadow-lg">
-                <h3 className="font-semibold text-xl mb-4">📋 Quotation Details</h3>
-                <QuoteInvoicePage
-                  key={selectedRequest.id}
-                  leadId={selectedRequest.leadId}
-                  requestId={selectedRequest.id}
-                  requestType={selectedRequest.requestType}
-                  requestStatus={selectedRequest.status as any}
-                  hidePreview={true}
-                  leadData={{
-                    clientName: selectedRequest.leadClientName,
-                    phone: selectedRequest.leadPhone,
-                    destination: selectedRequest.leadDestination,
-                    travelDates: selectedRequest.leadTravelDates,
-                    persons: selectedRequest.leadPersons,
-                    address: '',
-                  }}
-                  initialDocumentData={selectedRequest.documentData}
-                  initialQuotationNumber={selectedRequest.quotationNumber}
-                  viewOnly={true}
-                  generatePreviewOnMount
-                  onPreviewGenerated={async (dataUrl) => {
-                    try {
-                      if (!dataUrl) {
-                        setPreviewDataUrl(null);
-                        return;
-                      }
-
-                      try {
-                        const prev = previewDataUrl;
-                        if (prev && prev.startsWith('blob:')) {
-                          URL.revokeObjectURL(prev);
-                        }
-                      } catch (e) {
-                        // ignore
-                      }
-
-                      setPreviewDataUrl(dataUrl);
-                    } catch (err) {
-                      console.error('Failed to set preview data URL:', err);
-                      setPreviewDataUrl(null);
-                    }
-                  }}
-                />
+                <h3 className="font-semibold text-xl mb-4">
+                  {selectedRequest.requestType === 'invoice' ? '📋 Invoice Details' : '📋 Quotation Details'}
+                </h3>
+                {selectedRequest.requestType === 'invoice' ? (
+                  <InvoicePage
+                    key={selectedRequest.id}
+                    leadId={selectedRequest.leadId}
+                    requestId={selectedRequest.id}
+                    requestType="invoice"
+                    hidePreview={true}
+                    viewOnly
+                    initialDocumentData={selectedRequest.documentData}
+                    generatePreviewOnMount
+                    onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl || null)}
+                  />
+                ) : (
+                  <QuoteInvoicePage
+                    key={selectedRequest.id}
+                    leadId={selectedRequest.leadId}
+                    requestId={selectedRequest.id}
+                    requestType={selectedRequest.requestType}
+                    requestStatus={selectedRequest.status as any}
+                    hidePreview={true}
+                    leadData={{
+                      clientName: selectedRequest.leadClientName,
+                      phone: selectedRequest.leadPhone,
+                      destination: selectedRequest.leadDestination,
+                      travelDates: selectedRequest.leadTravelDates,
+                      persons: selectedRequest.leadPersons,
+                      address: '',
+                    }}
+                    initialDocumentData={selectedRequest.documentData}
+                    initialQuotationNumber={selectedRequest.quotationNumber}
+                    viewOnly={true}
+                    generatePreviewOnMount
+                    onPreviewGenerated={(dataUrl) => setPreviewDataUrl(dataUrl || null)}
+                  />
+                )}
               </div>
             </div>
           ) : (
-            <QuoteInvoicePage
-              leadId={selectedRequest.leadId}
-              requestId={selectedRequest.id}
-              requestType={selectedRequest.requestType}
-              requestStatus={selectedRequest.status as any}
-              initialDocumentData={selectedRequest.documentData}
-              viewOnly={user?.role !== 'admin'}
-            />
+            selectedRequest.requestType === 'invoice' ? (
+              <InvoicePage
+                leadId={selectedRequest.leadId}
+                requestId={selectedRequest.id}
+                requestType="invoice"
+                initialDocumentData={selectedRequest.documentData}
+                viewOnly
+                generatePreviewOnMount
+              />
+            ) : (
+              <QuoteInvoicePage
+                leadId={selectedRequest.leadId}
+                requestId={selectedRequest.id}
+                requestType={selectedRequest.requestType}
+                requestStatus={selectedRequest.status as any}
+                initialDocumentData={selectedRequest.documentData}
+                viewOnly={user?.role !== 'admin'}
+              />
+            )
           )}
         </section>
       )}

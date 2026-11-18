@@ -809,19 +809,33 @@ export const App: React.FC = () => {
                       </aside>
 
                       <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0">
-                        <QuoteInvoicePage
-                          key={selectedQuoteRequest.id}
-                          leadId={selectedQuoteRequest.leadId}
-                          requestId={selectedQuoteRequest.id}
-                          requestType={selectedQuoteRequest.requestType}
-                          requestStatus={selectedQuoteRequest.status as any}
-                          initialDocumentData={selectedQuoteRequest.documentData}
-                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                          viewOnly={true}
-                          generatePreviewOnMount
-                          onPreviewGenerated={handlePreviewGenerated}
-                          hidePreview={true}
-                        />
+                        {selectedQuoteRequest.requestType === 'invoice' ? (
+                          <InvoicePage
+                            key={selectedQuoteRequest.id}
+                            leadId={selectedQuoteRequest.leadId}
+                            requestId={selectedQuoteRequest.id}
+                            requestType="invoice"
+                            initialDocumentData={selectedQuoteRequest.documentData}
+                            viewOnly
+                            generatePreviewOnMount
+                            onPreviewGenerated={handlePreviewGenerated}
+                            hidePreview
+                          />
+                        ) : (
+                          <QuoteInvoicePage
+                            key={selectedQuoteRequest.id}
+                            leadId={selectedQuoteRequest.leadId}
+                            requestId={selectedQuoteRequest.id}
+                            requestType={selectedQuoteRequest.requestType}
+                            requestStatus={selectedQuoteRequest.status as any}
+                            initialDocumentData={selectedQuoteRequest.documentData}
+                            initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                            viewOnly={true}
+                            generatePreviewOnMount
+                            onPreviewGenerated={handlePreviewGenerated}
+                            hidePreview={true}
+                          />
+                        )}
                       </main>
 
                       <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0">
@@ -1041,26 +1055,44 @@ export const App: React.FC = () => {
 
                       {/* Middle: Quotation Form */}
                       <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
-                        <QuoteInvoicePage
-                          key={selectedQuoteRequest.id}
-                          leadId={selectedQuoteRequest.leadId}
-                          embedded={true}
-                          leadData={memoizedManagerQuotationLeadData}
-                          requestId={selectedQuoteRequest.id}
-                          requestType={selectedQuoteRequest.requestType}
-                          requestStatus={selectedQuoteRequest.status as any}
-                          initialDocumentData={selectedQuoteRequest.documentData}
-                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                          onSaved={() => {
-                            setSelectedQuoteRequest(null);
-                            setCurrentPage('pending-quotes');
-                          }}
-                          onClose={() => setSelectedQuoteRequest(null)}
-                          viewOnly={user?.role === 'agent'}
-                          generatePreviewOnMount
-                          onPreviewGenerated={handlePreviewGenerated}
-                          hidePreview={true}
-                        />
+                        {selectedQuoteRequest.requestType === 'invoice' ? (
+                          <InvoicePage
+                            key={selectedQuoteRequest.id}
+                            leadId={selectedQuoteRequest.leadId}
+                            requestId={selectedQuoteRequest.id}
+                            requestType="invoice"
+                            initialDocumentData={selectedQuoteRequest.documentData}
+                            viewOnly={user?.role === 'agent'}
+                            onSaved={() => {
+                              setSelectedQuoteRequest(null);
+                              setCurrentPage('pending-quotes');
+                            }}
+                            generatePreviewOnMount
+                            onPreviewGenerated={handlePreviewGenerated}
+                            hidePreview
+                          />
+                        ) : (
+                          <QuoteInvoicePage
+                            key={selectedQuoteRequest.id}
+                            leadId={selectedQuoteRequest.leadId}
+                            embedded={true}
+                            leadData={memoizedManagerQuotationLeadData}
+                            requestId={selectedQuoteRequest.id}
+                            requestType={selectedQuoteRequest.requestType}
+                            requestStatus={selectedQuoteRequest.status as any}
+                            initialDocumentData={selectedQuoteRequest.documentData}
+                            initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                            onSaved={() => {
+                              setSelectedQuoteRequest(null);
+                              setCurrentPage('pending-quotes');
+                            }}
+                            onClose={() => setSelectedQuoteRequest(null)}
+                            viewOnly={user?.role === 'agent'}
+                            generatePreviewOnMount
+                            onPreviewGenerated={handlePreviewGenerated}
+                            hidePreview={true}
+                          />
+                        )}
                       </main>
 
                       {/* Right: Preview */}
@@ -1475,26 +1507,43 @@ export const App: React.FC = () => {
                       {/* Middle: Quotation Form */}
                       <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0 overflow-hidden flex flex-col" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%', maxHeight: 'calc(100vh - 8rem)' }}>
                         <div className="flex-1 overflow-y-auto pr-2">
-                          <QuoteInvoicePage
-                            key={selectedQuoteRequest.id}
-                            leadId={selectedQuoteRequest.leadId}
-                            embedded={true}
-                            leadData={memoizedManagerQuotationLeadData}
-                            requestId={selectedQuoteRequest.id}
-                            requestType={selectedQuoteRequest.requestType}
-                            requestStatus={selectedQuoteRequest.status as any}
-                            initialDocumentData={selectedQuoteRequest.documentData}
-                            initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                            onSaved={() => {
-                              setSelectedQuoteRequest(null);
-                              setCurrentPage('manager-quotations');
-                            }}
-                            onClose={() => setSelectedQuoteRequest(null)}
-                            viewOnly={false}
-                            generatePreviewOnMount
-                            onPreviewGenerated={handlePreviewGenerated}
-                            hidePreview={true}
-                          />
+                          {selectedQuoteRequest.requestType === 'invoice' ? (
+                            <InvoicePage
+                              key={selectedQuoteRequest.id}
+                              leadId={selectedQuoteRequest.leadId}
+                              requestId={selectedQuoteRequest.id}
+                              requestType="invoice"
+                              initialDocumentData={selectedQuoteRequest.documentData}
+                              onSaved={() => {
+                                setSelectedQuoteRequest(null);
+                                setCurrentPage('manager-quotations');
+                              }}
+                              generatePreviewOnMount
+                              onPreviewGenerated={handlePreviewGenerated}
+                              hidePreview
+                            />
+                          ) : (
+                            <QuoteInvoicePage
+                              key={selectedQuoteRequest.id}
+                              leadId={selectedQuoteRequest.leadId}
+                              embedded={true}
+                              leadData={memoizedManagerQuotationLeadData}
+                              requestId={selectedQuoteRequest.id}
+                              requestType={selectedQuoteRequest.requestType}
+                              requestStatus={selectedQuoteRequest.status as any}
+                              initialDocumentData={selectedQuoteRequest.documentData}
+                              initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                              onSaved={() => {
+                                setSelectedQuoteRequest(null);
+                                setCurrentPage('manager-quotations');
+                              }}
+                              onClose={() => setSelectedQuoteRequest(null)}
+                              viewOnly={false}
+                              generatePreviewOnMount
+                              onPreviewGenerated={handlePreviewGenerated}
+                              hidePreview={true}
+                            />
+                          )}
                         </div>
                       </main>
 
