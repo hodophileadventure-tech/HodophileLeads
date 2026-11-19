@@ -31,7 +31,6 @@ import { startScreenCaptureCleanup } from './utils/screenCaptureCleanup';
 import { startMonthlyPayrollWorker } from './workers/monthlyPayrollWorker';
 import { metaWebhooksRouter } from './routes/meta-webhooks';
 import { startMetaLeadWorker } from './workers/metaLeadWorker';
-import { whatsappRouter } from './routes/whatsapp';
 
 dotenv.config();
 
@@ -84,7 +83,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use('/api/integrations/meta', metaWebhooksRouter);
-app.use('/api/integrations/whatsapp', whatsappRouter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

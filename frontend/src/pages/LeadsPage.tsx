@@ -6,7 +6,6 @@ import ConfirmedLeadForm from '../components/ConfirmedLeadForm';
 import { KanbanPipeline } from '../components/KanbanPipeline';
 import { LeadList } from '../components/LeadCard';
 import PaymentsPanel from '../components/PaymentsPanel';
-import { WhatsAppChatPanel } from '../components/WhatsAppChatPanel';
 import type { Lead, FollowUp, PipelineStage } from '../types';
 import { 
   formatKarachiDateTime, 
@@ -681,11 +680,6 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({
                   </div>
                 </div>
               </div>
-
-              <WhatsAppChatPanel
-                leadId={String(selectedLead.id)}
-                leadName={selectedLead.clientName}
-              />
 
               <div className="space-y-4">
                 <div>
