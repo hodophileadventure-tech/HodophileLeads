@@ -106,6 +106,7 @@ export const App: React.FC = () => {
   }, [selectedLead?.id]);
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [activeTaskDeadlineAlarm, setActiveTaskDeadlineAlarm] = useState<any | null>(null);
+  const [dismissedAlarmIds, setDismissedAlarmIds] = useState<Set<string>>(() => new Set());
   const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
   const [completionActionPlan, setCompletionActionPlan] = useState('');
   const [completionRemarks, setCompletionRemarks] = useState('');
@@ -209,6 +210,17 @@ export const App: React.FC = () => {
     } catch (error) {
       console.warn('Alarm audio prime failed', error);
     }
+  };
+
+  const dismissFollowUp = (item: FollowUp | null) => {
+    if (!item) return;
+    stopAlarmAudio();
+    setDismissedAlarmIds((current) => {
+      const next = new Set(current);
+      next.add(String(item.id));
+      return next;
+    });
+    setActiveAlarm(null);
   };
 
   const dismissTaskDeadlineAlarm = async () => {
@@ -348,6 +360,7 @@ export const App: React.FC = () => {
         const soonest = (response.data || [])
           .map(normalizeFollowUp)
           .filter((item) => item.id !== completionFollowUp?.id)
+          .filter((item) => !dismissedAlarmIds.has(String(item.id)))
           .filter((item) => item.status !== 'completed' && item.status !== 'canceled')
           .filter((item) => shouldTriggerFollowUpAlarm(item.dueDate, now))
           .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
@@ -371,7 +384,7 @@ export const App: React.FC = () => {
       mounted = false;
       window.clearInterval(timer);
     };
-  }, [activeAlarm, completionFollowUp, followUps, user?.role]);
+  }, [activeAlarm, completionFollowUp, dismissedAlarmIds, followUps, user?.role]);
 
   useEffect(() => {
     if (!user || !Array.isArray(notifications)) return;
@@ -400,6 +413,7 @@ export const App: React.FC = () => {
       const dueAt = new Date(item.dueDate).getTime();
       if (Number.isNaN(dueAt)) return;
       if (item.status !== 'completed' && item.status !== 'canceled' &&
+          !dismissedAlarmIds.has(String(item.id)) &&
           shouldTriggerFollowUpAlarm(item.dueDate, Date.now())) {
         setActiveAlarm(item);
       }
@@ -407,7 +421,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('followup-due', handleFollowupDue as EventListener);
     return () => window.removeEventListener('followup-due', handleFollowupDue as EventListener);
-  }, [user?.role]);
+  }, [dismissedAlarmIds, user?.role]);
 
   useEffect(() => {
     const handleUnlock = () => primeAlarmAudio();
@@ -1619,6 +1633,9 @@ export const App: React.FC = () => {
                       <Button variant="primary" onClick={() => { void completeActiveFollowUp(activeAlarm); }}>
                         Mark Complete
                       </Button>
+                      <Button variant="secondary" onClick={() => dismissFollowUp(activeAlarm)}>
+                        Dismiss
+                      </Button>
                       <Button 
                         variant="secondary" 
                         onClick={() => useUIStore.setState({ isCRMMuted: !isCRMMuted })}
@@ -1631,7 +1648,7 @@ export const App: React.FC = () => {
                   <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-200">
                     {isCRMMuted 
                       ? '🔇 CRM is muted - no alerts will sound until you unmute.'
-                      : 'Alarm sound will keep playing until you mark the follow up complete.'}
+                      : 'Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.'}
                   </div>
                 </div>
               </div>
