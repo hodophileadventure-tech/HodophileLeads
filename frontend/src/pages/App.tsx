@@ -32,31 +32,11 @@ import { TripExpensesPanel } from '../components/TripExpensesPanel';
 import type { Lead, FollowUp, QuoteRequest } from '../types';
 import { formatKarachiDateTime } from '../utils/helpers';
 import { normalizeFollowUp } from '../utils/followup-utils';
-import { FOLLOW_UP_ALARM_SNOOZE_MS, shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
-import { isCreativeRole as isCreativeRoleSlug, normalizeRoleSlug } from '../utils/role-utils';
+import { shouldTriggerFollowUpAlarm } from '../utils/followupAlarm';
 
 type Page = 'dashboard' | 'leads' | 'followups' | 'analytics' | 'agent' | 'quoteinvoice' | 'pending-quotes' | 'pending-invoices' | 'quotation-approvals' | 'report-issue' | 'daily-reports' | 'dev-panel' | 'manager-quotations' | 'hotels' | 'itineraries' | 'quick-summary' | 'lead-transfer' | 'created-quotations' | 'admin-users' | 'admin-dashboard' | 'git-history' | 'tasks' | 'attendance' | 'trip-expenses';
 
  
-
-const DISMISSED_FOLLOW_UPS_KEY = 'dismissedFollowUps';
-
-const readDismissedFollowUps = (): Record<string, number> => {
-  try {
-    const raw = localStorage.getItem(DISMISSED_FOLLOW_UPS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const writeDismissedFollowUps = (items: Record<string, number>) => {
-  try {
-    localStorage.setItem(DISMISSED_FOLLOW_UPS_KEY, JSON.stringify(items));
-  } catch {
-    // ignore storage errors
-  }
-};
 
 export const App: React.FC = () => {
   const { user } = useAuth();
@@ -126,7 +106,6 @@ export const App: React.FC = () => {
   }, [selectedLead?.id]);
   const [activeAlarm, setActiveAlarm] = useState<FollowUp | null>(null);
   const [activeTaskDeadlineAlarm, setActiveTaskDeadlineAlarm] = useState<any | null>(null);
-  const [dismissedFollowUps, setDismissedFollowUps] = useState<Record<string, number>>(() => readDismissedFollowUps());
   const [completionFollowUp, setCompletionFollowUp] = useState<FollowUp | null>(null);
   const [completionActionPlan, setCompletionActionPlan] = useState('');
   const [completionRemarks, setCompletionRemarks] = useState('');
@@ -232,15 +211,6 @@ export const App: React.FC = () => {
     }
   };
 
-  const dismissFollowUp = (item: FollowUp | null) => {
-    if (!item) return;
-    const next = { ...readDismissedFollowUps(), [item.id]: Date.now() + FOLLOW_UP_ALARM_SNOOZE_MS };
-    setDismissedFollowUps(next);
-    writeDismissedFollowUps(next);
-    stopAlarmAudio();
-    setActiveAlarm(null);
-  };
-
   const dismissTaskDeadlineAlarm = async () => {
     if (!activeTaskDeadlineAlarm) return;
     stopAlarmAudio();
@@ -254,7 +224,8 @@ export const App: React.FC = () => {
 
   const completeActiveFollowUp = async (item: FollowUp | null) => {
     if (!item) return;
-    dismissFollowUp(item);
+    stopAlarmAudio();
+    setActiveAlarm(null);
     setCompletionFollowUp(item);
     setCompletionActionPlan(item.actionPlan || '');
     setCompletionRemarks(item.completionNotes || '');
@@ -270,10 +241,6 @@ export const App: React.FC = () => {
       }
       await followUpsAPI.complete(completionFollowUp.id, completionRemarks);
 
-      const next = { ...readDismissedFollowUps() };
-      delete next[completionFollowUp.id];
-      setDismissedFollowUps(next);
-      writeDismissedFollowUps(next);
       setFollowUps(followUps.map((item) => item.id === completionFollowUp.id
         ? { ...item, status: 'completed', actionPlan: completionActionPlan.trim(), completionNotes: completionRemarks }
         : item));
@@ -335,14 +302,6 @@ export const App: React.FC = () => {
       return;
     }
 
-    if (isCreativeRoleSlug(user.role)) {
-      setLeads([]);
-      setFollowUps([]);
-      setLeadCounts({});
-      setLoading(false);
-      return;
-    }
-
     const fetchLeads = async () => {
       try {
         const [response, countsResponse] = await Promise.all([
@@ -370,7 +329,7 @@ export const App: React.FC = () => {
     };
 
     fetchLeads();
-  }, [user, setFollowUps, setLeads]);
+  }, [user, setLeads]);
 
 
 
@@ -390,7 +349,7 @@ export const App: React.FC = () => {
           .map(normalizeFollowUp)
           .filter((item) => item.id !== completionFollowUp?.id)
           .filter((item) => item.status !== 'completed' && item.status !== 'canceled')
-          .filter((item) => shouldTriggerFollowUpAlarm(item.dueDate, now, dismissedFollowUps[item.id] || 0))
+          .filter((item) => shouldTriggerFollowUpAlarm(item.dueDate, now))
           .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0] || null;
 
         if (soonest && (!activeAlarm || activeAlarm.id !== soonest.id)) {
@@ -412,7 +371,7 @@ export const App: React.FC = () => {
       mounted = false;
       window.clearInterval(timer);
     };
-  }, [activeAlarm, completionFollowUp, dismissedFollowUps, followUps, user?.role]);
+  }, [activeAlarm, completionFollowUp, followUps, user?.role]);
 
   useEffect(() => {
     if (!user || !Array.isArray(notifications)) return;
@@ -441,14 +400,14 @@ export const App: React.FC = () => {
       const dueAt = new Date(item.dueDate).getTime();
       if (Number.isNaN(dueAt)) return;
       if (item.status !== 'completed' && item.status !== 'canceled' &&
-          shouldTriggerFollowUpAlarm(item.dueDate, Date.now(), dismissedFollowUps[item.id] || 0)) {
+          shouldTriggerFollowUpAlarm(item.dueDate, Date.now())) {
         setActiveAlarm(item);
       }
     };
 
     window.addEventListener('followup-due', handleFollowupDue as EventListener);
     return () => window.removeEventListener('followup-due', handleFollowupDue as EventListener);
-  }, [dismissedFollowUps, user?.role]);
+  }, [user?.role]);
 
   useEffect(() => {
     const handleUnlock = () => primeAlarmAudio();
@@ -527,12 +486,12 @@ export const App: React.FC = () => {
     return leads.find((lead) => String(lead.id) === String(activeAlarm.leadId)) || null;
   }, [activeAlarm, leads]);
 
-  const normalizedRole = normalizeRoleSlug(user?.role);
-  const isCreative = isCreativeRoleSlug(normalizedRole);
+  const normalizedRole = String(user?.role || '').toLowerCase().replace(/\s+/g, '_');
+  const isCreativeRole = ['content_creator', 'video_editor'].includes(normalizedRole);
   const isTaskAssignee = ['agent', 'software_engineer'].includes(normalizedRole);
   const isAdminLike = normalizedRole === 'admin' || normalizedRole === 'qa' || normalizedRole === 'quality_assurance';
 
-  const navItems = isCreative
+  const navItems = isCreativeRole
     ? [
         { label: 'Workspace', href: 'dashboard', icon: '🎬' },
         { label: 'My Tasks', href: 'dashboard', icon: '✅' },
@@ -674,7 +633,7 @@ export const App: React.FC = () => {
             )}
             {currentPage === 'dashboard' && (
               <div className="space-y-6">
-                {isCreative ? (
+                {isCreativeRole ? (
                   <CreativeWorkPanel />
                 ) : (
                   <>
@@ -753,7 +712,7 @@ export const App: React.FC = () => {
               <GitHistoryPanel />
             )}
 
-            {currentPage === 'leads' && !isCreative && (
+            {currentPage === 'leads' && (
               <LeadsPage
                 leads={leads}
                 leadCounts={leadCounts}
@@ -764,7 +723,7 @@ export const App: React.FC = () => {
               />
             )}
 
-            {currentPage === 'agent' && !isCreative && (
+            {currentPage === 'agent' && (
               <div className="space-y-6">
                 <div className="premium-page-header">
                   <p>🧭 Agent Hub</p>
@@ -809,33 +768,19 @@ export const App: React.FC = () => {
                       </aside>
 
                       <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0">
-                        {selectedQuoteRequest.requestType === 'invoice' ? (
-                          <InvoicePage
-                            key={selectedQuoteRequest.id}
-                            leadId={selectedQuoteRequest.leadId}
-                            requestId={selectedQuoteRequest.id}
-                            requestType="invoice"
-                            initialDocumentData={selectedQuoteRequest.documentData}
-                            viewOnly
-                            generatePreviewOnMount
-                            onPreviewGenerated={handlePreviewGenerated}
-                            hidePreview
-                          />
-                        ) : (
-                          <QuoteInvoicePage
-                            key={selectedQuoteRequest.id}
-                            leadId={selectedQuoteRequest.leadId}
-                            requestId={selectedQuoteRequest.id}
-                            requestType={selectedQuoteRequest.requestType}
-                            requestStatus={selectedQuoteRequest.status as any}
-                            initialDocumentData={selectedQuoteRequest.documentData}
-                            initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                            viewOnly={true}
-                            generatePreviewOnMount
-                            onPreviewGenerated={handlePreviewGenerated}
-                            hidePreview={true}
-                          />
-                        )}
+                        <QuoteInvoicePage
+                          key={selectedQuoteRequest.id}
+                          leadId={selectedQuoteRequest.leadId}
+                          requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
+                          requestStatus={selectedQuoteRequest.status as any}
+                          initialDocumentData={selectedQuoteRequest.documentData}
+                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                          viewOnly={true}
+                          generatePreviewOnMount
+                          onPreviewGenerated={handlePreviewGenerated}
+                          hidePreview={true}
+                        />
                       </main>
 
                       <aside className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 flex flex-col overflow-hidden min-w-0">
@@ -848,7 +793,7 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-col gap-2">
-                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event(selectedQuoteRequest.requestType === 'invoice' ? 'generate-invoice-preview' : 'generate-quote-preview'))}>Regenerate</button>
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
                           {previewDataUrl && (
                             <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                           )}
@@ -875,7 +820,7 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {currentPage === 'followups' && !isCreative && (
+            {currentPage === 'followups' && (
               <div className="space-y-6">
                 <div className="premium-page-header">
                   <p>✅ Task Management</p>
@@ -1055,44 +1000,26 @@ export const App: React.FC = () => {
 
                       {/* Middle: Quotation Form */}
                       <main className="col-span-1 overflow-y-auto border rounded bg-white dark:bg-slate-800 p-4 min-w-0" style={{ minWidth: 0 }}>
-                        {selectedQuoteRequest.requestType === 'invoice' ? (
-                          <InvoicePage
-                            key={selectedQuoteRequest.id}
-                            leadId={selectedQuoteRequest.leadId}
-                            requestId={selectedQuoteRequest.id}
-                            requestType="invoice"
-                            initialDocumentData={selectedQuoteRequest.documentData}
-                            viewOnly={user?.role === 'agent'}
-                            onSaved={() => {
-                              setSelectedQuoteRequest(null);
-                              setCurrentPage('pending-quotes');
-                            }}
-                            generatePreviewOnMount
-                            onPreviewGenerated={handlePreviewGenerated}
-                            hidePreview
-                          />
-                        ) : (
-                          <QuoteInvoicePage
-                            key={selectedQuoteRequest.id}
-                            leadId={selectedQuoteRequest.leadId}
-                            embedded={true}
-                            leadData={memoizedManagerQuotationLeadData}
-                            requestId={selectedQuoteRequest.id}
-                            requestType={selectedQuoteRequest.requestType}
-                            requestStatus={selectedQuoteRequest.status as any}
-                            initialDocumentData={selectedQuoteRequest.documentData}
-                            initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                            onSaved={() => {
-                              setSelectedQuoteRequest(null);
-                              setCurrentPage('pending-quotes');
-                            }}
-                            onClose={() => setSelectedQuoteRequest(null)}
-                            viewOnly={user?.role === 'agent'}
-                            generatePreviewOnMount
-                            onPreviewGenerated={handlePreviewGenerated}
-                            hidePreview={true}
-                          />
-                        )}
+                        <QuoteInvoicePage
+                          key={selectedQuoteRequest.id}
+                          leadId={selectedQuoteRequest.leadId}
+                          embedded={true}
+                          leadData={memoizedManagerQuotationLeadData}
+                          requestId={selectedQuoteRequest.id}
+                          requestType={selectedQuoteRequest.requestType}
+                          requestStatus={selectedQuoteRequest.status as any}
+                          initialDocumentData={selectedQuoteRequest.documentData}
+                          initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                          onSaved={() => {
+                            setSelectedQuoteRequest(null);
+                            setCurrentPage('pending-quotes');
+                          }}
+                          onClose={() => setSelectedQuoteRequest(null)}
+                          viewOnly={user?.role === 'agent'}
+                          generatePreviewOnMount
+                          onPreviewGenerated={handlePreviewGenerated}
+                          hidePreview={true}
+                        />
                       </main>
 
                       {/* Right: Preview */}
@@ -1111,7 +1038,7 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-col gap-2 flex-shrink-0">
-                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event(selectedQuoteRequest.requestType === 'invoice' ? 'generate-invoice-preview' : 'generate-quote-preview'))}>Regenerate</button>
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
                           {previewDataUrl && (
                             <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                           )}
@@ -1507,43 +1434,26 @@ export const App: React.FC = () => {
                       {/* Middle: Quotation Form */}
                       <main className="col-span-1 border rounded bg-white dark:bg-slate-800 p-4 min-w-0 overflow-hidden flex flex-col" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%', maxHeight: 'calc(100vh - 8rem)' }}>
                         <div className="flex-1 overflow-y-auto pr-2">
-                          {selectedQuoteRequest.requestType === 'invoice' ? (
-                            <InvoicePage
-                              key={selectedQuoteRequest.id}
-                              leadId={selectedQuoteRequest.leadId}
-                              requestId={selectedQuoteRequest.id}
-                              requestType="invoice"
-                              initialDocumentData={selectedQuoteRequest.documentData}
-                              onSaved={() => {
-                                setSelectedQuoteRequest(null);
-                                setCurrentPage('manager-quotations');
-                              }}
-                              generatePreviewOnMount
-                              onPreviewGenerated={handlePreviewGenerated}
-                              hidePreview
-                            />
-                          ) : (
-                            <QuoteInvoicePage
-                              key={selectedQuoteRequest.id}
-                              leadId={selectedQuoteRequest.leadId}
-                              embedded={true}
-                              leadData={memoizedManagerQuotationLeadData}
-                              requestId={selectedQuoteRequest.id}
-                              requestType={selectedQuoteRequest.requestType}
-                              requestStatus={selectedQuoteRequest.status as any}
-                              initialDocumentData={selectedQuoteRequest.documentData}
-                              initialQuotationNumber={selectedQuoteRequest.quotationNumber}
-                              onSaved={() => {
-                                setSelectedQuoteRequest(null);
-                                setCurrentPage('manager-quotations');
-                              }}
-                              onClose={() => setSelectedQuoteRequest(null)}
-                              viewOnly={false}
-                              generatePreviewOnMount
-                              onPreviewGenerated={handlePreviewGenerated}
-                              hidePreview={true}
-                            />
-                          )}
+                          <QuoteInvoicePage
+                            key={selectedQuoteRequest.id}
+                            leadId={selectedQuoteRequest.leadId}
+                            embedded={true}
+                            leadData={memoizedManagerQuotationLeadData}
+                            requestId={selectedQuoteRequest.id}
+                            requestType={selectedQuoteRequest.requestType}
+                            requestStatus={selectedQuoteRequest.status as any}
+                            initialDocumentData={selectedQuoteRequest.documentData}
+                            initialQuotationNumber={selectedQuoteRequest.quotationNumber}
+                            onSaved={() => {
+                              setSelectedQuoteRequest(null);
+                              setCurrentPage('manager-quotations');
+                            }}
+                            onClose={() => setSelectedQuoteRequest(null)}
+                            viewOnly={false}
+                            generatePreviewOnMount
+                            onPreviewGenerated={handlePreviewGenerated}
+                            hidePreview={true}
+                          />
                         </div>
                       </main>
 
@@ -1563,7 +1473,7 @@ export const App: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-col gap-2 flex-shrink-0">
-                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event(selectedQuoteRequest.requestType === 'invoice' ? 'generate-invoice-preview' : 'generate-quote-preview'))}>Regenerate</button>
+                          <button className="btn-secondary text-sm py-2 px-3" onClick={() => window.dispatchEvent(new Event('generate-quote-preview'))}>Regenerate</button>
                           {previewDataUrl && (
                             <a className="btn-primary text-center text-sm py-2 px-3 rounded" href={previewDataUrl} download={`${selectedQuoteRequest.requestType || 'quotation'}-preview.jpeg`}>Download JPEG</a>
                           )}
@@ -1709,9 +1619,6 @@ export const App: React.FC = () => {
                       <Button variant="primary" onClick={() => { void completeActiveFollowUp(activeAlarm); }}>
                         Mark Complete
                       </Button>
-                      <Button variant="secondary" onClick={() => dismissFollowUp(activeAlarm)}>
-                        Dismiss
-                      </Button>
                       <Button 
                         variant="secondary" 
                         onClick={() => useUIStore.setState({ isCRMMuted: !isCRMMuted })}
@@ -1724,7 +1631,7 @@ export const App: React.FC = () => {
                   <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-200">
                     {isCRMMuted 
                       ? '🔇 CRM is muted - no alerts will sound until you unmute.'
-                      : 'Alarm sound will keep playing until you dismiss this alert or mark the follow up complete.'}
+                      : 'Alarm sound will keep playing until you mark the follow up complete.'}
                   </div>
                 </div>
               </div>
@@ -1770,7 +1677,8 @@ export const App: React.FC = () => {
                       variant="secondary"
                       disabled={savingFollowUpCompletion}
                       onClick={() => {
-                        dismissFollowUp(completionFollowUp);
+                        stopAlarmAudio();
+                        setActiveAlarm(null);
                         setCompletionFollowUp(null);
                         setCompletionActionPlan('');
                         setCompletionRemarks('');
